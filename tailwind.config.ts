@@ -64,6 +64,9 @@ export default {
 				'status-pending': 'hsl(var(--status-pending-bg))',
 				'status-progress': 'hsl(var(--status-progress-bg))',
 				'status-completed': 'hsl(var(--status-completed-bg))',
+				'status-pending-column': 'hsl(var(--status-pending-column))',
+				'status-progress-column': 'hsl(var(--status-progress-column))',
+				'status-completed-column': 'hsl(var(--status-completed-column))',
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',

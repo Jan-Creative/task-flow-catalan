@@ -91,6 +91,20 @@ const TodayPage = ({ onEditTask }: TodayPageProps) => {
     return todayTasks.filter(task => task.status === status);
   };
 
+  // Function to get column background class based on status
+  const getColumnBackgroundClass = (columnId: string) => {
+    switch (columnId) {
+      case "pendent":
+        return "bg-status-pending-column";
+      case "en_proces":
+        return "bg-status-progress-column";
+      case "completat":
+        return "bg-status-completed-column";
+      default:
+        return "bg-card/40";
+    }
+  };
+
   const statusColumns = [
     { id: "pendent", label: "Pendent", tasks: getStatusTasks("pendent") },
     { id: "en_proces", label: "En procés", tasks: getStatusTasks("en_proces") },
@@ -216,7 +230,7 @@ const TodayPage = ({ onEditTask }: TodayPageProps) => {
           {viewMode === "kanban" && (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 w-full">
               {statusColumns.map((column) => (
-                <div key={column.id} className="bg-card/40 backdrop-blur-glass rounded-2xl p-4 border border-border/20">
+                <div key={column.id} className={`${getColumnBackgroundClass(column.id)} backdrop-blur-glass rounded-2xl p-4 border border-border/20`}>
                   <div className="pb-3">
                     <div className="text-sm font-medium flex items-center justify-between">
                       <span>{column.label}</span>
