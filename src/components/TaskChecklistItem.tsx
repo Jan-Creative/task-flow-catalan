@@ -50,9 +50,9 @@ const TaskChecklistItem = ({ task, onStatusChange, onEdit, onDelete, viewMode = 
     if (viewMode !== "kanban") return "";
     
     switch (status) {
-      case 'pendent': return 'bg-[hsl(var(--status-pending-bg))]';
-      case 'en_proces': return 'bg-[hsl(var(--status-progress-bg))]';
-      case 'completat': return 'bg-[hsl(var(--status-completed-bg))]';
+      case 'pendent': return 'bg-status-pending';
+      case 'en_proces': return 'bg-status-progress';
+      case 'completat': return 'bg-status-completed';
     }
   };
 
