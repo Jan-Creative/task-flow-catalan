@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import TaskCard from "@/components/TaskCard";
+import TaskChecklistItem from "@/components/TaskChecklistItem";
 import { useTasks } from "@/hooks/useTasks";
 import { List, LayoutGrid, SlidersHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -136,15 +136,19 @@ const TodayPage = ({ onEditTask }: TodayPageProps) => {
       ) : (
         <>
           {viewMode === "list" && (
-            <div className="space-y-3">
-              {todayTasks.map((task) => (
-                <TaskCard
-                  key={task.id}
-                  task={task}
-                  onStatusChange={updateTaskStatus}
-                  onEdit={onEditTask}
-                  onDelete={deleteTask}
-                />
+            <div className="bg-card/60 backdrop-blur-glass border border-border/50 rounded-2xl p-4 space-y-1">
+              {todayTasks.map((task, index) => (
+                <div key={task.id}>
+                  <TaskChecklistItem
+                    task={task}
+                    onStatusChange={updateTaskStatus}
+                    onEdit={onEditTask}
+                    onDelete={deleteTask}
+                  />
+                  {index < todayTasks.length - 1 && (
+                    <div className="border-b border-border/30 mx-4" />
+                  )}
+                </div>
               ))}
             </div>
           )}
@@ -161,15 +165,19 @@ const TodayPage = ({ onEditTask }: TodayPageProps) => {
                       </Badge>
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-3">
-                    {column.tasks.map((task) => (
-                      <TaskCard
-                        key={task.id}
-                        task={task}
-                        onStatusChange={updateTaskStatus}
-                        onEdit={onEditTask}
-                        onDelete={deleteTask}
-                      />
+                  <CardContent className="space-y-1 p-3">
+                    {column.tasks.map((task, index) => (
+                      <div key={task.id}>
+                        <TaskChecklistItem
+                          task={task}
+                          onStatusChange={updateTaskStatus}
+                          onEdit={onEditTask}
+                          onDelete={deleteTask}
+                        />
+                        {index < column.tasks.length - 1 && (
+                          <div className="border-b border-border/30 mx-2 my-1" />
+                        )}
+                      </div>
                     ))}
                     {column.tasks.length === 0 && (
                       <div className="text-center py-8 text-muted-foreground text-sm">
