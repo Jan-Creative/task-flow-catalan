@@ -33,6 +33,9 @@ const CreateTaskDialog = ({ open, onClose, onSubmit, folders }: CreateTaskDialog
   const [dueDate, setDueDate] = useState<Date>();
   const [folderId, setFolderId] = useState<string>();
 
+  // Temporary log to debug folders
+  console.log("CreateTaskDialog - folders received:", folders);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
@@ -124,12 +127,18 @@ const CreateTaskDialog = ({ open, onClose, onSubmit, folders }: CreateTaskDialog
               <SelectTrigger className="bg-input/80 border-border/50">
                 <SelectValue placeholder="Selecciona una carpeta..." />
               </SelectTrigger>
-              <SelectContent>
-                {folders.map((folder) => (
-                  <SelectItem key={folder.id} value={folder.id}>
-                    {folder.name}
+              <SelectContent className="bg-popover/95 backdrop-blur-glass border-border/50 z-50">
+                {folders.length === 0 ? (
+                  <SelectItem value="" disabled>
+                    No hi ha carpetes disponibles
                   </SelectItem>
-                ))}
+                ) : (
+                  folders.map((folder) => (
+                    <SelectItem key={folder.id} value={folder.id}>
+                      {folder.name}
+                    </SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
           </div>
