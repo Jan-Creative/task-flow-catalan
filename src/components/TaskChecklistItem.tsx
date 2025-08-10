@@ -26,9 +26,10 @@ interface TaskChecklistItemProps {
   onStatusChange: (taskId: string, status: Task['status']) => void;
   onEdit: (task: Task) => void;
   onDelete: (taskId: string) => void;
+  viewMode?: "list" | "kanban";
 }
 
-const TaskChecklistItem = ({ task, onStatusChange, onEdit, onDelete }: TaskChecklistItemProps) => {
+const TaskChecklistItem = ({ task, onStatusChange, onEdit, onDelete, viewMode = "list" }: TaskChecklistItemProps) => {
   const getPriorityColor = (priority: Task['priority']) => {
     switch (priority) {
       case 'alta': return 'text-destructive';
@@ -42,6 +43,16 @@ const TaskChecklistItem = ({ task, onStatusChange, onEdit, onDelete }: TaskCheck
       case 'alta': return 'Alta';
       case 'mitjana': return 'Mitjana';
       case 'baixa': return 'Baixa';
+    }
+  };
+
+  const getStatusBackgroundColor = (status: Task['status']) => {
+    if (viewMode !== "kanban") return "";
+    
+    switch (status) {
+      case 'pendent': return 'bg-[hsl(var(--status-pending-bg))]';
+      case 'en_proces': return 'bg-[hsl(var(--status-progress-bg))]';
+      case 'completat': return 'bg-[hsl(var(--status-completed-bg))]';
     }
   };
 
@@ -61,7 +72,11 @@ const TaskChecklistItem = ({ task, onStatusChange, onEdit, onDelete }: TaskCheck
   const isInProgress = task.status === 'en_proces';
 
   return (
-    <div className="group flex items-center gap-3 py-2 px-1 hover:bg-accent/30 rounded-lg transition-colors">
+    <div className={cn(
+      "group flex items-center gap-3 py-2 px-1 hover:bg-accent/30 rounded-lg transition-colors",
+      getStatusBackgroundColor(task.status),
+      viewMode === "kanban" && "py-3 px-3 border border-border/30"
+    )}>
       {/* Circular Checkbox */}
       <div className="flex-shrink-0">
         <Checkbox

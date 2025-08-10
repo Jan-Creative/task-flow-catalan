@@ -201,6 +201,7 @@ const TodayPage = ({ onEditTask }: TodayPageProps) => {
                   onStatusChange={handleStatusChange}
                   onEdit={onEditTask}
                   onDelete={deleteTask}
+                  viewMode={viewMode}
                 />
               ))}
             </div>
@@ -209,7 +210,7 @@ const TodayPage = ({ onEditTask }: TodayPageProps) => {
           {viewMode === "kanban" && (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 w-full">
               {statusColumns.map((column) => (
-                <div key={column.id} className="bg-card/60 backdrop-blur-glass rounded-2xl p-4">
+                <div key={column.id} className="bg-card/40 backdrop-blur-glass rounded-2xl p-4 border border-border/20">
                   <div className="pb-3">
                     <div className="text-sm font-medium flex items-center justify-between">
                       <span>{column.label}</span>
@@ -226,6 +227,7 @@ const TodayPage = ({ onEditTask }: TodayPageProps) => {
                         onStatusChange={handleStatusChange}
                         onEdit={onEditTask}
                         onDelete={deleteTask}
+                        viewMode={viewMode}
                       />
                     ))}
                     {column.tasks.length === 0 && (
