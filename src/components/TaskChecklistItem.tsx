@@ -46,15 +46,6 @@ const TaskChecklistItem = ({ task, onStatusChange, onEdit, onDelete, viewMode = 
     }
   };
 
-  const getStatusBackgroundColor = (status: Task['status']) => {
-    if (viewMode !== "kanban") return "";
-    
-    switch (status) {
-      case 'pendent': return 'bg-status-pending';
-      case 'en_proces': return 'bg-status-progress';
-      case 'completat': return 'bg-status-completed';
-    }
-  };
 
   const handleCheckboxChange = (checked: boolean) => {
     if (checked) {
@@ -74,8 +65,7 @@ const TaskChecklistItem = ({ task, onStatusChange, onEdit, onDelete, viewMode = 
   return (
     <div className={cn(
       "group flex items-center gap-3 py-2 px-1 hover:bg-accent/30 rounded-lg transition-colors",
-      getStatusBackgroundColor(task.status),
-      viewMode === "kanban" && "py-3 px-3 border border-border/30"
+      viewMode === "kanban" && "py-3 px-3"
     )}>
       {/* Circular Checkbox */}
       <div className="flex-shrink-0">
