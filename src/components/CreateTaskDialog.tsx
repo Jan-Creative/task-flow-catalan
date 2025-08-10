@@ -125,20 +125,14 @@ const CreateTaskDialog = ({ open, onClose, onSubmit, folders }: CreateTaskDialog
             <Label className="text-foreground">Carpeta</Label>
             <Select value={folderId} onValueChange={setFolderId}>
               <SelectTrigger className="bg-input/80 border-border/50">
-                <SelectValue placeholder="Selecciona una carpeta..." />
+                <SelectValue placeholder={folders.length === 0 ? "No hi ha carpetes disponibles" : "Selecciona una carpeta..."} />
               </SelectTrigger>
               <SelectContent className="bg-popover/95 backdrop-blur-glass border-border/50 z-50">
-                {folders.length === 0 ? (
-                  <SelectItem value="" disabled>
-                    No hi ha carpetes disponibles
+                {folders.map((folder) => (
+                  <SelectItem key={folder.id} value={folder.id}>
+                    {folder.name}
                   </SelectItem>
-                ) : (
-                  folders.map((folder) => (
-                    <SelectItem key={folder.id} value={folder.id}>
-                      {folder.name}
-                    </SelectItem>
-                  ))
-                )}
+                ))}
               </SelectContent>
             </Select>
           </div>
