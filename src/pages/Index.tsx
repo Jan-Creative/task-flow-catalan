@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import BottomNavigation from "@/components/BottomNavigation";
-import CreateTaskDialog from "@/components/CreateTaskDialog";
+import CreateTaskDrawer from "@/components/CreateTaskDrawer";
 import TodayPage from "@/pages/TodayPage";
 import FoldersPage from "@/pages/FoldersPage";
 import SettingsPage from "@/pages/SettingsPage";
@@ -87,7 +87,7 @@ const Index = () => {
         onCreateTask={() => setShowCreateDialog(true)}
       />
 
-      <CreateTaskDialog
+      <CreateTaskDrawer
         open={showCreateDialog}
         onClose={() => setShowCreateDialog(false)}
         onSubmit={handleCreateTask}
