@@ -55,7 +55,7 @@ const TaskCard = ({ task, onStatusChange, onEdit, onDelete }: TaskCardProps) => 
   };
 
   return (
-    <Card className="bg-card/60 backdrop-blur-glass border-border/50 shadow-glass hover:shadow-elevated transition-smooth">
+    <Card className="bg-card/60 backdrop-blur-glass border-border/50 shadow-glass hover:shadow-elevated transition-smooth rounded-2xl">
       <CardContent className="p-4">
         <div className="flex items-start justify-between mb-3">
           <h3 
@@ -105,7 +105,7 @@ const TaskCard = ({ task, onStatusChange, onEdit, onDelete }: TaskCardProps) => 
               variant="outline"
               size="sm"
               onClick={() => onStatusChange(task.id, task.status === 'pendent' ? 'en_proces' : 'completat')}
-              className="text-xs bg-accent/50 border-accent"
+              className="text-xs bg-accent/50 border-accent rounded-2xl"
             >
               {task.status === 'pendent' ? 'Iniciar' : 'Completar'}
             </Button>
@@ -115,7 +115,7 @@ const TaskCard = ({ task, onStatusChange, onEdit, onDelete }: TaskCardProps) => 
             variant="ghost"
             size="sm"
             onClick={() => onEdit(task)}
-            className="text-xs hover:bg-accent/50"
+            className="text-xs hover:bg-accent/50 rounded-2xl"
           >
             Editar
           </Button>
@@ -124,7 +124,7 @@ const TaskCard = ({ task, onStatusChange, onEdit, onDelete }: TaskCardProps) => 
             variant="ghost"
             size="sm"
             onClick={() => onDelete(task.id)}
-            className="text-xs text-destructive hover:bg-destructive/10"
+            className="text-xs text-destructive hover:bg-destructive/10 rounded-2xl"
           >
             Eliminar
           </Button>
