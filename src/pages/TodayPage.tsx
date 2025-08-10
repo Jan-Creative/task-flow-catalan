@@ -193,19 +193,15 @@ const TodayPage = ({ onEditTask }: TodayPageProps) => {
       ) : (
         <>
           {viewMode === "list" && (
-            <div className="bg-card/60 backdrop-blur-glass border border-border/50 rounded-2xl p-4 space-y-1">
-              {todayTasks.map((task, index) => (
-                <div key={task.id}>
-                  <TaskChecklistItem
-                    task={task}
-                    onStatusChange={handleStatusChange}
-                    onEdit={onEditTask}
-                    onDelete={deleteTask}
-                  />
-                  {index < todayTasks.length - 1 && (
-                    <div className="border-b border-border/30 mx-4" />
-                  )}
-                </div>
+            <div className="space-y-2">
+              {todayTasks.map((task) => (
+                <TaskChecklistItem
+                  key={task.id}
+                  task={task}
+                  onStatusChange={handleStatusChange}
+                  onEdit={onEditTask}
+                  onDelete={deleteTask}
+                />
               ))}
             </div>
           )}
@@ -213,36 +209,32 @@ const TodayPage = ({ onEditTask }: TodayPageProps) => {
           {viewMode === "kanban" && (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 w-full">
               {statusColumns.map((column) => (
-                <Card key={column.id} className="bg-card/60 backdrop-blur-glass border-border/50">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-sm font-medium flex items-center justify-between">
+                <div key={column.id} className="bg-card/60 backdrop-blur-glass rounded-2xl p-4">
+                  <div className="pb-3">
+                    <div className="text-sm font-medium flex items-center justify-between">
                       <span>{column.label}</span>
                       <Badge variant="outline" className="text-xs">
                         {column.tasks.length}
                       </Badge>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-1 p-3">
-                    {column.tasks.map((task, index) => (
-                      <div key={task.id}>
-                        <TaskChecklistItem
-                          task={task}
-                          onStatusChange={handleStatusChange}
-                          onEdit={onEditTask}
-                          onDelete={deleteTask}
-                        />
-                        {index < column.tasks.length - 1 && (
-                          <div className="border-b border-border/30 mx-2 my-1" />
-                        )}
-                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    {column.tasks.map((task) => (
+                      <TaskChecklistItem
+                        key={task.id}
+                        task={task}
+                        onStatusChange={handleStatusChange}
+                        onEdit={onEditTask}
+                        onDelete={deleteTask}
+                      />
                     ))}
                     {column.tasks.length === 0 && (
                       <div className="text-center py-8 text-muted-foreground text-sm">
                         Cap tasca en aquest estat
                       </div>
                     )}
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               ))}
             </div>
           )}
