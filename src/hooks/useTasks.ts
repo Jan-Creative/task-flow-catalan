@@ -61,16 +61,29 @@ export const useTasks = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
 
-      // If no folder specified, use inbox folder
+      // If no folder specified, find and use inbox folder from database
       let finalFolderId = taskData.folder_id;
       if (!finalFolderId) {
-        const inboxFolder = folders.find(f => f.is_system && f.name === "Bustia");
-        if (inboxFolder) {
+        console.log("No folder selected, searching for Bustia...");
+        
+        // Search for the user's inbox folder directly in the database
+        const { data: inboxFolder, error: folderError } = await supabase
+          .from("folders")
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("is_system", true)
+          .eq("name", "Bustia")
+          .single();
+
+        if (folderError) {
+          console.error("Error finding inbox folder:", folderError);
+        } else if (inboxFolder) {
           finalFolderId = inboxFolder.id;
+          console.log("Found Bustia folder with id:", finalFolderId);
         }
       }
 
-      console.log("Creating task with folder_id:", finalFolderId); // Temporary debug log
+      console.log("Creating task with folder_id:", finalFolderId);
 
       const { data, error } = await supabase
         .from("tasks")
