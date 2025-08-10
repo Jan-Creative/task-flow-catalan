@@ -2,6 +2,7 @@ import { Flag, Calendar, MoreHorizontal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -70,12 +71,12 @@ const TaskChecklistItem = ({ task, onStatusChange, onEdit, onDelete }: TaskCheck
         />
       </div>
 
-      {/* Task Content */}
-      <div className="flex-1 min-w-0">
+      {/* Task Content - Clickable */}
+      <Link to={`/task/${task.id}`} className="flex-1 min-w-0 block">
         <div className="flex items-center gap-2 mb-1">
           <h3 
             className={cn(
-              "font-medium text-sm leading-tight truncate",
+              "font-medium text-sm leading-tight truncate hover:text-primary transition-colors",
               isCompleted && "line-through text-muted-foreground",
               isInProgress && "text-primary"
             )}
@@ -108,7 +109,7 @@ const TaskChecklistItem = ({ task, onStatusChange, onEdit, onDelete }: TaskCheck
             </>
           )}
         </div>
-      </div>
+      </Link>
 
       {/* Actions */}
       <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
