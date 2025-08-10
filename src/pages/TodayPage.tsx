@@ -17,8 +17,13 @@ const TodayPage = ({ onEditTask }: TodayPageProps) => {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterPriority, setFilterPriority] = useState<string>("all");
 
-  // Filter today's tasks (for now, show all tasks - can be enhanced later)
+  // Filter today's tasks - hide completed tasks by default
   const todayTasks = tasks.filter(task => {
+    // Hide completed tasks unless specifically selected
+    if (task.status === 'completat' && filterStatus !== 'completat') {
+      return false;
+    }
+    
     let matchesStatus = filterStatus === "all" || task.status === filterStatus;
     let matchesPriority = filterPriority === "all" || task.priority === filterPriority;
     return matchesStatus && matchesPriority;
