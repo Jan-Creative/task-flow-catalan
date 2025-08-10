@@ -65,8 +65,12 @@ export const useTasks = () => {
       let finalFolderId = taskData.folder_id;
       if (!finalFolderId) {
         const inboxFolder = folders.find(f => f.is_system && f.name === "Bustia");
-        finalFolderId = inboxFolder?.id;
+        if (inboxFolder) {
+          finalFolderId = inboxFolder.id;
+        }
       }
+
+      console.log("Creating task with folder_id:", finalFolderId); // Temporary debug log
 
       const { data, error } = await supabase
         .from("tasks")
