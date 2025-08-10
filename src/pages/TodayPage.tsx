@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,9 +17,25 @@ const TodayPage = ({ onEditTask }: TodayPageProps) => {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterPriority, setFilterPriority] = useState<string>("all");
   const [recentlyCompleted, setRecentlyCompleted] = useState<Set<string>>(new Set());
+  const timeoutsRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
+
+  // Cleanup timeouts when component unmounts
+  useEffect(() => {
+    return () => {
+      timeoutsRef.current.forEach(timeout => clearTimeout(timeout));
+      timeoutsRef.current.clear();
+    };
+  }, []);
 
   // Custom handler for status changes with delay for completed tasks
   const handleStatusChange = async (taskId: string, status: any) => {
+    // Clear existing timeout for this task if any
+    const existingTimeout = timeoutsRef.current.get(taskId);
+    if (existingTimeout) {
+      clearTimeout(existingTimeout);
+      timeoutsRef.current.delete(taskId);
+    }
+
     if (status === 'completat') {
       // Add to recently completed to keep visible for a few seconds
       setRecentlyCompleted(prev => new Set(prev).add(taskId));
@@ -28,13 +44,16 @@ const TodayPage = ({ onEditTask }: TodayPageProps) => {
       await updateTaskStatus(taskId, status);
       
       // After 3 seconds, remove from recently completed (task will disappear)
-      setTimeout(() => {
+      const timeout = setTimeout(() => {
         setRecentlyCompleted(prev => {
           const newSet = new Set(prev);
           newSet.delete(taskId);
           return newSet;
         });
+        timeoutsRef.current.delete(taskId);
       }, 3000);
+      
+      timeoutsRef.current.set(taskId, timeout);
     } else {
       // For non-completed status, remove from recently completed and update normally
       setRecentlyCompleted(prev => {
