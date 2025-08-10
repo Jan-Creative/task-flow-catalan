@@ -27,7 +27,7 @@ const TodayPage = ({ onEditTask }: TodayPageProps) => {
     };
   }, []);
 
-  // Custom handler for status changes with delay for completed tasks
+  // Custom handler for status changes with different behavior per view mode
   const handleStatusChange = async (taskId: string, status: any) => {
     // Clear existing timeout for this task if any
     const existingTimeout = timeoutsRef.current.get(taskId);
@@ -37,23 +37,18 @@ const TodayPage = ({ onEditTask }: TodayPageProps) => {
     }
 
     if (status === 'completat') {
-      // Add to recently completed to keep visible for a few seconds
-      setRecentlyCompleted(prev => new Set(prev).add(taskId));
-      
-      // Update the task status
-      await updateTaskStatus(taskId, status);
-      
-      // After 3 seconds, remove from recently completed (task will disappear)
-      const timeout = setTimeout(() => {
-        setRecentlyCompleted(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(taskId);
-          return newSet;
-        });
-        timeoutsRef.current.delete(taskId);
-      }, 3000);
-      
-      timeoutsRef.current.set(taskId, timeout);
+      if (viewMode === 'list') {
+        // In list mode: task disappears immediately when completed
+        await updateTaskStatus(taskId, status);
+        // No need to keep track of recently completed in list mode
+      } else {
+        // In kanban mode: add to recently completed to keep visible and move to completed column
+        setRecentlyCompleted(prev => new Set(prev).add(taskId));
+        await updateTaskStatus(taskId, status);
+        
+        // Keep in completed column permanently (no timeout)
+        // The task will stay in the completed column
+      }
     } else {
       // For non-completed status, remove from recently completed and update normally
       setRecentlyCompleted(prev => {
@@ -65,15 +60,26 @@ const TodayPage = ({ onEditTask }: TodayPageProps) => {
     }
   };
 
-  // Filter today's tasks - hide completed tasks by default unless recently completed
+  // Filter today's tasks based on view mode
   const todayTasks = tasks.filter(task => {
-    // Keep recently completed tasks visible for a few seconds
-    if (task.status === 'completat' && recentlyCompleted.has(task.id)) {
-      return true;
-    }
-    // Hide completed tasks unless specifically selected
-    if (task.status === 'completat' && filterStatus !== 'completat') {
-      return false;
+    if (viewMode === 'list') {
+      // In list mode: hide completed tasks completely
+      if (task.status === 'completat') {
+        return false;
+      }
+    } else {
+      // In kanban mode: show completed tasks in their column, keep recently completed visible
+      if (task.status === 'completat' && !recentlyCompleted.has(task.id)) {
+        // Show completed tasks in kanban mode
+        if (filterStatus === 'completat' || filterStatus === 'all') {
+          return true;
+        }
+        return false;
+      }
+      // Keep recently completed tasks visible in kanban
+      if (task.status === 'completat' && recentlyCompleted.has(task.id)) {
+        return true;
+      }
     }
     
     let matchesStatus = filterStatus === "all" || task.status === filterStatus;
