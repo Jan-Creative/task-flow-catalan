@@ -8,94 +8,105 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 220 15% 95%;
-    --foreground: 222.2 84% 4.9%;
+    /* Dark theme as default - Esquema cromàtic fosc */
+    --background: 0 0% 12%;  /* #1E1E1E */
+    --foreground: 0 0% 95%;  /* Text blanc principal */
 
-    --card: 0 0% 100% / 0.8;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 0 0% 15% / 0.8;  /* Targetes en gris fosc */
+    --card-foreground: 0 0% 95%;
 
-    --popover: 0 0% 100% / 0.95;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 15% / 0.95;
+    --popover-foreground: 0 0% 95%;
 
-    --primary: 262 83% 58%;
-    --primary-foreground: 210 40% 98%;
-    --primary-glow: 262 83% 70%;
+    --primary: 180 100% 25%;  /* #008080 - Color d'accent teal */
+    --primary-foreground: 0 0% 95%;
+    --primary-glow: 180 100% 35%;
 
-    --secondary: 210 40% 96.1% / 0.8;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 0 0% 20% / 0.8;  /* Gris secundari */
+    --secondary-foreground: 0 0% 85%;
 
-    --muted: 220 15% 90% / 0.6;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 0 0% 18% / 0.6;  /* Gris suau */
+    --muted-foreground: 0 0% 65%;
 
-    --accent: 262 83% 58% / 0.1;
-    --accent-foreground: 262 83% 58%;
+    --accent: 180 100% 25% / 0.15;  /* Accent amb transparència */
+    --accent-foreground: 180 100% 35%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 95%;
 
-    --border: 220 15% 88% / 0.3;
-    --input: 220 15% 90% / 0.5;
-    --ring: 262 83% 58%;
+    --border: 0 0% 25% / 0.3;  /* Borders subtils */
+    --input: 0 0% 18% / 0.8;   /* Inputs en gris fosc */
+    --ring: 180 100% 25%;
 
     --success: 142 71% 45%;
-    --success-foreground: 210 40% 98%;
+    --success-foreground: 0 0% 95%;
 
     --warning: 48 96% 53%;
-    --warning-foreground: 222.2 84% 4.9%;
+    --warning-foreground: 0 0% 12%;
 
     --radius: 1rem;
 
-    /* Glassmorphic gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(262 83% 58%) 0%, hsl(262 83% 70%) 100%);
-    --gradient-secondary: linear-gradient(135deg, hsl(220 15% 95%) 0%, hsl(220 15% 90%) 100%);
-    --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+    /* Gradients optimitzats per tema fosc */
+    --gradient-primary: linear-gradient(135deg, hsl(180 100% 25%) 0%, hsl(180 100% 35%) 100%);
+    --gradient-secondary: linear-gradient(135deg, hsl(0 0% 15%) 0%, hsl(0 0% 20%) 100%);
+    --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
     
-    /* Shadows and glows */
-    --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.1);
-    --shadow-elevated: 0 16px 48px rgba(0, 0, 0, 0.15);
-    --glow-primary: 0 0 40px hsl(262 83% 70% / 0.3);
+    /* Ombres optimitzades per tema fosc */
+    --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.4);
+    --shadow-elevated: 0 16px 48px rgba(0, 0, 0, 0.6);
+    --glow-primary: 0 0 40px hsl(180 100% 25% / 0.3);
 
-    /* Animations */
+    /* Animacions */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   }
 
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+  .light {
+    /* Light theme opcional (el fosc és el principal) */
+    --background: 0 0% 98%;
+    --foreground: 0 0% 8%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 0 0% 100% / 0.8;
+    --card-foreground: 0 0% 8%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 0 0% 100% / 0.95;
+    --popover-foreground: 0 0% 8%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 180 100% 25%;
+    --primary-foreground: 0 0% 95%;
+    --primary-glow: 180 100% 35%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 0 0% 96% / 0.8;
+    --secondary-foreground: 0 0% 15%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 0 0% 90% / 0.6;
+    --muted-foreground: 0 0% 45%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 180 100% 25% / 0.1;
+    --accent-foreground: 180 100% 25%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 95%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --border: 0 0% 88% / 0.3;
+    --input: 0 0% 90% / 0.5;
+    --ring: 180 100% 25%;
+
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 95%;
+
+    --warning: 48 96% 53%;
+    --warning-foreground: 0 0% 8%;
+
+    /* Gradients per tema clar */
+    --gradient-primary: linear-gradient(135deg, hsl(180 100% 25%) 0%, hsl(180 100% 35%) 100%);
+    --gradient-secondary: linear-gradient(135deg, hsl(0 0% 98%) 0%, hsl(0 0% 90%) 100%);
+    --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+    
+    /* Ombres per tema clar */
+    --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.1);
+    --shadow-elevated: 0 16px 48px rgba(0, 0, 0, 0.15);
+    --glow-primary: 0 0 40px hsl(180 100% 25% / 0.2);
   }
 }
 
@@ -106,5 +117,7 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    /* Força el tema fosc com a predeterminat */
+    color-scheme: dark;
   }
 }
