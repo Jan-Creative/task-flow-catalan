@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,9 +16,42 @@ const TodayPage = ({ onEditTask }: TodayPageProps) => {
   const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterPriority, setFilterPriority] = useState<string>("all");
+  const [recentlyCompleted, setRecentlyCompleted] = useState<Set<string>>(new Set());
 
-  // Filter today's tasks - hide completed tasks by default
+  // Custom handler for status changes with delay for completed tasks
+  const handleStatusChange = async (taskId: string, status: any) => {
+    if (status === 'completat') {
+      // Add to recently completed to keep visible for a few seconds
+      setRecentlyCompleted(prev => new Set(prev).add(taskId));
+      
+      // Update the task status
+      await updateTaskStatus(taskId, status);
+      
+      // After 3 seconds, remove from recently completed (task will disappear)
+      setTimeout(() => {
+        setRecentlyCompleted(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(taskId);
+          return newSet;
+        });
+      }, 3000);
+    } else {
+      // For non-completed status, remove from recently completed and update normally
+      setRecentlyCompleted(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(taskId);
+        return newSet;
+      });
+      await updateTaskStatus(taskId, status);
+    }
+  };
+
+  // Filter today's tasks - hide completed tasks by default unless recently completed
   const todayTasks = tasks.filter(task => {
+    // Keep recently completed tasks visible for a few seconds
+    if (task.status === 'completat' && recentlyCompleted.has(task.id)) {
+      return true;
+    }
     // Hide completed tasks unless specifically selected
     if (task.status === 'completat' && filterStatus !== 'completat') {
       return false;
@@ -146,7 +179,7 @@ const TodayPage = ({ onEditTask }: TodayPageProps) => {
                 <div key={task.id}>
                   <TaskChecklistItem
                     task={task}
-                    onStatusChange={updateTaskStatus}
+                    onStatusChange={handleStatusChange}
                     onEdit={onEditTask}
                     onDelete={deleteTask}
                   />
@@ -175,7 +208,7 @@ const TodayPage = ({ onEditTask }: TodayPageProps) => {
                       <div key={task.id}>
                         <TaskChecklistItem
                           task={task}
-                          onStatusChange={updateTaskStatus}
+                          onStatusChange={handleStatusChange}
                           onEdit={onEditTask}
                           onDelete={deleteTask}
                         />
