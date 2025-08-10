@@ -46,7 +46,7 @@ const TodayPage = ({ onEditTask }: TodayPageProps) => {
   }
 
   return (
-    <div className="p-6 pb-24 space-y-6">
+    <div className="w-full max-w-full p-4 pb-24 space-y-6 overflow-x-hidden">
       {/* Header */}
       <div className="space-y-4">
         <h1 className="text-3xl font-bold text-foreground">Avui</h1>
@@ -74,7 +74,7 @@ const TodayPage = ({ onEditTask }: TodayPageProps) => {
         </div>
 
         {/* View controls */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <Button
               variant={viewMode === "list" ? "default" : "outline"}
@@ -96,11 +96,11 @@ const TodayPage = ({ onEditTask }: TodayPageProps) => {
             </Button>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full sm:w-auto">
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="text-sm bg-card/60 backdrop-blur-glass border border-border/50 rounded-lg px-3 py-1"
+              className="text-sm bg-card/60 backdrop-blur-glass border border-border/50 rounded-2xl px-3 py-1.5 w-full sm:w-auto min-w-0"
             >
               <option value="all">Tots els estats</option>
               <option value="pendent">Pendent</option>
@@ -111,7 +111,7 @@ const TodayPage = ({ onEditTask }: TodayPageProps) => {
             <select
               value={filterPriority}
               onChange={(e) => setFilterPriority(e.target.value)}
-              className="text-sm bg-card/60 backdrop-blur-glass border border-border/50 rounded-lg px-3 py-1"
+              className="text-sm bg-card/60 backdrop-blur-glass border border-border/50 rounded-2xl px-3 py-1.5 w-full sm:w-auto min-w-0"
             >
               <option value="all">Totes les prioritats</option>
               <option value="alta">Alta</option>
@@ -150,7 +150,7 @@ const TodayPage = ({ onEditTask }: TodayPageProps) => {
           )}
 
           {viewMode === "kanban" && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 w-full">
               {statusColumns.map((column) => (
                 <Card key={column.id} className="bg-card/60 backdrop-blur-glass border-border/50">
                   <CardHeader className="pb-3">
