@@ -108,6 +108,36 @@ export const useTasks = () => {
     }
   };
 
+  // Update task
+  const updateTask = async (taskId: string, taskData: Partial<Omit<Task, "id" | "created_at" | "updated_at">>) => {
+    try {
+      const { error } = await supabase
+        .from("tasks")
+        .update(taskData)
+        .eq("id", taskId);
+
+      if (error) throw error;
+
+      setTasks(prev =>
+        prev.map(task =>
+          task.id === taskId ? { ...task, ...taskData } : task
+        )
+      );
+
+      toast({
+        title: "Tasca actualitzada",
+        description: "La tasca s'ha actualitzat correctament",
+      });
+    } catch (error) {
+      console.error("Error updating task:", error);
+      toast({
+        title: "Error",
+        description: "No s'ha pogut actualitzar la tasca",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Update task status
   const updateTaskStatus = async (taskId: string, status: Task['status']) => {
     try {
@@ -204,6 +234,7 @@ export const useTasks = () => {
     folders,
     loading,
     createTask,
+    updateTask,
     updateTaskStatus,
     deleteTask,
     createFolder,

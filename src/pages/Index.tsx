@@ -15,15 +15,23 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState("avui");
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
-  const { createTask, folders } = useTasks();
+  const { createTask, updateTask, folders } = useTasks();
 
   const handleCreateTask = (taskData: any) => {
-    createTask(taskData);
+    if (editingTask) {
+      // If editing, update the existing task
+      updateTask(editingTask.id, taskData);
+      setEditingTask(null);
+    } else {
+      // If creating, create new task
+      createTask(taskData);
+    }
+    setShowCreateDialog(false);
   };
 
   const handleEditTask = (task: any) => {
     setEditingTask(task);
-    // Edit functionality can be enhanced later
+    setShowCreateDialog(true);
   };
 
   const renderCurrentPage = () => {
@@ -89,9 +97,13 @@ const Index = () => {
 
       <CreateTaskDrawer
         open={showCreateDialog}
-        onClose={() => setShowCreateDialog(false)}
+        onClose={() => {
+          setShowCreateDialog(false);
+          setEditingTask(null);
+        }}
         onSubmit={handleCreateTask}
         folders={folders}
+        editingTask={editingTask}
       />
     </div>
   );
