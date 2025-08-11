@@ -9,7 +9,10 @@ import {
   SortAsc,
   Search,
   Plus,
-  ChevronDown
+  ChevronDown,
+  Settings,
+  Zap,
+  Maximize2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -40,36 +43,73 @@ const DatabaseToolbar = ({
   };
 
   return (
-    <div className="flex items-center justify-between w-full bg-card/40 backdrop-blur-glass border border-border/30 rounded-2xl p-2 gap-2">
-      {/* Left section - Filter button */}
-      <div className="flex items-center gap-2">
+    <div className="flex items-center w-full bg-[#1f1f1f] border border-[#333] rounded-lg px-3 py-2 gap-2">
+      {/* Left section - View buttons (Notion style) */}
+      <div className="flex items-center gap-1">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => onViewModeChange("list")}
+          className={cn(
+            "h-7 px-3 text-xs font-medium rounded-md border-0",
+            viewMode === "list" 
+              ? "bg-[#2f2f2f] text-white" 
+              : "bg-transparent text-[#9b9b9b] hover:bg-[#2a2a2a] hover:text-white"
+          )}
+        >
+          <List className="h-3 w-3 mr-1.5" />
+          Llista
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => onViewModeChange("kanban")}
+          className={cn(
+            "h-7 px-3 text-xs font-medium rounded-md border-0",
+            viewMode === "kanban" 
+              ? "bg-[#2f2f2f] text-white" 
+              : "bg-transparent text-[#9b9b9b] hover:bg-[#2a2a2a] hover:text-white"
+          )}
+        >
+          <LayoutGrid className="h-3 w-3 mr-1.5" />
+          Tauler
+        </Button>
+      </div>
+
+      {/* Center section - Properties counter */}
+      <div className="flex items-center">
+        <span className="text-xs text-[#9b9b9b] bg-[#2a2a2a] hover:bg-[#333] px-2 py-1 rounded-md cursor-pointer">
+          2 más
+        </span>
+      </div>
+
+      {/* Spacer */}
+      <div className="flex-1" />
+
+      {/* Right section - Action buttons */}
+      <div className="flex items-center gap-1">
+        {/* Filter button with dropdowns */}
         <Popover open={isFilterOpen} onOpenChange={setIsFilterOpen}>
           <PopoverTrigger asChild>
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 px-3 gap-2 hover:bg-accent/50 relative"
+              className="h-7 w-7 p-0 text-[#9b9b9b] hover:bg-[#2a2a2a] hover:text-white rounded-md relative"
             >
-              <Filter className="h-4 w-4" />
-              <span className="text-sm">Filtrar</span>
+              <Filter className="h-3.5 w-3.5" />
               {getActiveFiltersCount() > 0 && (
-                <Badge 
-                  variant="secondary" 
-                  className="h-5 w-5 p-0 text-xs rounded-full bg-primary text-primary-foreground"
-                >
-                  {getActiveFiltersCount()}
-                </Badge>
+                <div className="absolute -top-1 -right-1 h-2 w-2 bg-blue-500 rounded-full" />
               )}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-72 p-4" align="start">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Estat</label>
+          <PopoverContent className="w-64 p-3 bg-[#1f1f1f] border border-[#333]" align="end">
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-white">Estat</label>
                 <select
                   value={filterStatus}
                   onChange={(e) => onFilterStatusChange(e.target.value)}
-                  className="w-full text-sm bg-background border border-border rounded-lg px-3 py-2"
+                  className="w-full text-xs bg-[#2a2a2a] border border-[#333] rounded-md px-2 py-1.5 text-white"
                 >
                   <option value="all">Tots els estats</option>
                   <option value="pendent">Pendent</option>
@@ -78,12 +118,12 @@ const DatabaseToolbar = ({
                 </select>
               </div>
               
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Prioritat</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-white">Prioritat</label>
                 <select
                   value={filterPriority}
                   onChange={(e) => onFilterPriorityChange(e.target.value)}
-                  className="w-full text-sm bg-background border border-border rounded-lg px-3 py-2"
+                  className="w-full text-xs bg-[#2a2a2a] border border-[#333] rounded-md px-2 py-1.5 text-white"
                 >
                   <option value="all">Totes les prioritats</option>
                   <option value="alta">Alta</option>
@@ -94,70 +134,65 @@ const DatabaseToolbar = ({
             </div>
           </PopoverContent>
         </Popover>
-      </div>
 
-      {/* Center section - View buttons */}
-      <div className="flex items-center bg-muted/50 rounded-xl p-1">
+        {/* Sort button */}
         <Button
-          variant={viewMode === "list" ? "default" : "ghost"}
+          variant="ghost"
           size="sm"
-          onClick={() => onViewModeChange("list")}
-          className={cn(
-            "h-7 px-3 gap-2",
-            viewMode === "list" 
-              ? "bg-background shadow-sm text-foreground" 
-              : "hover:bg-accent/50 text-muted-foreground"
-          )}
+          className="h-7 w-7 p-0 text-[#9b9b9b] hover:bg-[#2a2a2a] hover:text-white rounded-md"
+          disabled
         >
-          <List className="h-4 w-4" />
-          <span className="text-sm">Llista</span>
+          <SortAsc className="h-3.5 w-3.5" />
         </Button>
-        <Button
-          variant={viewMode === "kanban" ? "default" : "ghost"}
-          size="sm"
-          onClick={() => onViewModeChange("kanban")}
-          className={cn(
-            "h-7 px-3 gap-2",
-            viewMode === "kanban" 
-              ? "bg-background shadow-sm text-foreground" 
-              : "hover:bg-accent/50 text-muted-foreground"
-          )}
-        >
-          <LayoutGrid className="h-4 w-4" />
-          <span className="text-sm">Tauler</span>
-        </Button>
-      </div>
 
-      {/* Right section - Future buttons */}
-      <div className="flex items-center gap-1">
+        {/* Lightning/Zap button */}
         <Button
           variant="ghost"
           size="sm"
-          className="h-8 px-3 gap-2 hover:bg-accent/50 text-muted-foreground"
+          className="h-7 w-7 p-0 text-[#9b9b9b] hover:bg-[#2a2a2a] hover:text-white rounded-md"
           disabled
         >
-          <SortAsc className="h-4 w-4" />
-          <span className="text-sm">Ordenar</span>
-          <ChevronDown className="h-3 w-3" />
+          <Zap className="h-3.5 w-3.5" />
         </Button>
-        
+
+        {/* Search button */}
         <Button
           variant="ghost"
           size="sm"
-          className="h-8 px-3 gap-2 hover:bg-accent/50 text-muted-foreground"
+          className="h-7 w-7 p-0 text-[#9b9b9b] hover:bg-[#2a2a2a] hover:text-white rounded-md"
           disabled
         >
-          <Search className="h-4 w-4" />
-          <span className="text-sm">Cercar</span>
+          <Search className="h-3.5 w-3.5" />
         </Button>
-        
+
+        {/* Expand button */}
         <Button
           variant="ghost"
           size="sm"
-          className="h-8 px-2 hover:bg-accent/50 text-muted-foreground"
+          className="h-7 w-7 p-0 text-[#9b9b9b] hover:bg-[#2a2a2a] hover:text-white rounded-md"
           disabled
         >
-          <Plus className="h-4 w-4" />
+          <Maximize2 className="h-3.5 w-3.5" />
+        </Button>
+
+        {/* Settings button */}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-7 w-7 p-0 text-[#9b9b9b] hover:bg-[#2a2a2a] hover:text-white rounded-md"
+          disabled
+        >
+          <Settings className="h-3.5 w-3.5" />
+        </Button>
+
+        {/* Nuevo button */}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-7 px-3 text-xs font-medium bg-[#0070f3] hover:bg-[#0060df] text-white rounded-md ml-2"
+          disabled
+        >
+          Nuevo
         </Button>
       </div>
     </div>
