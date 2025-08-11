@@ -157,7 +157,7 @@ const DatabaseToolbar = ({
 
                   {/* Prioritat */}
                   <div 
-                    className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer opacity-60"
+                    className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer"
                     onClick={handlePrioritatClick}
                   >
                     <div className="flex items-center gap-3">
@@ -280,6 +280,151 @@ const DatabaseToolbar = ({
                       <input 
                         type="text" 
                         defaultValue="Completat"
+                        className="bg-transparent text-sm text-white border-none outline-none focus:bg-[#353535] rounded px-1 py-0.5"
+                      />
+                    </div>
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-[#b8b8b8] hover:bg-[#404040]">
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-[#b8b8b8] hover:bg-[#404040]">
+                        <Edit3 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Add new option button */}
+                  <div className="flex items-center gap-3 py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer text-[#b8b8b8] hover:text-white">
+                    <Plus className="h-3 w-3" />
+                    <span className="text-sm">Afegir una opció</span>
+                  </div>
+                </div>
+
+                {/* Advanced options */}
+                <Separator className="bg-[#333] my-4" />
+                
+                <div className="space-y-3">
+                  {/* Toggle option */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-white">Ajustar a la vista</span>
+                    <div className="w-8 h-4 bg-[#404040] rounded-full relative cursor-pointer">
+                      <div className="w-3 h-3 bg-white rounded-full absolute top-0.5 left-0.5 transition-transform"></div>
+                    </div>
+                  </div>
+
+                  {/* Show as selector */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-white">Mostrar com</label>
+                    <select className="w-full text-xs bg-[#2a2a2a] border border-[#333] rounded-md px-2 py-1.5 text-white">
+                      <option value="tags">Etiquetes</option>
+                      <option value="checkbox">Casella de verificació</option>
+                      <option value="select">Selector</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Action buttons */}
+                <Separator className="bg-[#333] my-4" />
+                
+                <div className="space-y-1">
+                  <div className="flex items-center gap-3 py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer text-[#b8b8b8] hover:text-white">
+                    <Copy className="h-4 w-4" />
+                    <span className="text-sm">Duplicar propietat</span>
+                  </div>
+                  <div className="flex items-center gap-3 py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer text-red-400 hover:text-red-300">
+                    <Trash2 className="h-4 w-4" />
+                    <span className="text-sm">Eliminar propietat</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {currentPropertyView === 'prioritat' && (
+              <div className="p-4">
+                {/* Header with back button */}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0 text-[#b8b8b8] hover:bg-[#353535] hover:text-white"
+                      onClick={handleBackToMain}
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                    </Button>
+                    <div className="flex items-center gap-2">
+                      <AlertTriangle className="h-4 w-4 text-[#b8b8b8]" />
+                      <input 
+                        type="text" 
+                        defaultValue="Prioritat"
+                        className="bg-transparent text-sm font-medium text-white border-none outline-none focus:bg-[#2a2a2a] rounded px-1 py-0.5"
+                      />
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0 text-[#b8b8b8] hover:bg-[#353535] hover:text-white"
+                    onClick={() => setIsSettingsOpen(false)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                {/* Property type info */}
+                <div className="mb-4">
+                  <p className="text-xs text-[#b8b8b8]">Tipo: Prioridad</p>
+                </div>
+
+                {/* Current priority options */}
+                <div className="space-y-2 mb-4">
+                  {/* Alta option */}
+                  <div className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-[#2a2a2a] group">
+                    <div className="flex items-center gap-3">
+                      <Circle className="h-3 w-3 text-red-400 fill-red-400" />
+                      <input 
+                        type="text" 
+                        defaultValue="Alta"
+                        className="bg-transparent text-sm text-white border-none outline-none focus:bg-[#353535] rounded px-1 py-0.5"
+                      />
+                    </div>
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-[#b8b8b8] hover:bg-[#404040]">
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-[#b8b8b8] hover:bg-[#404040]">
+                        <Edit3 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Mitjana option */}
+                  <div className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-[#2a2a2a] group">
+                    <div className="flex items-center gap-3">
+                      <Circle className="h-3 w-3 text-yellow-400 fill-yellow-400" />
+                      <input 
+                        type="text" 
+                        defaultValue="Mitjana"
+                        className="bg-transparent text-sm text-white border-none outline-none focus:bg-[#353535] rounded px-1 py-0.5"
+                      />
+                    </div>
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-[#b8b8b8] hover:bg-[#404040]">
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-[#b8b8b8] hover:bg-[#404040]">
+                        <Edit3 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Baixa option */}
+                  <div className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-[#2a2a2a] group">
+                    <div className="flex items-center gap-3">
+                      <Circle className="h-3 w-3 text-green-400 fill-green-400" />
+                      <input 
+                        type="text" 
+                        defaultValue="Baixa"
                         className="bg-transparent text-sm text-white border-none outline-none focus:bg-[#353535] rounded px-1 py-0.5"
                       />
                     </div>
