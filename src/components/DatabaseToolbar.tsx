@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
-import { List, LayoutGrid, Filter, SortAsc, Search, Plus, ChevronDown, Settings, Zap, Maximize2, X, Eye, Table, ArrowUpDown, Group, Palette, Link, Lock, FileText, Bot, MoreHorizontal } from "lucide-react";
+import { List, LayoutGrid, Filter, SortAsc, Search, Plus, ChevronDown, Settings, Zap, Maximize2, X, Eye, Table, ArrowUpDown, Group, Palette, Link, Lock, FileText, Bot, MoreHorizontal, CheckSquare, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 interface DatabaseToolbarProps {
@@ -116,7 +116,7 @@ const DatabaseToolbar = ({
             <div className="p-4">
               {/* Header */}
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-medium text-white">View settings</h3>
+                <h3 className="text-sm font-medium text-white">Propietats</h3>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -127,139 +127,37 @@ const DatabaseToolbar = ({
                 </Button>
               </div>
 
-              {/* View Settings */}
-              <div className="space-y-2 mb-6">
+              {/* Properties Section */}
+              <div className="space-y-1">
                 {/* Estat */}
-                <div className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer">
+                <div className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer opacity-60">
                   <div className="flex items-center gap-3">
-                    <Table className="h-4 w-4 text-[#b8b8b8]" />
+                    <CheckSquare className="h-4 w-4 text-[#b8b8b8]" />
                     <span className="text-sm text-white">Estat</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="h-4 w-4 bg-[#404040] rounded-sm flex items-center justify-center">
-                      <span className="text-xs text-white">i</span>
-                    </div>
-                  </div>
+                  <ChevronDown className="h-3 w-3 text-[#b8b8b8] rotate-[-90deg]" />
                 </div>
 
-                {/* Diseño */}
-                <div className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer">
+                {/* Prioritat */}
+                <div className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer opacity-60">
                   <div className="flex items-center gap-3">
-                    <Table className="h-4 w-4 text-[#b8b8b8]" />
-                    <span className="text-sm text-white">Diseño</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-[#b8b8b8]">Tablero</span>
-                    <ChevronDown className="h-3 w-3 text-[#b8b8b8] rotate-[-90deg]" />
-                  </div>
-                </div>
-
-                {/* Visibilidad de la propiedad */}
-                <div className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer">
-                  <div className="flex items-center gap-3">
-                    <Eye className="h-4 w-4 text-[#b8b8b8]" />
-                    <span className="text-sm text-white">Visibilidad de la propiedad</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-[#b8b8b8]">3</span>
-                    <ChevronDown className="h-3 w-3 text-[#b8b8b8] rotate-[-90deg]" />
-                  </div>
-                </div>
-
-                {/* Filtrar */}
-                <div className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer">
-                  <div className="flex items-center gap-3">
-                    <Filter className="h-4 w-4 text-[#b8b8b8]" />
-                    <span className="text-sm text-white">Filtrar</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-[#b8b8b8]">Estat</span>
-                    <ChevronDown className="h-3 w-3 text-[#b8b8b8] rotate-[-90deg]" />
-                  </div>
-                </div>
-
-                {/* Ordenar */}
-                <div className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer">
-                  <div className="flex items-center gap-3">
-                    <ArrowUpDown className="h-4 w-4 text-[#b8b8b8]" />
-                    <span className="text-sm text-white">Ordenar</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-[#b8b8b8]">Data</span>
-                    <ChevronDown className="h-3 w-3 text-[#b8b8b8] rotate-[-90deg]" />
-                  </div>
-                </div>
-
-                {/* Agrupar */}
-                <div className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer">
-                  <div className="flex items-center gap-3">
-                    <Table className="h-4 w-4 text-[#b8b8b8]" />
-                    <span className="text-sm text-white">Agrupar</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-[#b8b8b8]">Estat</span>
-                    <ChevronDown className="h-3 w-3 text-[#b8b8b8] rotate-[-90deg]" />
-                  </div>
-                </div>
-
-                {/* Subagrupar */}
-                <div className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer">
-                  <div className="flex items-center gap-3">
-                    <Group className="h-4 w-4 text-[#b8b8b8]" />
-                    <span className="text-sm text-white">Subagrupar</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-[#b8b8b8]">Data</span>
-                    <ChevronDown className="h-3 w-3 text-[#b8b8b8] rotate-[-90deg]" />
-                  </div>
-                </div>
-
-                {/* Color condicional */}
-                <div className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer">
-                  <div className="flex items-center gap-3">
-                    <Palette className="h-4 w-4 text-[#b8b8b8]" />
-                    <span className="text-sm text-white">Color condicional</span>
+                    <AlertTriangle className="h-4 w-4 text-[#b8b8b8]" />
+                    <span className="text-sm text-white">Prioritat</span>
                   </div>
                   <ChevronDown className="h-3 w-3 text-[#b8b8b8] rotate-[-90deg]" />
                 </div>
 
-                {/* Copiar enlace a la vista */}
-                <div className="flex items-center gap-3 py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer">
-                  <Link className="h-4 w-4 text-[#b8b8b8]" />
-                  <span className="text-sm text-white">Copiar enlace a la vista</span>
-                </div>
-              </div>
-
-              {/* Separator */}
-              <Separator className="bg-[#333] mb-4" />
-
-              {/* Database Settings */}
-              <div className="space-y-1">
-                <h4 className="text-xs font-medium text-[#b8b8b8] mb-3 px-3">Database settings</h4>
-                
-                {/* Bloquear base de datos */}
-                <div className="flex items-center gap-3 py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer">
-                  <Lock className="h-4 w-4 text-[#b8b8b8]" />
-                  <span className="text-sm text-white">Bloquear base de datos</span>
-                </div>
-
-                {/* Editar propiedades */}
-                <div className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer">
+                {/* Noves propietats */}
+                <div className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer opacity-60">
                   <div className="flex items-center gap-3">
-                    <FileText className="h-4 w-4 text-[#b8b8b8]" />
-                    <span className="text-sm text-white">Editar propiedades</span>
+                    <Plus className="h-4 w-4 text-[#b8b8b8]" />
+                    <span className="text-sm text-white">Noves propietats</span>
                   </div>
                   <ChevronDown className="h-3 w-3 text-[#b8b8b8] rotate-[-90deg]" />
                 </div>
 
-                {/* Automatizaciones */}
-                <div className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer">
-                  <div className="flex items-center gap-3">
-                    <Bot className="h-4 w-4 text-[#b8b8b8]" />
-                    <span className="text-sm text-white">Automatizaciones</span>
-                  </div>
-                  <ChevronDown className="h-3 w-3 text-[#b8b8b8] rotate-[-90deg]" />
-                </div>
+                {/* Separator */}
+                <Separator className="bg-[#333] my-3" />
 
                 {/* Configuració avançada */}
                 <div 
