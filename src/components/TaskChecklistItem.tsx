@@ -81,11 +81,8 @@ const TaskChecklistItem = ({ task, onStatusChange, onEdit, onDelete, viewMode = 
         <div className="flex items-center gap-2 mb-1">
           <h3 
             className={cn(
-              "font-medium text-sm leading-tight truncate transition-colors",
-              viewMode === "kanban" ? "text-white hover:text-white/80" : "hover:text-primary",
-              isCompleted && "line-through",
-              isCompleted && viewMode === "kanban" ? "text-white/60" : isCompleted && "text-muted-foreground",
-              isInProgress && viewMode === "kanban" ? "text-white" : isInProgress && "text-primary"
+              "font-medium text-sm leading-tight truncate transition-colors text-white hover:text-white/80",
+              isCompleted && "line-through text-white/60"
             )}
           >
             {task.title}
@@ -103,10 +100,7 @@ const TaskChecklistItem = ({ task, onStatusChange, onEdit, onDelete, viewMode = 
         </div>
 
         {/* Secondary info */}
-        <div className={cn(
-          "flex items-center gap-2 text-xs",
-          viewMode === "kanban" ? "text-white/70" : "text-muted-foreground"
-        )}>
+        <div className="flex items-center gap-2 text-xs text-white/70">
           <span>{getPriorityLabel(task.priority)}</span>
           
           {task.due_date && (
