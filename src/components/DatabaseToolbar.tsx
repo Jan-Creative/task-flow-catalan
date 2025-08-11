@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -33,13 +33,20 @@ const DatabaseToolbar = ({
   const [editingOptionId, setEditingOptionId] = useState<string | null>(null);
   const [newOptionName, setNewOptionName] = useState('');
   const [showAddOption, setShowAddOption] = useState(false);
-  const { properties, getPropertyByName, updatePropertyOption, createPropertyOption, deletePropertyOption, updatePropertyDefinition, loading } = useProperties();
+  const { properties, getPropertyByName, updatePropertyOption, createPropertyOption, deletePropertyOption, updatePropertyDefinition, loading, ensureSystemProperties } = useProperties();
   const { toast } = useToast();
   const navigate = useNavigate();
 
   // Get current property data
   const estatProperty = getPropertyByName('Estat');
   const prioritatProperty = getPropertyByName('Prioritat');
+
+  // Auto-create system properties when component loads
+  useEffect(() => {
+    if (!loading && (!estatProperty || !prioritatProperty)) {
+      ensureSystemProperties();
+    }
+  }, [loading, estatProperty, prioritatProperty, ensureSystemProperties]);
 
   const handleAdvancedSettingsClick = () => {
     onNavigateToSettings?.();
@@ -100,12 +107,15 @@ const DatabaseToolbar = ({
     if (!newOptionName.trim()) return;
     
     try {
-      const estatOptions = estatProperty?.options || [];
+      // Get current property to determine sort order
+      const currentProperty = currentPropertyView === 'estat' ? estatProperty : prioritatProperty;
+      const currentOptions = currentProperty?.options || [];
+      
       await createPropertyOption(propertyId, {
         label: newOptionName,
         value: newOptionName.toLowerCase().replace(/\s+/g, '_'),
         color: '#6366f1',
-        sort_order: estatOptions.length,
+        sort_order: currentOptions.length,
         is_default: false
       });
       setNewOptionName('');
@@ -115,6 +125,7 @@ const DatabaseToolbar = ({
         description: `S'ha afegit l'opció "${newOptionName}"`,
       });
     } catch (error) {
+      console.error('Error creating option:', error);
       toast({
         title: "Error",
         description: "No s'ha pogut crear l'opció",

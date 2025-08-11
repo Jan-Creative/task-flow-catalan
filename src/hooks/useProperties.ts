@@ -239,6 +239,86 @@ export const useProperties = () => {
     fetchProperties();
   }, [fetchProperties]);
 
+  const ensureSystemProperties = async () => {
+    if (!user) return;
+
+    try {
+      // Check if system properties exist
+      const estatProperty = getPropertyByName('Estat');
+      const prioritatProperty = getPropertyByName('Prioritat');
+
+      if (!estatProperty) {
+        // Create Estat property
+        const { data: estatProp, error: estatError } = await supabase
+          .from('property_definitions')
+          .insert({
+            name: 'Estat',
+            type: 'select',
+            icon: 'Circle',
+            is_system: true,
+            user_id: user.id
+          })
+          .select()
+          .single();
+
+        if (estatError) throw estatError;
+
+        // Create default options for Estat
+        const estatOptions = [
+          { value: 'pendent', label: 'Pendent', color: '#64748b', sort_order: 0, is_default: true },
+          { value: 'en_proces', label: 'En procés', color: '#3b82f6', sort_order: 1, is_default: false },
+          { value: 'completat', label: 'Completat', color: '#10b981', sort_order: 2, is_default: false }
+        ];
+
+        for (const option of estatOptions) {
+          await supabase.from('property_options').insert({
+            property_id: estatProp.id,
+            ...option
+          });
+        }
+      }
+
+      if (!prioritatProperty) {
+        // Create Prioritat property
+        const { data: prioritatProp, error: prioritatError } = await supabase
+          .from('property_definitions')
+          .insert({
+            name: 'Prioritat',
+            type: 'select',
+            icon: 'Flag',
+            is_system: true,
+            user_id: user.id
+          })
+          .select()
+          .single();
+
+        if (prioritatError) throw prioritatError;
+
+        // Create default options for Prioritat
+        const prioritatOptions = [
+          { value: 'baixa', label: 'Baixa', color: '#64748b', sort_order: 0, is_default: false },
+          { value: 'mitjana', label: 'Mitjana', color: '#f59e0b', sort_order: 1, is_default: true },
+          { value: 'alta', label: 'Alta', color: '#ef4444', sort_order: 2, is_default: false },
+          { value: 'urgent', label: 'Urgent', color: '#dc2626', sort_order: 3, is_default: false }
+        ];
+
+        for (const option of prioritatOptions) {
+          await supabase.from('property_options').insert({
+            property_id: prioritatProp.id,
+            ...option
+          });
+        }
+      }
+
+      // Refresh properties if we created any
+      if (!estatProperty || !prioritatProperty) {
+        await fetchProperties();
+      }
+    } catch (error) {
+      console.error('Error ensuring system properties:', error);
+    }
+  };
+
   return {
     properties,
     loading,
@@ -251,6 +331,7 @@ export const useProperties = () => {
     updatePropertyDefinition,
     getTaskProperties,
     setTaskProperty,
+    ensureSystemProperties,
     // Legacy support
     getStatusOptions,
     getPriorityOptions,
