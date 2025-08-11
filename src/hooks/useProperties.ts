@@ -255,3 +255,5 @@ export const useProperties = () => {
     getPriorityProperty,
   };
 };
+
+export default useProperties;
