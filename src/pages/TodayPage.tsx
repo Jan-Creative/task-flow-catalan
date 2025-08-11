@@ -1,11 +1,10 @@
 import { useState, useEffect, useRef } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import TaskChecklistItem from "@/components/TaskChecklistItem";
+import DatabaseToolbar from "@/components/DatabaseToolbar";
 import { useTasks } from "@/hooks/useTasks";
-import { List, LayoutGrid, SlidersHorizontal } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { SlidersHorizontal } from "lucide-react";
 
 interface TodayPageProps {
   onEditTask: (task: any) => void;
@@ -150,53 +149,15 @@ const TodayPage = ({ onEditTask }: TodayPageProps) => {
           </Card>
         </div>
 
-        {/* View controls */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <Button
-              variant={viewMode === "list" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setViewMode("list")}
-              className="bg-card/60 backdrop-blur-glass"
-            >
-              <List className="h-4 w-4 mr-1" />
-              Llista
-            </Button>
-            <Button
-              variant={viewMode === "kanban" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setViewMode("kanban")}
-              className="bg-card/60 backdrop-blur-glass"
-            >
-              <LayoutGrid className="h-4 w-4 mr-1" />
-              Tauler
-            </Button>
-          </div>
-
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full sm:w-auto">
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="text-sm bg-card/60 backdrop-blur-glass border border-border/50 rounded-2xl px-3 py-1.5 w-full sm:w-auto min-w-0"
-            >
-              <option value="all">Tots els estats</option>
-              <option value="pendent">Pendent</option>
-              <option value="en_proces">En procés</option>
-              <option value="completat">Completat</option>
-            </select>
-            
-            <select
-              value={filterPriority}
-              onChange={(e) => setFilterPriority(e.target.value)}
-              className="text-sm bg-card/60 backdrop-blur-glass border border-border/50 rounded-2xl px-3 py-1.5 w-full sm:w-auto min-w-0"
-            >
-              <option value="all">Totes les prioritats</option>
-              <option value="alta">Alta</option>
-              <option value="mitjana">Mitjana</option>
-              <option value="baixa">Baixa</option>
-            </select>
-          </div>
-        </div>
+        {/* Database Toolbar */}
+        <DatabaseToolbar
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          filterStatus={filterStatus}
+          onFilterStatusChange={setFilterStatus}
+          filterPriority={filterPriority}
+          onFilterPriorityChange={setFilterPriority}
+        />
       </div>
 
       {/* Content */}
