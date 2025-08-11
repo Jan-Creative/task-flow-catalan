@@ -230,7 +230,7 @@ const TodayPage = ({ onEditTask }: TodayPageProps) => {
           {viewMode === "kanban" && (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 w-full">
               {statusColumns.map((column) => (
-                <div key={column.id} className={`${getColumnBackgroundClass(column.id)} backdrop-blur-glass rounded-2xl p-4 border border-border/20`}>
+                <div key={column.id} className={`${getColumnBackgroundClass(column.id)} backdrop-blur-glass rounded-2xl p-4`}>
                   <div className="pb-3">
                     <div className="text-sm font-medium flex items-center justify-between">
                       <span>{column.label}</span>
