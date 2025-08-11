@@ -1,7 +1,42 @@
-import { useProperties } from "./useProperties";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "./useAuth";
+import type { PropertyWithOptions } from "./useProperties";
 
 export const usePropertyLabels = () => {
-  const { getOptionsByProperty, loading } = useProperties();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  // Connect directly to React Query for instant updates
+  const { data: properties = [], isLoading: loading } = useQuery({
+    queryKey: ['properties', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+
+      const { data: propertyDefs, error } = await supabase
+        .from('property_definitions')
+        .select(`
+          *,
+          property_options (*)
+        `)
+        .eq('user_id', user.id)
+        .order('created_at');
+
+      if (error) throw error;
+
+      return propertyDefs?.map(prop => ({
+        ...prop,
+        type: prop.type as 'select' | 'multiselect',
+        options: prop.property_options?.sort((a, b) => a.sort_order - b.sort_order) || []
+      })) || [];
+    },
+    enabled: !!user,
+  });
+
+  const getOptionsByProperty = (propertyName: string) => {
+    const property = properties.find(p => p.name === propertyName);
+    return property?.options || [];
+  };
 
   const getStatusLabel = (value: string): string => {
     const statusOptions = getOptionsByProperty('Estat');

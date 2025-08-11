@@ -103,7 +103,7 @@ export const useProperties = () => {
 
       if (error) throw error;
 
-      // Invalidate queries for immediate refresh in other components
+      // Invalidate queries for immediate refresh in ALL components
       queryClient.invalidateQueries({ queryKey: ['properties'] });
       
       await fetchProperties(); // Refresh data
@@ -135,7 +135,7 @@ export const useProperties = () => {
         }))
       );
 
-      // Invalidate queries for immediate refresh in other components
+      // Invalidate queries for immediate refresh in ALL components
       queryClient.invalidateQueries({ queryKey: ['properties'] });
       
       await fetchProperties(); // Refresh data
@@ -155,7 +155,7 @@ export const useProperties = () => {
 
       if (error) throw error;
 
-      // Invalidate queries for immediate refresh in other components
+      // Invalidate queries for immediate refresh in ALL components
       queryClient.invalidateQueries({ queryKey: ['properties'] });
       
       await fetchProperties(); // Refresh data
@@ -176,7 +176,7 @@ export const useProperties = () => {
 
       if (error) throw error;
 
-      // Invalidate queries for immediate refresh in other components
+      // Invalidate queries for immediate refresh in ALL components
       queryClient.invalidateQueries({ queryKey: ['properties'] });
       
       await fetchProperties(); // Refresh data
