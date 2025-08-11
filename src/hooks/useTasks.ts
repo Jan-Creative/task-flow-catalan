@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useProperties } from "./useProperties";
 
 interface Task {
   id: string;
@@ -26,6 +27,7 @@ export const useTasks = () => {
   const [folders, setFolders] = useState<Folder[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { setTaskProperty, getPropertyByName } = useProperties();
 
   // Fetch tasks and folders
   const fetchData = async () => {
@@ -93,6 +95,23 @@ export const useTasks = () => {
 
       if (error) throw error;
 
+      // Set task properties in the new system
+      if (taskData.status) {
+        const statusProperty = getPropertyByName('Estat');
+        const statusOption = statusProperty?.options.find(opt => opt.value === taskData.status);
+        if (statusProperty && statusOption) {
+          await setTaskProperty(data.id, statusProperty.id, statusOption.id);
+        }
+      }
+
+      if (taskData.priority) {
+        const priorityProperty = getPropertyByName('Prioritat');
+        const priorityOption = priorityProperty?.options.find(opt => opt.value === taskData.priority);
+        if (priorityProperty && priorityOption) {
+          await setTaskProperty(data.id, priorityProperty.id, priorityOption.id);
+        }
+      }
+
       setTasks(prev => [data as Task, ...prev]);
       toast({
         title: "Tasca creada",
@@ -150,6 +169,13 @@ export const useTasks = () => {
         .eq("id", taskId);
 
       if (error) throw error;
+
+      // Update property in the new system
+      const statusProperty = getPropertyByName('Estat');
+      const statusOption = statusProperty?.options.find(opt => opt.value === status);
+      if (statusProperty && statusOption) {
+        await setTaskProperty(taskId, statusProperty.id, statusOption.id);
+      }
 
       setTasks(prev =>
         prev.map(task =>

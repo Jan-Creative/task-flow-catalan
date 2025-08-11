@@ -68,6 +68,132 @@ export type Database = {
         }
         Relationships: []
       }
+      property_definitions: {
+        Row: {
+          created_at: string
+          icon: string | null
+          id: string
+          is_system: boolean
+          name: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          icon?: string | null
+          id?: string
+          is_system?: boolean
+          name: string
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          icon?: string | null
+          id?: string
+          is_system?: boolean
+          name?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      property_options: {
+        Row: {
+          color: string
+          created_at: string
+          id: string
+          is_default: boolean
+          label: string
+          property_id: string
+          sort_order: number
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          label: string
+          property_id: string
+          sort_order?: number
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          label?: string
+          property_id?: string
+          sort_order?: number
+          updated_at?: string
+          value?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_options_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "property_definitions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      task_properties: {
+        Row: {
+          created_at: string
+          id: string
+          option_id: string
+          property_id: string
+          task_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          option_id: string
+          property_id: string
+          task_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          option_id?: string
+          property_id?: string
+          task_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_properties_option_id_fkey"
+            columns: ["option_id"]
+            isOneToOne: false
+            referencedRelation: "property_options"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_properties_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "property_definitions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_properties_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tasks: {
         Row: {
           completed_at: string | null

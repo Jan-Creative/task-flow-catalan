@@ -6,6 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { List, LayoutGrid, Filter, SortAsc, Search, Plus, ChevronDown, Settings, Zap, Maximize2, X, Eye, Table, ArrowUpDown, Group, Palette, Link, Lock, FileText, Bot, MoreHorizontal, CheckSquare, AlertTriangle, ArrowLeft, Circle, Edit3, Copy, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
+import { useProperties } from "@/hooks/useProperties";
 interface DatabaseToolbarProps {
   viewMode: "list" | "kanban";
   onViewModeChange: (mode: "list" | "kanban") => void;
@@ -15,18 +16,19 @@ interface DatabaseToolbarProps {
   onFilterPriorityChange: (priority: string) => void;
   onNavigateToSettings?: () => void;
 }
-const DatabaseToolbar = ({
-  viewMode,
-  onViewModeChange,
-  filterStatus,
-  onFilterStatusChange,
-  filterPriority,
+const DatabaseToolbar = ({ 
+  viewMode, 
+  onViewModeChange, 
+  filterStatus, 
+  onFilterStatusChange, 
+  filterPriority, 
   onFilterPriorityChange,
-  onNavigateToSettings
+  onNavigateToSettings 
 }: DatabaseToolbarProps) => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [currentPropertyView, setCurrentPropertyView] = useState<'main' | 'estat' | 'prioritat'>('main');
+  const { properties, getPropertyByName, updatePropertyOption, createPropertyOption, deletePropertyOption, updatePropertyDefinition } = useProperties();
   const navigate = useNavigate();
 
   const handleAdvancedSettingsClick = () => {
