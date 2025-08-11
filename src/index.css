@@ -8,24 +8,24 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Dark theme as default - Esquema cromàtic fosc */
-    --background: 0 0% 12%;  /* #1E1E1E */
+    /* Dark theme as default - Esquema cromàtic fosc amb negre profund */
+    --background: 0 0% 4%;   /* #0a0a0a - Negre molt profund */
     --foreground: 0 0% 95%;  /* Text blanc principal */
 
-    --card: 0 0% 15% / 0.8;  /* Targetes en gris fosc */
+    --card: 0 0% 8% / 0.9;   /* Targetes en gris més fosc per contrast */
     --card-foreground: 0 0% 95%;
 
-    --popover: 0 0% 15% / 0.95;
+    --popover: 0 0% 8% / 0.95;
     --popover-foreground: 0 0% 95%;
 
     --primary: 180 100% 25%;  /* #008080 - Color d'accent teal */
     --primary-foreground: 0 0% 95%;
     --primary-glow: 180 100% 35%;
 
-    --secondary: 0 0% 20% / 0.8;  /* Gris secundari */
+    --secondary: 0 0% 12% / 0.8;  /* Gris secundari més fosc */
     --secondary-foreground: 0 0% 85%;
 
-    --muted: 0 0% 18% / 0.6;  /* Gris suau */
+    --muted: 0 0% 10% / 0.6;  /* Gris suau més fosc */
     --muted-foreground: 0 0% 65%;
 
     --accent: 180 100% 25% / 0.15;  /* Accent amb transparència */
@@ -34,8 +34,8 @@ All colors MUST be HSL.
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 95%;
 
-    --border: 0 0% 25% / 0.3;  /* Borders subtils */
-    --input: 0 0% 18% / 0.8;   /* Inputs en gris fosc */
+    --border: 0 0% 20% / 0.3;  /* Borders més visibles */
+    --input: 0 0% 10% / 0.8;   /* Inputs en gris més fosc */
     --ring: 180 100% 25%;
 
     --success: 142 71% 45%;
