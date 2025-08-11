@@ -53,8 +53,8 @@ const DatabaseToolbar = ({
           className={cn(
             "h-7 px-3 text-xs font-medium rounded-md border-0",
             viewMode === "list" 
-              ? "bg-[#2f2f2f] text-white" 
-              : "bg-transparent text-[#9b9b9b] hover:bg-[#2a2a2a] hover:text-white"
+              ? "bg-[#404040] text-white" 
+              : "bg-transparent text-[#b8b8b8] hover:bg-[#353535] hover:text-white"
           )}
         >
           <List className="h-3 w-3 mr-1.5" />
@@ -67,8 +67,8 @@ const DatabaseToolbar = ({
           className={cn(
             "h-7 px-3 text-xs font-medium rounded-md border-0",
             viewMode === "kanban" 
-              ? "bg-[#2f2f2f] text-white" 
-              : "bg-transparent text-[#9b9b9b] hover:bg-[#2a2a2a] hover:text-white"
+              ? "bg-[#404040] text-white" 
+              : "bg-transparent text-[#b8b8b8] hover:bg-[#353535] hover:text-white"
           )}
         >
           <LayoutGrid className="h-3 w-3 mr-1.5" />
@@ -87,7 +87,7 @@ const DatabaseToolbar = ({
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 w-7 p-0 text-[#9b9b9b] hover:bg-[#2a2a2a] hover:text-white rounded-md relative"
+              className="h-7 w-7 p-0 text-[#b8b8b8] hover:bg-[#353535] hover:text-white rounded-md relative"
             >
               <Filter className="h-3.5 w-3.5" />
               {getActiveFiltersCount() > 0 && (
@@ -132,7 +132,7 @@ const DatabaseToolbar = ({
         <Button
           variant="ghost"
           size="sm"
-          className="h-7 w-7 p-0 text-[#9b9b9b] hover:bg-[#2a2a2a] hover:text-white rounded-md"
+          className="h-7 w-7 p-0 text-[#b8b8b8] hover:bg-[#353535] hover:text-white rounded-md"
           disabled
         >
           <SortAsc className="h-3.5 w-3.5" />
@@ -142,7 +142,7 @@ const DatabaseToolbar = ({
         <Button
           variant="ghost"
           size="sm"
-          className="h-7 w-7 p-0 text-[#9b9b9b] hover:bg-[#2a2a2a] hover:text-white rounded-md"
+          className="h-7 w-7 p-0 text-[#b8b8b8] hover:bg-[#353535] hover:text-white rounded-md"
           disabled
         >
           <Zap className="h-3.5 w-3.5" />
@@ -152,7 +152,7 @@ const DatabaseToolbar = ({
         <Button
           variant="ghost"
           size="sm"
-          className="h-7 w-7 p-0 text-[#9b9b9b] hover:bg-[#2a2a2a] hover:text-white rounded-md"
+          className="h-7 w-7 p-0 text-[#b8b8b8] hover:bg-[#353535] hover:text-white rounded-md"
           disabled
         >
           <Search className="h-3.5 w-3.5" />
@@ -162,7 +162,7 @@ const DatabaseToolbar = ({
         <Button
           variant="ghost"
           size="sm"
-          className="h-7 w-7 p-0 text-[#9b9b9b] hover:bg-[#2a2a2a] hover:text-white rounded-md"
+          className="h-7 w-7 p-0 text-[#b8b8b8] hover:bg-[#353535] hover:text-white rounded-md"
           disabled
         >
           <Maximize2 className="h-3.5 w-3.5" />
@@ -172,7 +172,7 @@ const DatabaseToolbar = ({
         <Button
           variant="ghost"
           size="sm"
-          className="h-7 w-7 p-0 text-[#9b9b9b] hover:bg-[#2a2a2a] hover:text-white rounded-md"
+          className="h-7 w-7 p-0 text-[#b8b8b8] hover:bg-[#353535] hover:text-white rounded-md"
           disabled
         >
           <Settings className="h-3.5 w-3.5" />
