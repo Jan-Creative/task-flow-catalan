@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 
@@ -43,8 +43,11 @@ export const useProperties = () => {
   const [properties, setProperties] = useState<PropertyWithOptions[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchProperties = async () => {
-    if (!user) return;
+  const fetchProperties = useCallback(async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
 
     try {
       setLoading(true);
@@ -74,7 +77,7 @@ export const useProperties = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id]);
 
   const getPropertyByName = (name: string) => {
     return properties.find(p => p.name === name);
@@ -234,7 +237,7 @@ export const useProperties = () => {
 
   useEffect(() => {
     fetchProperties();
-  }, [user]);
+  }, [fetchProperties]);
 
   return {
     properties,
