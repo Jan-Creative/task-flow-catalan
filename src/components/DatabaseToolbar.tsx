@@ -7,6 +7,7 @@ import { List, LayoutGrid, Filter, SortAsc, Search, Plus, ChevronDown, Settings,
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { useProperties } from "@/hooks/useProperties";
+import { useToast } from "@/hooks/use-toast";
 interface DatabaseToolbarProps {
   viewMode: "list" | "kanban";
   onViewModeChange: (mode: "list" | "kanban") => void;
@@ -28,8 +29,17 @@ const DatabaseToolbar = ({
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [currentPropertyView, setCurrentPropertyView] = useState<'main' | 'estat' | 'prioritat'>('main');
-  const { properties, getPropertyByName, updatePropertyOption, createPropertyOption, deletePropertyOption, updatePropertyDefinition } = useProperties();
+  const [editingPropertyName, setEditingPropertyName] = useState<string>('');
+  const [editingOptionId, setEditingOptionId] = useState<string | null>(null);
+  const [newOptionName, setNewOptionName] = useState('');
+  const [showAddOption, setShowAddOption] = useState(false);
+  const { properties, getPropertyByName, updatePropertyOption, createPropertyOption, deletePropertyOption, updatePropertyDefinition, loading } = useProperties();
+  const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Get current property data
+  const estatProperty = getPropertyByName('Estat');
+  const prioritatProperty = getPropertyByName('Prioritat');
 
   const handleAdvancedSettingsClick = () => {
     onNavigateToSettings?.();
@@ -46,6 +56,94 @@ const DatabaseToolbar = ({
 
   const handlePrioritatClick = () => {
     setCurrentPropertyView('prioritat');
+  };
+
+  // Property name editing functions
+  const handlePropertyNameChange = async (propertyId: string, newName: string) => {
+    if (!newName.trim()) return;
+    
+    try {
+      await updatePropertyDefinition(propertyId, { name: newName });
+      toast({
+        title: "Propietat actualitzada",
+        description: `El nom s'ha canviat a "${newName}"`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "No s'ha pogut actualitzar el nom de la propietat",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Option editing functions
+  const handleOptionUpdate = async (optionId: string, updates: { label?: string; color?: string }) => {
+    try {
+      await updatePropertyOption(optionId, updates);
+      setEditingOptionId(null);
+      toast({
+        title: "Opció actualitzada",
+        description: "Els canvis s'han guardat correctament",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "No s'ha pogut actualitzar l'opció",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Create new option
+  const handleCreateOption = async (propertyId: string) => {
+    if (!newOptionName.trim()) return;
+    
+    try {
+      const estatOptions = estatProperty?.options || [];
+      await createPropertyOption(propertyId, {
+        label: newOptionName,
+        value: newOptionName.toLowerCase().replace(/\s+/g, '_'),
+        color: '#6366f1',
+        sort_order: estatOptions.length,
+        is_default: false
+      });
+      setNewOptionName('');
+      setShowAddOption(false);
+      toast({
+        title: "Opció creada",
+        description: `S'ha afegit l'opció "${newOptionName}"`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "No s'ha pogut crear l'opció",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Delete option
+  const handleDeleteOption = async (optionId: string, optionName: string) => {
+    if (confirm(`Estàs segur que vols eliminar l'opció "${optionName}"?`)) {
+      try {
+        await deletePropertyOption(optionId);
+        toast({
+          title: "Opció eliminada",
+          description: `S'ha eliminat l'opció "${optionName}"`,
+        });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "No s'ha pogut eliminar l'opció",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  const getColorForOption = (color: string) => {
+    return color || '#6366f1';
   };
   const getActiveFiltersCount = () => {
     let count = 0;
@@ -85,9 +183,11 @@ const DatabaseToolbar = ({
                 <label className="text-xs font-medium text-white">Estat</label>
                 <select value={filterStatus} onChange={e => onFilterStatusChange(e.target.value)} className="w-full text-xs bg-[#2a2a2a] border border-[#333] rounded-md px-2 py-1.5 text-white">
                   <option value="all">Tots els estats</option>
-                  <option value="pendent">Pendent</option>
-                  <option value="en_proces">En procés</option>
-                  <option value="completat">Completat</option>
+                  {estatProperty?.options?.map((option) => (
+                    <option key={option.id} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
                 </select>
               </div>
               
@@ -95,9 +195,11 @@ const DatabaseToolbar = ({
                 <label className="text-xs font-medium text-white">Prioritat</label>
                 <select value={filterPriority} onChange={e => onFilterPriorityChange(e.target.value)} className="w-full text-xs bg-[#2a2a2a] border border-[#333] rounded-md px-2 py-1.5 text-white">
                   <option value="all">Totes les prioritats</option>
-                  <option value="alta">Alta</option>
-                  <option value="mitjana">Mitjana</option>
-                  <option value="baixa">Baixa</option>
+                  {prioritatProperty?.options?.map((option) => (
+                    <option key={option.id} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -198,148 +300,209 @@ const DatabaseToolbar = ({
 
             {currentPropertyView === 'estat' && (
               <div className="p-4">
-                {/* Header with back button */}
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 w-6 p-0 text-[#b8b8b8] hover:bg-[#353535] hover:text-white"
-                      onClick={handleBackToMain}
-                    >
-                      <ArrowLeft className="h-4 w-4" />
-                    </Button>
-                    <div className="flex items-center gap-2">
-                      <CheckSquare className="h-4 w-4 text-[#b8b8b8]" />
-                      <input 
-                        type="text" 
-                        defaultValue="Estat"
-                        className="bg-transparent text-sm font-medium text-white border-none outline-none focus:bg-[#2a2a2a] rounded px-1 py-0.5"
-                      />
-                    </div>
+                {loading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="text-sm text-[#b8b8b8]">Carregant...</div>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 w-6 p-0 text-[#b8b8b8] hover:bg-[#353535] hover:text-white"
-                    onClick={() => setIsSettingsOpen(false)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-
-                {/* Property type info */}
-                <div className="mb-4">
-                  <p className="text-xs text-[#b8b8b8]">Tipo: Estado</p>
-                </div>
-
-                {/* Current status options */}
-                <div className="space-y-2 mb-4">
-                  {/* Pendent option */}
-                  <div className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-[#2a2a2a] group">
-                    <div className="flex items-center gap-3">
-                      <Circle className="h-3 w-3 text-gray-400 fill-gray-400" />
-                      <input 
-                        type="text" 
-                        defaultValue="Pendent"
-                        className="bg-transparent text-sm text-white border-none outline-none focus:bg-[#353535] rounded px-1 py-0.5"
-                      />
-                    </div>
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-[#b8b8b8] hover:bg-[#404040]">
-                        <Plus className="h-3 w-3" />
-                      </Button>
-                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-[#b8b8b8] hover:bg-[#404040]">
-                        <Edit3 className="h-3 w-3" />
+                ) : (
+                  <>
+                    {/* Header with back button */}
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 text-[#b8b8b8] hover:bg-[#353535] hover:text-white"
+                          onClick={handleBackToMain}
+                        >
+                          <ArrowLeft className="h-4 w-4" />
+                        </Button>
+                        <div className="flex items-center gap-2">
+                          <CheckSquare className="h-4 w-4 text-[#b8b8b8]" />
+                          <input 
+                            type="text" 
+                            value={editingPropertyName || estatProperty?.name || 'Estat'}
+                            onChange={(e) => setEditingPropertyName(e.target.value)}
+                            onBlur={() => {
+                              if (estatProperty && editingPropertyName && editingPropertyName !== estatProperty.name) {
+                                handlePropertyNameChange(estatProperty.id, editingPropertyName);
+                              }
+                              setEditingPropertyName('');
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.currentTarget.blur();
+                              }
+                            }}
+                            className="bg-transparent text-sm font-medium text-white border-none outline-none focus:bg-[#2a2a2a] rounded px-1 py-0.5"
+                          />
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0 text-[#b8b8b8] hover:bg-[#353535] hover:text-white"
+                        onClick={() => setIsSettingsOpen(false)}
+                      >
+                        <X className="h-4 w-4" />
                       </Button>
                     </div>
-                  </div>
 
-                  {/* En procés option */}
-                  <div className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-[#2a2a2a] group">
-                    <div className="flex items-center gap-3">
-                      <Circle className="h-3 w-3 text-yellow-400 fill-yellow-400" />
-                      <input 
-                        type="text" 
-                        defaultValue="En procés"
-                        className="bg-transparent text-sm text-white border-none outline-none focus:bg-[#353535] rounded px-1 py-0.5"
-                      />
+                    {/* Property type info */}
+                    <div className="mb-4">
+                      <p className="text-xs text-[#b8b8b8]">Tipus: Select</p>
                     </div>
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-[#b8b8b8] hover:bg-[#404040]">
-                        <Plus className="h-3 w-3" />
-                      </Button>
-                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-[#b8b8b8] hover:bg-[#404040]">
-                        <Edit3 className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
 
-                  {/* Completat option */}
-                  <div className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-[#2a2a2a] group">
-                    <div className="flex items-center gap-3">
-                      <Circle className="h-3 w-3 text-green-400 fill-green-400" />
-                      <input 
-                        type="text" 
-                        defaultValue="Completat"
-                        className="bg-transparent text-sm text-white border-none outline-none focus:bg-[#353535] rounded px-1 py-0.5"
-                      />
-                    </div>
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-[#b8b8b8] hover:bg-[#404040]">
-                        <Plus className="h-3 w-3" />
-                      </Button>
-                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-[#b8b8b8] hover:bg-[#404040]">
-                        <Edit3 className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
+                    {/* Current status options */}
+                    <div className="space-y-2 mb-4">
+                      {estatProperty?.options?.map((option) => (
+                        <div key={option.id} className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-[#2a2a2a] group">
+                          <div className="flex items-center gap-3">
+                            <input
+                              type="color"
+                              value={getColorForOption(option.color)}
+                              onChange={(e) => handleOptionUpdate(option.id, { color: e.target.value })}
+                              className="h-3 w-3 rounded-full border-none cursor-pointer"
+                              style={{ backgroundColor: getColorForOption(option.color) }}
+                            />
+                            {editingOptionId === option.id ? (
+                              <input 
+                                type="text" 
+                                value={option.label}
+                                onChange={(e) => handleOptionUpdate(option.id, { label: e.target.value })}
+                                onBlur={() => setEditingOptionId(null)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    setEditingOptionId(null);
+                                  }
+                                }}
+                                className="bg-[#353535] text-sm text-white border border-[#555] outline-none rounded px-1 py-0.5"
+                                autoFocus
+                              />
+                            ) : (
+                              <span 
+                                className="text-sm text-white cursor-pointer"
+                                onClick={() => setEditingOptionId(option.id)}
+                              >
+                                {option.label}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-6 w-6 p-0 text-[#b8b8b8] hover:bg-[#404040]"
+                              onClick={() => setEditingOptionId(option.id)}
+                            >
+                              <Edit3 className="h-3 w-3" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-6 w-6 p-0 text-red-400 hover:bg-[#404040]"
+                              onClick={() => handleDeleteOption(option.id, option.label)}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
 
-                  {/* Add new option button */}
-                  <div className="flex items-center gap-3 py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer text-[#b8b8b8] hover:text-white">
-                    <Plus className="h-3 w-3" />
-                    <span className="text-sm">Afegir una opció</span>
-                  </div>
-                </div>
+                      {/* Add new option */}
+                      {showAddOption ? (
+                        <div className="flex items-center gap-3 py-2 px-3 rounded-md bg-[#2a2a2a]">
+                          <Circle className="h-3 w-3 text-[#6366f1] fill-[#6366f1]" />
+                          <input
+                            type="text"
+                            value={newOptionName}
+                            onChange={(e) => setNewOptionName(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' && estatProperty) {
+                                handleCreateOption(estatProperty.id);
+                              }
+                              if (e.key === 'Escape') {
+                                setShowAddOption(false);
+                                setNewOptionName('');
+                              }
+                            }}
+                            placeholder="Nom de l'opció"
+                            className="bg-[#353535] text-sm text-white border border-[#555] outline-none rounded px-2 py-1 flex-1"
+                            autoFocus
+                          />
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 text-green-400 hover:bg-[#404040]"
+                              onClick={() => estatProperty && handleCreateOption(estatProperty.id)}
+                            >
+                              <CheckSquare className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 text-[#b8b8b8] hover:bg-[#404040]"
+                              onClick={() => {
+                                setShowAddOption(false);
+                                setNewOptionName('');
+                              }}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div 
+                          className="flex items-center gap-3 py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer text-[#b8b8b8] hover:text-white"
+                          onClick={() => setShowAddOption(true)}
+                        >
+                          <Plus className="h-3 w-3" />
+                          <span className="text-sm">Afegir una opció</span>
+                        </div>
+                      )}
+                     </div>
 
-                {/* Advanced options */}
-                <Separator className="bg-[#333] my-4" />
-                
-                <div className="space-y-3">
-                  {/* Toggle option */}
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-white">Ajustar a la vista</span>
-                    <div className="w-8 h-4 bg-[#404040] rounded-full relative cursor-pointer">
-                      <div className="w-3 h-3 bg-white rounded-full absolute top-0.5 left-0.5 transition-transform"></div>
-                    </div>
-                  </div>
+                     {/* Advanced options */}
+                     <Separator className="bg-[#333] my-4" />
+                     
+                     <div className="space-y-3">
+                       {/* Toggle option */}
+                       <div className="flex items-center justify-between">
+                         <span className="text-sm text-white">Ajustar a la vista</span>
+                         <div className="w-8 h-4 bg-[#404040] rounded-full relative cursor-pointer">
+                           <div className="w-3 h-3 bg-white rounded-full absolute top-0.5 left-0.5 transition-transform"></div>
+                         </div>
+                       </div>
 
-                  {/* Show as selector */}
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-white">Mostrar com</label>
-                    <select className="w-full text-xs bg-[#2a2a2a] border border-[#333] rounded-md px-2 py-1.5 text-white">
-                      <option value="tags">Etiquetes</option>
-                      <option value="checkbox">Casella de verificació</option>
-                      <option value="select">Selector</option>
-                    </select>
-                  </div>
-                </div>
+                       {/* Show as selector */}
+                       <div className="space-y-1.5">
+                         <label className="text-xs font-medium text-white">Mostrar com</label>
+                         <select className="w-full text-xs bg-[#2a2a2a] border border-[#333] rounded-md px-2 py-1.5 text-white">
+                           <option value="tags">Etiquetes</option>
+                           <option value="checkbox">Casella de verificació</option>
+                           <option value="select">Selector</option>
+                         </select>
+                       </div>
+                     </div>
 
-                {/* Action buttons */}
-                <Separator className="bg-[#333] my-4" />
-                
-                <div className="space-y-1">
-                  <div className="flex items-center gap-3 py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer text-[#b8b8b8] hover:text-white">
-                    <Copy className="h-4 w-4" />
-                    <span className="text-sm">Duplicar propietat</span>
-                  </div>
-                  <div className="flex items-center gap-3 py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer text-red-400 hover:text-red-300">
-                    <Trash2 className="h-4 w-4" />
-                    <span className="text-sm">Eliminar propietat</span>
-                  </div>
-                </div>
-              </div>
-            )}
+                     {/* Action buttons */}
+                     <Separator className="bg-[#333] my-4" />
+                     
+                     <div className="space-y-1">
+                       <div className="flex items-center gap-3 py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer text-[#b8b8b8] hover:text-white">
+                         <Copy className="h-4 w-4" />
+                         <span className="text-sm">Duplicar propietat</span>
+                       </div>
+                       <div className="flex items-center gap-3 py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer text-red-400 hover:text-red-300">
+                         <Trash2 className="h-4 w-4" />
+                         <span className="text-sm">Eliminar propietat</span>
+                       </div>
+                     </div>
+                   </>
+                 )}
+               </div>
+             )}
 
             {currentPropertyView === 'prioritat' && (
               <div className="p-4">
