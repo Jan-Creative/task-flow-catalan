@@ -31,6 +31,7 @@ const DatabaseToolbar = ({
   const [currentPropertyView, setCurrentPropertyView] = useState<'main' | 'estat' | 'prioritat'>('main');
   const [editingPropertyName, setEditingPropertyName] = useState<string>('');
   const [editingOptionId, setEditingOptionId] = useState<string | null>(null);
+  const [editingOptionValue, setEditingOptionValue] = useState<string>('');
   const [newOptionName, setNewOptionName] = useState('');
   const [showAddOption, setShowAddOption] = useState(false);
   const { properties, getPropertyByName, updatePropertyOption, createPropertyOption, deletePropertyOption, updatePropertyDefinition, loading, ensureSystemProperties } = useProperties();
@@ -379,12 +380,26 @@ const DatabaseToolbar = ({
                             {editingOptionId === option.id ? (
                               <input 
                                 type="text" 
-                                value={option.label}
-                                onChange={(e) => handleOptionUpdate(option.id, { label: e.target.value })}
-                                onBlur={() => setEditingOptionId(null)}
+                                value={editingOptionValue}
+                                onChange={(e) => setEditingOptionValue(e.target.value)}
+                                onBlur={() => {
+                                  if (editingOptionValue !== option.label) {
+                                    handleOptionUpdate(option.id, { label: editingOptionValue });
+                                  }
+                                  setEditingOptionId(null);
+                                  setEditingOptionValue('');
+                                }}
                                 onKeyDown={(e) => {
                                   if (e.key === 'Enter') {
+                                    if (editingOptionValue !== option.label) {
+                                      handleOptionUpdate(option.id, { label: editingOptionValue });
+                                    }
                                     setEditingOptionId(null);
+                                    setEditingOptionValue('');
+                                  }
+                                  if (e.key === 'Escape') {
+                                    setEditingOptionId(null);
+                                    setEditingOptionValue('');
                                   }
                                 }}
                                 className="bg-[#353535] text-sm text-white border border-[#555] outline-none rounded px-1 py-0.5"
@@ -393,7 +408,10 @@ const DatabaseToolbar = ({
                             ) : (
                               <span 
                                 className="text-sm text-white cursor-pointer"
-                                onClick={() => setEditingOptionId(option.id)}
+                                onClick={() => {
+                                  setEditingOptionId(option.id);
+                                  setEditingOptionValue(option.label);
+                                }}
                               >
                                 {option.label}
                               </span>
@@ -517,148 +535,226 @@ const DatabaseToolbar = ({
 
             {currentPropertyView === 'prioritat' && (
               <div className="p-4">
-                {/* Header with back button */}
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 w-6 p-0 text-[#b8b8b8] hover:bg-[#353535] hover:text-white"
-                      onClick={handleBackToMain}
-                    >
-                      <ArrowLeft className="h-4 w-4" />
-                    </Button>
-                    <div className="flex items-center gap-2">
-                      <AlertTriangle className="h-4 w-4 text-[#b8b8b8]" />
-                      <input 
-                        type="text" 
-                        defaultValue="Prioritat"
-                        className="bg-transparent text-sm font-medium text-white border-none outline-none focus:bg-[#2a2a2a] rounded px-1 py-0.5"
-                      />
-                    </div>
+                {loading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="text-sm text-[#b8b8b8]">Carregant...</div>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 w-6 p-0 text-[#b8b8b8] hover:bg-[#353535] hover:text-white"
-                    onClick={() => setIsSettingsOpen(false)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-
-                {/* Property type info */}
-                <div className="mb-4">
-                  <p className="text-xs text-[#b8b8b8]">Tipo: Prioridad</p>
-                </div>
-
-                {/* Current priority options */}
-                <div className="space-y-2 mb-4">
-                  {/* Alta option */}
-                  <div className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-[#2a2a2a] group">
-                    <div className="flex items-center gap-3">
-                      <Circle className="h-3 w-3 text-red-400 fill-red-400" />
-                      <input 
-                        type="text" 
-                        defaultValue="Alta"
-                        className="bg-transparent text-sm text-white border-none outline-none focus:bg-[#353535] rounded px-1 py-0.5"
-                      />
-                    </div>
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-[#b8b8b8] hover:bg-[#404040]">
-                        <Plus className="h-3 w-3" />
-                      </Button>
-                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-[#b8b8b8] hover:bg-[#404040]">
-                        <Edit3 className="h-3 w-3" />
+                ) : (
+                  <>
+                    {/* Header with back button */}
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 text-[#b8b8b8] hover:bg-[#353535] hover:text-white"
+                          onClick={handleBackToMain}
+                        >
+                          <ArrowLeft className="h-4 w-4" />
+                        </Button>
+                        <div className="flex items-center gap-2">
+                          <AlertTriangle className="h-4 w-4 text-[#b8b8b8]" />
+                          <input 
+                            type="text" 
+                            value={editingPropertyName || prioritatProperty?.name || 'Prioritat'}
+                            onChange={(e) => setEditingPropertyName(e.target.value)}
+                            onBlur={() => {
+                              if (prioritatProperty && editingPropertyName && editingPropertyName !== prioritatProperty.name) {
+                                handlePropertyNameChange(prioritatProperty.id, editingPropertyName);
+                              }
+                              setEditingPropertyName('');
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.currentTarget.blur();
+                              }
+                            }}
+                            className="bg-transparent text-sm font-medium text-white border-none outline-none focus:bg-[#2a2a2a] rounded px-1 py-0.5"
+                          />
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0 text-[#b8b8b8] hover:bg-[#353535] hover:text-white"
+                        onClick={() => setIsSettingsOpen(false)}
+                      >
+                        <X className="h-4 w-4" />
                       </Button>
                     </div>
-                  </div>
 
-                  {/* Mitjana option */}
-                  <div className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-[#2a2a2a] group">
-                    <div className="flex items-center gap-3">
-                      <Circle className="h-3 w-3 text-yellow-400 fill-yellow-400" />
-                      <input 
-                        type="text" 
-                        defaultValue="Mitjana"
-                        className="bg-transparent text-sm text-white border-none outline-none focus:bg-[#353535] rounded px-1 py-0.5"
-                      />
+                    {/* Property type info */}
+                    <div className="mb-4">
+                      <p className="text-xs text-[#b8b8b8]">Tipus: Select</p>
                     </div>
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-[#b8b8b8] hover:bg-[#404040]">
-                        <Plus className="h-3 w-3" />
-                      </Button>
-                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-[#b8b8b8] hover:bg-[#404040]">
-                        <Edit3 className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
 
-                  {/* Baixa option */}
-                  <div className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-[#2a2a2a] group">
-                    <div className="flex items-center gap-3">
-                      <Circle className="h-3 w-3 text-green-400 fill-green-400" />
-                      <input 
-                        type="text" 
-                        defaultValue="Baixa"
-                        className="bg-transparent text-sm text-white border-none outline-none focus:bg-[#353535] rounded px-1 py-0.5"
-                      />
-                    </div>
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-[#b8b8b8] hover:bg-[#404040]">
-                        <Plus className="h-3 w-3" />
-                      </Button>
-                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-[#b8b8b8] hover:bg-[#404040]">
-                        <Edit3 className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
+                    {/* Current priority options */}
+                    <div className="space-y-2 mb-4">
+                      {prioritatProperty?.options?.map((option) => (
+                        <div key={option.id} className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-[#2a2a2a] group">
+                          <div className="flex items-center gap-3">
+                            <input
+                              type="color"
+                              value={getColorForOption(option.color)}
+                              onChange={(e) => handleOptionUpdate(option.id, { color: e.target.value })}
+                              className="h-3 w-3 rounded-full border-none cursor-pointer"
+                              style={{ backgroundColor: getColorForOption(option.color) }}
+                            />
+                            {editingOptionId === option.id ? (
+                              <input 
+                                type="text" 
+                                value={editingOptionValue}
+                                onChange={(e) => setEditingOptionValue(e.target.value)}
+                                onBlur={() => {
+                                  if (editingOptionValue !== option.label) {
+                                    handleOptionUpdate(option.id, { label: editingOptionValue });
+                                  }
+                                  setEditingOptionId(null);
+                                  setEditingOptionValue('');
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    if (editingOptionValue !== option.label) {
+                                      handleOptionUpdate(option.id, { label: editingOptionValue });
+                                    }
+                                    setEditingOptionId(null);
+                                    setEditingOptionValue('');
+                                  }
+                                  if (e.key === 'Escape') {
+                                    setEditingOptionId(null);
+                                    setEditingOptionValue('');
+                                  }
+                                }}
+                                className="bg-[#353535] text-sm text-white border border-[#555] outline-none rounded px-1 py-0.5"
+                                autoFocus
+                              />
+                            ) : (
+                              <span 
+                                className="text-sm text-white cursor-pointer"
+                                onClick={() => {
+                                  setEditingOptionId(option.id);
+                                  setEditingOptionValue(option.label);
+                                }}
+                              >
+                                {option.label}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-6 w-6 p-0 text-[#b8b8b8] hover:bg-[#404040]"
+                              onClick={() => setEditingOptionId(option.id)}
+                            >
+                              <Edit3 className="h-3 w-3" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-6 w-6 p-0 text-red-400 hover:bg-[#404040]"
+                              onClick={() => handleDeleteOption(option.id, option.label)}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
 
-                  {/* Add new option button */}
-                  <div className="flex items-center gap-3 py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer text-[#b8b8b8] hover:text-white">
-                    <Plus className="h-3 w-3" />
-                    <span className="text-sm">Afegir una opció</span>
-                  </div>
-                </div>
+                      {/* Add new option */}
+                      {showAddOption ? (
+                        <div className="flex items-center gap-3 py-2 px-3 rounded-md bg-[#2a2a2a]">
+                          <Circle className="h-3 w-3 text-[#6366f1]" />
+                          <input 
+                            type="text" 
+                            value={newOptionName}
+                            onChange={(e) => setNewOptionName(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' && prioritatProperty) {
+                                handleCreateOption(prioritatProperty.id);
+                              }
+                              if (e.key === 'Escape') {
+                                setShowAddOption(false);
+                                setNewOptionName('');
+                              }
+                            }}
+                            placeholder="Nom de l'opció"
+                            className="bg-[#353535] text-sm text-white border border-[#555] outline-none rounded px-2 py-1 flex-1"
+                            autoFocus
+                          />
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 text-green-400 hover:bg-[#404040]"
+                              onClick={() => prioritatProperty && handleCreateOption(prioritatProperty.id)}
+                            >
+                              <Plus className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 text-[#b8b8b8] hover:bg-[#404040]"
+                              onClick={() => {
+                                setShowAddOption(false);
+                                setNewOptionName('');
+                              }}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div 
+                          className="flex items-center gap-3 py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer text-[#b8b8b8] hover:text-white"
+                          onClick={() => setShowAddOption(true)}
+                        >
+                          <Plus className="h-3 w-3" />
+                          <span className="text-sm">Afegir una opció</span>
+                        </div>
+                      )}
+                     </div>
 
-                {/* Advanced options */}
-                <Separator className="bg-[#333] my-4" />
-                
-                <div className="space-y-3">
-                  {/* Toggle option */}
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-white">Ajustar a la vista</span>
-                    <div className="w-8 h-4 bg-[#404040] rounded-full relative cursor-pointer">
-                      <div className="w-3 h-3 bg-white rounded-full absolute top-0.5 left-0.5 transition-transform"></div>
-                    </div>
-                  </div>
+                     {/* Advanced options */}
+                     <Separator className="bg-[#333] my-4" />
+                     
+                     <div className="space-y-3">
+                       {/* Toggle option */}
+                       <div className="flex items-center justify-between">
+                         <span className="text-sm text-white">Ajustar a la vista</span>
+                         <div className="w-8 h-4 bg-[#404040] rounded-full relative cursor-pointer">
+                           <div className="w-3 h-3 bg-white rounded-full absolute top-0.5 left-0.5 transition-transform"></div>
+                         </div>
+                       </div>
 
-                  {/* Show as selector */}
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-white">Mostrar com</label>
-                    <select className="w-full text-xs bg-[#2a2a2a] border border-[#333] rounded-md px-2 py-1.5 text-white">
-                      <option value="tags">Etiquetes</option>
-                      <option value="checkbox">Casella de verificació</option>
-                      <option value="select">Selector</option>
-                    </select>
-                  </div>
-                </div>
+                       {/* Show as selector */}
+                       <div className="space-y-1.5">
+                         <label className="text-xs font-medium text-white">Mostrar com</label>
+                         <select className="w-full text-xs bg-[#2a2a2a] border border-[#333] rounded-md px-2 py-1.5 text-white">
+                           <option value="tags">Etiquetes</option>
+                           <option value="checkbox">Casella de verificació</option>
+                           <option value="select">Selector</option>
+                         </select>
+                       </div>
+                     </div>
 
-                {/* Action buttons */}
-                <Separator className="bg-[#333] my-4" />
-                
-                <div className="space-y-1">
-                  <div className="flex items-center gap-3 py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer text-[#b8b8b8] hover:text-white">
-                    <Copy className="h-4 w-4" />
-                    <span className="text-sm">Duplicar propietat</span>
-                  </div>
-                  <div className="flex items-center gap-3 py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer text-red-400 hover:text-red-300">
-                    <Trash2 className="h-4 w-4" />
-                    <span className="text-sm">Eliminar propietat</span>
-                  </div>
-                </div>
-              </div>
-            )}
+                     {/* Action buttons */}
+                     <Separator className="bg-[#333] my-4" />
+                     
+                     <div className="space-y-1">
+                       <div className="flex items-center gap-3 py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer text-[#b8b8b8] hover:text-white">
+                         <Copy className="h-4 w-4" />
+                         <span className="text-sm">Duplicar propietat</span>
+                       </div>
+                       <div className="flex items-center gap-3 py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer text-red-400 hover:text-red-300">
+                         <Trash2 className="h-4 w-4" />
+                         <span className="text-sm">Eliminar propietat</span>
+                       </div>
+                     </div>
+                   </>
+                 )}
+               </div>
+             )}
           </PopoverContent>
         </Popover>
 
