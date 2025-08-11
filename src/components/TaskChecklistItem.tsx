@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { usePropertyLabels } from "@/hooks/usePropertyLabels";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,20 +31,11 @@ interface TaskChecklistItemProps {
 }
 
 const TaskChecklistItem = ({ task, onStatusChange, onEdit, onDelete, viewMode = "list" }: TaskChecklistItemProps) => {
-  const getPriorityColor = (priority: Task['priority']) => {
-    switch (priority) {
-      case 'alta': return 'text-destructive';
-      case 'mitjana': return 'text-warning';
-      case 'baixa': return 'text-success';
-    }
-  };
+  const { getPriorityLabel, getPriorityColor: getDynamicPriorityColor } = usePropertyLabels();
 
-  const getPriorityLabel = (priority: Task['priority']) => {
-    switch (priority) {
-      case 'alta': return 'Alta';
-      case 'mitjana': return 'Mitjana';
-      case 'baixa': return 'Baixa';
-    }
+  const getPriorityColor = (priority: Task['priority']) => {
+    const color = getDynamicPriorityColor(priority);
+    return `text-[${color}]`;
   };
 
 

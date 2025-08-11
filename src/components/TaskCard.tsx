@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { usePropertyLabels } from "@/hooks/usePropertyLabels";
 
 interface Task {
   id: string;
@@ -22,36 +23,16 @@ interface TaskCardProps {
 }
 
 const TaskCard = ({ task, onStatusChange, onEdit, onDelete }: TaskCardProps) => {
+  const { getStatusLabel, getPriorityLabel, getStatusColor: getDynamicStatusColor, getPriorityColor: getDynamicPriorityColor } = usePropertyLabels();
+
   const getStatusColor = (status: Task['status']) => {
-    switch (status) {
-      case 'pendent': return 'bg-warning/20 text-warning-foreground border-warning/30';
-      case 'en_proces': return 'bg-primary/20 text-primary-foreground border-primary/30';
-      case 'completat': return 'bg-success/20 text-success-foreground border-success/30';
-    }
+    const color = getDynamicStatusColor(status);
+    return `bg-[${color}]/20 text-foreground border-[${color}]/30`;
   };
 
   const getPriorityColor = (priority: Task['priority']) => {
-    switch (priority) {
-      case 'alta': return 'text-destructive';
-      case 'mitjana': return 'text-warning';
-      case 'baixa': return 'text-success';
-    }
-  };
-
-  const getStatusLabel = (status: Task['status']) => {
-    switch (status) {
-      case 'pendent': return 'Pendent';
-      case 'en_proces': return 'En procés';
-      case 'completat': return 'Completat';
-    }
-  };
-
-  const getPriorityLabel = (priority: Task['priority']) => {
-    switch (priority) {
-      case 'alta': return 'Alta';
-      case 'mitjana': return 'Mitjana';
-      case 'baixa': return 'Baixa';
-    }
+    const color = getDynamicPriorityColor(priority);
+    return `text-[${color}]`;
   };
 
   return (

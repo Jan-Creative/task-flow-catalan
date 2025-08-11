@@ -10,6 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { ca } from "date-fns/locale";
+import { usePropertyLabels } from "@/hooks/usePropertyLabels";
 
 interface CreateTaskDialogProps {
   open: boolean;
@@ -26,6 +27,7 @@ interface CreateTaskDialogProps {
 }
 
 const CreateTaskDialog = ({ open, onClose, onSubmit, folders }: CreateTaskDialogProps) => {
+  const { getStatusOptions, getPriorityOptions } = usePropertyLabels();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState<"pendent" | "en_proces" | "completat">("pendent");
@@ -35,6 +37,9 @@ const CreateTaskDialog = ({ open, onClose, onSubmit, folders }: CreateTaskDialog
 
   // Temporary log to debug folders
   console.log("CreateTaskDialog - folders received:", folders);
+
+  const statusOptions = getStatusOptions();
+  const priorityOptions = getPriorityOptions();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,9 +104,11 @@ const CreateTaskDialog = ({ open, onClose, onSubmit, folders }: CreateTaskDialog
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-[#2A2A2A] border-border/30 z-50">
-                  <SelectItem value="pendent" className="text-white hover:bg-[#333333]">Pendent</SelectItem>
-                  <SelectItem value="en_proces" className="text-white hover:bg-[#333333]">En procés</SelectItem>
-                  <SelectItem value="completat" className="text-white hover:bg-[#333333]">Completat</SelectItem>
+                  {statusOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value} className="text-white hover:bg-[#333333]">
+                      {option.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -113,9 +120,11 @@ const CreateTaskDialog = ({ open, onClose, onSubmit, folders }: CreateTaskDialog
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-[#2A2A2A] border-border/30 z-50">
-                  <SelectItem value="alta" className="text-white hover:bg-[#333333]">Alta</SelectItem>
-                  <SelectItem value="mitjana" className="text-white hover:bg-[#333333]">Mitjana</SelectItem>
-                  <SelectItem value="baixa" className="text-white hover:bg-[#333333]">Baixa</SelectItem>
+                  {priorityOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value} className="text-white hover:bg-[#333333]">
+                      {option.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
