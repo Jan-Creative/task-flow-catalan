@@ -5,11 +5,13 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useTasks } from "@/hooks/useTasks";
+import { usePropertyLabels } from "@/hooks/usePropertyLabels";
 import { Folder, Plus, Inbox, MoreVertical, Edit, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const FoldersPage = () => {
   const { tasks, folders, createFolder, loading } = useTasks();
+  const { getStatusLabel } = usePropertyLabels();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
@@ -92,7 +94,7 @@ const FoldersPage = () => {
               <div key={task.id} className="flex items-center justify-between p-2 bg-accent/10 rounded-lg">
                 <span className="text-sm font-medium truncate">{task.title}</span>
                 <Badge variant="outline" className="text-xs">
-                  {task.status === 'pendent' ? 'Pendent' : task.status === 'en_proces' ? 'En procés' : 'Completat'}
+                  {getStatusLabel(task.status)}
                 </Badge>
               </div>
             ))}
@@ -179,7 +181,7 @@ const FoldersPage = () => {
                           <div key={task.id} className="flex items-center justify-between p-2 bg-accent/10 rounded-lg">
                             <span className="text-sm font-medium truncate">{task.title}</span>
                             <Badge variant="outline" className="text-xs">
-                              {task.status === 'pendent' ? 'Pendent' : task.status === 'en_proces' ? 'En procés' : 'Completat'}
+                              {getStatusLabel(task.status)}
                             </Badge>
                           </div>
                         ))}

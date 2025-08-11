@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import TaskChecklistItem from "@/components/TaskChecklistItem";
 import DatabaseToolbar from "@/components/DatabaseToolbar";
 import { useTasks } from "@/hooks/useTasks";
+import { usePropertyLabels } from "@/hooks/usePropertyLabels";
 import { SlidersHorizontal } from "lucide-react";
 
 interface TodayPageProps {
@@ -13,6 +14,7 @@ interface TodayPageProps {
 
 const TodayPage = ({ onEditTask, onNavigateToSettings }: TodayPageProps) => {
   const { tasks, updateTaskStatus, deleteTask, loading } = useTasks();
+  const { getStatusLabel, getStatusOptions } = usePropertyLabels();
   const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterPriority, setFilterPriority] = useState<string>("all");
@@ -105,11 +107,11 @@ const TodayPage = ({ onEditTask, onNavigateToSettings }: TodayPageProps) => {
     }
   };
 
-  const statusColumns = [
-    { id: "pendent", label: "Pendent", tasks: getStatusTasks("pendent") },
-    { id: "en_proces", label: "En procés", tasks: getStatusTasks("en_proces") },
-    { id: "completat", label: "Completat", tasks: getStatusTasks("completat") },
-  ];
+  const statusColumns = getStatusOptions().map(option => ({
+    id: option.value,
+    label: option.label,
+    tasks: getStatusTasks(option.value)
+  }));
 
   if (loading) {
     return (
@@ -130,24 +132,16 @@ const TodayPage = ({ onEditTask, onNavigateToSettings }: TodayPageProps) => {
         
         {/* Quick stats */}
         <div className="grid grid-cols-3 gap-3">
-          <Card className="bg-card/60 backdrop-blur-glass border-border/50">
-            <CardContent className="p-3 text-center">
-              <div className="text-2xl font-bold text-warning">{getStatusTasks("pendent").length}</div>
-              <div className="text-xs text-muted-foreground">Pendents</div>
-            </CardContent>
-          </Card>
-          <Card className="bg-card/60 backdrop-blur-glass border-border/50">
-            <CardContent className="p-3 text-center">
-              <div className="text-2xl font-bold text-primary">{getStatusTasks("en_proces").length}</div>
-              <div className="text-xs text-muted-foreground">En procés</div>
-            </CardContent>
-          </Card>
-          <Card className="bg-card/60 backdrop-blur-glass border-border/50">
-            <CardContent className="p-3 text-center">
-              <div className="text-2xl font-bold text-success">{getStatusTasks("completat").length}</div>
-              <div className="text-xs text-muted-foreground">Completades</div>
-            </CardContent>
-          </Card>
+          {getStatusOptions().slice(0, 3).map((option, index) => (
+            <Card key={option.value} className="bg-card/60 backdrop-blur-glass border-border/50">
+              <CardContent className="p-3 text-center">
+                <div className={`text-2xl font-bold ${index === 0 ? 'text-warning' : index === 1 ? 'text-primary' : 'text-success'}`}>
+                  {getStatusTasks(option.value).length}
+                </div>
+                <div className="text-xs text-muted-foreground">{option.label}</div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
 
         {/* Database Toolbar */}

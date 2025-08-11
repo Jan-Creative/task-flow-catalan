@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
+import { useQueryClient } from "@tanstack/react-query";
 
 export interface PropertyDefinition {
   id: string;
@@ -40,6 +41,7 @@ export interface PropertyWithOptions extends PropertyDefinition {
 
 export const useProperties = () => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [properties, setProperties] = useState<PropertyWithOptions[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -101,6 +103,9 @@ export const useProperties = () => {
 
       if (error) throw error;
 
+      // Invalidate queries for immediate refresh in other components
+      queryClient.invalidateQueries({ queryKey: ['properties'] });
+      
       await fetchProperties(); // Refresh data
       return data;
     } catch (error) {
@@ -120,6 +125,19 @@ export const useProperties = () => {
 
       if (error) throw error;
 
+      // Optimistic update
+      setProperties(prevProperties => 
+        prevProperties.map(prop => ({
+          ...prop,
+          options: prop.options.map(opt => 
+            opt.id === optionId ? { ...opt, ...optionData } : opt
+          )
+        }))
+      );
+
+      // Invalidate queries for immediate refresh in other components
+      queryClient.invalidateQueries({ queryKey: ['properties'] });
+      
       await fetchProperties(); // Refresh data
       return data;
     } catch (error) {
@@ -137,6 +155,9 @@ export const useProperties = () => {
 
       if (error) throw error;
 
+      // Invalidate queries for immediate refresh in other components
+      queryClient.invalidateQueries({ queryKey: ['properties'] });
+      
       await fetchProperties(); // Refresh data
     } catch (error) {
       console.error('Error deleting property option:', error);
@@ -155,6 +176,9 @@ export const useProperties = () => {
 
       if (error) throw error;
 
+      // Invalidate queries for immediate refresh in other components
+      queryClient.invalidateQueries({ queryKey: ['properties'] });
+      
       await fetchProperties(); // Refresh data
       return data;
     } catch (error) {
