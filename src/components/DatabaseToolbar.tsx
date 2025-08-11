@@ -43,7 +43,7 @@ const DatabaseToolbar = ({
   };
 
   return (
-    <div className="flex items-center w-full bg-[#1f1f1f] border border-[#333] rounded-lg px-3 py-2 gap-2">
+    <div className="flex items-center w-full gap-2">
       {/* Left section - View buttons (Notion style) */}
       <div className="flex items-center gap-1">
         <Button
@@ -74,13 +74,6 @@ const DatabaseToolbar = ({
           <LayoutGrid className="h-3 w-3 mr-1.5" />
           Tauler
         </Button>
-      </div>
-
-      {/* Center section - Properties counter */}
-      <div className="flex items-center">
-        <span className="text-xs text-[#9b9b9b] bg-[#2a2a2a] hover:bg-[#333] px-2 py-1 rounded-md cursor-pointer">
-          2 más
-        </span>
       </div>
 
       {/* Spacer */}
