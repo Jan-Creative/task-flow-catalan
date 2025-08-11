@@ -37,13 +37,19 @@ const Index = () => {
   const renderCurrentPage = () => {
     switch (activeTab) {
       case "avui":
-        return <TodayPage onEditTask={handleEditTask} />;
+        return <TodayPage 
+          onEditTask={handleEditTask} 
+          onNavigateToSettings={() => setActiveTab("configuracio")}
+        />;
       case "carpetes":
         return <FoldersPage />;
       case "configuracio":
         return <SettingsPage />;
       default:
-        return <TodayPage onEditTask={handleEditTask} />;
+        return <TodayPage 
+          onEditTask={handleEditTask} 
+          onNavigateToSettings={() => setActiveTab("configuracio")}
+        />;
     }
   };
 

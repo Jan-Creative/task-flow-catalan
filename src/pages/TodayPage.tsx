@@ -8,9 +8,10 @@ import { SlidersHorizontal } from "lucide-react";
 
 interface TodayPageProps {
   onEditTask: (task: any) => void;
+  onNavigateToSettings?: () => void;
 }
 
-const TodayPage = ({ onEditTask }: TodayPageProps) => {
+const TodayPage = ({ onEditTask, onNavigateToSettings }: TodayPageProps) => {
   const { tasks, updateTaskStatus, deleteTask, loading } = useTasks();
   const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
   const [filterStatus, setFilterStatus] = useState<string>("all");
@@ -157,6 +158,7 @@ const TodayPage = ({ onEditTask }: TodayPageProps) => {
           onFilterStatusChange={setFilterStatus}
           filterPriority={filterPriority}
           onFilterPriorityChange={setFilterPriority}
+          onNavigateToSettings={onNavigateToSettings}
         />
       </div>
 

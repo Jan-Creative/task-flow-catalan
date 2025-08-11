@@ -5,6 +5,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Separator } from "@/components/ui/separator";
 import { List, LayoutGrid, Filter, SortAsc, Search, Plus, ChevronDown, Settings, Zap, Maximize2, X, Eye, Table, ArrowUpDown, Group, Palette, Link, Lock, FileText, Bot, MoreHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
 interface DatabaseToolbarProps {
   viewMode: "list" | "kanban";
   onViewModeChange: (mode: "list" | "kanban") => void;
@@ -12,6 +13,7 @@ interface DatabaseToolbarProps {
   onFilterStatusChange: (status: string) => void;
   filterPriority: string;
   onFilterPriorityChange: (priority: string) => void;
+  onNavigateToSettings?: () => void;
 }
 const DatabaseToolbar = ({
   viewMode,
@@ -19,10 +21,17 @@ const DatabaseToolbar = ({
   filterStatus,
   onFilterStatusChange,
   filterPriority,
-  onFilterPriorityChange
+  onFilterPriorityChange,
+  onNavigateToSettings
 }: DatabaseToolbarProps) => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const handleAdvancedSettingsClick = () => {
+    onNavigateToSettings?.();
+    setIsSettingsOpen(false);
+  };
   const getActiveFiltersCount = () => {
     let count = 0;
     if (filterStatus !== 'all') count++;
@@ -252,11 +261,14 @@ const DatabaseToolbar = ({
                   <ChevronDown className="h-3 w-3 text-[#b8b8b8] rotate-[-90deg]" />
                 </div>
 
-                {/* Más ajustes */}
-                <div className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer">
+                {/* Configuració avançada */}
+                <div 
+                  className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer"
+                  onClick={handleAdvancedSettingsClick}
+                >
                   <div className="flex items-center gap-3">
                     <MoreHorizontal className="h-4 w-4 text-[#b8b8b8]" />
-                    <span className="text-sm text-white">Más ajustes</span>
+                    <span className="text-sm text-white">Configuració avançada</span>
                   </div>
                   <ChevronDown className="h-3 w-3 text-[#b8b8b8] rotate-[-90deg]" />
                 </div>
