@@ -31,11 +31,16 @@ interface TaskChecklistItemProps {
 }
 
 const TaskChecklistItem = ({ task, onStatusChange, onEdit, onDelete, viewMode = "list" }: TaskChecklistItemProps) => {
-  const { getPriorityLabel, getPriorityColor: getDynamicPriorityColor } = usePropertyLabels();
+  const { getPriorityLabel, getPriorityColor: getDynamicPriorityColor, getStatusLabel, getStatusColor: getDynamicStatusColor } = usePropertyLabels();
 
   const getPriorityColor = (priority: Task['priority']) => {
     const color = getDynamicPriorityColor(priority);
     return `text-[${color}]`;
+  };
+
+  const getStatusColor = (status: Task['status']) => {
+    const color = getDynamicStatusColor(status);
+    return `bg-[${color}]/10 text-[${color}] border-[${color}]/20`;
   };
 
 
@@ -85,8 +90,8 @@ const TaskChecklistItem = ({ task, onStatusChange, onEdit, onDelete, viewMode = 
           
           {/* In Progress Badge */}
           {isInProgress && (
-            <Badge variant="outline" className="text-xs px-1.5 py-0 bg-primary/10 text-primary border-primary/20">
-              En procés
+            <Badge variant="outline" className={cn("text-xs px-1.5 py-0", getStatusColor(task.status))}>
+              {getStatusLabel(task.status)}
             </Badge>
           )}
         </div>
@@ -116,7 +121,7 @@ const TaskChecklistItem = ({ task, onStatusChange, onEdit, onDelete, viewMode = 
             onClick={handleStartTask}
             className="h-6 px-2 text-xs text-primary hover:bg-primary/10"
           >
-            Iniciar
+            {getStatusLabel('en_proces')}
           </Button>
         )}
         

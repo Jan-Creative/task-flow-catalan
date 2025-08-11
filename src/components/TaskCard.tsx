@@ -88,7 +88,7 @@ const TaskCard = ({ task, onStatusChange, onEdit, onDelete }: TaskCardProps) => 
               onClick={() => onStatusChange(task.id, task.status === 'pendent' ? 'en_proces' : 'completat')}
               className="text-xs bg-accent/50 border-accent rounded-2xl"
             >
-              {task.status === 'pendent' ? 'Iniciar' : 'Completar'}
+              {task.status === 'pendent' ? getStatusLabel('en_proces') : getStatusLabel('completat')}
             </Button>
           )}
           
