@@ -7,7 +7,7 @@ import TodayPage from "@/pages/TodayPage";
 import FoldersPage from "@/pages/FoldersPage";
 import SettingsPage from "@/pages/SettingsPage";
 import AuthPage from "@/pages/AuthPage";
-import { useOptimizedData } from "@/hooks/useOptimizedData";
+import { useDadesApp } from "@/hooks/useDadesApp";
 import { Button } from "@/components/ui/button";
 import { LogOut, User } from "lucide-react";
 
@@ -19,7 +19,7 @@ const Index = () => {
   });
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
-  const { createTask, updateTask, folders } = useOptimizedData();
+  const { createTask, updateTask, folders } = useDadesApp();
 
   // Sincronitzar activeTab amb paràmetres URL
   useEffect(() => {

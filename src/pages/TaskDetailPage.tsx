@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useOptimizedData } from "@/hooks/useOptimizedData";
+import { useDadesApp } from "@/hooks/useDadesApp";
 import { TaskDetailsCard } from "@/components/task-detail/TaskDetailsCard";
 import { SubtasksCard } from "@/components/task-detail/SubtasksCard";
 import { NotesCard } from "@/components/task-detail/NotesCard";
@@ -10,7 +10,7 @@ import { PomodoroCard } from "@/components/task-detail/PomodoroCard";
 const TaskDetailPage = () => {
   const { taskId } = useParams();
   const navigate = useNavigate();
-  const { tasks, folders, loading } = useOptimizedData();
+  const { tasks, folders, loading } = useDadesApp();
 
   if (loading) {
     return (

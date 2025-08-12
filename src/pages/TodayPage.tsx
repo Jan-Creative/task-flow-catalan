@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import OptimizedTaskItem from "@/components/OptimizedTaskItem";
 import DatabaseToolbar from "@/components/DatabaseToolbar";
-import { useOptimizedData } from "@/hooks/useOptimizedData";
+import { useDadesApp } from "@/hooks/useDadesApp";
 import { usePropertyLabels } from "@/hooks/usePropertyLabels";
 import { SlidersHorizontal, Loader2 } from "lucide-react";
 
@@ -13,7 +13,7 @@ interface TodayPageProps {
 }
 
 const TodayPage = ({ onEditTask, onNavigateToSettings }: TodayPageProps) => {
-  const { todayTasks, updateTaskStatus, deleteTask, loading } = useOptimizedData();
+  const { todayTasks, updateTaskStatus, deleteTask, loading } = useDadesApp();
   const { getStatusLabel, getStatusOptions, getStatusColor, getPriorityOptions } = usePropertyLabels();
   const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
   const [filterStatus, setFilterStatus] = useState<string>("all");

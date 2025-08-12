@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, FolderOpen, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useTasks } from "@/hooks/useTasks";
+import { useDadesApp } from "@/hooks/useDadesApp";
 import { usePropertyLabels } from "@/hooks/usePropertyLabels";
 import TaskChecklistItem from "@/components/TaskChecklistItem";
 import CreateTaskDrawer from "@/components/CreateTaskDrawer";
@@ -25,7 +25,7 @@ interface Task {
 const FolderDetailPage = () => {
   const { folderId } = useParams<{ folderId: string }>();
   const navigate = useNavigate();
-  const { tasks, folders, loading, updateTaskStatus, updateTask, deleteTask, createTask } = useTasks();
+  const { tasks, folders, loading, updateTaskStatus, updateTask, deleteTask, createTask } = useDadesApp();
   const { getStatusLabel, getStatusOptions, getStatusColor } = usePropertyLabels();
   const [showCreateTask, setShowCreateTask] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);

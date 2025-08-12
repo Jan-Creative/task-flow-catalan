@@ -3,13 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { useOptimizedData } from "@/hooks/useOptimizedData";
+import { useDadesApp } from "@/hooks/useDadesApp";
 import { FolderPlus } from "lucide-react";
 import { FolderItem } from "@/components/FolderItem";
 import { cn } from "@/lib/utils";
 
 const FoldersPage = () => {
-  const { tasks, folders, createFolder, updateFolder, deleteFolder, loading } = useOptimizedData();
+  const { tasks, folders, createFolder, updateFolder, deleteFolder, loading } = useDadesApp();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
   

@@ -1,38 +1,33 @@
-import { useCallback } from "react";
+import { useMemo, useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useProperties } from "./useProperties";
 import { useAuth } from "./useAuth";
+import { useProperties } from "./useProperties";
+import { useGestorErrors } from "./useGestorErrors";
+import type { 
+  Tasca, 
+  Carpeta, 
+  EstadistiquesTasques, 
+  DadesOptimitzades,
+  CrearTascaData,
+  ActualitzarTascaData,
+  ActualitzarCarpetaData 
+} from "@/types";
 
-interface Task {
-  id: string;
-  title: string;
-  description?: string;
-  status: "pendent" | "en_proces" | "completat";
-  priority: "alta" | "mitjana" | "baixa";
-  folder_id?: string;
-  due_date?: string;
-  created_at: string;
-  updated_at: string;
-}
+// Clau de cache unificada
+const CLAU_CACHE_DADES = 'dades-app';
 
-interface Folder {
-  id: string;
-  name: string;
-  color: string;
-  is_system: boolean;
-}
-
-export const useTasks = () => {
+export const useDadesApp = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { setTaskProperty, getPropertyByName } = useProperties();
+  const { handleError } = useGestorErrors();
 
-  // Optimized React Query implementation
-  const { data, isLoading: loading } = useQuery({
-    queryKey: ['tasks-folders', user?.id],
+  // Parallel data fetching with React Query
+  const { data, isLoading: loading, error } = useQuery({
+    queryKey: [CLAU_CACHE_DADES, user?.id],
     queryFn: async () => {
       if (!user) throw new Error("User not authenticated");
 
@@ -53,8 +48,8 @@ export const useTasks = () => {
       if (foldersResult.error) throw foldersResult.error;
 
       return {
-        tasks: (tasksResult.data || []) as Task[],
-        folders: (foldersResult.data || []) as Folder[],
+        tasks: (tasksResult.data || []) as Tasca[],
+        folders: (foldersResult.data || []) as Carpeta[],
       };
     },
     enabled: !!user,
@@ -62,11 +57,46 @@ export const useTasks = () => {
     gcTime: 1000 * 60 * 5, // 5 minutes
   });
 
-  const tasks = data?.tasks || [];
-  const folders = data?.folders || [];
+  // Optimized data processing with memoization
+  const dadesOptimitzades: DadesOptimitzades | null = useMemo(() => {
+    if (!data) return null;
 
-  // Optimized create task with optimistic updates
-  const createTask = useCallback(async (taskData: Omit<Task, "id" | "created_at" | "updated_at">) => {
+    const { tasks, folders } = data;
+
+    // Calculate task statistics efficiently
+    const estadistiquesTasques: EstadistiquesTasques = {
+      total: tasks.length,
+      completades: tasks.filter(task => task.status === "completat").length,
+      enProces: tasks.filter(task => task.status === "en_proces").length,
+      pendents: tasks.filter(task => task.status === "pendent").length,
+    };
+
+    // Group tasks by folder efficiently
+    const tasquesPerCarpeta = tasks.reduce((acc, task) => {
+      const folderId = task.folder_id || 'inbox';
+      if (!acc[folderId]) acc[folderId] = [];
+      acc[folderId].push(task);
+      return acc;
+    }, {} as Record<string, Tasca[]>);
+
+    // Filter today's tasks efficiently
+    const today = new Date().toISOString().split('T')[0];
+    const tasquesAvui = tasks.filter(task => 
+      task.due_date === today || 
+      (task.status !== "completat" && !task.due_date)
+    );
+
+    return {
+      tasques: tasks,
+      carpetes: folders,
+      estadistiquesTasques,
+      tasquesPerCarpeta,
+      tasquesAvui,
+    };
+  }, [data]);
+
+  // Task creation with enhanced optimistic updates
+  const crearTasca = useCallback(async (taskData: CrearTascaData) => {
     if (!user) throw new Error("User not authenticated");
 
     const optimisticTask = {
@@ -74,10 +104,10 @@ export const useTasks = () => {
       id: `temp-${Date.now()}`,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-    } as Task;
+    } as Tasca;
 
     // Optimistic update
-    queryClient.setQueryData(['tasks-folders', user.id], (old: any) => {
+    queryClient.setQueryData([CLAU_CACHE_DADES, user.id], (old: any) => {
       if (!old) return old;
       return {
         ...old,
@@ -89,7 +119,7 @@ export const useTasks = () => {
       // Find inbox folder efficiently
       let finalFolderId = taskData.folder_id;
       if (!finalFolderId) {
-        const inboxFolder = folders.find(f => f.is_system && f.name === "Bustia");
+        const inboxFolder = dadesOptimitzades?.carpetes.find(f => f.is_system && f.name === "Bustia");
         if (!inboxFolder) {
           const { data: dbInboxFolder } = await supabase
             .from("folders")
@@ -135,11 +165,11 @@ export const useTasks = () => {
       await Promise.all(propertyPromises);
 
       // Replace optimistic update with real data
-      queryClient.setQueryData(['tasks-folders', user.id], (old: any) => {
+      queryClient.setQueryData([CLAU_CACHE_DADES, user.id], (old: any) => {
         if (!old) return old;
         return {
           ...old,
-          tasks: [newTask, ...old.tasks.filter((t: Task) => t.id !== optimisticTask.id)]
+          tasks: [newTask, ...old.tasks.filter((t: Tasca) => t.id !== optimisticTask.id)]
         };
       });
 
@@ -149,30 +179,26 @@ export const useTasks = () => {
       });
     } catch (error) {
       // Revert optimistic update
-      queryClient.setQueryData(['tasks-folders', user.id], (old: any) => {
+      queryClient.setQueryData([CLAU_CACHE_DADES, user.id], (old: any) => {
         if (!old) return old;
         return {
           ...old,
-          tasks: old.tasks.filter((t: Task) => t.id !== optimisticTask.id)
+          tasks: old.tasks.filter((t: Tasca) => t.id !== optimisticTask.id)
         };
       });
       
-      toast({
-        title: "Error",
-        description: "No s'ha pogut crear la tasca",
-        variant: "destructive",
-      });
+      handleError(error instanceof Error ? error : new Error("No s'ha pogut crear la tasca"));
     }
-  }, [user, folders, queryClient, toast, setTaskProperty, getPropertyByName]);
+  }, [user, dadesOptimitzades?.carpetes, queryClient, toast, setTaskProperty, getPropertyByName, handleError]);
 
-  // Optimized update task
-  const updateTask = useCallback(async (taskId: string, taskData: Partial<Omit<Task, "id" | "created_at" | "updated_at">>) => {
+  // Task update with enhanced optimistic updates
+  const actualitzarTasca = useCallback(async (taskId: string, taskData: ActualitzarTascaData) => {
     // Optimistic update
-    queryClient.setQueryData(['tasks-folders', user?.id], (old: any) => {
+    queryClient.setQueryData([CLAU_CACHE_DADES, user?.id], (old: any) => {
       if (!old) return old;
       return {
         ...old,
-        tasks: old.tasks.map((task: Task) =>
+        tasks: old.tasks.map((task: Tasca) =>
           task.id === taskId ? { ...task, ...taskData } : task
         )
       };
@@ -192,23 +218,19 @@ export const useTasks = () => {
       });
     } catch (error) {
       // Revert on error
-      queryClient.invalidateQueries({ queryKey: ['tasks-folders', user?.id] });
-      toast({
-        title: "Error",
-        description: "No s'ha pogut actualitzar la tasca",
-        variant: "destructive",
-      });
+      queryClient.invalidateQueries({ queryKey: [CLAU_CACHE_DADES, user?.id] });
+      handleError(error instanceof Error ? error : new Error("No s'ha pogut actualitzar la tasca"));
     }
-  }, [user?.id, queryClient, toast]);
+  }, [user?.id, queryClient, toast, handleError]);
 
-  // Optimized update task status
-  const updateTaskStatus = useCallback(async (taskId: string, status: Task['status']) => {
+  // Task status update with property synchronization
+  const actualitzarEstatTasca = useCallback(async (taskId: string, status: Tasca['status']) => {
     // Optimistic update
-    queryClient.setQueryData(['tasks-folders', user?.id], (old: any) => {
+    queryClient.setQueryData([CLAU_CACHE_DADES, user?.id], (old: any) => {
       if (!old) return old;
       return {
         ...old,
-        tasks: old.tasks.map((task: Task) =>
+        tasks: old.tasks.map((task: Tasca) =>
           task.id === taskId ? { ...task, status } : task
         )
       };
@@ -240,23 +262,19 @@ export const useTasks = () => {
       });
     } catch (error) {
       // Revert on error
-      queryClient.invalidateQueries({ queryKey: ['tasks-folders', user?.id] });
-      toast({
-        title: "Error",
-        description: "No s'ha pogut actualitzar la tasca",
-        variant: "destructive",
-      });
+      queryClient.invalidateQueries({ queryKey: [CLAU_CACHE_DADES, user?.id] });
+      handleError(error instanceof Error ? error : new Error("No s'ha pogut actualitzar la tasca"));
     }
-  }, [user?.id, queryClient, toast, setTaskProperty, getPropertyByName]);
+  }, [user?.id, queryClient, toast, setTaskProperty, getPropertyByName, handleError]);
 
-  // Optimized delete task
-  const deleteTask = useCallback(async (taskId: string) => {
+  // Task deletion with optimistic updates
+  const eliminarTasca = useCallback(async (taskId: string) => {
     // Optimistic update
-    queryClient.setQueryData(['tasks-folders', user?.id], (old: any) => {
+    queryClient.setQueryData([CLAU_CACHE_DADES, user?.id], (old: any) => {
       if (!old) return old;
       return {
         ...old,
-        tasks: old.tasks.filter((task: Task) => task.id !== taskId)
+        tasks: old.tasks.filter((task: Tasca) => task.id !== taskId)
       };
     });
 
@@ -274,17 +292,13 @@ export const useTasks = () => {
       });
     } catch (error) {
       // Revert on error
-      queryClient.invalidateQueries({ queryKey: ['tasks-folders', user?.id] });
-      toast({
-        title: "Error",
-        description: "No s'ha pogut eliminar la tasca",
-        variant: "destructive",
-      });
+      queryClient.invalidateQueries({ queryKey: [CLAU_CACHE_DADES, user?.id] });
+      handleError(error instanceof Error ? error : new Error("No s'ha pogut eliminar la tasca"));
     }
-  }, [user?.id, queryClient, toast]);
+  }, [user?.id, queryClient, toast, handleError]);
 
-  // Optimized create folder
-  const createFolder = useCallback(async (name: string, color: string = "#6366f1") => {
+  // Folder creation with optimistic updates
+  const crearCarpeta = useCallback(async (name: string, color: string = "#6366f1") => {
     if (!user) throw new Error("User not authenticated");
 
     try {
@@ -297,7 +311,7 @@ export const useTasks = () => {
       if (error) throw error;
 
       // Update cache
-      queryClient.setQueryData(['tasks-folders', user.id], (old: any) => {
+      queryClient.setQueryData([CLAU_CACHE_DADES, user.id], (old: any) => {
         if (!old) return old;
         return {
           ...old,
@@ -310,24 +324,20 @@ export const useTasks = () => {
         description: "La carpeta s'ha creat correctament",
       });
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "No s'ha pogut crear la carpeta",
-        variant: "destructive",
-      });
+      handleError(error instanceof Error ? error : new Error("No s'ha pogut crear la carpeta"));
     }
-  }, [user, queryClient, toast]);
+  }, [user, queryClient, toast, handleError]);
 
-  // Optimized update folder
-  const updateFolder = useCallback(async (folderId: string, updates: { name?: string; color?: string }) => {
+  // Folder update with optimistic updates
+  const actualitzarCarpeta = useCallback(async (folderId: string, updates: ActualitzarCarpetaData) => {
     if (!user) throw new Error("User not authenticated");
 
     // Optimistic update
-    queryClient.setQueryData(['tasks-folders', user.id], (old: any) => {
+    queryClient.setQueryData([CLAU_CACHE_DADES, user.id], (old: any) => {
       if (!old) return old;
       return {
         ...old,
-        folders: old.folders.map((folder: Folder) => 
+        folders: old.folders.map((folder: Carpeta) => 
           folder.id === folderId ? { ...folder, ...updates } : folder
         )
       };
@@ -349,21 +359,17 @@ export const useTasks = () => {
       });
     } catch (error) {
       // Revert on error
-      queryClient.invalidateQueries({ queryKey: ['tasks-folders', user.id] });
-      toast({
-        title: "Error",
-        description: "No s'ha pogut actualitzar la carpeta",
-        variant: "destructive",
-      });
+      queryClient.invalidateQueries({ queryKey: [CLAU_CACHE_DADES, user.id] });
+      handleError(error instanceof Error ? error : new Error("No s'ha pogut actualitzar la carpeta"));
     }
-  }, [user, queryClient, toast]);
+  }, [user, queryClient, toast, handleError]);
 
-  // Optimized delete folder
-  const deleteFolder = useCallback(async (folderId: string) => {
+  // Folder deletion with validation and optimistic updates
+  const eliminarCarpeta = useCallback(async (folderId: string) => {
     if (!user) throw new Error("User not authenticated");
 
     // Check if folder has tasks
-    const tasksInFolder = tasks.filter(task => task.folder_id === folderId);
+    const tasksInFolder = dadesOptimitzades?.tasques.filter(task => task.folder_id === folderId) || [];
     if (tasksInFolder.length > 0) {
       toast({
         title: "No es pot eliminar",
@@ -374,11 +380,11 @@ export const useTasks = () => {
     }
 
     // Optimistic update
-    queryClient.setQueryData(['tasks-folders', user.id], (old: any) => {
+    queryClient.setQueryData([CLAU_CACHE_DADES, user.id], (old: any) => {
       if (!old) return old;
       return {
         ...old,
-        folders: old.folders.filter((folder: Folder) => folder.id !== folderId)
+        folders: old.folders.filter((folder: Carpeta) => folder.id !== folderId)
       };
     });
 
@@ -399,31 +405,42 @@ export const useTasks = () => {
       return true;
     } catch (error) {
       // Revert on error
-      queryClient.invalidateQueries({ queryKey: ['tasks-folders', user.id] });
-      toast({
-        title: "Error",
-        description: "No s'ha pogut eliminar la carpeta",
-        variant: "destructive",
-      });
+      queryClient.invalidateQueries({ queryKey: [CLAU_CACHE_DADES, user.id] });
+      handleError(error instanceof Error ? error : new Error("No s'ha pogut eliminar la carpeta"));
       return false;
     }
-  }, [user, tasks, queryClient, toast]);
+  }, [user, dadesOptimitzades?.tasques, queryClient, toast, handleError]);
 
-  const refreshData = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ['tasks-folders', user?.id] });
+  // Manual data refresh
+  const actualitzarDades = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: [CLAU_CACHE_DADES, user?.id] });
   }, [queryClient, user?.id]);
 
   return {
-    tasks,
-    folders,
+    // Raw data access
+    data: dadesOptimitzades,
     loading,
-    createTask,
-    updateTask,
-    updateTaskStatus,
-    deleteTask,
-    createFolder,
-    updateFolder,
-    deleteFolder,
-    refreshData,
+    error,
+
+    // Destructured for convenience
+    tasks: dadesOptimitzades?.tasques || [],
+    folders: dadesOptimitzades?.carpetes || [],
+    taskStats: dadesOptimitzades?.estadistiquesTasques || { total: 0, completades: 0, enProces: 0, pendents: 0 },
+    tasksByFolder: dadesOptimitzades?.tasquesPerCarpeta || {},
+    todayTasks: dadesOptimitzades?.tasquesAvui || [],
+
+    // Task operations (mantenim noms anglesos per compatibilitat)
+    createTask: crearTasca,
+    updateTask: actualitzarTasca,
+    updateTaskStatus: actualitzarEstatTasca,
+    deleteTask: eliminarTasca,
+
+    // Folder operations (mantenim noms anglesos per compatibilitat)
+    createFolder: crearCarpeta,
+    updateFolder: actualitzarCarpeta,
+    deleteFolder: eliminarCarpeta,
+
+    // Utility
+    refreshData: actualitzarDades,
   };
 };
