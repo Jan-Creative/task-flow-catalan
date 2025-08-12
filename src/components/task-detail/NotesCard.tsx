@@ -1,45 +1,23 @@
-import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { FileText, Save } from "lucide-react";
+import { useTaskNotes } from "@/hooks/useTaskNotes";
 
 interface NotesCardProps {
   taskId: string;
 }
 
 export const NotesCard = ({ taskId }: NotesCardProps) => {
-  const [notes, setNotes] = useState('');
-  const [isModified, setIsModified] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [lastSaved, setLastSaved] = useState<Date | null>(null);
-
-  // Simulated auto-save functionality
-  useEffect(() => {
-    if (isModified) {
-      const timer = setTimeout(() => {
-        handleSave();
-      }, 2000); // Auto-save after 2 seconds of inactivity
-
-      return () => clearTimeout(timer);
-    }
-  }, [notes, isModified]);
-
-  const handleNotesChange = (value: string) => {
-    setNotes(value);
-    setIsModified(true);
-  };
-
-  const handleSave = async () => {
-    if (!isModified) return;
-    
-    setIsSaving(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 500));
-    setIsModified(false);
-    setIsSaving(false);
-    setLastSaved(new Date());
-  };
+  const {
+    notes,
+    loading,
+    isSaving,
+    isModified,
+    lastSaved,
+    updateNotes,
+    forceSave
+  } = useTaskNotes(taskId);
 
   return (
     <Card className="animate-fade-in">
@@ -53,8 +31,8 @@ export const NotesCard = ({ taskId }: NotesCardProps) => {
             <Button
               variant="outline"
               size="sm"
-              onClick={handleSave}
-              disabled={isSaving}
+              onClick={forceSave}
+              disabled={isSaving || !isModified}
               className="gap-2"
             >
               <Save className="h-4 w-4" />
@@ -72,8 +50,9 @@ export const NotesCard = ({ taskId }: NotesCardProps) => {
         <Textarea
           placeholder="Escriu les teves notes sobre aquesta tasca..."
           value={notes}
-          onChange={(e) => handleNotesChange(e.target.value)}
+          onChange={(e) => updateNotes(e.target.value)}
           className="min-h-[150px] resize-none"
+          disabled={loading}
         />
         <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
           <span>{notes.length} caràcters</span>

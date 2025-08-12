@@ -5,50 +5,32 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { Plus, CheckSquare, Trash2 } from "lucide-react";
-
-interface Subtask {
-  id: string;
-  title: string;
-  completed: boolean;
-}
+import { useTaskSubtasks } from "@/hooks/useTaskSubtasks";
 
 interface SubtasksCardProps {
   taskId: string;
 }
 
 export const SubtasksCard = ({ taskId }: SubtasksCardProps) => {
-  const [subtasks, setSubtasks] = useState<Subtask[]>([
-    { id: '1', title: 'Investigar competitors', completed: true },
-    { id: '2', title: 'Definir estratègia', completed: false },
-    { id: '3', title: 'Crear prototip', completed: false },
-  ]);
+  const {
+    subtasks,
+    loading,
+    completedCount,
+    progressPercentage,
+    createSubtask,
+    deleteSubtask,
+    toggleSubtask
+  } = useTaskSubtasks(taskId);
+  
   const [newSubtask, setNewSubtask] = useState('');
   const [isAdding, setIsAdding] = useState(false);
 
-  const completedCount = subtasks.filter(subtask => subtask.completed).length;
-  const progressPercentage = subtasks.length > 0 ? (completedCount / subtasks.length) * 100 : 0;
-
-  const handleAddSubtask = () => {
+  const handleAddSubtask = async () => {
     if (newSubtask.trim()) {
-      const newSubtaskObj: Subtask = {
-        id: Date.now().toString(),
-        title: newSubtask.trim(),
-        completed: false,
-      };
-      setSubtasks([...subtasks, newSubtaskObj]);
+      await createSubtask(newSubtask);
       setNewSubtask('');
       setIsAdding(false);
     }
-  };
-
-  const toggleSubtask = (id: string) => {
-    setSubtasks(subtasks.map(subtask =>
-      subtask.id === id ? { ...subtask, completed: !subtask.completed } : subtask
-    ));
-  };
-
-  const deleteSubtask = (id: string) => {
-    setSubtasks(subtasks.filter(subtask => subtask.id !== id));
   };
 
   return (
