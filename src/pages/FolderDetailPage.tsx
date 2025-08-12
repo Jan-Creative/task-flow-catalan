@@ -39,6 +39,14 @@ const FolderDetailPage = () => {
       )
     : tasks.filter(task => task.folder_id === folderId);
 
+  // Debug logging for inbox
+  if (folderId === 'inbox') {
+    console.log('DEBUG Inbox - realInboxFolder:', realInboxFolder);
+    console.log('DEBUG Inbox - tasks:', tasks.length);
+    console.log('DEBUG Inbox - folderTasks:', folderTasks.length);
+    console.log('DEBUG Inbox - first few tasks:', tasks.slice(0, 3).map(t => ({ id: t.id, title: t.title, folder_id: t.folder_id })));
+  }
+
   const handleEditTask = (task: Task) => {
     setEditingTask(task);
     setShowCreateTask(true);
