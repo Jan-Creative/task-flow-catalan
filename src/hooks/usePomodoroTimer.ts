@@ -32,6 +32,7 @@ export const usePomodoroTimer = (taskId: string) => {
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const sessionStartRef = useRef<number | null>(null);
   const { toast } = useToast();
 
   // Clau per localStorage específica per cada tasca
@@ -206,38 +207,56 @@ export const usePomodoroTimer = (taskId: string) => {
     }
   };
 
-  // Timer logic millorat amb persistència
+  // Timer logic simplificat i optimitzat
   useEffect(() => {
+    // Cleanup interval anterior
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
+      intervalRef.current = null;
     }
 
     if (isActive && timeLeft > 0) {
+      sessionStartRef.current = sessionStartRef.current || Date.now();
+      
       intervalRef.current = setInterval(() => {
         setTimeLeft(prevTime => {
           const newTime = prevTime - 1;
           
-          // Actualitzar localStorage cada 10 segons
-          if (newTime % 10 === 0) {
+          // Guardar estat cada 5 segons per optimitzar rendiment
+          if (newTime % 5 === 0 && sessionStartRef.current) {
             saveState({
               isActive: true,
               timeLeft: newTime,
               isBreak,
               currentSessionId,
-              sessionStartTime: Date.now() - ((isBreak ? breakDuration : workDuration) * 60 - newTime) * 1000
+              sessionStartTime: sessionStartRef.current
             });
           }
           
           return newTime;
         });
       }, 1000);
-    } else if (timeLeft === 0 && isActive) {
-      // Sessió completada
-      if (currentSessionId) {
-        completeSession(currentSessionId);
+    } else if (timeLeft === 0 && isActive && currentSessionId) {
+      // Sessió completada - gestió simplificada
+      handleSessionComplete();
+    }
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
       }
+    };
+  }, [isActive, timeLeft]);
+
+  // Gestió de finalització de sessió
+  const handleSessionComplete = useCallback(async () => {
+    if (!currentSessionId) return;
+
+    try {
+      await completeSession(currentSessionId);
       
-      // Enviar notificació corresponent
+      // Notificacions i transició d'estat
       if (isBreak) {
         notificationService.notifyBreakCompleted();
         setIsBreak(false);
@@ -250,14 +269,12 @@ export const usePomodoroTimer = (taskId: string) => {
       
       setIsActive(false);
       setCurrentSessionId(null);
+      sessionStartRef.current = null;
+      clearState();
+    } catch (error) {
+      console.error('Error completing session:', error);
     }
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, [isActive, timeLeft, isBreak, workDuration, breakDuration, currentSessionId, saveState]);
+  }, [currentSessionId, isBreak, workDuration, breakDuration, clearState]);
 
   // Recuperar estat al carregar
   useEffect(() => {
@@ -270,40 +287,54 @@ export const usePomodoroTimer = (taskId: string) => {
     }
   }, [loadState]);
 
-  const startTimer = async () => {
+  const startTimer = useCallback(async () => {
     const duration = isBreak ? breakDuration : workDuration;
     const sessionType = isBreak ? 'break' : 'work';
     
-    await createSession(sessionType, duration);
-    setIsActive(true);
-  };
+    try {
+      const session = await createSession(sessionType, duration);
+      if (session) {
+        sessionStartRef.current = Date.now();
+        setIsActive(true);
+      }
+    } catch (error) {
+      console.error('Error starting timer:', error);
+    }
+  }, [isBreak, breakDuration, workDuration]);
 
-  const pauseTimer = () => {
+  const pauseTimer = useCallback(() => {
     setIsActive(false);
-    // Actualitzar localStorage quan es pausa
-    saveState({
-      isActive: false,
-      timeLeft,
-      isBreak,
-      currentSessionId,
-      sessionStartTime: Date.now() - ((isBreak ? breakDuration : workDuration) * 60 - timeLeft) * 1000
-    });
-  };
+    // Guardar estat quan es pausa
+    if (sessionStartRef.current) {
+      saveState({
+        isActive: false,
+        timeLeft,
+        isBreak,
+        currentSessionId,
+        sessionStartTime: sessionStartRef.current
+      });
+    }
+  }, [timeLeft, isBreak, currentSessionId, saveState]);
 
-  const resetTimer = () => {
+  const resetTimer = useCallback(async () => {
+    // Parar timer i netejar estat
     setIsActive(false);
     setIsBreak(false);
     setTimeLeft(workDuration * 60);
-    setCurrentSessionId(null);
+    sessionStartRef.current = null;
     
-    // Esborrar estat del localStorage
-    clearState();
-    
-    // Si hi ha una sessió activa, marcar-la com a completada
+    // Si hi ha una sessió activa, completar-la primer
     if (currentSessionId) {
-      completeSession(currentSessionId);
+      try {
+        await completeSession(currentSessionId);
+      } catch (error) {
+        console.error('Error completing session on reset:', error);
+      }
     }
-  };
+    
+    setCurrentSessionId(null);
+    clearState();
+  }, [workDuration, currentSessionId, clearState]);
 
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
