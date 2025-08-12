@@ -60,6 +60,10 @@ All colors MUST be HSL.
     /* Animacions */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    
+    /* Task completion animations */
+    --completing-pulse: 0 0 0 4px hsl(var(--success) / 0.3);
+    --completing-glow: 0 0 20px hsl(var(--success) / 0.5);
   }
 
   .light {
@@ -121,5 +125,36 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
     /* Força el tema fosc com a predeterminat */
     color-scheme: dark;
+  }
+  
+  /* Task completion animations */
+  .task-completing {
+    animation: completing-pulse 1.5s ease-in-out infinite;
+  }
+  
+  @keyframes completing-pulse {
+    0%, 100% {
+      box-shadow: var(--completing-pulse);
+      transform: scale(1);
+    }
+    50% {
+      box-shadow: var(--completing-glow);
+      transform: scale(1.05);
+    }
+  }
+  
+  .checkbox-completing {
+    animation: checkbox-completing 1.5s ease-in-out infinite;
+  }
+  
+  @keyframes checkbox-completing {
+    0%, 100% {
+      background-color: hsl(var(--success));
+      box-shadow: 0 0 0 2px hsl(var(--success) / 0.3);
+    }
+    50% {
+      background-color: hsl(var(--success) / 0.8);
+      box-shadow: 0 0 0 4px hsl(var(--success) / 0.5);
+    }
   }
 }

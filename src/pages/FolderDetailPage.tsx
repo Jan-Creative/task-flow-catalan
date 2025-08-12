@@ -32,6 +32,7 @@ const FolderDetailPage = () => {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterPriority, setFilterPriority] = useState<string>("all");
   const [recentlyCompleted, setRecentlyCompleted] = useState<Set<string>>(new Set());
+  const [completingTasks, setCompletingTasks] = useState<Set<string>>(new Set());
   const timeoutsRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
 
   // Cleanup timeouts when component unmounts
@@ -57,15 +58,40 @@ const FolderDetailPage = () => {
       timeoutsRef.current.delete(taskId);
     }
 
+    // Remove from completing state
+    setCompletingTasks(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(taskId);
+      return newSet;
+    });
+
     if (status === 'completat') {
-      if (viewMode === 'list') {
-        // In list mode: task disappears immediately when completed
+      // Start completing animation
+      setCompletingTasks(prev => new Set(prev).add(taskId));
+      
+      // Set timeout for 3 seconds
+      const timeout = setTimeout(async () => {
+        // Remove from completing state
+        setCompletingTasks(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(taskId);
+          return newSet;
+        });
+        
+        // Update task status
         await updateTaskStatus(taskId, status);
-      } else {
-        // In kanban mode: add to recently completed to keep visible and move to completed column
-        setRecentlyCompleted(prev => new Set(prev).add(taskId));
-        await updateTaskStatus(taskId, status);
-      }
+        
+        if (viewMode === 'kanban') {
+          // In kanban mode: add to recently completed to keep visible
+          setRecentlyCompleted(prev => new Set(prev).add(taskId));
+        }
+        
+        // Clean up timeout reference
+        timeoutsRef.current.delete(taskId);
+      }, 3000);
+      
+      // Store timeout reference
+      timeoutsRef.current.set(taskId, timeout);
     } else {
       // For non-completed status, remove from recently completed and update normally
       setRecentlyCompleted(prev => {
@@ -103,8 +129,13 @@ const FolderDetailPage = () => {
 
     // Apply view mode logic
     const filteredTasks = baseTasks.filter(task => {
+      // Always show tasks that are in completing state
+      if (completingTasks.has(task.id)) {
+        return true;
+      }
+      
       if (viewMode === 'list') {
-        // In list mode: hide completed tasks completely
+        // In list mode: hide completed tasks completely (unless completing)
         if (task.status === 'completat') {
           return false;
         }
@@ -308,6 +339,7 @@ const FolderDetailPage = () => {
                       onEdit={handleEditTask}
                       onDelete={deleteTask}
                       viewMode={viewMode}
+                      completingTasks={completingTasks}
                     />
                   ))}
                 </div>
@@ -338,6 +370,7 @@ const FolderDetailPage = () => {
                             onEdit={handleEditTask}
                             onDelete={deleteTask}
                             viewMode={viewMode}
+                            completingTasks={completingTasks}
                           />
                         ))}
                         {column.tasks.length === 0 && (

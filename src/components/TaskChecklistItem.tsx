@@ -28,9 +28,10 @@ interface TaskChecklistItemProps {
   onEdit: (task: Task) => void;
   onDelete: (taskId: string) => void;
   viewMode?: "list" | "kanban";
+  completingTasks?: Set<string>;
 }
 
-const TaskChecklistItem = ({ task, onStatusChange, onEdit, onDelete, viewMode = "list" }: TaskChecklistItemProps) => {
+const TaskChecklistItem = ({ task, onStatusChange, onEdit, onDelete, viewMode = "list", completingTasks }: TaskChecklistItemProps) => {
   const { getPriorityLabel, getPriorityColor: getDynamicPriorityColor, getStatusLabel, getStatusColor: getDynamicStatusColor } = usePropertyLabels();
 
   const getPriorityColor = (priority: Task['priority']) => {
@@ -58,18 +59,23 @@ const TaskChecklistItem = ({ task, onStatusChange, onEdit, onDelete, viewMode = 
 
   const isCompleted = task.status === 'completat';
   const isInProgress = task.status === 'en_proces';
+  const isCompleting = completingTasks?.has(task.id) || false;
 
   return (
     <div className={cn(
       "group flex items-center gap-3 py-2 px-1 hover:bg-accent/30 rounded-lg transition-colors",
-      viewMode === "kanban" && "py-3 px-3"
+      viewMode === "kanban" && "py-3 px-3",
+      isCompleting && "task-completing"
     )}>
       {/* Circular Checkbox */}
       <div className="flex-shrink-0">
         <Checkbox
-          checked={isCompleted}
+          checked={isCompleted || isCompleting}
           onCheckedChange={handleCheckboxChange}
-          className="h-5 w-5 rounded-full data-[state=checked]:bg-success data-[state=checked]:border-success"
+          className={cn(
+            "h-5 w-5 rounded-full data-[state=checked]:bg-success data-[state=checked]:border-success",
+            isCompleting && "checkbox-completing"
+          )}
         />
       </div>
 
@@ -79,7 +85,7 @@ const TaskChecklistItem = ({ task, onStatusChange, onEdit, onDelete, viewMode = 
           <h3 
             className={cn(
               "font-medium text-sm leading-tight truncate transition-colors text-white hover:text-white/80",
-              isCompleted && "line-through text-white/60"
+              (isCompleted || isCompleting) && "line-through text-white/60"
             )}
           >
             {task.title}
@@ -114,7 +120,7 @@ const TaskChecklistItem = ({ task, onStatusChange, onEdit, onDelete, viewMode = 
 
       {/* Actions */}
       <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-        {!isCompleted && task.status === 'pendent' && (
+        {!isCompleted && !isCompleting && task.status === 'pendent' && (
           <Button
             variant="ghost"
             size="sm"
