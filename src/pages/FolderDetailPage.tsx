@@ -8,6 +8,7 @@ import { usePropertyLabels } from "@/hooks/usePropertyLabels";
 import TaskChecklistItem from "@/components/TaskChecklistItem";
 import CreateTaskDrawer from "@/components/CreateTaskDrawer";
 import DatabaseToolbar from "@/components/DatabaseToolbar";
+import BottomNavigation from "@/components/BottomNavigation";
 
 interface Task {
   id: string;
@@ -34,6 +35,7 @@ const FolderDetailPage = () => {
   const [recentlyCompleted, setRecentlyCompleted] = useState<Set<string>>(new Set());
   const [completingTasks, setCompletingTasks] = useState<Set<string>>(new Set());
   const timeoutsRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
+  const [showCreateTaskFromNav, setShowCreateTaskFromNav] = useState(false);
 
   // Cleanup timeouts when component unmounts
   useEffect(() => {
@@ -213,6 +215,30 @@ const FolderDetailPage = () => {
     }
   };
 
+  // Handle navigation from bottom navigation
+  const handleTabChange = (tab: string) => {
+    switch (tab) {
+      case "avui":
+        navigate('/');
+        break;
+      case "carpetes":
+        navigate('/');
+        // Optionally set active tab to carpetes in the parent Index component
+        break;
+      case "configuracio":
+        navigate('/');
+        // Optionally set active tab to configuracio in the parent Index component
+        break;
+      default:
+        navigate('/');
+    }
+  };
+
+  const handleCreateTaskFromNav = () => {
+    setShowCreateTaskFromNav(true);
+    setShowCreateTask(true);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-gentle flex items-center justify-center">
@@ -388,12 +414,20 @@ const FolderDetailPage = () => {
         </div>
       </div>
 
+      {/* Bottom Navigation */}
+      <BottomNavigation
+        activeTab="carpetes"
+        onTabChange={handleTabChange}
+        onCreateTask={handleCreateTaskFromNav}
+      />
+
       {/* Create Task Drawer */}
       <CreateTaskDrawer
         open={showCreateTask}
         onClose={() => {
           setShowCreateTask(false);
           setEditingTask(null);
+          setShowCreateTaskFromNav(false);
         }}
         onSubmit={handleCreateTask}
         editingTask={editingTask}
