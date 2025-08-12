@@ -44,6 +44,45 @@ export type Database = {
         }
         Relationships: []
       }
+      pomodoro_sessions: {
+        Row: {
+          break_duration_minutes: number
+          completed_at: string | null
+          created_at: string
+          duration_minutes: number
+          id: string
+          is_completed: boolean
+          session_type: string
+          started_at: string
+          task_id: string
+          updated_at: string
+        }
+        Insert: {
+          break_duration_minutes?: number
+          completed_at?: string | null
+          created_at?: string
+          duration_minutes?: number
+          id?: string
+          is_completed?: boolean
+          session_type?: string
+          started_at?: string
+          task_id: string
+          updated_at?: string
+        }
+        Update: {
+          break_duration_minutes?: number
+          completed_at?: string | null
+          created_at?: string
+          duration_minutes?: number
+          id?: string
+          is_completed?: boolean
+          session_type?: string
+          started_at?: string
+          task_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -145,6 +184,30 @@ export type Database = {
           },
         ]
       }
+      task_notes: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          task_id: string
+          updated_at: string
+        }
+        Insert: {
+          content?: string
+          created_at?: string
+          id?: string
+          task_id: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          task_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       task_properties: {
         Row: {
           created_at: string
@@ -193,6 +256,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      task_subtasks: {
+        Row: {
+          completed: boolean
+          completed_at: string | null
+          created_at: string
+          description: string | null
+          id: string
+          sort_order: number
+          task_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          sort_order?: number
+          task_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          sort_order?: number
+          task_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       tasks: {
         Row: {
