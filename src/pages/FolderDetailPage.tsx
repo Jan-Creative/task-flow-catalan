@@ -1,10 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, FolderOpen, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useTasks } from "@/hooks/useTasks";
+import { usePropertyLabels } from "@/hooks/usePropertyLabels";
 import TaskChecklistItem from "@/components/TaskChecklistItem";
 import CreateTaskDrawer from "@/components/CreateTaskDrawer";
+import DatabaseToolbar from "@/components/DatabaseToolbar";
 
 interface Task {
   id: string;
@@ -22,8 +25,22 @@ const FolderDetailPage = () => {
   const { folderId } = useParams<{ folderId: string }>();
   const navigate = useNavigate();
   const { tasks, folders, loading, updateTaskStatus, updateTask, deleteTask, createTask } = useTasks();
+  const { getStatusLabel, getStatusOptions, getStatusColor } = usePropertyLabels();
   const [showCreateTask, setShowCreateTask] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
+  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filterPriority, setFilterPriority] = useState<string>("all");
+  const [recentlyCompleted, setRecentlyCompleted] = useState<Set<string>>(new Set());
+  const timeoutsRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
+
+  // Cleanup timeouts when component unmounts
+  useEffect(() => {
+    return () => {
+      timeoutsRef.current.forEach(timeout => clearTimeout(timeout));
+      timeoutsRef.current.clear();
+    };
+  }, []);
 
   // Find current folder - get real inbox folder from database
   const realInboxFolder = folders.find(f => f.is_system && f.name === 'Bustia');
@@ -31,17 +48,48 @@ const FolderDetailPage = () => {
     ? realInboxFolder || { id: 'inbox', name: 'Bustia', color: '#6366f1', is_system: true }
     : folders.find(f => f.id === folderId);
 
-  // Filter tasks for this folder - FIXED: Don't return empty array when loading
+  // Custom handler for status changes with different behavior per view mode
+  const handleStatusChange = async (taskId: string, status: any) => {
+    // Clear existing timeout for this task if any
+    const existingTimeout = timeoutsRef.current.get(taskId);
+    if (existingTimeout) {
+      clearTimeout(existingTimeout);
+      timeoutsRef.current.delete(taskId);
+    }
+
+    if (status === 'completat') {
+      if (viewMode === 'list') {
+        // In list mode: task disappears immediately when completed
+        await updateTaskStatus(taskId, status);
+      } else {
+        // In kanban mode: add to recently completed to keep visible and move to completed column
+        setRecentlyCompleted(prev => new Set(prev).add(taskId));
+        await updateTaskStatus(taskId, status);
+      }
+    } else {
+      // For non-completed status, remove from recently completed and update normally
+      setRecentlyCompleted(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(taskId);
+        return newSet;
+      });
+      await updateTaskStatus(taskId, status);
+    }
+  };
+
+  // Filter tasks for this folder with view mode logic
   const folderTasks = (() => {
     // If still loading or no data, return empty array
     if (loading || tasks.length === 0) {
       return [];
     }
 
+    // First get all tasks for this folder
+    let baseTasks = [];
     if (folderId === 'inbox') {
       // For inbox, show tasks assigned to the real inbox folder
       // OR tasks without folder_id (legacy compatibility)
-      return tasks.filter(task => {
+      baseTasks = tasks.filter(task => {
         if (realInboxFolder) {
           return task.folder_id === realInboxFolder.id || !task.folder_id;
         }
@@ -50,9 +98,66 @@ const FolderDetailPage = () => {
       });
     } else {
       // For other folders, show tasks with matching folder_id
-      return tasks.filter(task => task.folder_id === folderId);
+      baseTasks = tasks.filter(task => task.folder_id === folderId);
     }
+
+    // Apply view mode logic
+    const filteredTasks = baseTasks.filter(task => {
+      if (viewMode === 'list') {
+        // In list mode: hide completed tasks completely
+        if (task.status === 'completat') {
+          return false;
+        }
+      } else {
+        // In kanban mode: show completed tasks in their column
+        if (task.status === 'completat' && !recentlyCompleted.has(task.id)) {
+          // Show completed tasks in kanban mode
+          if (filterStatus === 'completat' || filterStatus === 'all') {
+            return true;
+          }
+          return false;
+        }
+        // Keep recently completed tasks visible in kanban
+        if (task.status === 'completat' && recentlyCompleted.has(task.id)) {
+          return true;
+        }
+      }
+      
+      let matchesStatus = filterStatus === "all" || task.status === filterStatus;
+      let matchesPriority = filterPriority === "all" || task.priority === filterPriority;
+      return matchesStatus && matchesPriority;
+    });
+
+    return filteredTasks;
   })();
+
+  const getStatusTasks = (status: string) => {
+    return folderTasks.filter(task => task.status === status);
+  };
+
+  // Function to get dynamic column background style based on status color
+  const getColumnBackgroundStyle = (columnId: string) => {
+    const statusColor = getStatusColor(columnId);
+    if (statusColor && statusColor.startsWith('#')) {
+      // Convert hex to RGB and apply with opacity
+      const hex = statusColor.slice(1);
+      const r = parseInt(hex.substr(0, 2), 16);
+      const g = parseInt(hex.substr(2, 2), 16);
+      const b = parseInt(hex.substr(4, 2), 16);
+      return {
+        backgroundColor: `rgba(${r}, ${g}, ${b}, 0.15)`,
+        backdropFilter: 'blur(8px)'
+      };
+    }
+    // Fallback to default card background
+    return {};
+  };
+
+  const statusColumns = getStatusOptions().map(option => ({
+    id: option.value,
+    label: option.label,
+    tasks: getStatusTasks(option.value)
+  }));
 
   const handleEditTask = (task: Task) => {
     setEditingTask(task);
@@ -149,7 +254,18 @@ const FolderDetailPage = () => {
           </div>
         </div>
 
-        {/* Tasks list */}
+        {/* Database Toolbar */}
+        <DatabaseToolbar
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          filterStatus={filterStatus}
+          onFilterStatusChange={setFilterStatus}
+          filterPriority={filterPriority}
+          onFilterPriorityChange={setFilterPriority}
+          onNavigateToSettings={() => navigate('/settings')}
+        />
+
+        {/* Tasks content */}
         <div className="space-y-1">
           {folderTasks.length === 0 ? (
             <div className="text-center py-12">
@@ -181,15 +297,60 @@ const FolderDetailPage = () => {
               </Button>
             </div>
           ) : (
-            folderTasks.map((task) => (
-              <TaskChecklistItem
-                key={task.id}
-                task={task}
-                onStatusChange={updateTaskStatus}
-                onEdit={handleEditTask}
-                onDelete={deleteTask}
-              />
-            ))
+            <>
+              {viewMode === "list" && (
+                <div className="space-y-2">
+                  {folderTasks.map((task) => (
+                    <TaskChecklistItem
+                      key={task.id}
+                      task={task}
+                      onStatusChange={handleStatusChange}
+                      onEdit={handleEditTask}
+                      onDelete={deleteTask}
+                      viewMode={viewMode}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {viewMode === "kanban" && (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 w-full">
+                  {statusColumns.map((column) => (
+                    <div 
+                      key={column.id} 
+                      className="rounded-2xl p-4 border border-border/50"
+                      style={getColumnBackgroundStyle(column.id)}
+                    >
+                      <div className="pb-3">
+                        <div className="text-sm font-medium flex items-center justify-between">
+                          <span>{column.label}</span>
+                          <Badge variant="outline" className="text-xs">
+                            {column.tasks.length}
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        {column.tasks.map((task) => (
+                          <TaskChecklistItem
+                            key={task.id}
+                            task={task}
+                            onStatusChange={handleStatusChange}
+                            onEdit={handleEditTask}
+                            onDelete={deleteTask}
+                            viewMode={viewMode}
+                          />
+                        ))}
+                        {column.tasks.length === 0 && (
+                          <div className="text-center py-8 text-muted-foreground text-sm">
+                            Cap tasca en aquest estat
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
