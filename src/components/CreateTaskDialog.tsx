@@ -35,8 +35,6 @@ const CreateTaskDialog = ({ open, onClose, onSubmit, folders }: CreateTaskDialog
   const [dueDate, setDueDate] = useState<Date>();
   const [folderId, setFolderId] = useState<string>();
 
-  // Temporary log to debug folders
-  console.log("CreateTaskDialog - folders received:", folders);
 
   const statusOptions = getStatusOptions();
   const priorityOptions = getPriorityOptions();

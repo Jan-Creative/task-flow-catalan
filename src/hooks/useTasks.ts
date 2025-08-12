@@ -66,8 +66,6 @@ export const useTasks = () => {
       // If no folder specified, find and use inbox folder from database
       let finalFolderId = taskData.folder_id;
       if (!finalFolderId) {
-        console.log("No folder selected, searching for Bustia...");
-        
         // Search for the user's inbox folder directly in the database
         const { data: inboxFolder, error: folderError } = await supabase
           .from("folders")
@@ -77,15 +75,10 @@ export const useTasks = () => {
           .eq("name", "Bustia")
           .single();
 
-        if (folderError) {
-          console.error("Error finding inbox folder:", folderError);
-        } else if (inboxFolder) {
+        if (!folderError && inboxFolder) {
           finalFolderId = inboxFolder.id;
-          console.log("Found Bustia folder with id:", finalFolderId);
         }
       }
-
-      console.log("Creating task with folder_id:", finalFolderId);
 
       const { data, error } = await supabase
         .from("tasks")
