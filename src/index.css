@@ -22,7 +22,7 @@ All colors MUST be HSL.
     --primary-foreground: 0 0% 95%;
     --primary-glow: 180 100% 35%;
 
-    --secondary: 0 0% 12% / 0.8;  /* Gris secundari més fosc */
+    --secondary: 0 0% 15% / 0.85;  /* Gris clar per targetes amb bon contrast */
     --secondary-foreground: 0 0% 85%;
 
     --muted: 0 0% 10% / 0.6;  /* Gris suau més fosc */

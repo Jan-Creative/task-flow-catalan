@@ -59,26 +59,26 @@ const TaskDetailPage = () => {
         </div>
       </div>
 
-      {/* Dashboard Grid */}
+      {/* Dashboard Grid - Redissenyat per equilibri visual */}
       <div className="p-4 pb-24">
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 max-w-7xl mx-auto">
           {/* Task Details Card */}
-          <div className="lg:col-span-1">
+          <div className="md:col-span-1 xl:col-span-1">
             <TaskDetailsCard task={task} folderName={folder?.name} />
           </div>
 
           {/* Pomodoro Card */}
-          <div className="lg:col-span-1">
+          <div className="md:col-span-1 xl:col-span-1">
             <PomodoroCard taskId={task.id} />
           </div>
 
-          {/* Subtasks Card */}
-          <div className="lg:col-span-1">
+          {/* Subtasks Card - Una mica més alta */}
+          <div className="md:col-span-1 xl:col-span-1 md:row-span-1">
             <SubtasksCard taskId={task.id} />
           </div>
 
-          {/* Notes Card - Full width on large screens */}
-          <div className="lg:col-span-2 xl:col-span-3">
+          {/* Notes Card - Més ampla per notes extenses */}
+          <div className="md:col-span-2 xl:col-span-1">
             <NotesCard taskId={task.id} />
           </div>
         </div>

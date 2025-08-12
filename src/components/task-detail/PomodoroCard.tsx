@@ -41,7 +41,7 @@ export const PomodoroCard = ({ taskId }: PomodoroCardProps) => {
   };
 
   return (
-    <Card className="animate-fade-in bg-card/50 backdrop-blur-sm border-border/50">
+    <Card className="animate-fade-in">
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-lg">
@@ -118,13 +118,13 @@ export const PomodoroCard = ({ taskId }: PomodoroCardProps) => {
           </div>
         </div>
 
-        {/* Statistics */}
+        {/* Statistics - Sense recuadres blancs */}
         <div className="space-y-4">
           <h4 className="text-sm font-medium text-muted-foreground text-center">
             Estadístiques d'avui
           </h4>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="text-center p-4 bg-muted/30 rounded-2xl border border-border/30">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="text-center p-3">
               <div className="flex items-center justify-center mb-2">
                 <Target className="h-4 w-4 text-primary mr-1" />
               </div>
@@ -133,7 +133,7 @@ export const PomodoroCard = ({ taskId }: PomodoroCardProps) => {
               </div>
               <div className="text-xs text-muted-foreground">Sessions</div>
             </div>
-            <div className="text-center p-4 bg-muted/30 rounded-2xl border border-border/30">
+            <div className="text-center p-3">
               <div className="flex items-center justify-center mb-2">
                 <Clock className="h-4 w-4 text-primary mr-1" />
               </div>
