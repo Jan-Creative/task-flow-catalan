@@ -75,7 +75,7 @@ export const useProperties = () => {
 
       setProperties(propertiesWithSortedOptions);
     } catch (error) {
-      console.error('Error fetching properties:', error);
+      // Silent error handling to avoid console pollution
     } finally {
       setLoading(false);
     }
@@ -103,13 +103,10 @@ export const useProperties = () => {
 
       if (error) throw error;
 
-      // Invalidate queries for immediate refresh in ALL components
+      // Invalidate queries for immediate refresh
       queryClient.invalidateQueries({ queryKey: ['properties'] });
-      
-      await fetchProperties(); // Refresh data
       return data;
     } catch (error) {
-      console.error('Error creating property option:', error);
       throw error;
     }
   };
@@ -135,13 +132,10 @@ export const useProperties = () => {
         }))
       );
 
-      // Invalidate queries for immediate refresh in ALL components
+      // Invalidate queries for immediate refresh
       queryClient.invalidateQueries({ queryKey: ['properties'] });
-      
-      await fetchProperties(); // Refresh data
       return data;
     } catch (error) {
-      console.error('Error updating property option:', error);
       throw error;
     }
   };
@@ -155,12 +149,9 @@ export const useProperties = () => {
 
       if (error) throw error;
 
-      // Invalidate queries for immediate refresh in ALL components
+      // Invalidate queries for immediate refresh
       queryClient.invalidateQueries({ queryKey: ['properties'] });
-      
-      await fetchProperties(); // Refresh data
     } catch (error) {
-      console.error('Error deleting property option:', error);
       throw error;
     }
   };
@@ -176,13 +167,10 @@ export const useProperties = () => {
 
       if (error) throw error;
 
-      // Invalidate queries for immediate refresh in ALL components
+      // Invalidate queries for immediate refresh
       queryClient.invalidateQueries({ queryKey: ['properties'] });
-      
-      await fetchProperties(); // Refresh data
       return data;
     } catch (error) {
-      console.error('Error updating property definition:', error);
       throw error;
     }
   };
@@ -201,7 +189,6 @@ export const useProperties = () => {
       if (error) throw error;
       return data || [];
     } catch (error) {
-      console.error('Error fetching task properties:', error);
       return [];
     }
   };
@@ -237,7 +224,6 @@ export const useProperties = () => {
         if (error) throw error;
       }
     } catch (error) {
-      console.error('Error setting task property:', error);
       throw error;
     }
   };
@@ -267,79 +253,109 @@ export const useProperties = () => {
     if (!user) return;
 
     try {
-      // Check if system properties exist
-      const estatProperty = getPropertyByName('Estat');
-      const prioritatProperty = getPropertyByName('Prioritat');
+      // First fetch current properties to check if they already exist
+      const { data: existingProps } = await supabase
+        .from('property_definitions')
+        .select('name')
+        .eq('user_id', user.id)
+        .in('name', ['Estat', 'Prioritat']);
 
-      if (!estatProperty) {
-        // Create Estat property
+      const existingNames = new Set(existingProps?.map(p => p.name) || []);
+      let propertiesCreated = false;
+
+      // Create Estat property if it doesn't exist
+      if (!existingNames.has('Estat')) {
         const { data: estatProp, error: estatError } = await supabase
           .from('property_definitions')
-          .insert({
+          .upsert({
             name: 'Estat',
             type: 'select',
             icon: 'Circle',
             is_system: true,
             user_id: user.id
+          }, {
+            onConflict: 'user_id,name',
+            ignoreDuplicates: true
           })
           .select()
-          .single();
+          .maybeSingle();
 
-        if (estatError) throw estatError;
+        if (estatError && !estatError.message.includes('duplicate key')) {
+          throw estatError;
+        }
 
-        // Create default options for Estat
-        const estatOptions = [
-          { value: 'pendent', label: 'Pendent', color: '#64748b', sort_order: 0, is_default: true },
-          { value: 'en_proces', label: 'En procés', color: '#3b82f6', sort_order: 1, is_default: false },
-          { value: 'completat', label: 'Completat', color: '#10b981', sort_order: 2, is_default: false }
-        ];
+        if (estatProp) {
+          // Create default options for Estat
+          const estatOptions = [
+            { value: 'pendent', label: 'Pendent', color: '#64748b', sort_order: 0, is_default: true },
+            { value: 'en_proces', label: 'En procés', color: '#3b82f6', sort_order: 1, is_default: false },
+            { value: 'completat', label: 'Completat', color: '#10b981', sort_order: 2, is_default: false }
+          ];
 
-        for (const option of estatOptions) {
-          await supabase.from('property_options').insert({
-            property_id: estatProp.id,
-            ...option
-          });
+          for (const option of estatOptions) {
+            await supabase.from('property_options').upsert({
+              property_id: estatProp.id,
+              ...option
+            }, {
+              onConflict: 'property_id,value',
+              ignoreDuplicates: true
+            });
+          }
+          propertiesCreated = true;
         }
       }
 
-      if (!prioritatProperty) {
-        // Create Prioritat property
+      // Create Prioritat property if it doesn't exist
+      if (!existingNames.has('Prioritat')) {
         const { data: prioritatProp, error: prioritatError } = await supabase
           .from('property_definitions')
-          .insert({
+          .upsert({
             name: 'Prioritat',
             type: 'select',
             icon: 'Flag',
             is_system: true,
             user_id: user.id
+          }, {
+            onConflict: 'user_id,name',
+            ignoreDuplicates: true
           })
           .select()
-          .single();
+          .maybeSingle();
 
-        if (prioritatError) throw prioritatError;
+        if (prioritatError && !prioritatError.message.includes('duplicate key')) {
+          throw prioritatError;
+        }
 
-        // Create default options for Prioritat
-        const prioritatOptions = [
-          { value: 'baixa', label: 'Baixa', color: '#64748b', sort_order: 0, is_default: false },
-          { value: 'mitjana', label: 'Mitjana', color: '#f59e0b', sort_order: 1, is_default: true },
-          { value: 'alta', label: 'Alta', color: '#ef4444', sort_order: 2, is_default: false },
-          { value: 'urgent', label: 'Urgent', color: '#dc2626', sort_order: 3, is_default: false }
-        ];
+        if (prioritatProp) {
+          // Create default options for Prioritat
+          const prioritatOptions = [
+            { value: 'baixa', label: 'Baixa', color: '#64748b', sort_order: 0, is_default: false },
+            { value: 'mitjana', label: 'Mitjana', color: '#f59e0b', sort_order: 1, is_default: true },
+            { value: 'alta', label: 'Alta', color: '#ef4444', sort_order: 2, is_default: false },
+            { value: 'urgent', label: 'Urgent', color: '#dc2626', sort_order: 3, is_default: false }
+          ];
 
-        for (const option of prioritatOptions) {
-          await supabase.from('property_options').insert({
-            property_id: prioritatProp.id,
-            ...option
-          });
+          for (const option of prioritatOptions) {
+            await supabase.from('property_options').upsert({
+              property_id: prioritatProp.id,
+              ...option
+            }, {
+              onConflict: 'property_id,value',
+              ignoreDuplicates: true
+            });
+          }
+          propertiesCreated = true;
         }
       }
 
-      // Refresh properties if we created any
-      if (!estatProperty || !prioritatProperty) {
+      // Only invalidate and refresh if we actually created properties
+      if (propertiesCreated) {
+        queryClient.invalidateQueries({ queryKey: ['properties'] });
         await fetchProperties();
       }
     } catch (error) {
-      console.error('Error ensuring system properties:', error);
+      // Silent error handling - don't log to avoid console pollution
+      // System properties will be retried on next component mount
     }
   };
 
