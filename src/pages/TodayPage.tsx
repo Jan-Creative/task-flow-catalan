@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import OptimizedTaskItem from "@/components/OptimizedTaskItem";
@@ -31,7 +31,7 @@ const TodayPage = ({ onEditTask, onNavigateToSettings }: TodayPageProps) => {
   }, []);
 
   // Custom handler for status changes with different behavior per view mode
-  const handleStatusChange = async (taskId: string, status: any) => {
+  const handleStatusChange = useCallback(async (taskId: string, status: any) => {
     // Clear existing timeout for this task if any
     const existingTimeout = timeoutsRef.current.get(taskId);
     if (existingTimeout) {
@@ -82,49 +82,55 @@ const TodayPage = ({ onEditTask, onNavigateToSettings }: TodayPageProps) => {
       });
       await updateTaskStatus(taskId, status);
     }
-  };
+  }, [updateTaskStatus, viewMode]);
 
-  // Optimized filtering with useMemo
+  // Optimized filtering with useMemo - FIXED LOGIC
   const filteredTasks = useMemo(() => {
+    if (!todayTasks) return [];
+    
     return todayTasks.filter(task => {
       // Always show tasks that are in completing state
       if (completingTasks.has(task.id)) {
         return true;
       }
       
-      if (viewMode === 'list') {
-        // In list mode: hide completed tasks completely (unless completing)
-        if (task.status === 'completat') {
-          return false;
+      // List mode: hide completed tasks (except those completing)
+      if (viewMode === 'list' && task.status === 'completat') {
+        return false;
+      }
+      
+      // Kanban mode: show completed tasks if they match filters or are recently completed
+      if (viewMode === 'kanban' && task.status === 'completat') {
+        if (recentlyCompleted.has(task.id)) {
+          return true; // Always show recently completed
         }
-      } else {
-        // In kanban mode: show completed tasks in their column, keep recently completed visible
-        if (task.status === 'completat' && !recentlyCompleted.has(task.id)) {
-          // Show completed tasks in kanban mode
-          if (filterStatus === 'completat' || filterStatus === 'all') {
-            return true;
-          }
+        // Show completed tasks only if filter allows
+        if (filterStatus !== 'completat' && filterStatus !== 'all') {
           return false;
-        }
-        // Keep recently completed tasks visible in kanban
-        if (task.status === 'completat' && recentlyCompleted.has(task.id)) {
-          return true;
         }
       }
       
-      let matchesStatus = filterStatus === "all" || task.status === filterStatus;
-      let matchesPriority = filterPriority === "all" || task.priority === filterPriority;
-      return matchesStatus && matchesPriority;
+      // Apply status filter
+      if (filterStatus !== "all" && task.status !== filterStatus) {
+        return false;
+      }
+      
+      // Apply priority filter
+      if (filterPriority !== "all" && task.priority !== filterPriority) {
+        return false;
+      }
+      
+      return true;
     });
   }, [todayTasks, completingTasks, recentlyCompleted, filterStatus, filterPriority, viewMode]);
 
-  // Memoized status tasks calculation
-  const getStatusTasks = useMemo(() => {
-    return (status: string) => filteredTasks.filter(task => task.status === status);
-  }, [filteredTasks]);
+  // Memoized status columns for kanban view
+  const statusColumns = useMemo(() => {
+    return getStatusOptions().map(option => option.value);
+  }, [getStatusOptions]);
 
   // Function to get dynamic column background style based on status color
-  const getColumnBackgroundStyle = (statusColor: string) => {
+  const getColumnBackgroundStyle = useCallback((statusColor: string) => {
     if (statusColor && statusColor.startsWith('#')) {
       // Convert hex to RGB and apply with opacity
       const hex = statusColor.slice(1);
@@ -138,12 +144,16 @@ const TodayPage = ({ onEditTask, onNavigateToSettings }: TodayPageProps) => {
     }
     // Fallback to default card background
     return {};
-  };
+  }, []);
 
-  // Memoized status columns for kanban view
-  const statusColumns = useMemo(() => {
-    return getStatusOptions().map(option => option.value);
-  }, [getStatusOptions]);
+  // Memoized task count by status for stats
+  const taskStats = useMemo(() => {
+    const stats: Record<string, number> = {};
+    getStatusOptions().forEach(option => {
+      stats[option.value] = filteredTasks.filter(task => task.status === option.value).length;
+    });
+    return stats;
+  }, [filteredTasks, getStatusOptions]);
 
   if (loading) {
     return (
@@ -168,7 +178,7 @@ const TodayPage = ({ onEditTask, onNavigateToSettings }: TodayPageProps) => {
             <Card key={option.value} className="bg-card/60 backdrop-blur-glass border-border/50">
               <CardContent className="p-3 text-center">
                 <div className={`text-2xl font-bold ${index === 0 ? 'text-warning' : index === 1 ? 'text-primary' : 'text-success'}`}>
-                  {getStatusTasks(option.value).length}
+                  {taskStats[option.value] || 0}
                 </div>
                 <div className="text-xs text-muted-foreground">{option.label}</div>
               </CardContent>
