@@ -1,4 +1,5 @@
 import { FolderOpen, MoreVertical, Edit2, Trash2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,10 +32,20 @@ export function FolderItem({
   onDelete, 
   isInbox = false 
 }: FolderItemProps) {
+  const navigate = useNavigate();
+
+  const handleFolderClick = () => {
+    if (isInbox) {
+      navigate('/folder/inbox');
+    } else {
+      navigate(`/folder/${folder.id}`);
+    }
+    onSelect();
+  };
   return (
     <div 
       className="group flex items-center justify-between p-4 rounded-xl hover:bg-secondary/50 transition-all duration-200 cursor-pointer border border-transparent hover:border-border/50"
-      onClick={onSelect}
+      onClick={handleFolderClick}
     >
       <div className="flex items-center gap-3 flex-1 min-w-0">
         <div 
