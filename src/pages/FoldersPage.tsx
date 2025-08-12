@@ -107,6 +107,44 @@ const FoldersPage = () => {
               Nova carpeta
             </Button>
           </DialogTrigger>
+          <DialogContent className="bg-card/95 backdrop-blur-glass border-border/50 shadow-elevated sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-foreground">Nova Carpeta</DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              <div>
+                <Input
+                  value={newFolderName}
+                  onChange={(e) => setNewFolderName(e.target.value)}
+                  placeholder="Nom de la carpeta..."
+                  className="bg-input/80 border-border/50 focus:border-primary"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleCreateFolder();
+                    }
+                  }}
+                />
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowCreateDialog(false)}
+                  className="flex-1 bg-secondary/50 border-border/50"
+                >
+                  Cancel·lar
+                </Button>
+                <Button
+                  onClick={handleCreateFolder}
+                  className="flex-1 bg-gradient-primary hover:scale-105 transition-bounce"
+                  disabled={!newFolderName.trim()}
+                >
+                  Crear Carpeta
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
         </Dialog>
       </div>
 
@@ -145,45 +183,6 @@ const FoldersPage = () => {
         </div>
       </div>
 
-      {/* Create folder dialog */}
-      <DialogContent className="bg-card/95 backdrop-blur-glass border-border/50 shadow-elevated sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-foreground">Nova Carpeta</DialogTitle>
-        </DialogHeader>
-        
-        <div className="space-y-4">
-          <div>
-            <Input
-              value={newFolderName}
-              onChange={(e) => setNewFolderName(e.target.value)}
-              placeholder="Nom de la carpeta..."
-              className="bg-input/80 border-border/50 focus:border-primary"
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  handleCreateFolder();
-                }
-              }}
-            />
-          </div>
-
-          <div className="flex gap-3 pt-4">
-            <Button
-              variant="outline"
-              onClick={() => setShowCreateDialog(false)}
-              className="flex-1 bg-secondary/50 border-border/50"
-            >
-              Cancel·lar
-            </Button>
-            <Button
-              onClick={handleCreateFolder}
-              className="flex-1 bg-gradient-primary hover:scale-105 transition-bounce"
-              disabled={!newFolderName.trim()}
-            >
-              Crear Carpeta
-            </Button>
-          </div>
-        </div>
-      </DialogContent>
 
       {/* Edit folder dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
