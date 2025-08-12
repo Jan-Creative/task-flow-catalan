@@ -31,30 +31,28 @@ const FolderDetailPage = () => {
     ? realInboxFolder || { id: 'inbox', name: 'Bustia', color: '#6366f1', is_system: true }
     : folders.find(f => f.id === folderId);
 
-  // Filter tasks for this folder - only calculate when data is loaded
-  const folderTasks = loading ? [] : (folderId === 'inbox'
-    ? tasks.filter(task => 
-        // Show tasks assigned to real inbox folder OR tasks without folder (for compatibility)
-        (realInboxFolder && task.folder_id === realInboxFolder.id) || !task.folder_id
-      )
-    : tasks.filter(task => task.folder_id === folderId));
+  // Filter tasks for this folder - FIXED: Don't return empty array when loading
+  const folderTasks = (() => {
+    // If still loading or no data, return empty array
+    if (loading || tasks.length === 0) {
+      return [];
+    }
 
-  // DEBUG: Detailed analysis
-  console.log('=== DEBUG ANALYSIS ===');
-  console.log('1. Loading state:', loading);
-  console.log('2. FolderId:', folderId);
-  console.log('3. Total tasks:', tasks.length);
-  console.log('4. Total folders:', folders.length);
-  console.log('5. RealInboxFolder:', realInboxFolder);
-  console.log('6. CurrentFolder:', currentFolder);
-  console.log('7. FolderTasks length:', folderTasks.length);
-  console.log('8. FolderTasks:', folderTasks.map(t => ({ id: t.id, title: t.title, folder_id: t.folder_id })));
-  if (folderId === 'inbox') {
-    console.log('9. Inbox specific analysis:');
-    console.log('   - Tasks with realInboxFolder.id:', tasks.filter(t => realInboxFolder && t.folder_id === realInboxFolder.id).length);
-    console.log('   - Tasks without folder_id:', tasks.filter(t => !t.folder_id).length);
-  }
-  console.log('=======================');
+    if (folderId === 'inbox') {
+      // For inbox, show tasks assigned to the real inbox folder
+      // OR tasks without folder_id (legacy compatibility)
+      return tasks.filter(task => {
+        if (realInboxFolder) {
+          return task.folder_id === realInboxFolder.id || !task.folder_id;
+        }
+        // Fallback: if no real inbox folder found, show tasks without folder_id
+        return !task.folder_id;
+      });
+    } else {
+      // For other folders, show tasks with matching folder_id
+      return tasks.filter(task => task.folder_id === folderId);
+    }
+  })();
 
   const handleEditTask = (task: Task) => {
     setEditingTask(task);
