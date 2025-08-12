@@ -29,9 +29,10 @@ export const PomodoroCard = ({ taskId }: PomodoroCardProps) => {
   } = usePomodoroTimer(taskId);
 
   const totalDuration = isBreak ? breakDuration * 60 : workDuration * 60;
-  const progress = ((totalDuration - timeLeft) / totalDuration) * 100;
+  const progress = totalDuration > 0 ? Math.min(Math.max(((totalDuration - timeLeft) / totalDuration) * 100, 0), 100) : 0;
 
   const formatTotalTime = (minutes: number) => {
+    if (!minutes || isNaN(minutes)) return '0m';
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     if (hours > 0) {
@@ -62,14 +63,14 @@ export const PomodoroCard = ({ taskId }: PomodoroCardProps) => {
         <div className="flex flex-col items-center justify-center flex-1">
           <div className="relative mb-3">
             <CircularProgress 
-              value={progress} 
+              value={isNaN(progress) ? 0 : progress} 
               size={140} 
               strokeWidth={5}
               isActive={isActive}
             >
               <div className="text-center">
                 <div className="text-2xl font-mono font-bold tracking-tight mb-1">
-                  {formatTime(timeLeft)}
+                  {formatTime ? formatTime(timeLeft || 0) : '00:00'}
                 </div>
                 <div className="flex items-center justify-center gap-1">
                   <Badge 
@@ -126,7 +127,7 @@ export const PomodoroCard = ({ taskId }: PomodoroCardProps) => {
                 <Target className="h-3 w-3 text-primary mr-1" />
               </div>
               <div className="text-base font-bold text-primary leading-none">
-                {completedSessions}
+                {completedSessions || 0}
               </div>
               <div className="text-xs text-muted-foreground mt-0.5">Sessions</div>
             </div>
@@ -135,7 +136,7 @@ export const PomodoroCard = ({ taskId }: PomodoroCardProps) => {
                 <Clock className="h-3 w-3 text-primary mr-1" />
               </div>
               <div className="text-base font-bold text-primary leading-none">
-                {formatTotalTime(totalWorkTime)}
+                {formatTotalTime(totalWorkTime || 0)}
               </div>
               <div className="text-xs text-muted-foreground mt-0.5">Temps total</div>
             </div>
