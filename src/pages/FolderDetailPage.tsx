@@ -32,7 +32,7 @@ const FolderDetailPage = () => {
 
   // Filter tasks for this folder
   const folderTasks = folderId === 'inbox'
-    ? tasks.filter(task => !task.folder_id || task.folder_id === currentFolder?.id)
+    ? tasks.filter(task => !task.folder_id) // Only tasks without folder
     : tasks.filter(task => task.folder_id === folderId);
 
   const handleEditTask = (task: Task) => {
