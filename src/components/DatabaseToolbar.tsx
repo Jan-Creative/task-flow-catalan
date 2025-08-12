@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
-import { List, LayoutGrid, Filter, SortAsc, Search, Plus, ChevronDown, Settings, Zap, Maximize2, X, Eye, Table, ArrowUpDown, Group, Palette, Link, Lock, FileText, Bot, MoreHorizontal, CheckSquare, AlertTriangle, ArrowLeft, Circle, Edit3, Copy, Trash2 } from "lucide-react";
+import { List, LayoutGrid, Filter, SortAsc, Plus, ChevronDown, Settings, X, Eye, Table, ArrowUpDown, Group, Palette, Link, Lock, FileText, Bot, MoreHorizontal, CheckSquare, AlertTriangle, ArrowLeft, Circle, Edit3, Copy, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { useProperties } from "@/hooks/useProperties";
@@ -218,21 +218,6 @@ const DatabaseToolbar = ({
           </PopoverContent>
         </Popover>
 
-        {/* Sort button */}
-        
-
-        {/* Lightning/Zap button */}
-        
-
-        {/* Search button */}
-        <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-[#b8b8b8] hover:bg-[#353535] hover:text-white rounded-md" disabled>
-          <Search className="h-3.5 w-3.5" />
-        </Button>
-
-        {/* Expand button */}
-        <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-[#b8b8b8] hover:bg-[#353535] hover:text-white rounded-md" disabled>
-          <Maximize2 className="h-3.5 w-3.5" />
-        </Button>
 
         {/* Settings button with menu */}
         <Popover open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
@@ -758,10 +743,6 @@ const DatabaseToolbar = ({
           </PopoverContent>
         </Popover>
 
-        {/* Nuevo button */}
-        <Button variant="ghost" size="sm" className="h-7 px-3 text-xs font-medium bg-[#0070f3] hover:bg-[#0060df] text-white rounded-md ml-2" disabled>
-          Nuevo
-        </Button>
       </div>
     </div>;
 };
