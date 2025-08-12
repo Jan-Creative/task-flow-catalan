@@ -19,7 +19,7 @@ const BottomNavigation = ({ activeTab, onTabChange, onCreateTask }: BottomNaviga
     <div className="fixed bottom-4 left-4 right-4 z-50">
       <div className="flex items-center justify-between">
         {/* Main Navigation */}
-        <div className="bg-card/70 backdrop-blur-[var(--backdrop-blur-organic)] border border-border/50 rounded-[28px] shadow-[var(--shadow-organic)] px-2 py-1.5 flex-1 mr-4">
+        <div className="bg-card/70 backdrop-blur-[var(--backdrop-blur-organic)] rounded-[28px] shadow-[var(--shadow-organic)] px-2 py-1.5 flex-1 mr-4">
           <div className="flex items-center justify-between max-w-sm mx-auto">
             {tabs.map((tab) => {
               const Icon = tab.icon;
@@ -48,7 +48,7 @@ const BottomNavigation = ({ activeTab, onTabChange, onCreateTask }: BottomNaviga
         <Button
           onClick={onCreateTask}
           size="lg"
-          className="bg-gradient-primary hover:scale-110 active:scale-95 transition-all duration-200 ease-out rounded-full h-14 w-14 shadow-[var(--shadow-floating)] hover:shadow-glow flex-shrink-0"
+          className="bg-gradient-primary hover:scale-110 active:scale-95 transition-all duration-200 ease-out rounded-full h-14 w-14 shadow-[var(--shadow-floating)] hover:shadow-glow flex-shrink-0 p-0"
         >
           <Plus className="h-6 w-6" />
         </Button>
