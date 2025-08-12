@@ -41,8 +41,8 @@ export const PomodoroCard = ({ taskId }: PomodoroCardProps) => {
   };
 
   return (
-    <Card className="animate-fade-in">
-      <CardHeader className="pb-4">
+    <Card className="animate-fade-in h-full flex flex-col">
+      <CardHeader className="flex-shrink-0 pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-lg">
             <Timer className="h-5 w-5 text-primary" />
@@ -57,24 +57,24 @@ export const PomodoroCard = ({ taskId }: PomodoroCardProps) => {
         </div>
       </CardHeader>
       
-      <CardContent className="space-y-8">
+      <CardContent className="flex-1 flex flex-col justify-between p-4 pt-0">
         {/* Main timer with circular progress */}
-        <div className="flex flex-col items-center space-y-6">
-          <div className="relative">
+        <div className="flex flex-col items-center justify-center flex-1">
+          <div className="relative mb-3">
             <CircularProgress 
               value={progress} 
-              size={180} 
-              strokeWidth={6}
+              size={140} 
+              strokeWidth={5}
               isActive={isActive}
             >
               <div className="text-center">
-                <div className="text-3xl font-mono font-bold tracking-tight mb-1">
+                <div className="text-2xl font-mono font-bold tracking-tight mb-1">
                   {formatTime(timeLeft)}
                 </div>
-                <div className="flex items-center justify-center gap-2">
+                <div className="flex items-center justify-center gap-1">
                   <Badge 
                     variant={!isBreak ? 'default' : 'secondary'} 
-                    className="text-xs px-2 py-1"
+                    className="text-xs px-1.5 py-0.5"
                   >
                     {!isBreak ? 'Feina' : 'Descans'}
                   </Badge>
@@ -85,59 +85,56 @@ export const PomodoroCard = ({ taskId }: PomodoroCardProps) => {
           </div>
           
           {/* Control buttons */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             {!isActive ? (
               <Button 
                 onClick={startTimer} 
-                size="lg"
-                className="gap-2 px-8 h-12 text-base font-medium"
+                size="sm"
+                className="gap-1 px-4 h-8 text-sm"
                 disabled={loading}
               >
-                <Play className="h-5 w-5" />
+                <Play className="h-3 w-3" />
                 Iniciar
               </Button>
             ) : (
               <Button 
                 onClick={pauseTimer} 
                 variant="outline" 
-                size="lg"
-                className="gap-2 px-8 h-12 text-base font-medium"
+                size="sm"
+                className="gap-1 px-4 h-8 text-sm"
               >
-                <Pause className="h-5 w-5" />
+                <Pause className="h-3 w-3" />
                 Pausar
               </Button>
             )}
             <Button 
               onClick={resetTimer} 
               variant="ghost" 
-              size="lg"
-              className="gap-2 h-12 w-12 p-0"
+              size="sm"
+              className="gap-1 h-8 w-8 p-0"
             >
-              <RotateCcw className="h-5 w-5" />
+              <RotateCcw className="h-3 w-3" />
             </Button>
           </div>
         </div>
 
-        {/* Statistics - Sense recuadres blancs */}
-        <div className="space-y-4">
-          <h4 className="text-sm font-medium text-muted-foreground text-center">
-            Estadístiques d'avui
-          </h4>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="text-center p-3">
-              <div className="flex items-center justify-center mb-2">
-                <Target className="h-4 w-4 text-primary mr-1" />
+        {/* Statistics - Compactes */}
+        <div className="border-t border-border/30 pt-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="text-center">
+              <div className="flex items-center justify-center mb-1">
+                <Target className="h-3 w-3 text-primary mr-1" />
               </div>
-              <div className="text-xl font-bold text-primary mb-1">
+              <div className="text-lg font-bold text-primary leading-none">
                 {completedSessions}
               </div>
               <div className="text-xs text-muted-foreground">Sessions</div>
             </div>
-            <div className="text-center p-3">
-              <div className="flex items-center justify-center mb-2">
-                <Clock className="h-4 w-4 text-primary mr-1" />
+            <div className="text-center">
+              <div className="flex items-center justify-center mb-1">
+                <Clock className="h-3 w-3 text-primary mr-1" />
               </div>
-              <div className="text-xl font-bold text-primary mb-1">
+              <div className="text-lg font-bold text-primary leading-none">
                 {formatTotalTime(totalWorkTime)}
               </div>
               <div className="text-xs text-muted-foreground">Temps total</div>

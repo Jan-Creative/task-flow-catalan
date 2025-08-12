@@ -41,48 +41,51 @@ export const TaskDetailsCard = ({ task, folderName }: TaskDetailsCardProps) => {
   };
 
   return (
-    <Card className="animate-fade-in">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+    <Card className="animate-fade-in h-full flex flex-col">
+      <CardHeader className="flex-shrink-0 pb-3">
+        <CardTitle className="flex items-center gap-2 text-lg">
           <User className="h-5 w-5 text-primary" />
-          Detalls de la tasca
+          Detalls
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div>
-          <h3 className="text-lg font-semibold mb-2">{task.title}</h3>
-          {task.description && (
-            <p className="text-muted-foreground">{task.description}</p>
-          )}
+      
+      <CardContent className="flex-1 flex flex-col justify-between p-4 pt-0">
+        <div className="space-y-3">
+          <div>
+            <h3 className="text-base font-semibold mb-1 leading-tight">{task.title}</h3>
+            {task.description && (
+              <p className="text-muted-foreground text-sm leading-relaxed line-clamp-2">{task.description}</p>
+            )}
+          </div>
+
+          <div className="flex flex-wrap gap-1.5">
+            <Badge className={`${getStatusColor(task.status)} text-xs`}>
+              {task.status.replace('_', ' ')}
+            </Badge>
+            <Badge className={`${getPriorityColor(task.priority)} text-xs`}>
+              {task.priority}
+            </Badge>
+          </div>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <Badge className={getStatusColor(task.status)}>
-            {task.status.replace('_', ' ')}
-          </Badge>
-          <Badge className={getPriorityColor(task.priority)}>
-            Prioritat: {task.priority}
-          </Badge>
-        </div>
-
-        <div className="space-y-2 text-sm">
+        <div className="space-y-2 text-xs mt-4">
           {folderName && (
             <div className="flex items-center gap-2 text-muted-foreground">
-              <FolderOpen className="h-4 w-4" />
-              <span>{folderName}</span>
+              <FolderOpen className="h-3 w-3 flex-shrink-0" />
+              <span className="truncate">{folderName}</span>
             </div>
           )}
           
           {task.due_date && (
             <div className="flex items-center gap-2 text-muted-foreground">
-              <Calendar className="h-4 w-4" />
-              <span>Venciment: {format(new Date(task.due_date), 'dd MMM yyyy', { locale: ca })}</span>
+              <Calendar className="h-3 w-3 flex-shrink-0" />
+              <span>Venciment: {format(new Date(task.due_date), 'dd MMM', { locale: ca })}</span>
             </div>
           )}
           
           <div className="flex items-center gap-2 text-muted-foreground">
-            <Clock className="h-4 w-4" />
-            <span>Creada: {format(new Date(task.created_at), 'dd MMM yyyy HH:mm', { locale: ca })}</span>
+            <Clock className="h-3 w-3 flex-shrink-0" />
+            <span>Creada: {format(new Date(task.created_at), 'dd MMM', { locale: ca })}</span>
           </div>
         </div>
       </CardContent>

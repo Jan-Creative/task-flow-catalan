@@ -59,27 +59,85 @@ const TaskDetailPage = () => {
         </div>
       </div>
 
-      {/* Dashboard Grid - Redissenyat per equilibri visual */}
+      {/* Dashboard Grid - Sistema avançat de targetes de diferents mides */}
       <div className="p-4 pb-24">
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 max-w-7xl mx-auto">
-          {/* Task Details Card */}
-          <div className="md:col-span-1 xl:col-span-1">
-            <TaskDetailsCard task={task} folderName={folder?.name} />
+        <div className="max-w-7xl mx-auto">
+          {/* Desktop Layout - Grid Complex */}
+          <div className="hidden xl:grid xl:grid-cols-6 xl:grid-rows-4 gap-6 h-[600px]">
+            {/* Task Details Card - Quadrada mitjana (2x2) */}
+            <div className="col-span-2 row-span-2 animate-fade-in" style={{animationDelay: '0.1s'}}>
+              <div className="h-full">
+                <TaskDetailsCard task={task} folderName={folder?.name} />
+              </div>
+            </div>
+
+            {/* Pomodoro Card - Quadrada gran (2x2) */}
+            <div className="col-span-2 row-span-2 animate-fade-in" style={{animationDelay: '0.2s'}}>
+              <div className="h-full">
+                <PomodoroCard taskId={task.id} />
+              </div>
+            </div>
+
+            {/* Subtasks Card - Rectangular vertical (2x4) */}
+            <div className="col-span-2 row-span-4 animate-fade-in" style={{animationDelay: '0.3s'}}>
+              <div className="h-full">
+                <SubtasksCard taskId={task.id} />
+              </div>
+            </div>
+
+            {/* Notes Card - Rectangular horitzontal gran (4x2) */}
+            <div className="col-span-4 row-span-2 animate-fade-in" style={{animationDelay: '0.4s'}}>
+              <div className="h-full">
+                <NotesCard taskId={task.id} />
+              </div>
+            </div>
           </div>
 
-          {/* Pomodoro Card */}
-          <div className="md:col-span-1 xl:col-span-1">
-            <PomodoroCard taskId={task.id} />
+          {/* Tablet Layout - Grid adaptat */}
+          <div className="hidden md:grid xl:hidden md:grid-cols-4 md:grid-rows-3 gap-6 h-[500px]">
+            {/* Task Details Card */}
+            <div className="col-span-2 row-span-1 animate-fade-in" style={{animationDelay: '0.1s'}}>
+              <div className="h-full">
+                <TaskDetailsCard task={task} folderName={folder?.name} />
+              </div>
+            </div>
+
+            {/* Pomodoro Card */}
+            <div className="col-span-2 row-span-1 animate-fade-in" style={{animationDelay: '0.2s'}}>
+              <div className="h-full">
+                <PomodoroCard taskId={task.id} />
+              </div>
+            </div>
+
+            {/* Subtasks Card */}
+            <div className="col-span-2 row-span-2 animate-fade-in" style={{animationDelay: '0.3s'}}>
+              <div className="h-full">
+                <SubtasksCard taskId={task.id} />
+              </div>
+            </div>
+
+            {/* Notes Card */}
+            <div className="col-span-2 row-span-2 animate-fade-in" style={{animationDelay: '0.4s'}}>
+              <div className="h-full">
+                <NotesCard taskId={task.id} />
+              </div>
+            </div>
           </div>
 
-          {/* Subtasks Card - Una mica més alta */}
-          <div className="md:col-span-1 xl:col-span-1 md:row-span-1">
-            <SubtasksCard taskId={task.id} />
-          </div>
-
-          {/* Notes Card - Més ampla per notes extenses */}
-          <div className="md:col-span-2 xl:col-span-1">
-            <NotesCard taskId={task.id} />
+          {/* Mobile Layout - Stack vertical */}
+          <div className="grid md:hidden grid-cols-1 gap-6">
+            <div className="animate-fade-in" style={{animationDelay: '0.1s'}}>
+              <TaskDetailsCard task={task} folderName={folder?.name} />
+            </div>
+            <div className="animate-fade-in" style={{animationDelay: '0.2s'}}>
+              <PomodoroCard taskId={task.id} />
+            </div>
+            <div className="animate-fade-in" style={{animationDelay: '0.3s'}}>
+              <SubtasksCard taskId={task.id} />
+            </div>
+            <div className="animate-fade-in" style={{animationDelay: '0.4s'}}>
+              <NotesCard taskId={task.id} />
+            </div>
           </div>
         </div>
       </div>
