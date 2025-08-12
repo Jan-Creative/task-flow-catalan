@@ -36,10 +36,10 @@ export const CircularProgress = ({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="hsl(var(--muted))"
+          stroke="hsl(var(--border))"
           strokeWidth={strokeWidth}
           fill="none"
-          className="opacity-20"
+          className="opacity-60"
         />
         
         {/* Progress circle */}
