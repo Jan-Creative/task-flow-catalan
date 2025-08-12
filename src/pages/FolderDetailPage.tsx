@@ -25,14 +25,18 @@ const FolderDetailPage = () => {
   const [showCreateTask, setShowCreateTask] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
-  // Find current folder
+  // Find current folder - get real inbox folder from database
+  const realInboxFolder = folders.find(f => f.is_system && f.name === 'Bustia');
   const currentFolder = folderId === 'inbox' 
-    ? { id: 'inbox', name: 'Bustia', color: '#6366f1', is_system: true }
+    ? realInboxFolder || { id: 'inbox', name: 'Bustia', color: '#6366f1', is_system: true }
     : folders.find(f => f.id === folderId);
 
   // Filter tasks for this folder
   const folderTasks = folderId === 'inbox'
-    ? tasks.filter(task => !task.folder_id) // Only tasks without folder
+    ? tasks.filter(task => 
+        // Show tasks assigned to real inbox folder OR tasks without folder (for compatibility)
+        (realInboxFolder && task.folder_id === realInboxFolder.id) || !task.folder_id
+      )
     : tasks.filter(task => task.folder_id === folderId);
 
   const handleEditTask = (task: Task) => {
@@ -48,7 +52,7 @@ const FolderDetailPage = () => {
       } else {
         const newTaskData = {
           ...taskData,
-          folder_id: folderId === 'inbox' ? null : folderId
+          folder_id: folderId === 'inbox' ? (realInboxFolder?.id || null) : folderId
         };
         await createTask(newTaskData);
       }
