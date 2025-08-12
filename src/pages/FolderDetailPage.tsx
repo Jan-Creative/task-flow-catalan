@@ -39,6 +39,23 @@ const FolderDetailPage = () => {
       )
     : tasks.filter(task => task.folder_id === folderId));
 
+  // DEBUG: Detailed analysis
+  console.log('=== DEBUG ANALYSIS ===');
+  console.log('1. Loading state:', loading);
+  console.log('2. FolderId:', folderId);
+  console.log('3. Total tasks:', tasks.length);
+  console.log('4. Total folders:', folders.length);
+  console.log('5. RealInboxFolder:', realInboxFolder);
+  console.log('6. CurrentFolder:', currentFolder);
+  console.log('7. FolderTasks length:', folderTasks.length);
+  console.log('8. FolderTasks:', folderTasks.map(t => ({ id: t.id, title: t.title, folder_id: t.folder_id })));
+  if (folderId === 'inbox') {
+    console.log('9. Inbox specific analysis:');
+    console.log('   - Tasks with realInboxFolder.id:', tasks.filter(t => realInboxFolder && t.folder_id === realInboxFolder.id).length);
+    console.log('   - Tasks without folder_id:', tasks.filter(t => !t.folder_id).length);
+  }
+  console.log('=======================');
+
   const handleEditTask = (task: Task) => {
     setEditingTask(task);
     setShowCreateTask(true);
