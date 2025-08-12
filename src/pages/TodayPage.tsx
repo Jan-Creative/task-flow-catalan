@@ -14,10 +14,12 @@ interface TodayPageProps {
 
 const TodayPage = ({ onEditTask, onNavigateToSettings }: TodayPageProps) => {
   const { todayTasks, updateTaskStatus, deleteTask, loading } = useOptimizedData();
-  const { getStatusLabel, getStatusOptions, getStatusColor } = usePropertyLabels();
+  const { getStatusLabel, getStatusOptions, getStatusColor, getPriorityOptions } = usePropertyLabels();
   const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterPriority, setFilterPriority] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<string>("none");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [recentlyCompleted, setRecentlyCompleted] = useState<Set<string>>(new Set());
   const [completingTasks, setCompletingTasks] = useState<Set<string>>(new Set());
   const timeoutsRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
@@ -84,11 +86,18 @@ const TodayPage = ({ onEditTask, onNavigateToSettings }: TodayPageProps) => {
     }
   }, [updateTaskStatus, viewMode]);
 
-  // Optimized filtering with useMemo - FIXED LOGIC
+  // Handle sort changes
+  const handleSortChange = useCallback((newSortBy: string, newSortOrder: "asc" | "desc") => {
+    setSortBy(newSortBy);
+    setSortOrder(newSortOrder);
+  }, []);
+
+  // Optimized filtering and sorting with useMemo
   const filteredTasks = useMemo(() => {
     if (!todayTasks) return [];
     
-    return todayTasks.filter(task => {
+    // First apply filters
+    let tasks = todayTasks.filter(task => {
       // Always show tasks that are in completing state
       if (completingTasks.has(task.id)) {
         return true;
@@ -122,7 +131,34 @@ const TodayPage = ({ onEditTask, onNavigateToSettings }: TodayPageProps) => {
       
       return true;
     });
-  }, [todayTasks, completingTasks, recentlyCompleted, filterStatus, filterPriority, viewMode]);
+
+    // Then apply sorting if specified
+    if (sortBy !== "none") {
+      tasks = [...tasks].sort((a, b) => {
+        let aValue: number, bValue: number;
+        
+        if (sortBy === "prioritat") {
+          const priorityOptions = getPriorityOptions();
+          const aPriority = priorityOptions.find(opt => opt.value === a.priority);
+          const bPriority = priorityOptions.find(opt => opt.value === b.priority);
+          aValue = aPriority?.sort_order ?? 999;
+          bValue = bPriority?.sort_order ?? 999;
+        } else if (sortBy === "estat") {
+          const statusOptions = getStatusOptions();
+          const aStatus = statusOptions.find(opt => opt.value === a.status);
+          const bStatus = statusOptions.find(opt => opt.value === b.status);
+          aValue = aStatus?.sort_order ?? 999;
+          bValue = bStatus?.sort_order ?? 999;
+        } else {
+          return 0;
+        }
+        
+        return sortOrder === "asc" ? aValue - bValue : bValue - aValue;
+      });
+    }
+    
+    return tasks;
+  }, [todayTasks, completingTasks, recentlyCompleted, filterStatus, filterPriority, viewMode, sortBy, sortOrder, getPriorityOptions, getStatusOptions]);
 
   // Memoized status columns for kanban view
   const statusColumns = useMemo(() => {
@@ -194,6 +230,9 @@ const TodayPage = ({ onEditTask, onNavigateToSettings }: TodayPageProps) => {
           onFilterStatusChange={setFilterStatus}
           filterPriority={filterPriority}
           onFilterPriorityChange={setFilterPriority}
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          onSortChange={handleSortChange}
           onNavigateToSettings={onNavigateToSettings}
         />
       </div>
@@ -230,7 +269,20 @@ const TodayPage = ({ onEditTask, onNavigateToSettings }: TodayPageProps) => {
           {viewMode === "kanban" && (
             <div className="flex gap-4 overflow-x-auto pb-4">
               {statusColumns.map(status => {
-                const statusTasks = filteredTasks.filter(task => task.status === status);
+                let statusTasks = filteredTasks.filter(task => task.status === status);
+                
+                // Apply priority sorting within each column in kanban view
+                if (sortBy === "prioritat") {
+                  statusTasks = [...statusTasks].sort((a, b) => {
+                    const priorityOptions = getPriorityOptions();
+                    const aPriority = priorityOptions.find(opt => opt.value === a.priority);
+                    const bPriority = priorityOptions.find(opt => opt.value === b.priority);
+                    const aValue = aPriority?.sort_order ?? 999;
+                    const bValue = bPriority?.sort_order ?? 999;
+                    return sortOrder === "asc" ? aValue - bValue : bValue - aValue;
+                  });
+                }
+                
                 const statusColor = getStatusColor(status);
                 
                 return (

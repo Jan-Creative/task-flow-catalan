@@ -187,7 +187,9 @@ const DatabaseToolbar = ({
   };
 
   const handleEstatSortClick = () => {
-    setCurrentSortView('estat');
+    if (viewMode !== "kanban") {
+      setCurrentSortView('estat');
+    }
   };
 
   const isSortActive = () => {
@@ -310,18 +312,26 @@ const DatabaseToolbar = ({
                   {/* Estat */}
                   <div 
                     className={cn(
-                      "flex items-center justify-between py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer",
-                      sortBy === "estat" && "bg-[#2a2a2a]"
+                      "flex items-center justify-between py-2 px-3 rounded-md",
+                      viewMode === "kanban" 
+                        ? "cursor-not-allowed opacity-50" 
+                        : "hover:bg-[#2a2a2a] cursor-pointer",
+                      sortBy === "estat" && viewMode !== "kanban" && "bg-[#2a2a2a]"
                     )}
                     onClick={handleEstatSortClick}
                   >
                     <div className="flex items-center gap-3">
                       <CheckSquare className="h-4 w-4 text-[#b8b8b8]" />
                       <span className="text-sm text-white">Estat</span>
+                      {viewMode === "kanban" && (
+                        <span className="text-xs text-[#b8b8b8]/70 ml-2">
+                          (No disponible en vista tauler)
+                        </span>
+                      )}
                     </div>
                     <div className="flex items-center gap-2">
-                      {sortBy === "estat" && <div className="h-2 w-2 bg-blue-500 rounded-full" />}
-                      <ChevronDown className="h-3 w-3 text-[#b8b8b8] rotate-[-90deg]" />
+                      {sortBy === "estat" && viewMode !== "kanban" && <div className="h-2 w-2 bg-blue-500 rounded-full" />}
+                      {viewMode !== "kanban" && <ChevronDown className="h-3 w-3 text-[#b8b8b8] rotate-[-90deg]" />}
                     </div>
                   </div>
                 </div>
