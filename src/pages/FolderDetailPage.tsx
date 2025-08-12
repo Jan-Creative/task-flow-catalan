@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, FolderOpen, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTasks } from "@/hooks/useTasks";
-import TaskCard from "@/components/TaskCard";
+import TaskChecklistItem from "@/components/TaskChecklistItem";
 import CreateTaskDrawer from "@/components/CreateTaskDrawer";
 
 interface Task {
@@ -131,7 +131,7 @@ const FolderDetailPage = () => {
         </div>
 
         {/* Tasks list */}
-        <div className="space-y-4">
+        <div className="space-y-1">
           {folderTasks.length === 0 ? (
             <div className="text-center py-12">
               <div 
@@ -163,7 +163,7 @@ const FolderDetailPage = () => {
             </div>
           ) : (
             folderTasks.map((task) => (
-              <TaskCard
+              <TaskChecklistItem
                 key={task.id}
                 task={task}
                 onStatusChange={updateTaskStatus}
