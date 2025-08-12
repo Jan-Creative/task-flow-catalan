@@ -31,21 +31,13 @@ const FolderDetailPage = () => {
     ? realInboxFolder || { id: 'inbox', name: 'Bustia', color: '#6366f1', is_system: true }
     : folders.find(f => f.id === folderId);
 
-  // Filter tasks for this folder
-  const folderTasks = folderId === 'inbox'
+  // Filter tasks for this folder - only calculate when data is loaded
+  const folderTasks = loading ? [] : (folderId === 'inbox'
     ? tasks.filter(task => 
         // Show tasks assigned to real inbox folder OR tasks without folder (for compatibility)
         (realInboxFolder && task.folder_id === realInboxFolder.id) || !task.folder_id
       )
-    : tasks.filter(task => task.folder_id === folderId);
-
-  // Debug logging for inbox
-  if (folderId === 'inbox') {
-    console.log('DEBUG Inbox - realInboxFolder:', realInboxFolder);
-    console.log('DEBUG Inbox - tasks:', tasks.length);
-    console.log('DEBUG Inbox - folderTasks:', folderTasks.length);
-    console.log('DEBUG Inbox - first few tasks:', tasks.slice(0, 3).map(t => ({ id: t.id, title: t.title, folder_id: t.folder_id })));
-  }
+    : tasks.filter(task => task.folder_id === folderId));
 
   const handleEditTask = (task: Task) => {
     setEditingTask(task);
