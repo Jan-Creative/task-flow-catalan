@@ -14,7 +14,7 @@ interface TodayPageProps {
 
 const TodayPage = ({ onEditTask, onNavigateToSettings }: TodayPageProps) => {
   const { tasks, updateTaskStatus, deleteTask, loading } = useTasks();
-  const { getStatusLabel, getStatusOptions } = usePropertyLabels();
+  const { getStatusLabel, getStatusOptions, getStatusColor } = usePropertyLabels();
   const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterPriority, setFilterPriority] = useState<string>("all");
@@ -93,18 +93,22 @@ const TodayPage = ({ onEditTask, onNavigateToSettings }: TodayPageProps) => {
     return todayTasks.filter(task => task.status === status);
   };
 
-  // Function to get column background class based on status
-  const getColumnBackgroundClass = (columnId: string) => {
-    switch (columnId) {
-      case "pendent":
-        return "bg-status-pending-column";
-      case "en_proces":
-        return "bg-status-progress-column";
-      case "completat":
-        return "bg-status-completed-column";
-      default:
-        return "bg-card/40";
+  // Function to get dynamic column background style based on status color
+  const getColumnBackgroundStyle = (columnId: string) => {
+    const statusColor = getStatusColor(columnId);
+    if (statusColor && statusColor.startsWith('#')) {
+      // Convert hex to RGB and apply with opacity
+      const hex = statusColor.slice(1);
+      const r = parseInt(hex.substr(0, 2), 16);
+      const g = parseInt(hex.substr(2, 2), 16);
+      const b = parseInt(hex.substr(4, 2), 16);
+      return {
+        backgroundColor: `rgba(${r}, ${g}, ${b}, 0.15)`,
+        backdropFilter: 'blur(8px)'
+      };
     }
+    // Fallback to default card background
+    return {};
   };
 
   const statusColumns = getStatusOptions().map(option => ({
@@ -187,7 +191,11 @@ const TodayPage = ({ onEditTask, onNavigateToSettings }: TodayPageProps) => {
           {viewMode === "kanban" && (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 w-full">
               {statusColumns.map((column) => (
-                <div key={column.id} className={`${getColumnBackgroundClass(column.id)} backdrop-blur-glass rounded-2xl p-4`}>
+                <div 
+                  key={column.id} 
+                  className="rounded-2xl p-4 border border-border/50"
+                  style={getColumnBackgroundStyle(column.id)}
+                >
                   <div className="pb-3">
                     <div className="text-sm font-medium flex items-center justify-between">
                       <span>{column.label}</span>
