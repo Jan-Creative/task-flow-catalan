@@ -55,7 +55,13 @@ All colors MUST be HSL.
     /* Ombres optimitzades per tema fosc */
     --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.4);
     --shadow-elevated: 0 16px 48px rgba(0, 0, 0, 0.6);
+    --shadow-organic: 0 8px 24px rgba(0, 0, 0, 0.3);
+    --shadow-floating: 0 12px 32px rgba(0, 0, 0, 0.5);
     --glow-primary: 0 0 40px hsl(180 100% 25% / 0.3);
+
+    /* Backdrop Blur */
+    --backdrop-blur-organic: 24px;
+    --backdrop-blur-intense: 32px;
 
     /* Animacions */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -112,6 +118,8 @@ All colors MUST be HSL.
     /* Ombres per tema clar */
     --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.1);
     --shadow-elevated: 0 16px 48px rgba(0, 0, 0, 0.15);
+    --shadow-organic: 0 8px 24px rgba(0, 0, 0, 0.12);
+    --shadow-floating: 0 12px 32px rgba(0, 0, 0, 0.18);
     --glow-primary: 0 0 40px hsl(180 100% 25% / 0.2);
   }
 }

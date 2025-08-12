@@ -16,10 +16,11 @@ const BottomNavigation = ({ activeTab, onTabChange, onCreateTask }: BottomNaviga
   ];
 
   return (
-    <div className="fixed bottom-6 left-4 right-4 z-50">
-      <div className="bg-card/80 backdrop-blur-glass border border-border rounded-3xl shadow-glass p-2">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
+    <div className="fixed bottom-4 left-4 right-4 z-50">
+      <div className="flex items-center justify-between">
+        {/* Main Navigation */}
+        <div className="bg-card/70 backdrop-blur-[var(--backdrop-blur-organic)] border border-border/50 rounded-[28px] shadow-[var(--shadow-organic)] px-2 py-1.5 flex-1 mr-4">
+          <div className="flex items-center justify-between max-w-sm mx-auto">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               return (
@@ -29,27 +30,28 @@ const BottomNavigation = ({ activeTab, onTabChange, onCreateTask }: BottomNaviga
                   size="sm"
                   onClick={() => onTabChange(tab.id)}
                   className={cn(
-                    "flex flex-col items-center gap-1 h-auto py-1.5 px-2.5 rounded-2xl transition-smooth",
+                    "flex flex-col items-center gap-0.5 h-auto py-2 px-3 rounded-[20px] transition-all duration-200 ease-out min-w-[60px]",
                     activeTab === tab.id
-                      ? "bg-primary text-primary-foreground shadow-glow"
-                      : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                      ? "bg-primary/10 text-primary scale-105"
+                      : "text-muted-foreground hover:text-foreground hover:bg-accent/50 hover:scale-102"
                   )}
                 >
-                  <Icon className="h-5 w-5" />
-                  <span className="text-xs font-medium">{tab.label}</span>
+                  <Icon className="h-4 w-4" />
+                  <span className="text-[10px] font-medium leading-tight">{tab.label}</span>
                 </Button>
               );
             })}
           </div>
-
-          <Button
-            onClick={onCreateTask}
-            size="lg"
-            className="bg-gradient-primary hover:scale-105 transition-bounce rounded-pill h-12 w-12 shadow-elevated hover:shadow-glow"
-          >
-            <Plus className="h-6 w-6" />
-          </Button>
         </div>
+
+        {/* Floating Action Button */}
+        <Button
+          onClick={onCreateTask}
+          size="lg"
+          className="bg-gradient-primary hover:scale-110 active:scale-95 transition-all duration-200 ease-out rounded-full h-14 w-14 shadow-[var(--shadow-floating)] hover:shadow-glow flex-shrink-0"
+        >
+          <Plus className="h-6 w-6" />
+        </Button>
       </div>
     </div>
   );
