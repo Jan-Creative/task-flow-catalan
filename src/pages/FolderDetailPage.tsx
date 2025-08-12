@@ -222,12 +222,10 @@ const FolderDetailPage = () => {
         navigate('/');
         break;
       case "carpetes":
-        navigate('/');
-        // Optionally set active tab to carpetes in the parent Index component
+        navigate('/?tab=carpetes');
         break;
       case "configuracio":
-        navigate('/');
-        // Optionally set active tab to configuracio in the parent Index component
+        navigate('/?tab=configuracio');
         break;
       default:
         navigate('/');

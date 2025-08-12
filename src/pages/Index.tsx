@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import BottomNavigation from "@/components/BottomNavigation";
 import CreateTaskDrawer from "@/components/CreateTaskDrawer";
@@ -12,10 +13,29 @@ import { LogOut, User } from "lucide-react";
 
 const Index = () => {
   const { user, loading, signOut } = useAuth();
-  const [activeTab, setActiveTab] = useState("avui");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState(() => {
+    return searchParams.get("tab") || "avui";
+  });
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const { createTask, updateTask, folders } = useTasks();
+
+  // Sincronitzar activeTab amb paràmetres URL
+  useEffect(() => {
+    const tab = searchParams.get("tab") || "avui";
+    setActiveTab(tab);
+  }, [searchParams]);
+
+  // Actualitzar URL quan canvia activeTab
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    if (tab === "avui") {
+      setSearchParams({});
+    } else {
+      setSearchParams({ tab });
+    }
+  };
 
   const handleCreateTask = (taskData: any) => {
     if (editingTask) {
@@ -97,7 +117,7 @@ const Index = () => {
       
       <BottomNavigation
         activeTab={activeTab}
-        onTabChange={setActiveTab}
+        onTabChange={handleTabChange}
         onCreateTask={() => setShowCreateDialog(true)}
       />
 
