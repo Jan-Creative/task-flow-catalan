@@ -15,6 +15,9 @@ interface DatabaseToolbarProps {
   onFilterStatusChange: (status: string) => void;
   filterPriority: string;
   onFilterPriorityChange: (priority: string) => void;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+  onSortChange?: (sortBy: string, sortOrder: "asc" | "desc") => void;
   onNavigateToSettings?: () => void;
 }
 const DatabaseToolbar = ({ 
@@ -24,10 +27,15 @@ const DatabaseToolbar = ({
   onFilterStatusChange, 
   filterPriority, 
   onFilterPriorityChange,
+  sortBy = "none",
+  sortOrder = "asc",
+  onSortChange,
   onNavigateToSettings 
 }: DatabaseToolbarProps) => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isSortOpen, setIsSortOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [currentSortView, setCurrentSortView] = useState<'main' | 'prioritat' | 'estat'>('main');
   const [currentPropertyView, setCurrentPropertyView] = useState<'main' | 'estat' | 'prioritat'>('main');
   const [editingPropertyName, setEditingPropertyName] = useState<string>('');
   const [editingOptionId, setEditingOptionId] = useState<string | null>(null);
@@ -163,6 +171,28 @@ const DatabaseToolbar = ({
     if (filterPriority !== 'all') count++;
     return count;
   };
+
+  const handleSortSelection = (sortBy: string, sortOrder: "asc" | "desc") => {
+    onSortChange?.(sortBy, sortOrder);
+    setIsSortOpen(false);
+    setCurrentSortView('main');
+  };
+
+  const handleBackToSortMain = () => {
+    setCurrentSortView('main');
+  };
+
+  const handlePrioritatSortClick = () => {
+    setCurrentSortView('prioritat');
+  };
+
+  const handleEstatSortClick = () => {
+    setCurrentSortView('estat');
+  };
+
+  const isSortActive = () => {
+    return sortBy !== "none";
+  };
   return <div className="flex items-center w-full gap-2">
       {/* Left section - View buttons (Notion style) */}
       <div className="flex items-center gap-1">
@@ -218,6 +248,209 @@ const DatabaseToolbar = ({
           </PopoverContent>
         </Popover>
 
+        {/* Sort button with menu */}
+        <Popover open={isSortOpen} onOpenChange={setIsSortOpen}>
+          <PopoverTrigger asChild>
+            <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-[#b8b8b8] hover:bg-[#353535] hover:text-white rounded-md relative">
+              <ArrowUpDown className="h-3.5 w-3.5" />
+              {isSortActive() && <div className="absolute -top-1 -right-1 h-2 w-2 bg-blue-500 rounded-full" />}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-64 p-0 bg-[#1f1f1f] border border-[#333]" align="end">
+            {currentSortView === 'main' && (
+              <div className="p-4">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-medium text-white">Ordenar per</h3>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0 text-[#b8b8b8] hover:bg-[#353535] hover:text-white"
+                    onClick={() => setIsSortOpen(false)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                {/* Sort options */}
+                <div className="space-y-1">
+                  {/* Sense ordenació */}
+                  <div 
+                    className={cn(
+                      "flex items-center justify-between py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer",
+                      sortBy === "none" && "bg-[#2a2a2a]"
+                    )}
+                    onClick={() => handleSortSelection("none", "asc")}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Circle className="h-4 w-4 text-[#b8b8b8]" />
+                      <span className="text-sm text-white">Sense ordenació</span>
+                    </div>
+                    {sortBy === "none" && <div className="h-2 w-2 bg-blue-500 rounded-full" />}
+                  </div>
+
+                  {/* Prioritat */}
+                  <div 
+                    className={cn(
+                      "flex items-center justify-between py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer",
+                      sortBy === "prioritat" && "bg-[#2a2a2a]"
+                    )}
+                    onClick={handlePrioritatSortClick}
+                  >
+                    <div className="flex items-center gap-3">
+                      <AlertTriangle className="h-4 w-4 text-[#b8b8b8]" />
+                      <span className="text-sm text-white">Prioritat</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {sortBy === "prioritat" && <div className="h-2 w-2 bg-blue-500 rounded-full" />}
+                      <ChevronDown className="h-3 w-3 text-[#b8b8b8] rotate-[-90deg]" />
+                    </div>
+                  </div>
+
+                  {/* Estat */}
+                  <div 
+                    className={cn(
+                      "flex items-center justify-between py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer",
+                      sortBy === "estat" && "bg-[#2a2a2a]"
+                    )}
+                    onClick={handleEstatSortClick}
+                  >
+                    <div className="flex items-center gap-3">
+                      <CheckSquare className="h-4 w-4 text-[#b8b8b8]" />
+                      <span className="text-sm text-white">Estat</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {sortBy === "estat" && <div className="h-2 w-2 bg-blue-500 rounded-full" />}
+                      <ChevronDown className="h-3 w-3 text-[#b8b8b8] rotate-[-90deg]" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {currentSortView === 'prioritat' && (
+              <div className="p-4">
+                {/* Header with back button */}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0 text-[#b8b8b8] hover:bg-[#353535] hover:text-white"
+                      onClick={handleBackToSortMain}
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                    </Button>
+                    <div className="flex items-center gap-2">
+                      <AlertTriangle className="h-4 w-4 text-[#b8b8b8]" />
+                      <span className="text-sm font-medium text-white">Prioritat</span>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0 text-[#b8b8b8] hover:bg-[#353535] hover:text-white"
+                    onClick={() => setIsSortOpen(false)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                {/* Sort direction options */}
+                <div className="space-y-1">
+                  <div 
+                    className={cn(
+                      "flex items-center justify-between py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer",
+                      sortBy === "prioritat" && sortOrder === "asc" && "bg-[#2a2a2a]"
+                    )}
+                    onClick={() => handleSortSelection("prioritat", "asc")}
+                  >
+                    <div className="flex items-center gap-3">
+                      <SortAsc className="h-4 w-4 text-[#b8b8b8]" />
+                      <span className="text-sm text-white">Ascendent</span>
+                    </div>
+                    {sortBy === "prioritat" && sortOrder === "asc" && <div className="h-2 w-2 bg-blue-500 rounded-full" />}
+                  </div>
+                  
+                  <div 
+                    className={cn(
+                      "flex items-center justify-between py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer",
+                      sortBy === "prioritat" && sortOrder === "desc" && "bg-[#2a2a2a]"
+                    )}
+                    onClick={() => handleSortSelection("prioritat", "desc")}
+                  >
+                    <div className="flex items-center gap-3">
+                      <SortAsc className="h-4 w-4 text-[#b8b8b8] rotate-180" />
+                      <span className="text-sm text-white">Descendent</span>
+                    </div>
+                    {sortBy === "prioritat" && sortOrder === "desc" && <div className="h-2 w-2 bg-blue-500 rounded-full" />}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {currentSortView === 'estat' && (
+              <div className="p-4">
+                {/* Header with back button */}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0 text-[#b8b8b8] hover:bg-[#353535] hover:text-white"
+                      onClick={handleBackToSortMain}
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                    </Button>
+                    <div className="flex items-center gap-2">
+                      <CheckSquare className="h-4 w-4 text-[#b8b8b8]" />
+                      <span className="text-sm font-medium text-white">Estat</span>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0 text-[#b8b8b8] hover:bg-[#353535] hover:text-white"
+                    onClick={() => setIsSortOpen(false)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                {/* Sort direction options */}
+                <div className="space-y-1">
+                  <div 
+                    className={cn(
+                      "flex items-center justify-between py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer",
+                      sortBy === "estat" && sortOrder === "asc" && "bg-[#2a2a2a]"
+                    )}
+                    onClick={() => handleSortSelection("estat", "asc")}
+                  >
+                    <div className="flex items-center gap-3">
+                      <SortAsc className="h-4 w-4 text-[#b8b8b8]" />
+                      <span className="text-sm text-white">Ascendent</span>
+                    </div>
+                    {sortBy === "estat" && sortOrder === "asc" && <div className="h-2 w-2 bg-blue-500 rounded-full" />}
+                  </div>
+                  
+                  <div 
+                    className={cn(
+                      "flex items-center justify-between py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer",
+                      sortBy === "estat" && sortOrder === "desc" && "bg-[#2a2a2a]"
+                    )}
+                    onClick={() => handleSortSelection("estat", "desc")}
+                  >
+                    <div className="flex items-center gap-3">
+                      <SortAsc className="h-4 w-4 text-[#b8b8b8] rotate-180" />
+                      <span className="text-sm text-white">Descendent</span>
+                    </div>
+                    {sortBy === "estat" && sortOrder === "desc" && <div className="h-2 w-2 bg-blue-500 rounded-full" />}
+                  </div>
+                </div>
+              </div>
+            )}
+          </PopoverContent>
+        </Popover>
 
         {/* Settings button with menu */}
         <Popover open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
