@@ -3,9 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useDadesApp } from "@/hooks/useDadesApp";
 import { TaskDetailsCard } from "@/components/task-detail/TaskDetailsCard";
-import { SubtasksCard } from "@/components/task-detail/SubtasksCard";
-import { NotesCard } from "@/components/task-detail/NotesCard";
-import { PomodoroCard } from "@/components/task-detail/PomodoroCard";
+import { LazySubtasksCard, LazyNotesCard, LazyPomodoroCard } from "@/components/LazyComponents";
 
 const TaskDetailPage = () => {
   const { taskId } = useParams();
@@ -74,21 +72,21 @@ const TaskDetailPage = () => {
             {/* Pomodoro Card - Quadrada gran */}
             <div className="col-span-2 row-span-2 animate-fade-in" style={{animationDelay: '0.2s'}}>
               <div className="h-full min-h-[280px]">
-                <PomodoroCard taskId={task.id} />
+                <LazyPomodoroCard taskId={task.id} />
               </div>
             </div>
 
             {/* Subtasks Card - Rectangular vertical */}
             <div className="col-span-2 row-span-4 animate-fade-in" style={{animationDelay: '0.3s'}}>
               <div className="h-full min-h-[580px]">
-                <SubtasksCard taskId={task.id} />
+                <LazySubtasksCard taskId={task.id} />
               </div>
             </div>
 
             {/* Notes Card - Rectangular horitzontal gran */}
             <div className="col-span-4 row-span-2 animate-fade-in" style={{animationDelay: '0.4s'}}>
               <div className="h-full min-h-[280px]">
-                <NotesCard taskId={task.id} />
+                <LazyNotesCard taskId={task.id} />
               </div>
             </div>
           </div>
@@ -103,19 +101,19 @@ const TaskDetailPage = () => {
             </div>
             <div className="col-span-2 animate-fade-in" style={{animationDelay: '0.2s'}}>
               <div className="h-full min-h-[300px]">
-                <PomodoroCard taskId={task.id} />
+               <LazyPomodoroCard taskId={task.id} />
               </div>
             </div>
 
             {/* Fila inferior amb Subtasks i Notes */}
             <div className="col-span-2 animate-fade-in" style={{animationDelay: '0.3s'}}>
               <div className="h-full min-h-[350px]">
-                <SubtasksCard taskId={task.id} />
+                <LazySubtasksCard taskId={task.id} />
               </div>
             </div>
             <div className="col-span-2 animate-fade-in" style={{animationDelay: '0.4s'}}>
               <div className="h-full min-h-[350px]">
-                <NotesCard taskId={task.id} />
+                <LazyNotesCard taskId={task.id} />
               </div>
             </div>
           </div>
@@ -130,19 +128,19 @@ const TaskDetailPage = () => {
             </div>
             <div className="animate-fade-in" style={{animationDelay: '0.2s'}}>
               <div className="h-full min-h-[280px]">
-                <PomodoroCard taskId={task.id} />
+                <LazyPomodoroCard taskId={task.id} />
               </div>
             </div>
 
             {/* Fila 2: Subtasks i Notes */}
             <div className="animate-fade-in" style={{animationDelay: '0.3s'}}>
               <div className="h-full min-h-[400px]">
-                <SubtasksCard taskId={task.id} />
+                <LazySubtasksCard taskId={task.id} />
               </div>
             </div>
             <div className="animate-fade-in" style={{animationDelay: '0.4s'}}>
               <div className="h-full min-h-[400px]">
-                <NotesCard taskId={task.id} />
+                <LazyNotesCard taskId={task.id} />
               </div>
             </div>
           </div>
@@ -153,13 +151,13 @@ const TaskDetailPage = () => {
               <TaskDetailsCard task={task} folderName={folder?.name} />
             </div>
             <div className="animate-fade-in" style={{animationDelay: '0.2s'}}>
-              <PomodoroCard taskId={task.id} />
+              <LazyPomodoroCard taskId={task.id} />
             </div>
             <div className="animate-fade-in" style={{animationDelay: '0.3s'}}>
-              <SubtasksCard taskId={task.id} />
+              <LazySubtasksCard taskId={task.id} />
             </div>
             <div className="animate-fade-in" style={{animationDelay: '0.4s'}}>
-              <NotesCard taskId={task.id} />
+              <LazyNotesCard taskId={task.id} />
             </div>
           </div>
         </div>
