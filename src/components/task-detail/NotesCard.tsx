@@ -47,15 +47,17 @@ export const NotesCard = ({ taskId }: NotesCardProps) => {
         )}
       </CardHeader>
       
-      <CardContent className="flex-1 flex flex-col p-4 pt-0">
-        <Textarea
-          placeholder="Escriu les teves notes sobre aquesta tasca..."
-          value={notes}
-          onChange={(e) => updateNotes(e.target.value)}
-          className="flex-1 resize-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0 p-0 bg-transparent text-sm leading-relaxed"
-          disabled={loading}
-        />
-        <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground border-t border-border/30 pt-2">
+      <CardContent className="flex-1 flex flex-col px-4 pb-4 pt-0">
+        <div className="flex-1 flex flex-col min-h-0">
+          <Textarea
+            placeholder="Escriu les teves notes sobre aquesta tasca..."
+            value={notes}
+            onChange={(e) => updateNotes(e.target.value)}
+            className="flex-1 resize-none border border-border/20 focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0 p-3 bg-background/50 text-sm leading-relaxed rounded-lg"
+            disabled={loading}
+          />
+        </div>
+        <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground border-t border-border/20 pt-2 mx-0">
           <span>{notes.length} caràcters</span>
           {isModified && (
             <span className="text-yellow-600 flex items-center gap-1">

@@ -118,26 +118,26 @@ export const PomodoroCard = ({ taskId }: PomodoroCardProps) => {
           </div>
         </div>
 
-        {/* Statistics - Compactes */}
-        <div className="border-t border-border/30 pt-3">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="text-center">
+        {/* Statistics - Compactes dins dels límits de la targeta */}
+        <div className="border-t border-border/30 pt-2 mt-2">
+          <div className="grid grid-cols-2 gap-2 px-1">
+            <div className="text-center py-1">
               <div className="flex items-center justify-center mb-1">
                 <Target className="h-3 w-3 text-primary mr-1" />
               </div>
-              <div className="text-lg font-bold text-primary leading-none">
+              <div className="text-base font-bold text-primary leading-none">
                 {completedSessions}
               </div>
-              <div className="text-xs text-muted-foreground">Sessions</div>
+              <div className="text-xs text-muted-foreground mt-0.5">Sessions</div>
             </div>
-            <div className="text-center">
+            <div className="text-center py-1">
               <div className="flex items-center justify-center mb-1">
                 <Clock className="h-3 w-3 text-primary mr-1" />
               </div>
-              <div className="text-lg font-bold text-primary leading-none">
+              <div className="text-base font-bold text-primary leading-none">
                 {formatTotalTime(totalWorkTime)}
               </div>
-              <div className="text-xs text-muted-foreground">Temps total</div>
+              <div className="text-xs text-muted-foreground mt-0.5">Temps total</div>
             </div>
           </div>
         </div>
