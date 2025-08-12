@@ -244,6 +244,84 @@ export const useTasks = () => {
     }
   };
 
+  // Update folder
+  const updateFolder = async (folderId: string, updates: { name?: string; color?: string }) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authenticated");
+
+      const { data, error } = await supabase
+        .from("folders")
+        .update(updates)
+        .eq("id", folderId)
+        .eq("user_id", user.id)
+        .eq("is_system", false)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setFolders(prev => prev.map(folder => 
+        folder.id === folderId ? { ...folder, ...data } : folder
+      ));
+      
+      toast({
+        title: "Carpeta actualitzada",
+        description: "La carpeta s'ha actualitzat correctament",
+      });
+    } catch (error) {
+      console.error("Error updating folder:", error);
+      toast({
+        title: "Error",
+        description: "No s'ha pogut actualitzar la carpeta",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Delete folder
+  const deleteFolder = async (folderId: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authenticated");
+
+      // Check if folder has tasks
+      const tasksInFolder = tasks.filter(task => task.folder_id === folderId);
+      if (tasksInFolder.length > 0) {
+        toast({
+          title: "No es pot eliminar",
+          description: `La carpeta conté ${tasksInFolder.length} tasques. Mou-les primer a una altra carpeta.`,
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      const { error } = await supabase
+        .from("folders")
+        .delete()
+        .eq("id", folderId)
+        .eq("user_id", user.id)
+        .eq("is_system", false);
+
+      if (error) throw error;
+
+      setFolders(prev => prev.filter(folder => folder.id !== folderId));
+      toast({
+        title: "Carpeta eliminada",
+        description: "La carpeta s'ha eliminat correctament",
+      });
+      return true;
+    } catch (error) {
+      console.error("Error deleting folder:", error);
+      toast({
+        title: "Error",
+        description: "No s'ha pogut eliminar la carpeta",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -257,6 +335,8 @@ export const useTasks = () => {
     updateTaskStatus,
     deleteTask,
     createFolder,
+    updateFolder,
+    deleteFolder,
     refreshData: fetchData,
   };
 };
