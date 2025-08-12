@@ -54,8 +54,7 @@ export const CircularProgress = ({
           strokeDashoffset={strokeDashoffset}
           strokeLinecap="round"
           className={cn(
-            "transition-all duration-300 ease-out",
-            isActive && "animate-pulse"
+            "transition-all duration-300 ease-out"
           )}
           style={{
             filter: 'drop-shadow(0 0 4px hsl(var(--primary) / 0.4))'

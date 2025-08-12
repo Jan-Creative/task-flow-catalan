@@ -46,10 +46,10 @@ export const PomodoroCard = ({ taskId }: PomodoroCardProps) => {
       <CardHeader className="flex-shrink-0 pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-lg">
-            <Timer className={`h-5 w-5 transition-colors duration-300 ${isActive ? 'text-primary animate-pulse' : 'text-primary'}`} />
+            <Timer className={`h-5 w-5 transition-colors duration-300 ${isActive ? 'text-primary' : 'text-primary'}`} />
             Pomodoro
             {isActive && (
-              <Badge variant="secondary" className="ml-2 animate-pulse">
+              <Badge variant="secondary" className="ml-2">
                 Actiu
               </Badge>
             )}
@@ -72,7 +72,7 @@ export const PomodoroCard = ({ taskId }: PomodoroCardProps) => {
               size={140} 
               strokeWidth={5}
               isActive={isActive}
-              className={`transition-all duration-500 ${isActive ? 'scale-105' : 'scale-100'}`}
+              className={`transition-all duration-500 ${isActive ? 'scale-102' : 'scale-100'}`}
             >
               <div className="text-center">
                 <div className={`text-2xl font-mono font-bold tracking-tight mb-1 transition-colors duration-300 ${isActive ? 'text-primary' : 'text-foreground'}`}>
@@ -81,11 +81,11 @@ export const PomodoroCard = ({ taskId }: PomodoroCardProps) => {
                 <div className="flex items-center justify-center gap-1">
                   <Badge 
                     variant={!isBreak ? 'default' : 'secondary'} 
-                    className={`text-xs px-1.5 py-0.5 transition-all duration-300 ${isActive ? 'animate-pulse' : ''}`}
+                    className="text-xs px-1.5 py-0.5"
                   >
                     {!isBreak ? 'Feina' : 'Descans'}
                   </Badge>
-                  {isBreak && <Coffee className="h-3 w-3 text-orange-400 animate-bounce" />}
+                  {isBreak && <Coffee className="h-3 w-3 text-orange-400" />}
                 </div>
               </div>
             </CircularProgress>
