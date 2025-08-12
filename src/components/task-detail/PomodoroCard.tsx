@@ -42,12 +42,17 @@ export const PomodoroCard = ({ taskId }: PomodoroCardProps) => {
   };
 
   return (
-    <Card className="animate-fade-in h-full flex flex-col">
+    <Card className={`animate-fade-in h-full flex flex-col transition-all duration-300 ${isActive ? 'ring-2 ring-primary/20 shadow-lg shadow-primary/10' : ''}`}>
       <CardHeader className="flex-shrink-0 pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-lg">
-            <Timer className="h-5 w-5 text-primary" />
+            <Timer className={`h-5 w-5 transition-colors duration-300 ${isActive ? 'text-primary animate-pulse' : 'text-primary'}`} />
             Pomodoro
+            {isActive && (
+              <Badge variant="secondary" className="ml-2 animate-pulse">
+                Actiu
+              </Badge>
+            )}
           </CardTitle>
           <PomodoroConfigDialog
             workDuration={workDuration}
@@ -67,19 +72,20 @@ export const PomodoroCard = ({ taskId }: PomodoroCardProps) => {
               size={140} 
               strokeWidth={5}
               isActive={isActive}
+              className={`transition-all duration-500 ${isActive ? 'scale-105' : 'scale-100'}`}
             >
               <div className="text-center">
-                <div className="text-2xl font-mono font-bold tracking-tight mb-1">
+                <div className={`text-2xl font-mono font-bold tracking-tight mb-1 transition-colors duration-300 ${isActive ? 'text-primary' : 'text-foreground'}`}>
                   {formatTime ? formatTime(timeLeft || 0) : '00:00'}
                 </div>
                 <div className="flex items-center justify-center gap-1">
                   <Badge 
                     variant={!isBreak ? 'default' : 'secondary'} 
-                    className="text-xs px-1.5 py-0.5"
+                    className={`text-xs px-1.5 py-0.5 transition-all duration-300 ${isActive ? 'animate-pulse' : ''}`}
                   >
                     {!isBreak ? 'Feina' : 'Descans'}
                   </Badge>
-                  {isBreak && <Coffee className="h-3 w-3 text-orange-400" />}
+                  {isBreak && <Coffee className="h-3 w-3 text-orange-400 animate-bounce" />}
                 </div>
               </div>
             </CircularProgress>
@@ -91,7 +97,7 @@ export const PomodoroCard = ({ taskId }: PomodoroCardProps) => {
               <Button 
                 onClick={startTimer} 
                 size="sm"
-                className="gap-1 px-4 h-8 text-sm"
+                className="gap-1 px-4 h-8 text-sm transition-all duration-200 hover:scale-105"
                 disabled={loading}
               >
                 <Play className="h-3 w-3" />
@@ -102,7 +108,7 @@ export const PomodoroCard = ({ taskId }: PomodoroCardProps) => {
                 onClick={pauseTimer} 
                 variant="outline" 
                 size="sm"
-                className="gap-1 px-4 h-8 text-sm"
+                className="gap-1 px-4 h-8 text-sm transition-all duration-200 hover:scale-105"
               >
                 <Pause className="h-3 w-3" />
                 Pausar
@@ -112,7 +118,8 @@ export const PomodoroCard = ({ taskId }: PomodoroCardProps) => {
               onClick={resetTimer} 
               variant="ghost" 
               size="sm"
-              className="gap-1 h-8 w-8 p-0"
+              className="gap-1 h-8 w-8 p-0 transition-all duration-200 hover:scale-105"
+              title="Reiniciar timer"
             >
               <RotateCcw className="h-3 w-3" />
             </Button>
