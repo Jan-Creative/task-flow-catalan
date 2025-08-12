@@ -63,44 +63,45 @@ export const PomodoroCard = ({ taskId }: PomodoroCardProps) => {
         </div>
       </CardHeader>
       
-      <CardContent className="flex-1 flex flex-col justify-between p-4 pt-0">
-        {/* Main timer with circular progress */}
+      <CardContent className="flex-1 flex flex-col justify-between p-4 pt-0 space-y-4">
+        {/* Main timer amb circular progress responsiu */}
         <div className="flex flex-col items-center justify-center flex-1">
-          <div className="relative mb-3">
+          <div className="relative mb-4 w-full flex justify-center">
             <CircularProgress 
               value={isNaN(progress) ? 0 : progress} 
-              size={140} 
-              strokeWidth={5}
+              size="responsive"
               isActive={isActive}
-              className={`transition-all duration-500 ${isActive ? 'scale-102' : 'scale-100'}`}
+              className="transition-all duration-500"
             >
-              <div className="text-center">
-                <div className={`text-2xl font-mono font-bold tracking-tight mb-1 transition-colors duration-300 ${isActive ? 'text-primary' : 'text-foreground'}`}>
+              <div className="text-center px-2">
+                <div className={`font-mono font-bold tracking-tight mb-1 transition-colors duration-300 ${
+                  isActive ? 'text-primary' : 'text-foreground'
+                } text-xl sm:text-2xl lg:text-3xl`}>
                   {formatTime ? formatTime(timeLeft || 0) : '00:00'}
                 </div>
-                <div className="flex items-center justify-center gap-1">
+                <div className="flex items-center justify-center gap-1 flex-wrap">
                   <Badge 
                     variant={!isBreak ? 'default' : 'secondary'} 
-                    className="text-xs px-1.5 py-0.5"
+                    className="text-xs px-1.5 py-0.5 whitespace-nowrap"
                   >
                     {!isBreak ? 'Feina' : 'Descans'}
                   </Badge>
-                  {isBreak && <Coffee className="h-3 w-3 text-orange-400" />}
+                  {isBreak && <Coffee className="h-3 w-3 text-orange-400 flex-shrink-0" />}
                 </div>
               </div>
             </CircularProgress>
           </div>
           
-          {/* Control buttons */}
-          <div className="flex items-center gap-2">
+          {/* Control buttons optimitzats */}
+          <div className="flex items-center gap-3 w-full justify-center">
             {!isActive ? (
               <Button 
                 onClick={startTimer} 
                 size="sm"
-                className="gap-1 px-4 h-8 text-sm transition-all duration-200 hover:scale-105"
+                className="gap-1.5 px-6 h-9 text-sm font-medium transition-all duration-200 hover:scale-105 shadow-sm"
                 disabled={loading}
               >
-                <Play className="h-3 w-3" />
+                <Play className="h-3.5 w-3.5" />
                 Iniciar
               </Button>
             ) : (
@@ -108,9 +109,9 @@ export const PomodoroCard = ({ taskId }: PomodoroCardProps) => {
                 onClick={pauseTimer} 
                 variant="outline" 
                 size="sm"
-                className="gap-1 px-4 h-8 text-sm transition-all duration-200 hover:scale-105"
+                className="gap-1.5 px-6 h-9 text-sm font-medium transition-all duration-200 hover:scale-105"
               >
-                <Pause className="h-3 w-3" />
+                <Pause className="h-3.5 w-3.5" />
                 Pausar
               </Button>
             )}
@@ -118,34 +119,34 @@ export const PomodoroCard = ({ taskId }: PomodoroCardProps) => {
               onClick={resetTimer} 
               variant="ghost" 
               size="sm"
-              className="gap-1 h-8 w-8 p-0 transition-all duration-200 hover:scale-105"
+              className="gap-1 h-9 w-9 p-0 transition-all duration-200 hover:scale-105"
               title="Reiniciar timer"
             >
-              <RotateCcw className="h-3 w-3" />
+              <RotateCcw className="h-3.5 w-3.5" />
             </Button>
           </div>
         </div>
 
-        {/* Statistics - Compactes dins dels límits de la targeta */}
-        <div className="border-t border-border/30 pt-2 mt-2">
-          <div className="grid grid-cols-2 gap-2 px-1">
-            <div className="text-center py-1">
-              <div className="flex items-center justify-center mb-1">
-                <Target className="h-3 w-3 text-primary mr-1" />
+        {/* Statistics optimitzades */}
+        <div className="border-t border-border/30 pt-3 mt-auto">
+          <div className="grid grid-cols-2 gap-3 px-1">
+            <div className="text-center py-2 space-y-1">
+              <div className="flex items-center justify-center">
+                <Target className="h-3.5 w-3.5 text-primary" />
               </div>
-              <div className="text-base font-bold text-primary leading-none">
+              <div className="text-lg font-bold text-primary leading-none">
                 {completedSessions || 0}
               </div>
-              <div className="text-xs text-muted-foreground mt-0.5">Sessions</div>
+              <div className="text-xs text-muted-foreground">Sessions</div>
             </div>
-            <div className="text-center py-1">
-              <div className="flex items-center justify-center mb-1">
-                <Clock className="h-3 w-3 text-primary mr-1" />
+            <div className="text-center py-2 space-y-1">
+              <div className="flex items-center justify-center">
+                <Clock className="h-3.5 w-3.5 text-primary" />
               </div>
-              <div className="text-base font-bold text-primary leading-none">
+              <div className="text-lg font-bold text-primary leading-none">
                 {formatTotalTime(totalWorkTime || 0)}
               </div>
-              <div className="text-xs text-muted-foreground mt-0.5">Temps total</div>
+              <div className="text-xs text-muted-foreground">Temps total</div>
             </div>
           </div>
         </div>
