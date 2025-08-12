@@ -73,7 +73,7 @@ const TaskChecklistItem = ({ task, onStatusChange, onEdit, onDelete, viewMode = 
           checked={isCompleted || isCompleting}
           onCheckedChange={handleCheckboxChange}
           className={cn(
-            "h-5 w-5 rounded-full data-[state=checked]:bg-success data-[state=checked]:border-success",
+            "h-5 w-5 rounded-full data-[state=checked]:bg-success data-[state=checked]:border-success checkbox-hover",
             isCompleting && "checkbox-completing"
           )}
         />

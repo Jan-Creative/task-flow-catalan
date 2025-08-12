@@ -127,34 +127,40 @@ All colors MUST be HSL.
     color-scheme: dark;
   }
   
-  /* Task completion animations */
+  /* Task completion animations - Redesigned for minimal static effect */
   .task-completing {
-    animation: completing-pulse 1.5s ease-in-out infinite;
+    animation: task-completing 0.8s ease-in-out;
   }
   
-  @keyframes completing-pulse {
-    0%, 100% {
-      box-shadow: var(--completing-pulse);
-      transform: scale(1);
+  @keyframes task-completing {
+    0%, 100% { 
+      opacity: 1; 
     }
-    50% {
-      box-shadow: var(--completing-glow);
-      transform: scale(1.05);
+    50% { 
+      opacity: 0.8; 
     }
   }
   
   .checkbox-completing {
-    animation: checkbox-completing 1.5s ease-in-out infinite;
+    animation: checkbox-completing 0.8s ease-in-out infinite;
+    background-color: hsl(var(--success)) !important;
+    border-color: hsl(var(--success)) !important;
   }
   
   @keyframes checkbox-completing {
-    0%, 100% {
-      background-color: hsl(var(--success));
-      box-shadow: 0 0 0 2px hsl(var(--success) / 0.3);
+    0%, 100% { 
+      box-shadow: 0 0 0 0 hsl(var(--success) / 0.4);
     }
-    50% {
-      background-color: hsl(var(--success) / 0.8);
-      box-shadow: 0 0 0 4px hsl(var(--success) / 0.5);
+    50% { 
+      box-shadow: 0 0 0 3px hsl(var(--success) / 0.2);
     }
+  }
+  
+  /* Checkbox hover effect - Preview green state */
+  .checkbox-hover:hover:not([data-state="checked"]):not(.checkbox-completing) {
+    background-color: hsl(var(--success) / 0.1);
+    border-color: hsl(var(--success) / 0.4);
+    box-shadow: 0 0 0 2px hsl(var(--success) / 0.1);
+    transition: all 0.2s ease-in-out;
   }
 }
