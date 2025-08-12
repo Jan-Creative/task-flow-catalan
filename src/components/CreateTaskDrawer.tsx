@@ -44,7 +44,7 @@ const CreateTaskDrawer = ({ open, onClose, onSubmit, folders, editingTask }: Cre
   const [status, setStatus] = useState<"pendent" | "en_proces" | "completat">("pendent");
   const [priority, setPriority] = useState<"alta" | "mitjana" | "baixa">("mitjana");
   const [dueDate, setDueDate] = useState<Date>();
-  const [folderId, setFolderId] = useState<string>();
+  const [folderId, setFolderId] = useState<string>("");
 
   const statusOptions = getStatusOptions();
   const priorityOptions = getPriorityOptions();
@@ -57,7 +57,7 @@ const CreateTaskDrawer = ({ open, onClose, onSubmit, folders, editingTask }: Cre
       setStatus(editingTask.status);
       setPriority(editingTask.priority);
       setDueDate(editingTask.due_date ? new Date(editingTask.due_date) : undefined);
-      setFolderId(editingTask.folder_id || undefined);
+      setFolderId(editingTask.folder_id || "");
     } else {
       // Reset form when not editing
       setTitle("");
@@ -65,7 +65,7 @@ const CreateTaskDrawer = ({ open, onClose, onSubmit, folders, editingTask }: Cre
       setStatus("pendent");
       setPriority("mitjana");
       setDueDate(undefined);
-      setFolderId(undefined);
+      setFolderId("");
     }
   }, [editingTask, open]);
 
@@ -79,7 +79,7 @@ const CreateTaskDrawer = ({ open, onClose, onSubmit, folders, editingTask }: Cre
       status,
       priority,
       due_date: dueDate ? format(dueDate, "yyyy-MM-dd") : undefined,
-      folder_id: folderId,
+      folder_id: folderId || undefined,
     });
 
     // Reset form only if not editing (editing form will be closed by parent)
@@ -89,7 +89,7 @@ const CreateTaskDrawer = ({ open, onClose, onSubmit, folders, editingTask }: Cre
       setStatus("pendent");
       setPriority("mitjana");
       setDueDate(undefined);
-      setFolderId(undefined);
+      setFolderId("");
     }
   };
 

@@ -33,7 +33,7 @@ const CreateTaskDialog = ({ open, onClose, onSubmit, folders }: CreateTaskDialog
   const [status, setStatus] = useState<"pendent" | "en_proces" | "completat">("pendent");
   const [priority, setPriority] = useState<"alta" | "mitjana" | "baixa">("mitjana");
   const [dueDate, setDueDate] = useState<Date>();
-  const [folderId, setFolderId] = useState<string>();
+  const [folderId, setFolderId] = useState<string>("");
 
 
   const statusOptions = getStatusOptions();
@@ -49,7 +49,7 @@ const CreateTaskDialog = ({ open, onClose, onSubmit, folders }: CreateTaskDialog
       status,
       priority,
       due_date: dueDate ? format(dueDate, "yyyy-MM-dd") : undefined,
-      folder_id: folderId,
+      folder_id: folderId || undefined,
     });
 
     // Reset form
@@ -58,7 +58,7 @@ const CreateTaskDialog = ({ open, onClose, onSubmit, folders }: CreateTaskDialog
     setStatus("pendent");
     setPriority("mitjana");
     setDueDate(undefined);
-    setFolderId(undefined);
+    setFolderId("");
     onClose();
   };
 
