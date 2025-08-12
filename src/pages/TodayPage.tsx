@@ -1,11 +1,11 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import TaskChecklistItem from "@/components/TaskChecklistItem";
+import OptimizedTaskItem from "@/components/OptimizedTaskItem";
 import DatabaseToolbar from "@/components/DatabaseToolbar";
-import { useTasks } from "@/hooks/useTasks";
+import { useOptimizedData } from "@/hooks/useOptimizedData";
 import { usePropertyLabels } from "@/hooks/usePropertyLabels";
-import { SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal, Loader2 } from "lucide-react";
 
 interface TodayPageProps {
   onEditTask: (task: any) => void;
@@ -13,7 +13,7 @@ interface TodayPageProps {
 }
 
 const TodayPage = ({ onEditTask, onNavigateToSettings }: TodayPageProps) => {
-  const { tasks, updateTaskStatus, deleteTask, loading } = useTasks();
+  const { todayTasks, updateTaskStatus, deleteTask, loading } = useOptimizedData();
   const { getStatusLabel, getStatusOptions, getStatusColor } = usePropertyLabels();
   const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
   const [filterStatus, setFilterStatus] = useState<string>("all");
@@ -84,45 +84,47 @@ const TodayPage = ({ onEditTask, onNavigateToSettings }: TodayPageProps) => {
     }
   };
 
-  // Filter today's tasks based on view mode
-  const todayTasks = tasks.filter(task => {
-    // Always show tasks that are in completing state
-    if (completingTasks.has(task.id)) {
-      return true;
-    }
-    
-    if (viewMode === 'list') {
-      // In list mode: hide completed tasks completely (unless completing)
-      if (task.status === 'completat') {
-        return false;
-      }
-    } else {
-      // In kanban mode: show completed tasks in their column, keep recently completed visible
-      if (task.status === 'completat' && !recentlyCompleted.has(task.id)) {
-        // Show completed tasks in kanban mode
-        if (filterStatus === 'completat' || filterStatus === 'all') {
-          return true;
-        }
-        return false;
-      }
-      // Keep recently completed tasks visible in kanban
-      if (task.status === 'completat' && recentlyCompleted.has(task.id)) {
+  // Optimized filtering with useMemo
+  const filteredTasks = useMemo(() => {
+    return todayTasks.filter(task => {
+      // Always show tasks that are in completing state
+      if (completingTasks.has(task.id)) {
         return true;
       }
-    }
-    
-    let matchesStatus = filterStatus === "all" || task.status === filterStatus;
-    let matchesPriority = filterPriority === "all" || task.priority === filterPriority;
-    return matchesStatus && matchesPriority;
-  });
+      
+      if (viewMode === 'list') {
+        // In list mode: hide completed tasks completely (unless completing)
+        if (task.status === 'completat') {
+          return false;
+        }
+      } else {
+        // In kanban mode: show completed tasks in their column, keep recently completed visible
+        if (task.status === 'completat' && !recentlyCompleted.has(task.id)) {
+          // Show completed tasks in kanban mode
+          if (filterStatus === 'completat' || filterStatus === 'all') {
+            return true;
+          }
+          return false;
+        }
+        // Keep recently completed tasks visible in kanban
+        if (task.status === 'completat' && recentlyCompleted.has(task.id)) {
+          return true;
+        }
+      }
+      
+      let matchesStatus = filterStatus === "all" || task.status === filterStatus;
+      let matchesPriority = filterPriority === "all" || task.priority === filterPriority;
+      return matchesStatus && matchesPriority;
+    });
+  }, [todayTasks, completingTasks, recentlyCompleted, filterStatus, filterPriority, viewMode]);
 
-  const getStatusTasks = (status: string) => {
-    return todayTasks.filter(task => task.status === status);
-  };
+  // Memoized status tasks calculation
+  const getStatusTasks = useMemo(() => {
+    return (status: string) => filteredTasks.filter(task => task.status === status);
+  }, [filteredTasks]);
 
   // Function to get dynamic column background style based on status color
-  const getColumnBackgroundStyle = (columnId: string) => {
-    const statusColor = getStatusColor(columnId);
+  const getColumnBackgroundStyle = (statusColor: string) => {
     if (statusColor && statusColor.startsWith('#')) {
       // Convert hex to RGB and apply with opacity
       const hex = statusColor.slice(1);
@@ -138,18 +140,17 @@ const TodayPage = ({ onEditTask, onNavigateToSettings }: TodayPageProps) => {
     return {};
   };
 
-  const statusColumns = getStatusOptions().map(option => ({
-    id: option.value,
-    label: option.label,
-    tasks: getStatusTasks(option.value)
-  }));
+  // Memoized status columns for kanban view
+  const statusColumns = useMemo(() => {
+    return getStatusOptions().map(option => option.value);
+  }, [getStatusOptions]);
 
   if (loading) {
     return (
-      <div className="p-6 pb-24">
-        <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="text-muted-foreground mt-4">Carregant tasques...</p>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Carregant tasques...</p>
         </div>
       </div>
     );
@@ -188,7 +189,7 @@ const TodayPage = ({ onEditTask, onNavigateToSettings }: TodayPageProps) => {
       </div>
 
       {/* Content */}
-      {todayTasks.length === 0 ? (
+      {filteredTasks.length === 0 ? (
         <Card className="bg-card/60 backdrop-blur-glass border-border/50">
           <CardContent className="p-8 text-center">
             <div className="text-muted-foreground">
@@ -202,8 +203,8 @@ const TodayPage = ({ onEditTask, onNavigateToSettings }: TodayPageProps) => {
         <>
           {viewMode === "list" && (
             <div className="space-y-2">
-              {todayTasks.map((task) => (
-                <TaskChecklistItem
+              {filteredTasks.map((task) => (
+                <OptimizedTaskItem
                   key={task.id}
                   task={task}
                   onStatusChange={handleStatusChange}
@@ -217,41 +218,44 @@ const TodayPage = ({ onEditTask, onNavigateToSettings }: TodayPageProps) => {
           )}
 
           {viewMode === "kanban" && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 w-full">
-              {statusColumns.map((column) => (
-                <div 
-                  key={column.id} 
-                  className="rounded-2xl p-4 border border-border/50"
-                  style={getColumnBackgroundStyle(column.id)}
-                >
-                  <div className="pb-3">
-                    <div className="text-sm font-medium flex items-center justify-between">
-                      <span>{column.label}</span>
-                      <Badge variant="outline" className="text-xs">
-                        {column.tasks.length}
-                      </Badge>
+            <div className="flex gap-4 overflow-x-auto pb-4">
+              {statusColumns.map(status => {
+                const statusTasks = filteredTasks.filter(task => task.status === status);
+                const statusColor = getStatusColor(status);
+                
+                return (
+                  <div key={status} className="min-w-80 flex-shrink-0">
+                    <div className="sticky top-0 z-10 mb-4">
+                      <div 
+                        className="px-4 py-3 rounded-lg backdrop-blur-sm border border-white/10"
+                        style={getColumnBackgroundStyle(statusColor)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-medium text-white">
+                            {getStatusLabel(status)}
+                          </h3>
+                          <span className="text-sm text-white/70 bg-white/10 px-2 py-1 rounded-full">
+                            {statusTasks.length}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      {statusTasks.map((task) => (
+                        <OptimizedTaskItem
+                          key={task.id}
+                          task={task}
+                          onStatusChange={handleStatusChange}
+                          onEdit={onEditTask}
+                          onDelete={deleteTask}
+                          viewMode="kanban"
+                          completingTasks={completingTasks}
+                        />
+                      ))}
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    {column.tasks.map((task) => (
-                      <TaskChecklistItem
-                        key={task.id}
-                        task={task}
-                        onStatusChange={handleStatusChange}
-                        onEdit={onEditTask}
-                        onDelete={deleteTask}
-                        viewMode={viewMode}
-                        completingTasks={completingTasks}
-                      />
-                    ))}
-                    {column.tasks.length === 0 && (
-                      <div className="text-center py-8 text-muted-foreground text-sm">
-                        Cap tasca en aquest estat
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </>
