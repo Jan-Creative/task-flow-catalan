@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react";
+import { useCallback } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useProperties } from "./useProperties";
+import { useAuth } from "./useAuth";
 
 interface Task {
   id: string;
@@ -23,77 +25,101 @@ interface Folder {
 }
 
 export const useTasks = () => {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [folders, setFolders] = useState<Folder[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const { setTaskProperty, getPropertyByName } = useProperties();
 
-  // Fetch tasks and folders
-  const fetchData = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+  // Optimized React Query implementation
+  const { data, isLoading: loading } = useQuery({
+    queryKey: ['tasks-folders', user?.id],
+    queryFn: async () => {
+      if (!user) throw new Error("User not authenticated");
 
       const [tasksResult, foldersResult] = await Promise.all([
-        supabase.from("tasks").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
-        supabase.from("folders").select("*").eq("user_id", user.id).order("is_system", { ascending: false })
+        supabase
+          .from("tasks")
+          .select("id, title, description, status, priority, folder_id, due_date, created_at, updated_at")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("folders")
+          .select("id, name, color, is_system")
+          .eq("user_id", user.id)
+          .order("is_system", { ascending: false })
       ]);
 
       if (tasksResult.error) throw tasksResult.error;
       if (foldersResult.error) throw foldersResult.error;
 
-      setTasks((tasksResult.data || []) as Task[]);
-      setFolders((foldersResult.data || []) as Folder[]);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-      toast({
-        title: "Error",
-        description: "No s'han pogut carregar les dades",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+      return {
+        tasks: (tasksResult.data || []) as Task[],
+        folders: (foldersResult.data || []) as Folder[],
+      };
+    },
+    enabled: !!user,
+    staleTime: 1000 * 60 * 2, // 2 minutes
+    gcTime: 1000 * 60 * 5, // 5 minutes
+  });
 
-  // Create task
-  const createTask = async (taskData: Omit<Task, "id" | "created_at" | "updated_at">) => {
+  const tasks = data?.tasks || [];
+  const folders = data?.folders || [];
+
+  // Optimized create task with optimistic updates
+  const createTask = useCallback(async (taskData: Omit<Task, "id" | "created_at" | "updated_at">) => {
+    if (!user) throw new Error("User not authenticated");
+
+    const optimisticTask = {
+      ...taskData,
+      id: `temp-${Date.now()}`,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    } as Task;
+
+    // Optimistic update
+    queryClient.setQueryData(['tasks-folders', user.id], (old: any) => {
+      if (!old) return old;
+      return {
+        ...old,
+        tasks: [optimisticTask, ...old.tasks]
+      };
+    });
+
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("User not authenticated");
-
-      // If no folder specified, find and use inbox folder from database
+      // Find inbox folder efficiently
       let finalFolderId = taskData.folder_id;
       if (!finalFolderId) {
-        // Search for the user's inbox folder directly in the database
-        const { data: inboxFolder, error: folderError } = await supabase
-          .from("folders")
-          .select("id")
-          .eq("user_id", user.id)
-          .eq("is_system", true)
-          .eq("name", "Bustia")
-          .single();
-
-        if (!folderError && inboxFolder) {
+        const inboxFolder = folders.find(f => f.is_system && f.name === "Bustia");
+        if (!inboxFolder) {
+          const { data: dbInboxFolder } = await supabase
+            .from("folders")
+            .select("id")
+            .eq("user_id", user.id)
+            .eq("is_system", true)
+            .eq("name", "Bustia")
+            .maybeSingle();
+          finalFolderId = dbInboxFolder?.id;
+        } else {
           finalFolderId = inboxFolder.id;
         }
       }
 
-      const { data, error } = await supabase
+      const { data: newTask, error } = await supabase
         .from("tasks")
         .insert([{ ...taskData, user_id: user.id, folder_id: finalFolderId }])
-        .select()
+        .select("id, title, description, status, priority, folder_id, due_date, created_at, updated_at")
         .single();
 
       if (error) throw error;
 
-      // Set task properties in the new system
+      // Set task properties efficiently
+      const propertyPromises = [];
+      
       if (taskData.status) {
         const statusProperty = getPropertyByName('Estat');
         const statusOption = statusProperty?.options.find(opt => opt.value === taskData.status);
         if (statusProperty && statusOption) {
-          await setTaskProperty(data.id, statusProperty.id, statusOption.id);
+          propertyPromises.push(setTaskProperty(newTask.id, statusProperty.id, statusOption.id));
         }
       }
 
@@ -101,27 +127,57 @@ export const useTasks = () => {
         const priorityProperty = getPropertyByName('Prioritat');
         const priorityOption = priorityProperty?.options.find(opt => opt.value === taskData.priority);
         if (priorityProperty && priorityOption) {
-          await setTaskProperty(data.id, priorityProperty.id, priorityOption.id);
+          propertyPromises.push(setTaskProperty(newTask.id, priorityProperty.id, priorityOption.id));
         }
       }
 
-      setTasks(prev => [data as Task, ...prev]);
+      // Execute property updates in parallel
+      await Promise.all(propertyPromises);
+
+      // Replace optimistic update with real data
+      queryClient.setQueryData(['tasks-folders', user.id], (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          tasks: [newTask, ...old.tasks.filter((t: Task) => t.id !== optimisticTask.id)]
+        };
+      });
+
       toast({
         title: "Tasca creada",
         description: "La tasca s'ha creat correctament",
       });
     } catch (error) {
-      console.error("Error creating task:", error);
+      // Revert optimistic update
+      queryClient.setQueryData(['tasks-folders', user.id], (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          tasks: old.tasks.filter((t: Task) => t.id !== optimisticTask.id)
+        };
+      });
+      
       toast({
         title: "Error",
         description: "No s'ha pogut crear la tasca",
         variant: "destructive",
       });
     }
-  };
+  }, [user, folders, queryClient, toast, setTaskProperty, getPropertyByName]);
 
-  // Update task
-  const updateTask = async (taskId: string, taskData: Partial<Omit<Task, "id" | "created_at" | "updated_at">>) => {
+  // Optimized update task
+  const updateTask = useCallback(async (taskId: string, taskData: Partial<Omit<Task, "id" | "created_at" | "updated_at">>) => {
+    // Optimistic update
+    queryClient.setQueryData(['tasks-folders', user?.id], (old: any) => {
+      if (!old) return old;
+      return {
+        ...old,
+        tasks: old.tasks.map((task: Task) =>
+          task.id === taskId ? { ...task, ...taskData } : task
+        )
+      };
+    });
+
     try {
       const { error } = await supabase
         .from("tasks")
@@ -130,68 +186,80 @@ export const useTasks = () => {
 
       if (error) throw error;
 
-      setTasks(prev =>
-        prev.map(task =>
-          task.id === taskId ? { ...task, ...taskData } : task
-        )
-      );
-
       toast({
         title: "Tasca actualitzada",
         description: "La tasca s'ha actualitzat correctament",
       });
     } catch (error) {
-      console.error("Error updating task:", error);
+      // Revert on error
+      queryClient.invalidateQueries({ queryKey: ['tasks-folders', user?.id] });
       toast({
         title: "Error",
         description: "No s'ha pogut actualitzar la tasca",
         variant: "destructive",
       });
     }
-  };
+  }, [user?.id, queryClient, toast]);
 
-  // Update task status
-  const updateTaskStatus = async (taskId: string, status: Task['status']) => {
+  // Optimized update task status
+  const updateTaskStatus = useCallback(async (taskId: string, status: Task['status']) => {
+    // Optimistic update
+    queryClient.setQueryData(['tasks-folders', user?.id], (old: any) => {
+      if (!old) return old;
+      return {
+        ...old,
+        tasks: old.tasks.map((task: Task) =>
+          task.id === taskId ? { ...task, status } : task
+        )
+      };
+    });
+
     try {
+      const updateData = {
+        status,
+        completed_at: status === 'completat' ? new Date().toISOString() : null
+      };
+
       const { error } = await supabase
         .from("tasks")
-        .update({ 
-          status,
-          completed_at: status === 'completat' ? new Date().toISOString() : null
-        })
+        .update(updateData)
         .eq("id", taskId);
 
       if (error) throw error;
 
-      // Update property in the new system
+      // Update property efficiently
       const statusProperty = getPropertyByName('Estat');
       const statusOption = statusProperty?.options.find(opt => opt.value === status);
       if (statusProperty && statusOption) {
         await setTaskProperty(taskId, statusProperty.id, statusOption.id);
       }
 
-      setTasks(prev =>
-        prev.map(task =>
-          task.id === taskId ? { ...task, status } : task
-        )
-      );
-
       toast({
         title: "Tasca actualitzada",
         description: `Estat canviat a ${status}`,
       });
     } catch (error) {
-      console.error("Error updating task:", error);
+      // Revert on error
+      queryClient.invalidateQueries({ queryKey: ['tasks-folders', user?.id] });
       toast({
         title: "Error",
         description: "No s'ha pogut actualitzar la tasca",
         variant: "destructive",
       });
     }
-  };
+  }, [user?.id, queryClient, toast, setTaskProperty, getPropertyByName]);
 
-  // Delete task
-  const deleteTask = async (taskId: string) => {
+  // Optimized delete task
+  const deleteTask = useCallback(async (taskId: string) => {
+    // Optimistic update
+    queryClient.setQueryData(['tasks-folders', user?.id], (old: any) => {
+      if (!old) return old;
+      return {
+        ...old,
+        tasks: old.tasks.filter((task: Task) => task.id !== taskId)
+      };
+    });
+
     try {
       const { error } = await supabase
         .from("tasks")
@@ -200,102 +268,121 @@ export const useTasks = () => {
 
       if (error) throw error;
 
-      setTasks(prev => prev.filter(task => task.id !== taskId));
       toast({
         title: "Tasca eliminada",
         description: "La tasca s'ha eliminat correctament",
       });
     } catch (error) {
-      console.error("Error deleting task:", error);
+      // Revert on error
+      queryClient.invalidateQueries({ queryKey: ['tasks-folders', user?.id] });
       toast({
         title: "Error",
         description: "No s'ha pogut eliminar la tasca",
         variant: "destructive",
       });
     }
-  };
+  }, [user?.id, queryClient, toast]);
 
-  // Create folder
-  const createFolder = async (name: string, color: string = "#6366f1") => {
+  // Optimized create folder
+  const createFolder = useCallback(async (name: string, color: string = "#6366f1") => {
+    if (!user) throw new Error("User not authenticated");
+
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("User not authenticated");
-
-      const { data, error } = await supabase
+      const { data: newFolder, error } = await supabase
         .from("folders")
         .insert([{ name, color, user_id: user.id }])
-        .select()
+        .select("id, name, color, is_system")
         .single();
 
       if (error) throw error;
 
-      setFolders(prev => [...prev, data]);
+      // Update cache
+      queryClient.setQueryData(['tasks-folders', user.id], (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          folders: [...old.folders, newFolder]
+        };
+      });
+
       toast({
         title: "Carpeta creada",
         description: "La carpeta s'ha creat correctament",
       });
     } catch (error) {
-      console.error("Error creating folder:", error);
       toast({
         title: "Error",
         description: "No s'ha pogut crear la carpeta",
         variant: "destructive",
       });
     }
-  };
+  }, [user, queryClient, toast]);
 
-  // Update folder
-  const updateFolder = async (folderId: string, updates: { name?: string; color?: string }) => {
+  // Optimized update folder
+  const updateFolder = useCallback(async (folderId: string, updates: { name?: string; color?: string }) => {
+    if (!user) throw new Error("User not authenticated");
+
+    // Optimistic update
+    queryClient.setQueryData(['tasks-folders', user.id], (old: any) => {
+      if (!old) return old;
+      return {
+        ...old,
+        folders: old.folders.map((folder: Folder) => 
+          folder.id === folderId ? { ...folder, ...updates } : folder
+        )
+      };
+    });
+
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("User not authenticated");
-
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from("folders")
         .update(updates)
         .eq("id", folderId)
         .eq("user_id", user.id)
-        .eq("is_system", false)
-        .select()
-        .single();
+        .eq("is_system", false);
 
       if (error) throw error;
 
-      setFolders(prev => prev.map(folder => 
-        folder.id === folderId ? { ...folder, ...data } : folder
-      ));
-      
       toast({
         title: "Carpeta actualitzada",
         description: "La carpeta s'ha actualitzat correctament",
       });
     } catch (error) {
-      console.error("Error updating folder:", error);
+      // Revert on error
+      queryClient.invalidateQueries({ queryKey: ['tasks-folders', user.id] });
       toast({
         title: "Error",
         description: "No s'ha pogut actualitzar la carpeta",
         variant: "destructive",
       });
     }
-  };
+  }, [user, queryClient, toast]);
 
-  // Delete folder
-  const deleteFolder = async (folderId: string) => {
+  // Optimized delete folder
+  const deleteFolder = useCallback(async (folderId: string) => {
+    if (!user) throw new Error("User not authenticated");
+
+    // Check if folder has tasks
+    const tasksInFolder = tasks.filter(task => task.folder_id === folderId);
+    if (tasksInFolder.length > 0) {
+      toast({
+        title: "No es pot eliminar",
+        description: `La carpeta conté ${tasksInFolder.length} tasques. Mou-les primer a una altra carpeta.`,
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    // Optimistic update
+    queryClient.setQueryData(['tasks-folders', user.id], (old: any) => {
+      if (!old) return old;
+      return {
+        ...old,
+        folders: old.folders.filter((folder: Folder) => folder.id !== folderId)
+      };
+    });
+
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("User not authenticated");
-
-      // Check if folder has tasks
-      const tasksInFolder = tasks.filter(task => task.folder_id === folderId);
-      if (tasksInFolder.length > 0) {
-        toast({
-          title: "No es pot eliminar",
-          description: `La carpeta conté ${tasksInFolder.length} tasques. Mou-les primer a una altra carpeta.`,
-          variant: "destructive",
-        });
-        return false;
-      }
-
       const { error } = await supabase
         .from("folders")
         .delete()
@@ -305,14 +392,14 @@ export const useTasks = () => {
 
       if (error) throw error;
 
-      setFolders(prev => prev.filter(folder => folder.id !== folderId));
       toast({
         title: "Carpeta eliminada",
         description: "La carpeta s'ha eliminat correctament",
       });
       return true;
     } catch (error) {
-      console.error("Error deleting folder:", error);
+      // Revert on error
+      queryClient.invalidateQueries({ queryKey: ['tasks-folders', user.id] });
       toast({
         title: "Error",
         description: "No s'ha pogut eliminar la carpeta",
@@ -320,11 +407,11 @@ export const useTasks = () => {
       });
       return false;
     }
-  };
+  }, [user, tasks, queryClient, toast]);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  const refreshData = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['tasks-folders', user?.id] });
+  }, [queryClient, user?.id]);
 
   return {
     tasks,
@@ -337,6 +424,6 @@ export const useTasks = () => {
     createFolder,
     updateFolder,
     deleteFolder,
-    refreshData: fetchData,
+    refreshData,
   };
 };

@@ -1,3 +1,4 @@
+import React, { memo, useCallback, useMemo } from "react";
 import { Flag, Calendar, MoreHorizontal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -31,35 +32,58 @@ interface TaskChecklistItemProps {
   completingTasks?: Set<string>;
 }
 
-const TaskChecklistItem = ({ task, onStatusChange, onEdit, onDelete, viewMode = "list", completingTasks }: TaskChecklistItemProps) => {
+const TaskChecklistItem = memo(({ 
+  task, 
+  onStatusChange, 
+  onEdit, 
+  onDelete, 
+  viewMode = "list", 
+  completingTasks 
+}: TaskChecklistItemProps) => {
   const { getPriorityLabel, getPriorityColor: getDynamicPriorityColor, getStatusLabel, getStatusColor: getDynamicStatusColor } = usePropertyLabels();
 
-  const getPriorityColor = (priority: Task['priority']) => {
-    const color = getDynamicPriorityColor(priority);
+  // Memoized color calculations
+  const priorityColor = useMemo(() => {
+    const color = getDynamicPriorityColor(task.priority);
     return `text-[${color}]`;
-  };
+  }, [task.priority, getDynamicPriorityColor]);
 
-  const getStatusColor = (status: Task['status']) => {
-    const color = getDynamicStatusColor(status);
+  const statusColor = useMemo(() => {
+    const color = getDynamicStatusColor(task.status);
     return `bg-[${color}]/10 text-[${color}] border-[${color}]/20`;
-  };
+  }, [task.status, getDynamicStatusColor]);
 
-
-  const handleCheckboxChange = (checked: boolean) => {
+  // Memoized handlers
+  const handleCheckboxChange = useCallback((checked: boolean) => {
     if (checked) {
       onStatusChange(task.id, 'completat');
     } else {
       onStatusChange(task.id, 'pendent');
     }
-  };
+  }, [task.id, onStatusChange]);
 
-  const handleStartTask = () => {
+  const handleStartTask = useCallback(() => {
     onStatusChange(task.id, 'en_proces');
-  };
+  }, [task.id, onStatusChange]);
 
-  const isCompleted = task.status === 'completat';
-  const isInProgress = task.status === 'en_proces';
-  const isCompleting = completingTasks?.has(task.id) || false;
+  const handleEdit = useCallback(() => {
+    onEdit(task);
+  }, [task, onEdit]);
+
+  const handleDelete = useCallback(() => {
+    onDelete(task.id);
+  }, [task.id, onDelete]);
+
+  // Memoized computed values
+  const computedValues = useMemo(() => ({
+    isCompleted: task.status === 'completat',
+    isInProgress: task.status === 'en_proces',
+    isCompleting: completingTasks?.has(task.id) || false,
+    showStartButton: task.status === 'pendent',
+    formattedDate: task.due_date ? new Date(task.due_date).toLocaleDateString('ca-ES') : null
+  }), [task.status, task.id, task.due_date, completingTasks]);
+
+  const { isCompleted, isInProgress, isCompleting, showStartButton, formattedDate } = computedValues;
 
   return (
     <div className={cn(
@@ -92,11 +116,11 @@ const TaskChecklistItem = ({ task, onStatusChange, onEdit, onDelete, viewMode = 
           </h3>
           
           {/* Priority Flag */}
-          <Flag className={cn("h-3 w-3 flex-shrink-0", getPriorityColor(task.priority))} />
+          <Flag className={cn("h-3 w-3 flex-shrink-0", priorityColor)} />
           
           {/* In Progress Badge */}
           {isInProgress && (
-            <Badge variant="outline" className={cn("text-xs px-1.5 py-0", getStatusColor(task.status))}>
+            <Badge variant="outline" className={cn("text-xs px-1.5 py-0", statusColor)}>
               {getStatusLabel(task.status)}
             </Badge>
           )}
@@ -106,12 +130,12 @@ const TaskChecklistItem = ({ task, onStatusChange, onEdit, onDelete, viewMode = 
         <div className="flex items-center gap-2 text-xs text-white/70">
           <span>{getPriorityLabel(task.priority)}</span>
           
-          {task.due_date && (
+          {formattedDate && (
             <>
               <span>•</span>
               <div className="flex items-center gap-1">
                 <Calendar className="h-3 w-3" />
-                <span>{new Date(task.due_date).toLocaleDateString('ca-ES')}</span>
+                <span>{formattedDate}</span>
               </div>
             </>
           )}
@@ -120,7 +144,7 @@ const TaskChecklistItem = ({ task, onStatusChange, onEdit, onDelete, viewMode = 
 
       {/* Actions */}
       <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-        {!isCompleted && !isCompleting && task.status === 'pendent' && (
+        {showStartButton && !isCompleted && !isCompleting && (
           <Button
             variant="ghost"
             size="sm"
@@ -138,11 +162,11 @@ const TaskChecklistItem = ({ task, onStatusChange, onEdit, onDelete, viewMode = 
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => onEdit(task)}>
+            <DropdownMenuItem onClick={handleEdit}>
               Editar
             </DropdownMenuItem>
             <DropdownMenuItem 
-              onClick={() => onDelete(task.id)}
+              onClick={handleDelete}
               className="text-destructive focus:text-destructive"
             >
               Eliminar
@@ -152,6 +176,8 @@ const TaskChecklistItem = ({ task, onStatusChange, onEdit, onDelete, viewMode = 
       </div>
     </div>
   );
-};
+});
+
+TaskChecklistItem.displayName = "TaskChecklistItem";
 
 export default TaskChecklistItem;
