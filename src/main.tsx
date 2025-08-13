@@ -19,16 +19,13 @@ const queryClient = new QueryClient({
   },
 });
 
-// Aplicar tema fosc per defecte
-document.documentElement.classList.add('dark');
-
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
+          defaultTheme="dark"
           enableSystem
           disableTransitionOnChange
         >
