@@ -41,7 +41,7 @@ const TaskCard = ({ task, onStatusChange, onEdit, onDelete }: TaskCardProps) => 
 
   const getPriorityColor = (priority: Task['priority']) => {
     const color = getDynamicPriorityColor(priority);
-    return `text-[${color}]`;
+    return { color: color };
   };
 
   return (
@@ -59,7 +59,7 @@ const TaskCard = ({ task, onStatusChange, onEdit, onDelete }: TaskCardProps) => 
           <div className="flex items-center gap-1">
             {(() => {
               const PriorityIconComponent = getPriorityIconComponent(task.priority, getPriorityIcon);
-              return <PriorityIconComponent className={cn("h-4 w-4", getPriorityColor(task.priority))} />;
+              return <PriorityIconComponent className="h-4 w-4" style={getPriorityColor(task.priority)} />;
             })()}
           </div>
         </div>
@@ -90,7 +90,7 @@ const TaskCard = ({ task, onStatusChange, onEdit, onDelete }: TaskCardProps) => 
               {getStatusLabel(task.status)}
             </Badge>
             
-            <span className={cn("text-xs font-medium", getPriorityColor(task.priority))}>
+            <span className="text-xs font-medium" style={getPriorityColor(task.priority)}>
               {getPriorityLabel(task.priority)}
             </span>
           </div>

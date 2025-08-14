@@ -63,12 +63,12 @@ const OptimizedTaskItem = memo<OptimizedTaskItemProps>(({
 
   const priorityColor = useMemo(() => {
     const color = getDynamicPriorityColor(task.priority);
-    return `text-[${color}]`;
+    return { color: color };
   }, [task.priority, getDynamicPriorityColor]);
 
   const statusColor = useMemo(() => {
     const color = getDynamicStatusColor(task.status);
-    return `bg-[${color}]/10 text-[${color}] border-[${color}]/20`;
+    return { backgroundColor: `${color}10`, color: color, borderColor: `${color}20` };
   }, [task.status, getDynamicStatusColor]);
 
   const formattedDueDate = useMemo(() => {
@@ -109,7 +109,7 @@ const OptimizedTaskItem = memo<OptimizedTaskItemProps>(({
                 {/* Priority Flag */}
                 {(() => {
                   const PriorityIconComponent = getPriorityIconComponent(task.priority, getPriorityIcon);
-                  return <PriorityIconComponent className={cn("h-3 w-3 flex-shrink-0", priorityColor)} />;
+                  return <PriorityIconComponent className="h-3 w-3 flex-shrink-0" style={priorityColor} />;
                 })()}
               </div>
               
@@ -146,7 +146,7 @@ const OptimizedTaskItem = memo<OptimizedTaskItemProps>(({
 
           {/* Badges and metadata */}
           <div className="flex items-center gap-2 flex-wrap">
-            <Badge variant="outline" className={cn("text-xs flex items-center gap-1", statusColor)}>
+            <Badge variant="outline" className="text-xs flex items-center gap-1" style={statusColor}>
               {(() => {
                 const statusIconName = getStatusIcon(task.status);
                 if (statusIconName) {
@@ -161,7 +161,7 @@ const OptimizedTaskItem = memo<OptimizedTaskItemProps>(({
               {getStatusLabel(task.status)}
             </Badge>
             
-            <span className={cn("text-xs font-medium", priorityColor)}>
+            <span className="text-xs font-medium" style={priorityColor}>
               {getPriorityLabel(task.priority)}
             </span>
 

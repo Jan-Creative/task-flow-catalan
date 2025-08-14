@@ -51,15 +51,14 @@ const TaskChecklistItem = memo(({
     getStatusIcon
   } = usePropertyLabels();
 
-  // Memoized color calculations
   const priorityColor = useMemo(() => {
     const color = getDynamicPriorityColor(task.priority);
-    return `text-[${color}]`;
+    return { color: color };
   }, [task.priority, getDynamicPriorityColor]);
 
   const statusColor = useMemo(() => {
     const color = getDynamicStatusColor(task.status);
-    return `bg-[${color}]/10 text-[${color}] border-[${color}]/20`;
+    return { backgroundColor: `${color}10`, color: color, borderColor: `${color}20` };
   }, [task.status, getDynamicStatusColor]);
 
   // Memoized handlers
@@ -127,12 +126,11 @@ const TaskChecklistItem = memo(({
           {/* Priority Icon */}
           {(() => {
             const PriorityIconComponent = getPriorityIconComponent(task.priority, getPriorityIcon);
-            return <PriorityIconComponent className={cn("h-3 w-3 flex-shrink-0", priorityColor)} />;
+            return <PriorityIconComponent className="h-3 w-3 flex-shrink-0" style={priorityColor} />;
           })()}
           
-          {/* Status Badge */}
           {isInProgress && (
-            <Badge variant="outline" className={cn("text-xs px-1.5 py-0 flex items-center gap-1", statusColor)}>
+            <Badge variant="outline" className="text-xs px-1.5 py-0 flex items-center gap-1" style={statusColor}>
               {(() => {
                 const statusIconName = getStatusIcon(task.status);
                 if (statusIconName) {
@@ -149,9 +147,8 @@ const TaskChecklistItem = memo(({
           )}
         </div>
 
-        {/* Secondary info */}
         <div className="flex items-center gap-2 text-xs text-white/70">
-          <span>{getPriorityLabel(task.priority)}</span>
+          <span style={priorityColor}>{getPriorityLabel(task.priority)}</span>
           
           {formattedDate && (
             <>
