@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import TaskChecklistItem from "@/components/TaskChecklistItem";
@@ -12,7 +12,7 @@ interface TodayPageProps {
   onNavigateToSettings?: () => void;
 }
 
-const TodayPage = ({ onEditTask, onNavigateToSettings }: TodayPageProps) => {
+const TodayPage = React.memo(({ onEditTask, onNavigateToSettings }: TodayPageProps) => {
   const { todayTasks, updateTaskStatus, deleteTask, loading } = useDadesApp();
   const { getStatusLabel, getStatusOptions, getStatusColor, getPriorityOptions } = usePropertyLabels();
   const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
@@ -330,6 +330,6 @@ const TodayPage = ({ onEditTask, onNavigateToSettings }: TodayPageProps) => {
       )}
     </div>
   );
-};
+});
 
 export default TodayPage;

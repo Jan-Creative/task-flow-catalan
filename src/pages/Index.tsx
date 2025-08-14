@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { LogOut, User } from "lucide-react";
 import { useShortcut } from "@/hooks/useKeyboardShortcuts";
 import { useToast } from "@/hooks/use-toast";
-import { PageTransition } from "@/components/ui/page-transition";
+import { KeepAlivePages, TabPage } from "@/components/ui/keep-alive-pages";
 
 const Index = () => {
   const { user, loading, signOut } = useAuth();
@@ -81,24 +81,25 @@ const Index = () => {
     setShowCreateDialog(true);
   };
 
-  const renderCurrentPage = useCallback(() => {
-    switch (activeTab) {
-      case "avui":
-        return <TodayPage 
+  // Keep-alive rendering - All pages stay mounted
+  const renderKeepAlivePages = useCallback(() => (
+    <div className="relative w-full">
+      <TabPage tabId="avui" activeTab={activeTab}>
+        <TodayPage 
           onEditTask={handleEditTask} 
-          onNavigateToSettings={() => setActiveTab("configuracio")}
-        />;
-      case "carpetes":
-        return <FoldersPage />;
-      case "configuracio":
-        return <SettingsPage />;
-      default:
-        return <TodayPage 
-          onEditTask={handleEditTask} 
-          onNavigateToSettings={() => setActiveTab("configuracio")}
-        />;
-    }
-  }, [activeTab, handleEditTask]);
+          onNavigateToSettings={() => setActiveTab("configuracio")} 
+        />
+      </TabPage>
+      
+      <TabPage tabId="carpetes" activeTab={activeTab}>
+        <FoldersPage />
+      </TabPage>
+      
+      <TabPage tabId="configuracio" activeTab={activeTab}>
+        <SettingsPage />
+      </TabPage>
+    </div>
+  ), [activeTab, handleEditTask]);
 
   // Show loading spinner while checking auth
   if (loading) {
@@ -140,9 +141,9 @@ const Index = () => {
         </Button>
       </div>
 
-      <PageTransition activeTab={activeTab}>
-        {renderCurrentPage()}
-      </PageTransition>
+      <KeepAlivePages activeTab={activeTab}>
+        {renderKeepAlivePages()}
+      </KeepAlivePages>
       
       <BottomNavigation
         activeTab={activeTab}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -8,7 +8,7 @@ import { FolderPlus } from "lucide-react";
 import { FolderItem } from "@/components/FolderItem";
 import { cn } from "@/lib/utils";
 
-const FoldersPage = () => {
+const FoldersPage = React.memo(() => {
   const { tasks, folders, createFolder, updateFolder, deleteFolder, loading } = useDadesApp();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
@@ -270,6 +270,6 @@ const FoldersPage = () => {
       </AlertDialog>
     </div>
   );
-};
+});
 
 export default FoldersPage;

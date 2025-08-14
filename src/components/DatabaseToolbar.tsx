@@ -50,12 +50,12 @@ const DatabaseToolbar = ({
   const estatProperty = getPropertyByName('Estat');
   const prioritatProperty = getPropertyByName('Prioritat');
 
-  // Auto-create system properties when component loads - Fixed dependency array
+  // Auto-create system properties - Stable dependency array
   useEffect(() => {
-    if (!loading && (!estatProperty || !prioritatProperty)) {
+    if (!loading && ensureSystemProperties) {
       ensureSystemProperties();
     }
-  }, [loading, ensureSystemProperties]); // Removed property dependencies to avoid infinite loop
+  }, [loading]); // Only depend on loading to prevent infinite loop
 
   const handleAdvancedSettingsClick = () => {
     onNavigateToSettings?.();
