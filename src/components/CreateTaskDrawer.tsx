@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Input } from "@/components/ui/input";
@@ -10,17 +10,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { ca } from "date-fns/locale";
-import { usePropertyLabels } from "@/hooks/usePropertyLabels";
-
-interface Task {
-  id: string;
-  title: string;
-  description?: string;
-  status: "pendent" | "en_proces" | "completat";
-  priority: "alta" | "mitjana" | "baixa";
-  due_date?: string;
-  folder_id?: string;
-}
+import { useCreateTaskForm } from "@/hooks/tasks/useCreateTaskForm";
+import type { Tasca } from "@/types";
 
 interface CreateTaskDrawerProps {
   open: boolean;
@@ -34,40 +25,29 @@ interface CreateTaskDrawerProps {
     folder_id?: string;
   }) => void;
   folders: Array<{ id: string; name: string; }>;
-  editingTask?: Task | null;
+  editingTask?: Tasca | null;
 }
 
 const CreateTaskDrawer = ({ open, onClose, onSubmit, folders, editingTask }: CreateTaskDrawerProps) => {
-  const { getStatusOptions, getPriorityOptions } = usePropertyLabels();
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [status, setStatus] = useState<"pendent" | "en_proces" | "completat">("pendent");
-  const [priority, setPriority] = useState<"alta" | "mitjana" | "baixa">("mitjana");
-  const [dueDate, setDueDate] = useState<Date>();
-  const [folderId, setFolderId] = useState<string>("");
-
-  const statusOptions = getStatusOptions();
-  const priorityOptions = getPriorityOptions();
-
-  // Load task data when editing
-  useEffect(() => {
-    if (editingTask) {
-      setTitle(editingTask.title);
-      setDescription(editingTask.description || "");
-      setStatus(editingTask.status);
-      setPriority(editingTask.priority);
-      setDueDate(editingTask.due_date ? new Date(editingTask.due_date) : undefined);
-      setFolderId(editingTask.folder_id || "");
-    } else {
-      // Reset form when not editing
-      setTitle("");
-      setDescription("");
-      setStatus("pendent");
-      setPriority("mitjana");
-      setDueDate(undefined);
-      setFolderId("");
-    }
-  }, [editingTask, open]);
+  const {
+    title,
+    setTitle,
+    description,
+    setDescription,
+    status,
+    setStatus,
+    priority,
+    setPriority,
+    dueDate,
+    setDueDate,
+    folderId,
+    setFolderId,
+    statusOptions,
+    priorityOptions,
+    handleSubmit,
+    isEditing,
+    isValid,
+  } = useCreateTaskForm({ editingTask, onSubmit, onClose });
 
   // Auto-focus al camp de títol quan s'obre el drawer
   useEffect(() => {
@@ -98,36 +78,12 @@ const CreateTaskDrawer = ({ open, onClose, onSubmit, folders, editingTask }: Cre
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [open, onClose]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!title.trim()) return;
-
-    onSubmit({
-      title: title.trim(),
-      description: description.trim() || undefined,
-      status,
-      priority,
-      due_date: dueDate ? format(dueDate, "yyyy-MM-dd") : undefined,
-      folder_id: folderId || undefined,
-    });
-
-    // Reset form only if not editing (editing form will be closed by parent)
-    if (!editingTask) {
-      setTitle("");
-      setDescription("");
-      setStatus("pendent");
-      setPriority("mitjana");
-      setDueDate(undefined);
-      setFolderId("");
-    }
-  };
-
   return (
     <Drawer open={open} onOpenChange={onClose}>
       <DrawerContent className="bg-[#2A2A2A] border-border/30 rounded-t-3xl max-h-[85vh] pb-8">
         <DrawerHeader className="pb-4">
           <DrawerTitle className="text-white font-semibold text-xl">
-            {editingTask ? "Editar Tasca" : "Nova Tasca"}
+            {isEditing ? "Editar Tasca" : "Nova Tasca"}
           </DrawerTitle>
         </DrawerHeader>
         
@@ -242,9 +198,9 @@ const CreateTaskDrawer = ({ open, onClose, onSubmit, folders, editingTask }: Cre
               <Button
                 type="submit"
                 className="flex-1 bg-gradient-primary hover:scale-105 transition-bounce text-white font-medium h-12"
-                disabled={!title.trim()}
+                disabled={!isValid}
               >
-                {editingTask ? "Actualitzar Tasca" : "Crear Tasca"}
+                {isEditing ? "Actualitzar Tasca" : "Crear Tasca"}
               </Button>
             </div>
           </form>

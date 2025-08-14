@@ -26,26 +26,13 @@ const Index = () => {
 
   // Funció de toggle amb useCallback per assegurar estat actualitzat
   const toggleCreateDialog = useCallback(() => {
-    console.log("Toggle executat! Estat actual:", showCreateDialog);
     if (showCreateDialog) {
-      // Si el formulari està obert, tancar-lo
       setShowCreateDialog(false);
       setEditingTask(null);
-      toast({
-        title: "Formulari tancat",
-        description: "S'ha tancat el formulari de creació de tasques",
-        duration: 2000,
-      });
     } else {
-      // Si el formulari està tancat, obrir-lo
       setShowCreateDialog(true);
-      toast({
-        title: "Drecera activada",
-        description: "S'ha obert el formulari de creació de tasques",
-        duration: 2000,
-      });
     }
-  }, [showCreateDialog, toast, setShowCreateDialog, setEditingTask]);
+  }, [showCreateDialog]);
 
   // Registrar drecera per crear tasca (Cmd/Ctrl + N) - Toggle behavior
   useShortcut(

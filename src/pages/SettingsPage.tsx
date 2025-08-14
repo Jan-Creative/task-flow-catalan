@@ -28,18 +28,18 @@ const SettingsPage = () => {
   };
 
   const handleNameChange = async (newName: string) => {
-    // TODO: Implementar canvi de nom quan estigui disponible
     toast({
-      title: "Nom actualitzat",
-      description: `El nom s'ha canviat a "${newName}"`,
+      title: "Pròximament",
+      description: "La funcionalitat de canvi de nom estarà disponible aviat",
+      variant: "default",
     });
   };
 
   const handleEmailChange = async (newEmail: string) => {
-    // TODO: Implementar canvi d'email quan estigui disponible
     toast({
-      title: "Email actualitzat", 
-      description: `L'email s'ha canviat a "${newEmail}"`,
+      title: "Pròximament",
+      description: "La funcionalitat de canvi d'email estarà disponible aviat",
+      variant: "default",
     });
   };
 

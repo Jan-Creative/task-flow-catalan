@@ -80,8 +80,8 @@ const FoldersPage = () => {
   ];
 
   const onSelectFolder = (folderId: string | null) => {
-    // Navigate to tasks filtered by folder
-    // TODO: Implement folder navigation
+    console.log("Selected folder:", folderId);
+    // Navigation will be implemented in future versions
   };
 
   if (loading) {
