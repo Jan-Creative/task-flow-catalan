@@ -62,6 +62,18 @@ export const usePropertyLabels = () => {
     return option?.color || getFallbackPriorityColor(value);
   };
 
+  const getStatusIcon = (value: string): string | undefined => {
+    const statusOptions = getOptionsByProperty('Estat');
+    const option = statusOptions.find(opt => opt.value === value);
+    return option?.icon;
+  };
+
+  const getPriorityIcon = (value: string): string | undefined => {
+    const priorityOptions = getOptionsByProperty('Prioritat');
+    const option = priorityOptions.find(opt => opt.value === value);
+    return option?.icon;
+  };
+
   const getStatusOptions = () => {
     return getOptionsByProperty('Estat');
   };
@@ -114,6 +126,8 @@ export const usePropertyLabels = () => {
     getPriorityLabel,
     getStatusColor,
     getPriorityColor,
+    getStatusIcon,
+    getPriorityIcon,
     getStatusOptions,
     getPriorityOptions,
     loading,

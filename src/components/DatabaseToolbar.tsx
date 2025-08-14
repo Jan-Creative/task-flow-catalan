@@ -785,11 +785,36 @@ const DatabaseToolbar = ({
                         >
                           <ArrowLeft className="h-4 w-4" />
                         </Button>
-                        <div className="flex items-center gap-2">
-                          {currentProperty.name === 'Estat' ? <CheckSquare className="h-4 w-4 text-[#b8b8b8]" /> :
-                           currentProperty.name === 'Prioritat' ? <AlertTriangle className="h-4 w-4 text-[#b8b8b8]" /> :
-                           <Circle className="h-4 w-4 text-[#b8b8b8]" />
-                          }
+                         <div className="flex items-center gap-2">
+                           {currentProperty.icon && (() => {
+                             const iconDef = getIconByName(currentProperty.icon);
+                             if (iconDef) {
+                               const IconComponent = iconDef.icon;
+                               return (
+                                 <Button
+                                   variant="ghost"
+                                   size="sm"
+                                   onClick={() => handlePropertyIconClick(currentProperty.id)}
+                                   className="h-6 w-6 p-0 text-white hover:bg-[#353535] hover:text-white/80"
+                                   title="Canviar icona"
+                                 >
+                                   <IconComponent className="h-4 w-4" />
+                                 </Button>
+                               );
+                             }
+                             return null;
+                           })()}
+                           {!currentProperty.icon && (
+                             <Button
+                               variant="ghost"
+                               size="sm"
+                               onClick={() => handlePropertyIconClick(currentProperty.id)}
+                               className="h-6 w-6 p-0 text-[#b8b8b8] hover:bg-[#353535] hover:text-white"
+                               title="Afegir icona"
+                             >
+                               <ImageIcon className="h-4 w-4" />
+                             </Button>
+                           )}
                           <input 
                             type="text" 
                             value={editingPropertyName || currentProperty?.name || ''}
@@ -828,15 +853,44 @@ const DatabaseToolbar = ({
                     <div className="space-y-2 mb-4">
                       {currentProperty?.options?.map((option) => (
                         <div key={option.id} className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-[#2a2a2a] group">
-                          <div className="flex items-center gap-3">
-                            <input
-                              type="color"
-                              value={getColorForOption(option.color)}
-                              onChange={(e) => handleOptionUpdate(option.id, { color: e.target.value })}
-                              className="h-3 w-3 rounded-full border-none cursor-pointer"
-                              style={{ backgroundColor: getColorForOption(option.color) }}
-                            />
-                            {editingOptionId === option.id ? (
+                           <div className="flex items-center gap-3">
+                             {option.icon && (() => {
+                               const iconDef = getIconByName(option.icon);
+                               if (iconDef) {
+                                 const IconComponent = iconDef.icon;
+                                 return (
+                                   <Button
+                                     variant="ghost"
+                                     size="sm"
+                                     onClick={() => handleOptionIconClick(option.id)}
+                                     className="h-5 w-5 p-0 text-white hover:bg-[#353535] hover:text-white/80"
+                                     title="Canviar icona"
+                                   >
+                                     <IconComponent className="h-3 w-3" />
+                                   </Button>
+                                 );
+                               }
+                               return null;
+                             })()}
+                             {!option.icon && (
+                               <Button
+                                 variant="ghost"
+                                 size="sm"
+                                 onClick={() => handleOptionIconClick(option.id)}
+                                 className="h-5 w-5 p-0 text-[#b8b8b8] hover:bg-[#353535] hover:text-white"
+                                 title="Afegir icona"
+                               >
+                                 <ImageIcon className="h-3 w-3" />
+                               </Button>
+                             )}
+                             <input
+                               type="color"
+                               value={getColorForOption(option.color)}
+                               onChange={(e) => handleOptionUpdate(option.id, { color: e.target.value })}
+                               className="h-3 w-3 rounded-full border-none cursor-pointer"
+                               style={{ backgroundColor: getColorForOption(option.color) }}
+                             />
+                             {editingOptionId === option.id ? (
                               <input 
                                 type="text" 
                                 value={editingOptionValue}
@@ -1376,6 +1430,17 @@ const DatabaseToolbar = ({
         </Popover>
 
       </div>
+      
+      <IconPicker
+        open={showIconPicker}
+        onOpenChange={setShowIconPicker}
+        onIconSelect={handleIconSelect}
+        selectedIcon={iconTarget?.type === 'property' 
+          ? properties.find(p => p.id === iconTarget?.id)?.icon 
+          : properties.flatMap(p => p.options || []).find(o => o.id === iconTarget?.id)?.icon
+        }
+        title={iconTarget?.type === 'property' ? 'Seleccionar Icona de Propietat' : 'Seleccionar Icona d\'Opció'}
+      />
     </div>;
 };
 export default DatabaseToolbar;

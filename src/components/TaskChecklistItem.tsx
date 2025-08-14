@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { usePropertyLabels } from "@/hooks/usePropertyLabels";
+import { getIconByName } from "@/lib/iconLibrary";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,7 +41,14 @@ const TaskChecklistItem = memo(({
   viewMode = "list", 
   completingTasks 
 }: TaskChecklistItemProps) => {
-  const { getPriorityLabel, getPriorityColor: getDynamicPriorityColor, getStatusLabel, getStatusColor: getDynamicStatusColor } = usePropertyLabels();
+  const { 
+    getPriorityLabel, 
+    getPriorityColor: getDynamicPriorityColor, 
+    getPriorityIcon,
+    getStatusLabel, 
+    getStatusColor: getDynamicStatusColor,
+    getStatusIcon
+  } = usePropertyLabels();
 
   // Memoized color calculations
   const priorityColor = useMemo(() => {
@@ -115,12 +123,33 @@ const TaskChecklistItem = memo(({
             {task.title}
           </h3>
           
-          {/* Priority Flag */}
-          <Flag className={cn("h-3 w-3 flex-shrink-0", priorityColor)} />
+          {/* Priority Icon */}
+          {(() => {
+            const priorityIconName = getPriorityIcon(task.priority);
+            if (priorityIconName) {
+              const iconDef = getIconByName(priorityIconName);
+              if (iconDef) {
+                const PriorityIconComponent = iconDef.icon;
+                return <PriorityIconComponent className={cn("h-3 w-3 flex-shrink-0", priorityColor)} />;
+              }
+            }
+            return <Flag className={cn("h-3 w-3 flex-shrink-0", priorityColor)} />;
+          })()}
           
-          {/* In Progress Badge */}
+          {/* Status Badge */}
           {isInProgress && (
-            <Badge variant="outline" className={cn("text-xs px-1.5 py-0", statusColor)}>
+            <Badge variant="outline" className={cn("text-xs px-1.5 py-0 flex items-center gap-1", statusColor)}>
+              {(() => {
+                const statusIconName = getStatusIcon(task.status);
+                if (statusIconName) {
+                  const iconDef = getIconByName(statusIconName);
+                  if (iconDef) {
+                    const StatusIconComponent = iconDef.icon;
+                    return <StatusIconComponent className="h-2.5 w-2.5" />;
+                  }
+                }
+                return null;
+              })()}
               {getStatusLabel(task.status)}
             </Badge>
           )}

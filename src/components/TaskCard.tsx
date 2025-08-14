@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { usePropertyLabels } from "@/hooks/usePropertyLabels";
+import { getIconByName } from "@/lib/iconLibrary";
 
 interface Task {
   id: string;
@@ -23,7 +24,14 @@ interface TaskCardProps {
 }
 
 const TaskCard = ({ task, onStatusChange, onEdit, onDelete }: TaskCardProps) => {
-  const { getStatusLabel, getPriorityLabel, getStatusColor: getDynamicStatusColor, getPriorityColor: getDynamicPriorityColor } = usePropertyLabels();
+  const { 
+    getStatusLabel, 
+    getPriorityLabel, 
+    getStatusColor: getDynamicStatusColor, 
+    getPriorityColor: getDynamicPriorityColor,
+    getStatusIcon,
+    getPriorityIcon
+  } = usePropertyLabels();
 
   const getStatusColor = (status: Task['status']) => {
     const color = getDynamicStatusColor(status);
@@ -48,7 +56,17 @@ const TaskCard = ({ task, onStatusChange, onEdit, onDelete }: TaskCardProps) => 
             {task.title}
           </h3>
           <div className="flex items-center gap-1">
-            <Flag className={cn("h-4 w-4", getPriorityColor(task.priority))} />
+            {(() => {
+              const priorityIconName = getPriorityIcon(task.priority);
+              if (priorityIconName) {
+                const iconDef = getIconByName(priorityIconName);
+                if (iconDef) {
+                  const PriorityIconComponent = iconDef.icon;
+                  return <PriorityIconComponent className={cn("h-4 w-4", getPriorityColor(task.priority))} />;
+                }
+              }
+              return <Flag className={cn("h-4 w-4", getPriorityColor(task.priority))} />;
+            })()}
           </div>
         </div>
 
@@ -62,8 +80,19 @@ const TaskCard = ({ task, onStatusChange, onEdit, onDelete }: TaskCardProps) => 
           <div className="flex items-center gap-2">
             <Badge 
               variant="outline" 
-              className={cn("text-xs", getStatusColor(task.status))}
+              className={cn("text-xs flex items-center gap-1", getStatusColor(task.status))}
             >
+              {(() => {
+                const statusIconName = getStatusIcon(task.status);
+                if (statusIconName) {
+                  const iconDef = getIconByName(statusIconName);
+                  if (iconDef) {
+                    const StatusIconComponent = iconDef.icon;
+                    return <StatusIconComponent className="h-3 w-3" />;
+                  }
+                }
+                return null;
+              })()}
               {getStatusLabel(task.status)}
             </Badge>
             
