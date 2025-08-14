@@ -11,10 +11,10 @@ import { RouteCacheProvider } from "@/components/ui/route-cache";
 const App = () => (
   <div className="w-full min-h-screen overflow-x-hidden">
     <TooltipProvider>
-      <RouteCacheProvider maxAge={10 * 60 * 1000} maxEntries={15}>
-        <Toaster />
-        <SonnerToaster />
-        <BrowserRouter>
+      <Toaster />
+      <SonnerToaster />
+      <BrowserRouter>
+        <RouteCacheProvider maxAge={10 * 60 * 1000} maxEntries={15}>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/task/:taskId" element={<LazyTaskDetailPage />} />
@@ -22,9 +22,9 @@ const App = () => (
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
-        </BrowserRouter>
-        <PomodoroWidget />
-      </RouteCacheProvider>
+        </RouteCacheProvider>
+      </BrowserRouter>
+      <PomodoroWidget />
     </TooltipProvider>
   </div>
 );
