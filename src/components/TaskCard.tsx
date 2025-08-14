@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { usePropertyLabels } from "@/hooks/usePropertyLabels";
 import { getIconByName } from "@/lib/iconLibrary";
-import { getPriorityIconComponent } from "@/utils/priorityHelpers";
+import { PriorityBadge } from "@/components/ui/priority-badge";
 
 interface Task {
   id: string;
@@ -56,12 +56,7 @@ const TaskCard = ({ task, onStatusChange, onEdit, onDelete }: TaskCardProps) => 
           >
             {task.title}
           </h3>
-          <div className="flex items-center gap-1">
-            {(() => {
-              const PriorityIconComponent = getPriorityIconComponent(task.priority, getPriorityIcon);
-              return <PriorityIconComponent className="h-4 w-4" style={getPriorityColor(task.priority)} />;
-            })()}
-          </div>
+          <PriorityBadge priority={task.priority} size="sm" />
         </div>
 
         {task.description && (
@@ -89,10 +84,6 @@ const TaskCard = ({ task, onStatusChange, onEdit, onDelete }: TaskCardProps) => 
               })()}
               {getStatusLabel(task.status)}
             </Badge>
-            
-            <span className="text-xs font-medium" style={getPriorityColor(task.priority)}>
-              {getPriorityLabel(task.priority)}
-            </span>
           </div>
 
           {task.due_date && (

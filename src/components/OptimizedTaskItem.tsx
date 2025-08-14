@@ -13,7 +13,7 @@ import { Clock, Edit, MoreVertical, Trash2, Calendar } from "lucide-react";
 import type { Tasca } from '@/types';
 import { usePropertyLabels } from '@/hooks/usePropertyLabels';
 import { getIconByName } from '@/lib/iconLibrary';
-import { getPriorityIconComponent } from '@/utils/priorityHelpers';
+import { PriorityBadge } from '@/components/ui/priority-badge';
 import { cn } from '@/lib/utils';
 
 interface OptimizedTaskItemProps {
@@ -106,11 +106,8 @@ const OptimizedTaskItem = memo<OptimizedTaskItemProps>(({
                   {task.title}
                 </h3>
                 
-                {/* Priority Flag */}
-                {(() => {
-                  const PriorityIconComponent = getPriorityIconComponent(task.priority, getPriorityIcon);
-                  return <PriorityIconComponent className="h-3 w-3 flex-shrink-0" style={priorityColor} />;
-                })()}
+                {/* Priority Badge */}
+                <PriorityBadge priority={task.priority} size="sm" />
               </div>
               
               {task.description && (
@@ -160,10 +157,6 @@ const OptimizedTaskItem = memo<OptimizedTaskItemProps>(({
               })()}
               {getStatusLabel(task.status)}
             </Badge>
-            
-            <span className="text-xs font-medium" style={priorityColor}>
-              {getPriorityLabel(task.priority)}
-            </span>
 
             {formattedDueDate && (
               <div className={`flex items-center gap-1 text-xs ${

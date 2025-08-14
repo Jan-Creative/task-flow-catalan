@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { usePropertyLabels } from "@/hooks/usePropertyLabels";
 import { getIconByName } from "@/lib/iconLibrary";
-import { getPriorityIconComponent } from "@/utils/priorityHelpers";
+import { PriorityBadge } from "@/components/ui/priority-badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -123,11 +123,8 @@ const TaskChecklistItem = memo(({
             {task.title}
           </h3>
           
-          {/* Priority Icon */}
-          {(() => {
-            const PriorityIconComponent = getPriorityIconComponent(task.priority, getPriorityIcon);
-            return <PriorityIconComponent className="h-3 w-3 flex-shrink-0" style={priorityColor} />;
-          })()}
+          {/* Priority Badge */}
+          <PriorityBadge priority={task.priority} size="sm" />
           
           {isInProgress && (
             <Badge variant="outline" className="text-xs px-1.5 py-0 flex items-center gap-1" style={statusColor}>
@@ -148,7 +145,6 @@ const TaskChecklistItem = memo(({
         </div>
 
         <div className="flex items-center gap-2 text-xs text-white/70">
-          <span style={priorityColor}>{getPriorityLabel(task.priority)}</span>
           
           {formattedDate && (
             <>
