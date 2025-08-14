@@ -1436,7 +1436,7 @@ const DatabaseToolbar = ({
                   <Button
                     onClick={handleCreateNewProperty}
                     disabled={!newPropertyName.trim() || newPropertyOptions.length === 0 || isCreatingProperty}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isCreatingProperty ? (
                       <>
