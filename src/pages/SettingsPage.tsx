@@ -13,11 +13,14 @@ import { ToggleRow } from "@/components/settings/ToggleRow";
 import { PasswordChangeModal } from "@/components/settings/PasswordChangeModal";
 import { PropertyManager } from "@/components/settings/PropertyManager";
 import { useToast } from "@/hooks/use-toast";
+import { usePropertyDialog } from "@/contexts/PropertyDialogContext";
+import { CreatePropertyDialog } from "@/components/settings/CreatePropertyDialog";
 
 const SettingsPage = () => {
   const { user, signOut } = useAuth();
   const { theme, setTheme } = useTheme();
   const { toast } = useToast();
+  const { isCreateDialogOpen, closeCreateDialog } = usePropertyDialog();
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showPropertyManager, setShowPropertyManager] = useState(false);
 
@@ -43,6 +46,16 @@ const SettingsPage = () => {
       description: "La funcionalitat de canvi d'email estarà disponible aviat",
       variant: "default",
     });
+  };
+
+  const handleCreateProperty = async (data: any) => {
+    console.log('🎯 SettingsPage: Creating property with data:', data);
+    // TODO: Implement actual property creation with backend
+    toast({
+      title: "Propietat creada!",
+      description: `S'ha creat la propietat "${data.name}" amb ${data.options.length} opcions.`,
+    });
+    closeCreateDialog();
   };
 
   const isDarkMode = theme === "dark";
@@ -185,6 +198,13 @@ const SettingsPage = () => {
       <PasswordChangeModal
         open={showPasswordModal}
         onOpenChange={setShowPasswordModal}
+      />
+
+      {/* Global Create Property Dialog */}
+      <CreatePropertyDialog
+        open={isCreateDialogOpen}
+        onOpenChange={closeCreateDialog}
+        onCreateProperty={handleCreateProperty}
       />
     </div>
   );

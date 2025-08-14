@@ -5,6 +5,7 @@ import { ThemeProvider } from "next-themes";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PomodoroProvider } from "@/contexts/PomodoroContext";
 import { KeyboardShortcutsProvider } from "@/contexts/KeyboardShortcutsContext";
+import { PropertyDialogProvider } from "@/contexts/PropertyDialogContext";
 import App from "./App.tsx";
 import "./index.css";
 import { Toaster } from "@/components/ui/sonner";
@@ -36,9 +37,11 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         >
           <KeyboardShortcutsProvider>
             <PomodoroProvider>
-              <App />
-              <Toaster />
-              <NotificationDisplay />
+              <PropertyDialogProvider>
+                <App />
+                <Toaster />
+                <NotificationDisplay />
+              </PropertyDialogProvider>
             </PomodoroProvider>
           </KeyboardShortcutsProvider>
         </ThemeProvider>

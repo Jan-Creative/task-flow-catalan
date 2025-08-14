@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { useProperties } from "@/hooks/useProperties";
 import { useToast } from "@/hooks/use-toast";
+import { usePropertyDialog } from "@/contexts/PropertyDialogContext";
 interface DatabaseToolbarProps {
   viewMode: "list" | "kanban";
   onViewModeChange: (mode: "list" | "kanban") => void;
@@ -44,6 +45,7 @@ const DatabaseToolbar = ({
   const [showAddOption, setShowAddOption] = useState(false);
   const { properties, getPropertyByName, updatePropertyOption, createPropertyOption, deletePropertyOption, updatePropertyDefinition, loading, ensureSystemProperties } = useProperties();
   const { toast } = useToast();
+  const { openCreateDialog } = usePropertyDialog();
   const navigate = useNavigate();
 
   // Get current property data
@@ -512,12 +514,21 @@ const DatabaseToolbar = ({
                   </div>
 
                   {/* Noves propietats */}
-                  <div className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer opacity-60">
+                  <div 
+                    className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer transition-all duration-200 hover:text-blue-400"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      console.log('🎯 DatabaseToolbar: Clicked "Noves propietats" button');
+                      openCreateDialog();
+                      setIsSettingsOpen(false);
+                    }}
+                  >
                     <div className="flex items-center gap-3">
-                      <Plus className="h-4 w-4 text-[#b8b8b8]" />
-                      <span className="text-sm text-white">Noves propietats</span>
+                      <Plus className="h-4 w-4 text-[#b8b8b8] group-hover:text-blue-400 transition-colors" />
+                      <span className="text-sm text-white group-hover:text-blue-400 transition-colors">Noves propietats</span>
                     </div>
-                    <ChevronDown className="h-3 w-3 text-[#b8b8b8] rotate-[-90deg]" />
+                    <ChevronDown className="h-3 w-3 text-[#b8b8b8] rotate-[-90deg] group-hover:text-blue-400 transition-colors" />
                   </div>
 
                   {/* Separator */}
