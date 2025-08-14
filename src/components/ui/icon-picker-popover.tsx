@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Search, X } from 'lucide-react';
 import { 
   iconLibrary, 
@@ -35,6 +35,12 @@ export const IconPickerPopover: React.FC<IconPickerPopoverProps> = ({
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [pendingIcon, setPendingIcon] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  // DEBUG: Monitor pendingIcon changes
+  useEffect(() => {
+    console.log('🔥 DEBUG: pendingIcon changed to:', pendingIcon);
+    console.log('🔥 DEBUG: Confirm button should be:', pendingIcon ? 'ENABLED' : 'DISABLED');
+  }, [pendingIcon]);
 
   const filteredIcons = useMemo(() => {
     return searchIcons(searchQuery, selectedCategory === 'all' ? undefined : selectedCategory);
@@ -92,9 +98,11 @@ export const IconPickerPopover: React.FC<IconPickerPopoverProps> = ({
       console.log('🔥 IconPreview: Button clicked for icon:', icon.name);
       console.log('🔥 IconPreview: Event details:', e.type, e.button);
       console.log('🔥 IconPreview: isLoading:', isLoading);
-      e.preventDefault();
+      // STEP 1: Remove e.preventDefault() - this was blocking the selection!
       e.stopPropagation();
+      console.log('🔥 IconPreview: About to call handleIconClick');
       handleIconClick(icon.name);
+      console.log('🔥 IconPreview: handleIconClick called');
     };
 
     const handleMouseDown = (e: React.MouseEvent) => {
@@ -238,6 +246,15 @@ export const IconPickerPopover: React.FC<IconPickerPopoverProps> = ({
                 )}
               </div>
             )}
+          </div>
+
+          {/* DEBUG INFO - STEP 3: Visual debugging */}
+          <div className="bg-red-900/20 border border-red-500 rounded p-2 text-xs">
+            <div className="text-red-300">🔥 DEBUG INFO:</div>
+            <div className="text-white">pendingIcon: {pendingIcon || 'null'}</div>
+            <div className="text-white">selectedIcon: {selectedIcon || 'null'}</div>
+            <div className="text-white">Confirm button: {pendingIcon ? 'ENABLED' : 'DISABLED'}</div>
+            <div className="text-white">isLoading: {isLoading.toString()}</div>
           </div>
 
           {/* Results count */}
