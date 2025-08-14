@@ -6,6 +6,9 @@ import { ca } from "date-fns/locale";
 import { memo } from "react";
 import { useTaskContext } from "@/contexts/TaskContext";
 import { usePropertyLabels } from "@/hooks/usePropertyLabels";
+import { useTaskProperties } from "@/hooks/useTaskProperties";
+import { PropertyBadge } from "@/components/ui/property-badge";
+import { PriorityBadge } from "@/components/ui/priority-badge";
 import { getIconByName } from "@/lib/iconLibrary";
 import { cn } from "@/lib/utils";
 
@@ -32,6 +35,9 @@ export const TaskDetailsCard = memo(({ task: propTask, folderName: propFolderNam
   const contextData = useTaskContext();
   const task = propTask || contextData?.task;
   const folderName = propFolderName || contextData?.folder?.name;
+  
+  // Obtenir les propietats de la tasca
+  const { data: taskProperties = [] } = useTaskProperties(task?.id);
   
   const { 
     getStatusLabel, 
@@ -71,6 +77,7 @@ export const TaskDetailsCard = memo(({ task: propTask, folderName: propFolderNam
           </div>
 
           <div className="flex flex-wrap gap-1.5">
+            {/* Estat - sempre mostrar */}
             <Badge className={cn("text-xs flex items-center gap-1", getStatusColor(task.status))}>
               {(() => {
                 const statusIconName = getStatusIcon(task.status);
@@ -85,20 +92,22 @@ export const TaskDetailsCard = memo(({ task: propTask, folderName: propFolderNam
               })()}
               {getStatusLabel(task.status)}
             </Badge>
-            <Badge className={cn("text-xs flex items-center gap-1", getPriorityColor(task.priority))}>
-              {(() => {
-                const priorityIconName = getPriorityIcon(task.priority);
-                if (priorityIconName) {
-                  const iconDef = getIconByName(priorityIconName);
-                  if (iconDef) {
-                    const PriorityIconComponent = iconDef.icon;
-                    return <PriorityIconComponent className="h-3 w-3" />;
-                  }
-                }
-                return null;
-              })()}
-              {getPriorityLabel(task.priority)}
-            </Badge>
+
+            {/* Prioritat - sempre mostrar */}
+            <PriorityBadge priority={task.priority} size="sm" />
+
+            {/* Propietats personalitzades */}
+            {taskProperties.map((taskProp) => (
+              <PropertyBadge
+                key={taskProp.id}
+                propertyName={taskProp.property_definitions.name}
+                optionValue={taskProp.property_options.value}
+                optionLabel={taskProp.property_options.label}
+                optionColor={taskProp.property_options.color}
+                optionIcon={taskProp.property_options.icon}
+                size="sm"
+              />
+            ))}
           </div>
         </div>
 
