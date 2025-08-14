@@ -5,6 +5,9 @@ import { format } from "date-fns";
 import { ca } from "date-fns/locale";
 import { memo } from "react";
 import { useTaskContext } from "@/contexts/TaskContext";
+import { usePropertyLabels } from "@/hooks/usePropertyLabels";
+import { getIconByName } from "@/lib/iconLibrary";
+import { cn } from "@/lib/utils";
 
 interface Task {
   id: string;
@@ -29,22 +32,24 @@ export const TaskDetailsCard = memo(({ task: propTask, folderName: propFolderNam
   const contextData = useTaskContext();
   const task = propTask || contextData?.task;
   const folderName = propFolderName || contextData?.folder?.name;
+  
+  const { 
+    getStatusLabel, 
+    getPriorityLabel, 
+    getStatusColor: getDynamicStatusColor, 
+    getPriorityColor: getDynamicPriorityColor,
+    getStatusIcon,
+    getPriorityIcon
+  } = usePropertyLabels();
+
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completada': return 'bg-green-500/20 text-green-700 border-green-500/30';
-      case 'en_progres': return 'bg-blue-500/20 text-blue-700 border-blue-500/30';
-      case 'pendent': return 'bg-yellow-500/20 text-yellow-700 border-yellow-500/30';
-      default: return 'bg-muted text-muted-foreground';
-    }
+    const color = getDynamicStatusColor(status);
+    return `bg-[${color}]/20 text-foreground border-[${color}]/30`;
   };
 
   const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'alta': return 'bg-red-500/20 text-red-700 border-red-500/30';
-      case 'mitjana': return 'bg-orange-500/20 text-orange-700 border-orange-500/30';
-      case 'baixa': return 'bg-green-500/20 text-green-700 border-green-500/30';
-      default: return 'bg-muted text-muted-foreground';
-    }
+    const color = getDynamicPriorityColor(priority);
+    return `bg-[${color}]/20 text-foreground border-[${color}]/30`;
   };
 
   return (
@@ -66,11 +71,33 @@ export const TaskDetailsCard = memo(({ task: propTask, folderName: propFolderNam
           </div>
 
           <div className="flex flex-wrap gap-1.5">
-            <Badge className={`${getStatusColor(task.status)} text-xs`}>
-              {task.status.replace('_', ' ')}
+            <Badge className={cn("text-xs flex items-center gap-1", getStatusColor(task.status))}>
+              {(() => {
+                const statusIconName = getStatusIcon(task.status);
+                if (statusIconName) {
+                  const iconDef = getIconByName(statusIconName);
+                  if (iconDef) {
+                    const StatusIconComponent = iconDef.icon;
+                    return <StatusIconComponent className="h-3 w-3" />;
+                  }
+                }
+                return null;
+              })()}
+              {getStatusLabel(task.status)}
             </Badge>
-            <Badge className={`${getPriorityColor(task.priority)} text-xs`}>
-              {task.priority}
+            <Badge className={cn("text-xs flex items-center gap-1", getPriorityColor(task.priority))}>
+              {(() => {
+                const priorityIconName = getPriorityIcon(task.priority);
+                if (priorityIconName) {
+                  const iconDef = getIconByName(priorityIconName);
+                  if (iconDef) {
+                    const PriorityIconComponent = iconDef.icon;
+                    return <PriorityIconComponent className="h-3 w-3" />;
+                  }
+                }
+                return null;
+              })()}
+              {getPriorityLabel(task.priority)}
             </Badge>
           </div>
         </div>
