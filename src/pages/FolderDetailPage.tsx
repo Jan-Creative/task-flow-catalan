@@ -9,6 +9,8 @@ import TaskChecklistItem from "@/components/TaskChecklistItem";
 import CreateTaskDrawer from "@/components/CreateTaskDrawer";
 import DatabaseToolbar from "@/components/DatabaseToolbar";
 import BottomNavigation from "@/components/BottomNavigation";
+import { FolderCustomizationPopover } from "@/components/folders/FolderCustomizationPopover";
+import { getIconByName } from "@/lib/iconLibrary";
 
 interface Task {
   id: string;
@@ -25,7 +27,7 @@ interface Task {
 const FolderDetailPage = () => {
   const { folderId } = useParams<{ folderId: string }>();
   const navigate = useNavigate();
-  const { tasks, folders, loading, updateTaskStatus, updateTask, deleteTask, createTask } = useDadesApp();
+  const { tasks, folders, loading, updateTaskStatus, updateTask, deleteTask, createTask, updateFolder } = useDadesApp();
   const { getStatusLabel, getStatusOptions, getStatusColor } = usePropertyLabels();
   const [showCreateTask, setShowCreateTask] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -277,18 +279,36 @@ const FolderDetailPage = () => {
           </Button>
 
           <div className="flex items-center gap-4 mb-4">
-            <div 
-              className="flex-shrink-0 p-3 rounded-xl backdrop-blur-sm"
-              style={{ 
-                backgroundColor: `${currentFolder.color}20`,
-                border: `1px solid ${currentFolder.color}40`
+            <FolderCustomizationPopover
+              folderId={currentFolder.id}
+              currentIcon={currentFolder.icon}
+              currentColor={currentFolder.color}
+              onUpdate={async (updates) => {
+                if (!currentFolder.is_system) {
+                  await updateFolder(currentFolder.id, updates);
+                }
               }}
             >
-              <FolderOpen 
-                className="h-6 w-6" 
-                style={{ color: currentFolder.color }}
-              />
-            </div>
+              <div 
+                className={`flex-shrink-0 p-3 rounded-xl backdrop-blur-sm transition-all duration-200 ${
+                  currentFolder.is_system ? '' : 'cursor-pointer hover:scale-105'
+                }`}
+                style={{ 
+                  backgroundColor: `${currentFolder.color}20`,
+                  border: `1px solid ${currentFolder.color}40`
+                }}
+              >
+                {(() => {
+                  if (currentFolder.icon) {
+                    const IconComponent = getIconByName(currentFolder.icon)?.icon;
+                    if (IconComponent) {
+                      return <IconComponent className="h-6 w-6" style={{ color: currentFolder.color }} />;
+                    }
+                  }
+                  return <FolderOpen className="h-6 w-6" style={{ color: currentFolder.color }} />;
+                })()}
+              </div>
+            </FolderCustomizationPopover>
             
             <div className="flex-1">
               <h1 className="text-2xl font-bold text-foreground mb-1">

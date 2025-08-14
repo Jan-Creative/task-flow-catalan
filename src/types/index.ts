@@ -17,6 +17,7 @@ export interface Carpeta {
   name: string;
   color: string;
   is_system: boolean;
+  icon?: string;
 }
 
 export interface PropertyOption {
@@ -55,4 +56,5 @@ export interface ActualitzarTascaData extends Partial<Omit<Tasca, "id" | "create
 export interface ActualitzarCarpetaData {
   name?: string;
   color?: string;
+  icon?: string;
 }

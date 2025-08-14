@@ -1,4 +1,5 @@
 import { FolderOpen, MoreVertical, Edit2, Trash2 } from "lucide-react";
+import { getIconByName } from "@/lib/iconLibrary";
 import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
@@ -13,6 +14,7 @@ interface Folder {
   name: string;
   color: string;
   is_system?: boolean;
+  icon?: string;
 }
 
 interface FolderItemProps {
@@ -55,10 +57,15 @@ export function FolderItem({
             border: `1px solid ${folder.color}40`
           }}
         >
-          <FolderOpen 
-            className="h-5 w-5" 
-            style={{ color: folder.color }}
-          />
+          {(() => {
+            if (folder.icon) {
+              const IconComponent = getIconByName(folder.icon)?.icon;
+              if (IconComponent) {
+                return <IconComponent className="h-5 w-5" style={{ color: folder.color }} />;
+              }
+            }
+            return <FolderOpen className="h-5 w-5" style={{ color: folder.color }} />;
+          })()}
         </div>
         
         <div className="flex-1 min-w-0">

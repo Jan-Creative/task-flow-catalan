@@ -39,7 +39,7 @@ export const useDadesApp = () => {
           .order("created_at", { ascending: false }),
         supabase
           .from("folders")
-          .select("id, name, color, is_system")
+          .select("id, name, color, is_system, icon")
           .eq("user_id", user.id)
           .order("is_system", { ascending: false })
       ]);
@@ -309,7 +309,7 @@ export const useDadesApp = () => {
       const { data: newFolder, error } = await supabase
         .from("folders")
         .insert([{ name, color, user_id: user.id }])
-        .select("id, name, color, is_system")
+        .select("id, name, color, is_system, icon")
         .single();
 
       if (error) throw error;
