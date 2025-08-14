@@ -69,6 +69,35 @@ const CreateTaskDrawer = ({ open, onClose, onSubmit, folders, editingTask }: Cre
     }
   }, [editingTask, open]);
 
+  // Auto-focus al camp de títol quan s'obre el drawer
+  useEffect(() => {
+    if (open) {
+      // Petit delay per assegurar que el DOM està completament carregat
+      const timer = setTimeout(() => {
+        const titleInput = document.getElementById('title');
+        if (titleInput) {
+          titleInput.focus();
+        }
+      }, 150);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [open]);
+
+  // Gestionar tecla Escape per tancar el drawer
+  useEffect(() => {
+    if (!open) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [open, onClose]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;

@@ -24,13 +24,23 @@ const Index = () => {
   const { createTask, updateTask, folders } = useDadesApp();
   const { toast } = useToast();
 
-  // Registrar drecera per crear tasca (Cmd/Ctrl + N)
+  // Registrar drecera per crear tasca (Cmd/Ctrl + N) - Toggle behavior
   useShortcut(
     'createTask',
     'Crear Tasca',
     ['meta', 'n'],
     () => {
-      if (!showCreateDialog) {
+      if (showCreateDialog) {
+        // Si el formulari està obert, tancar-lo
+        setShowCreateDialog(false);
+        setEditingTask(null);
+        toast({
+          title: "Formulari tancat",
+          description: "S'ha tancat el formulari de creació de tasques",
+          duration: 2000,
+        });
+      } else {
+        // Si el formulari està tancat, obrir-lo
         setShowCreateDialog(true);
         toast({
           title: "Drecera activada",
@@ -40,7 +50,7 @@ const Index = () => {
       }
     },
     {
-      description: 'Obrir el formulari per crear una nova tasca',
+      description: 'Obrir/tancar el formulari per crear una nova tasca',
       category: 'actions',
       enabled: !!user // Només si l'usuari està autenticat
     }
