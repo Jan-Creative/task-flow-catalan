@@ -1,10 +1,11 @@
-import { Calendar, Clock, Flag } from "lucide-react";
+import { Calendar, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { usePropertyLabels } from "@/hooks/usePropertyLabels";
 import { getIconByName } from "@/lib/iconLibrary";
+import { getPriorityIconComponent } from "@/utils/priorityHelpers";
 
 interface Task {
   id: string;
@@ -57,15 +58,8 @@ const TaskCard = ({ task, onStatusChange, onEdit, onDelete }: TaskCardProps) => 
           </h3>
           <div className="flex items-center gap-1">
             {(() => {
-              const priorityIconName = getPriorityIcon(task.priority);
-              if (priorityIconName) {
-                const iconDef = getIconByName(priorityIconName);
-                if (iconDef) {
-                  const PriorityIconComponent = iconDef.icon;
-                  return <PriorityIconComponent className={cn("h-4 w-4", getPriorityColor(task.priority))} />;
-                }
-              }
-              return <Flag className={cn("h-4 w-4", getPriorityColor(task.priority))} />;
+              const PriorityIconComponent = getPriorityIconComponent(task.priority, getPriorityIcon);
+              return <PriorityIconComponent className={cn("h-4 w-4", getPriorityColor(task.priority))} />;
             })()}
           </div>
         </div>

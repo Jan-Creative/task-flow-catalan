@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useMemo } from "react";
-import { Flag, Calendar, MoreHorizontal } from "lucide-react";
+import { Calendar, MoreHorizontal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { usePropertyLabels } from "@/hooks/usePropertyLabels";
 import { getIconByName } from "@/lib/iconLibrary";
+import { getPriorityIconComponent } from "@/utils/priorityHelpers";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -125,15 +126,8 @@ const TaskChecklistItem = memo(({
           
           {/* Priority Icon */}
           {(() => {
-            const priorityIconName = getPriorityIcon(task.priority);
-            if (priorityIconName) {
-              const iconDef = getIconByName(priorityIconName);
-              if (iconDef) {
-                const PriorityIconComponent = iconDef.icon;
-                return <PriorityIconComponent className={cn("h-3 w-3 flex-shrink-0", priorityColor)} />;
-              }
-            }
-            return <Flag className={cn("h-3 w-3 flex-shrink-0", priorityColor)} />;
+            const PriorityIconComponent = getPriorityIconComponent(task.priority, getPriorityIcon);
+            return <PriorityIconComponent className={cn("h-3 w-3 flex-shrink-0", priorityColor)} />;
           })()}
           
           {/* Status Badge */}

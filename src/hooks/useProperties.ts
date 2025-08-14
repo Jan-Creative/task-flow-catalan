@@ -367,10 +367,10 @@ export const useProperties = () => {
         if (prioritatProp) {
           // Create default options for Prioritat
           const prioritatOptions = [
-            { value: 'baixa', label: 'Baixa', color: '#64748b', sort_order: 0, is_default: false },
-            { value: 'mitjana', label: 'Mitjana', color: '#f59e0b', sort_order: 1, is_default: true },
-            { value: 'alta', label: 'Alta', color: '#ef4444', sort_order: 2, is_default: false },
-            { value: 'urgent', label: 'Urgent', color: '#dc2626', sort_order: 3, is_default: false }
+            { value: 'baixa', label: 'Baixa', color: '#64748b', icon: 'Flag', sort_order: 0, is_default: false },
+            { value: 'mitjana', label: 'Mitjana', color: '#f59e0b', icon: 'Flag', sort_order: 1, is_default: true },
+            { value: 'alta', label: 'Alta', color: '#ef4444', icon: 'Flag', sort_order: 2, is_default: false },
+            { value: 'urgent', label: 'Urgent', color: '#dc2626', icon: 'AlertTriangle', sort_order: 3, is_default: false }
           ];
 
           for (const option of prioritatOptions) {

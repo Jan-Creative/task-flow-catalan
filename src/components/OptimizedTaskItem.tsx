@@ -11,6 +11,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Clock, Edit, MoreVertical, Trash2, Calendar } from "lucide-react";
 import type { Tasca } from '@/types';
+import { usePropertyLabels } from '@/hooks/usePropertyLabels';
+import { getIconByName } from '@/lib/iconLibrary';
+import { getPriorityIconComponent } from '@/utils/priorityHelpers';
+import { cn } from '@/lib/utils';
 
 interface OptimizedTaskItemProps {
   task: Tasca;
@@ -29,6 +33,14 @@ const OptimizedTaskItem = memo<OptimizedTaskItemProps>(({
   viewMode = "list",
   completingTasks = new Set()
 }) => {
+  const { 
+    getStatusLabel, 
+    getPriorityLabel, 
+    getStatusColor: getDynamicStatusColor, 
+    getPriorityColor: getDynamicPriorityColor,
+    getStatusIcon,
+    getPriorityIcon
+  } = usePropertyLabels();
   const handleStatusChange = useCallback((checked: boolean) => {
     const newStatus = checked ? 'completat' : 'pendent';
     onStatusChange?.(task.id, newStatus);
@@ -50,22 +62,14 @@ const OptimizedTaskItem = memo<OptimizedTaskItemProps>(({
   }, [task.due_date, isCompleted]);
 
   const priorityColor = useMemo(() => {
-    switch (task.priority) {
-      case 'alta': return 'bg-destructive text-destructive-foreground';
-      case 'mitjana': return 'bg-warning text-warning-foreground';
-      case 'baixa': return 'bg-muted text-muted-foreground';
-      default: return 'bg-muted text-muted-foreground';
-    }
-  }, [task.priority]);
+    const color = getDynamicPriorityColor(task.priority);
+    return `text-[${color}]`;
+  }, [task.priority, getDynamicPriorityColor]);
 
   const statusColor = useMemo(() => {
-    switch (task.status) {
-      case 'completat': return 'bg-success text-success-foreground';
-      case 'en_proces': return 'bg-primary text-primary-foreground';
-      case 'pendent': return 'bg-muted text-muted-foreground';
-      default: return 'bg-muted text-muted-foreground';
-    }
-  }, [task.status]);
+    const color = getDynamicStatusColor(task.status);
+    return `bg-[${color}]/10 text-[${color}] border-[${color}]/20`;
+  }, [task.status, getDynamicStatusColor]);
 
   const formattedDueDate = useMemo(() => {
     if (!task.due_date) return null;
@@ -95,11 +99,19 @@ const OptimizedTaskItem = memo<OptimizedTaskItemProps>(({
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
-              <h3 className={`font-medium ${viewMode === 'kanban' ? 'text-sm' : 'text-sm'} mb-1 line-clamp-2 ${
-                isCompleted ? 'line-through text-muted-foreground' : 'text-foreground'
-              }`}>
-                {task.title}
-              </h3>
+              <div className="flex items-center gap-2 mb-1">
+                <h3 className={`font-medium ${viewMode === 'kanban' ? 'text-sm' : 'text-sm'} line-clamp-2 ${
+                  isCompleted ? 'line-through text-muted-foreground' : 'text-foreground'
+                }`}>
+                  {task.title}
+                </h3>
+                
+                {/* Priority Flag */}
+                {(() => {
+                  const PriorityIconComponent = getPriorityIconComponent(task.priority, getPriorityIcon);
+                  return <PriorityIconComponent className={cn("h-3 w-3 flex-shrink-0", priorityColor)} />;
+                })()}
+              </div>
               
               {task.description && (
                 <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
@@ -134,13 +146,24 @@ const OptimizedTaskItem = memo<OptimizedTaskItemProps>(({
 
           {/* Badges and metadata */}
           <div className="flex items-center gap-2 flex-wrap">
-            <Badge variant="secondary" className={`text-xs ${statusColor}`}>
-              {task.status.replace('_', ' ')}
+            <Badge variant="outline" className={cn("text-xs flex items-center gap-1", statusColor)}>
+              {(() => {
+                const statusIconName = getStatusIcon(task.status);
+                if (statusIconName) {
+                  const iconDef = getIconByName(statusIconName);
+                  if (iconDef) {
+                    const StatusIconComponent = iconDef.icon;
+                    return <StatusIconComponent className="h-2.5 w-2.5" />;
+                  }
+                }
+                return null;
+              })()}
+              {getStatusLabel(task.status)}
             </Badge>
             
-            <Badge variant="outline" className={`text-xs ${priorityColor}`}>
-              {task.priority}
-            </Badge>
+            <span className={cn("text-xs font-medium", priorityColor)}>
+              {getPriorityLabel(task.priority)}
+            </span>
 
             {formattedDueDate && (
               <div className={`flex items-center gap-1 text-xs ${
