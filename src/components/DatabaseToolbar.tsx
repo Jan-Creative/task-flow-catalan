@@ -179,13 +179,19 @@ const DatabaseToolbar = ({
   };
 
   const handlePropertyIconClick = (propertyId: string) => {
+    console.log('🎯 DatabaseToolbar: handlePropertyIconClick called with propertyId:', propertyId);
+    console.log('🎯 DatabaseToolbar: Setting iconTarget and showing icon picker');
     setIconTarget({ type: 'property', id: propertyId });
     setShowIconPicker(true);
+    console.log('🎯 DatabaseToolbar: showIconPicker set to true');
   };
 
   const handleOptionIconClick = (optionId: string) => {
+    console.log('🎯 DatabaseToolbar: handleOptionIconClick called with optionId:', optionId);
+    console.log('🎯 DatabaseToolbar: Setting iconTarget and showing icon picker');
     setIconTarget({ type: 'option', id: optionId });
     setShowIconPicker(true);
+    console.log('🎯 DatabaseToolbar: showIconPicker set to true');
   };
 
   // Option editing functions
@@ -1453,10 +1459,12 @@ const DatabaseToolbar = ({
         <IconPickerPopover
           open={showIconPicker}
           onOpenChange={(open) => {
-            console.log('IconPicker onOpenChange:', open);
+            console.log('🎯 DatabaseToolbar: IconPicker onOpenChange called with:', open);
+            console.log('🎯 DatabaseToolbar: Current showIconPicker state:', showIconPicker);
             setShowIconPicker(open);
             // If closing icon picker, ensure main popover stays open
             if (!open && isSettingsOpen) {
+              console.log('🎯 DatabaseToolbar: Keeping main popover open after icon picker closes');
               setTimeout(() => setIsSettingsOpen(true), 0);
             }
           }}
