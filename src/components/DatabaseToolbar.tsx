@@ -53,7 +53,7 @@ const DatabaseToolbar = ({
   const [showNewOptionInput, setShowNewOptionInput] = useState(false);
   const [isCreatingProperty, setIsCreatingProperty] = useState(false);
   
-  const { properties, getPropertyByName, updatePropertyOption, createPropertyOption, deletePropertyOption, updatePropertyDefinition, loading, ensureSystemProperties, fetchProperties } = useProperties();
+  const { properties, getPropertyByName, updatePropertyOption, createPropertyOption, deletePropertyOption, deletePropertyDefinition, updatePropertyDefinition, loading, ensureSystemProperties, fetchProperties } = useProperties();
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -177,6 +177,38 @@ const DatabaseToolbar = ({
         toast({
           title: "Error",
           description: "No s'ha pogut eliminar l'opció",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  // Delete property function
+  const handleDeleteProperty = async (propertyId: string, propertyName: string) => {
+    // Only allow deleting custom properties (not system properties)
+    const property = properties.find(p => p.id === propertyId);
+    if (property?.is_system) {
+      toast({
+        title: "Error",
+        description: "No es poden eliminar les propietats del sistema",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (confirm(`Estàs segur que vols eliminar la propietat "${propertyName}"? Totes les tasques que la tinguin assignada perdran aquesta informació.`)) {
+      try {
+        await deletePropertyDefinition(propertyId);
+        await fetchProperties();
+        setCurrentPropertyView('main');
+        toast({
+          title: "Propietat eliminada",
+          description: `S'ha eliminat la propietat "${propertyName}"`,
+        });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "No s'ha pogut eliminar la propietat",
           variant: "destructive",
         });
       }
@@ -888,10 +920,13 @@ const DatabaseToolbar = ({
                          <Copy className="h-4 w-4" />
                          <span className="text-sm">Duplicar propietat</span>
                        </div>
-                       <div className="flex items-center gap-3 py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer text-red-400 hover:text-red-300">
-                         <Trash2 className="h-4 w-4" />
-                         <span className="text-sm">Eliminar propietat</span>
-                       </div>
+                        <div 
+                          className="flex items-center gap-3 py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer text-red-400 hover:text-red-300"
+                          onClick={() => currentProperty && handleDeleteProperty(currentProperty.id, currentProperty.name)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          <span className="text-sm">Eliminar propietat</span>
+                        </div>
                      </div>
                    </>
                  )}
@@ -1111,10 +1146,13 @@ const DatabaseToolbar = ({
                          <Copy className="h-4 w-4" />
                          <span className="text-sm">Duplicar propietat</span>
                        </div>
-                       <div className="flex items-center gap-3 py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer text-red-400 hover:text-red-300">
-                         <Trash2 className="h-4 w-4" />
-                         <span className="text-sm">Eliminar propietat</span>
-                       </div>
+                        <div 
+                          className="flex items-center gap-3 py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer text-red-400 hover:text-red-300"
+                          onClick={() => currentProperty && handleDeleteProperty(currentProperty.id, currentProperty.name)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          <span className="text-sm">Eliminar propietat</span>
+                        </div>
                      </div>
                     </>
                   )}

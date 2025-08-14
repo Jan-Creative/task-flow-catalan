@@ -156,6 +156,40 @@ export const useProperties = () => {
     }
   };
 
+  const deletePropertyDefinition = async (propertyId: string) => {
+    try {
+      // First delete all associated options
+      const { error: optionsError } = await supabase
+        .from('property_options')
+        .delete()
+        .eq('property_id', propertyId);
+
+      if (optionsError) throw optionsError;
+
+      // Then delete all task properties using this property
+      const { error: taskPropsError } = await supabase
+        .from('task_properties')
+        .delete()
+        .eq('property_id', propertyId);
+
+      if (taskPropsError) throw taskPropsError;
+
+      // Finally delete the property definition
+      const { error } = await supabase
+        .from('property_definitions')
+        .delete()
+        .eq('id', propertyId)
+        .eq('is_system', false); // Only allow deleting custom properties
+
+      if (error) throw error;
+
+      // Invalidate queries for immediate refresh
+      queryClient.invalidateQueries({ queryKey: ['properties'] });
+    } catch (error) {
+      throw error;
+    }
+  };
+
   const updatePropertyDefinition = async (propertyId: string, propertyData: Partial<Omit<PropertyDefinition, 'id' | 'user_id' | 'created_at' | 'updated_at'>>) => {
     try {
       const { data, error } = await supabase
@@ -368,6 +402,7 @@ export const useProperties = () => {
     createPropertyOption,
     updatePropertyOption,
     deletePropertyOption,
+    deletePropertyDefinition,
     updatePropertyDefinition,
     getTaskProperties,
     setTaskProperty,
