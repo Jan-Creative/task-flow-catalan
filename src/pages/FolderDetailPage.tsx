@@ -301,11 +301,7 @@ const FolderDetailPage = () => {
                   updates 
                 });
                 
-                if (!currentFolder.is_system) {
-                  await updateFolder(currentFolder.id, updates);
-                } else {
-                  console.warn("Cannot update system folder");
-                }
+                await updateFolder(currentFolder.id, updates);
               }}
             >
               <div 

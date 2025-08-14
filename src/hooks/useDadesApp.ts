@@ -356,8 +356,7 @@ export const useDadesApp = () => {
         .from("folders")
         .update(updates)
         .eq("id", folderId)
-        .eq("user_id", user.id)
-        .eq("is_system", false);
+        .eq("user_id", user.id);
 
       if (error) throw error;
 
