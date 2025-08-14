@@ -87,5 +87,5 @@ export const useShortcut = (
       action,
       category: options.category || 'general'
     });
-  }, [id, name, keys, action, options.description, options.category, registerLocalShortcut]);
+  }, [id, name, keys, action, options.description, options.category]);
 };
