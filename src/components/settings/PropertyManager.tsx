@@ -4,11 +4,26 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useProperties } from "@/hooks/useProperties";
+import { useToast } from "@/hooks/use-toast";
 import { SettingsItem } from "./SettingsItem";
+import { CreatePropertyDialog } from "./CreatePropertyDialog";
+import { EditPropertyDialog } from "./EditPropertyDialog";
+import { DeleteConfirmationDialog } from "./DeleteConfirmationDialog";
 
 export const PropertyManager = () => {
   const { properties, loading } = useProperties();
+  const { toast } = useToast();
   const [expandedProperty, setExpandedProperty] = useState<string | null>(null);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedProperty, setSelectedProperty] = useState<any>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{
+    type: 'property' | 'option';
+    id: string;
+    name: string;
+    propertyId?: string;
+  } | null>(null);
 
   if (loading) {
     return (
@@ -26,6 +41,92 @@ export const PropertyManager = () => {
 
   const toggleProperty = (propertyId: string) => {
     setExpandedProperty(expandedProperty === propertyId ? null : propertyId);
+  };
+
+  const handleCreateProperty = async (data: any) => {
+    try {
+      // TODO: Implement backend integration
+      console.log('Creating property:', data);
+      toast({
+        title: "Propietat creada",
+        description: `La propietat "${data.name}" s'ha creat correctament.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "No s'ha pogut crear la propietat. Torna-ho a intentar.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEditProperty = (property: any) => {
+    setSelectedProperty(property);
+    setEditDialogOpen(true);
+  };
+
+  const handleUpdateProperty = async (data: any) => {
+    try {
+      // TODO: Implement backend integration
+      console.log('Updating property:', selectedProperty?.id, data);
+      toast({
+        title: "Propietat actualitzada",
+        description: `La propietat "${data.name}" s'ha actualitzat correctament.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "No s'ha pogut actualitzar la propietat. Torna-ho a intentar.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteProperty = (property: any) => {
+    setDeleteTarget({
+      type: 'property',
+      id: property.id,
+      name: property.name,
+    });
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteOption = (propertyId: string, option: any) => {
+    setDeleteTarget({
+      type: 'option',
+      id: option.id,
+      name: option.value,
+      propertyId,
+    });
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+
+    try {
+      if (deleteTarget.type === 'property') {
+        // TODO: Implement backend integration
+        console.log('Deleting property:', deleteTarget.id);
+        toast({
+          title: "Propietat eliminada",
+          description: `La propietat "${deleteTarget.name}" s'ha eliminat correctament.`,
+        });
+      } else {
+        // TODO: Implement backend integration
+        console.log('Deleting option:', deleteTarget.id, 'from property:', deleteTarget.propertyId);
+        toast({
+          title: "Opció eliminada",
+          description: `L'opció "${deleteTarget.name}" s'ha eliminat correctament.`,
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "No s'ha pogut eliminar l'element. Torna-ho a intentar.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -50,16 +151,16 @@ export const PropertyManager = () => {
                 <Badge variant="outline" className="bg-warning/20 text-warning border-warning/30">
                   Sistema
                 </Badge>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleProperty(property.id);
-                  }}
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEditProperty(property);
+                    }}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
               </div>
             </SettingsItem>
           ))}
@@ -77,6 +178,7 @@ export const PropertyManager = () => {
             variant="outline"
             size="sm"
             className="text-primary hover:bg-primary/10"
+            onClick={() => setCreateDialogOpen(true)}
           >
             <Plus className="h-4 w-4 mr-2" />
             Nova Propietat
@@ -93,7 +195,11 @@ export const PropertyManager = () => {
               <p className="text-sm text-muted-foreground mb-4">
                 Crea propietats per organitzar millor les teves tasques
               </p>
-              <Button variant="outline" size="sm">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setCreateDialogOpen(true)}
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 Crear Primera Propietat
               </Button>
@@ -119,7 +225,7 @@ export const PropertyManager = () => {
                     size="sm"
                     onClick={(e) => {
                       e.stopPropagation();
-                      toggleProperty(property.id);
+                      handleEditProperty(property);
                     }}
                   >
                     <Edit className="h-4 w-4" />
@@ -130,7 +236,7 @@ export const PropertyManager = () => {
                     className="text-destructive hover:bg-destructive/10"
                     onClick={(e) => {
                       e.stopPropagation();
-                      // Handle delete
+                      handleDeleteProperty(property);
                     }}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -167,13 +273,21 @@ export const PropertyManager = () => {
                       <span className="text-sm">{option.value}</span>
                     </div>
                     <div className="flex items-center gap-1">
-                      <Button variant="ghost" size="sm">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => {
+                          // TODO: Implement inline option editing
+                          console.log('Edit option:', option.id);
+                        }}
+                      >
                         <Edit className="h-3 w-3" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         className="text-destructive hover:bg-destructive/10"
+                        onClick={() => handleDeleteOption(expandedProperty, option)}
                       >
                         <Trash2 className="h-3 w-3" />
                       </Button>
@@ -184,6 +298,10 @@ export const PropertyManager = () => {
                 variant="outline"
                 size="sm"
                 className="w-full mt-2"
+                onClick={() => {
+                  // TODO: Implement add option functionality
+                  console.log('Add option to property:', expandedProperty);
+                }}
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Afegir Opció
@@ -192,6 +310,34 @@ export const PropertyManager = () => {
           </CardContent>
         </Card>
       )}
+
+      {/* Dialogs */}
+      <CreatePropertyDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+        onCreateProperty={handleCreateProperty}
+      />
+
+      <EditPropertyDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        property={selectedProperty}
+        onUpdateProperty={handleUpdateProperty}
+      />
+
+      <DeleteConfirmationDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title={deleteTarget?.type === 'property' ? "Eliminar Propietat" : "Eliminar Opció"}
+        description={
+          deleteTarget?.type === 'property'
+            ? "Estàs segur que vols eliminar aquesta propietat? Totes les tasques que la tinguin assignada perdran aquesta informació."
+            : "Estàs segur que vols eliminar aquesta opció? Totes les tasques que la tinguin assignada perdran aquesta informació."
+        }
+        itemName={deleteTarget?.name || ""}
+        onConfirm={handleConfirmDelete}
+        isDestructive={true}
+      />
     </div>
   );
 };
