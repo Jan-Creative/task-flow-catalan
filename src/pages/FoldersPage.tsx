@@ -151,19 +151,24 @@ const FoldersPage = React.memo(() => {
       {/* Bustia (Inbox) */}
       <div>
         <h2 className="text-xl font-semibold mb-4 text-foreground/80">Bustia</h2>
-        <FolderItem
-          folder={{
-            id: 'inbox',
-            name: 'Bustia',
-            color: 'hsl(var(--primary))',
-            is_system: true
-          }}
-          taskCount={getTaskCountWithoutFolder()}
-          onSelect={() => onSelectFolder(null)}
-          onEdit={() => {}}
-          onDelete={() => {}}
-          isInbox={true}
-        />
+        {(() => {
+          const inboxFolder = folders.find(f => f.is_system && f.name === 'Bustia');
+          return (
+            <FolderItem
+              folder={inboxFolder || {
+                id: 'inbox',
+                name: 'Bustia',
+                color: 'hsl(var(--primary))',
+                is_system: true
+              }}
+              taskCount={getTaskCountWithoutFolder()}
+              onSelect={() => onSelectFolder(null)}
+              onEdit={() => {}}
+              onDelete={() => {}}
+              isInbox={true}
+            />
+          );
+        })()}
       </div>
 
       {/* User's folders */}
