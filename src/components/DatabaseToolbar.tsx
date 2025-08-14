@@ -178,20 +178,18 @@ const DatabaseToolbar = ({
     }
   };
 
-  const handlePropertyIconClick = (propertyId: string) => {
-    console.log('🎯 DatabaseToolbar: handlePropertyIconClick called with propertyId:', propertyId);
-    console.log('🎯 DatabaseToolbar: Setting iconTarget and showing icon picker');
+  const handlePropertyIconClick = (e: React.MouseEvent, propertyId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
     setIconTarget({ type: 'property', id: propertyId });
     setShowIconPicker(true);
-    console.log('🎯 DatabaseToolbar: showIconPicker set to true');
   };
 
-  const handleOptionIconClick = (optionId: string) => {
-    console.log('🎯 DatabaseToolbar: handleOptionIconClick called with optionId:', optionId);
-    console.log('🎯 DatabaseToolbar: Setting iconTarget and showing icon picker');
+  const handleOptionIconClick = (e: React.MouseEvent, optionId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
     setIconTarget({ type: 'option', id: optionId });
     setShowIconPicker(true);
-    console.log('🎯 DatabaseToolbar: showIconPicker set to true');
   };
 
   // Option editing functions
@@ -817,13 +815,13 @@ const DatabaseToolbar = ({
                              if (iconDef) {
                                const IconComponent = iconDef.icon;
                                return (
-                                 <Button
-                                   variant="ghost"
-                                   size="sm"
-                                   onClick={() => handlePropertyIconClick(currentProperty.id)}
-                                   className="h-6 w-6 p-0 text-white hover:bg-[#353535] hover:text-white/80"
-                                   title="Canviar icona"
-                                 >
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={(e) => handlePropertyIconClick(e, currentProperty.id)}
+                                    className="h-6 w-6 p-0 text-white hover:bg-[#353535] hover:text-white/80 pointer-events-auto"
+                                    title="Canviar icona"
+                                  >
                                    <IconComponent className="h-4 w-4" />
                                  </Button>
                                );
@@ -831,13 +829,13 @@ const DatabaseToolbar = ({
                              return null;
                            })()}
                            {!currentProperty.icon && (
-                             <Button
-                               variant="ghost"
-                               size="sm"
-                               onClick={() => handlePropertyIconClick(currentProperty.id)}
-                               className="h-6 w-6 p-0 text-[#b8b8b8] hover:bg-[#353535] hover:text-white"
-                               title="Afegir icona"
-                             >
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => handlePropertyIconClick(e, currentProperty.id)}
+                                className="h-6 w-6 p-0 text-[#b8b8b8] hover:bg-[#353535] hover:text-white pointer-events-auto"
+                                title="Afegir icona"
+                              >
                                <ImageIcon className="h-4 w-4" />
                              </Button>
                            )}
@@ -885,13 +883,13 @@ const DatabaseToolbar = ({
                                if (iconDef) {
                                  const IconComponent = iconDef.icon;
                                  return (
-                                   <Button
-                                     variant="ghost"
-                                     size="sm"
-                                     onClick={() => handleOptionIconClick(option.id)}
-                                     className="h-5 w-5 p-0 text-white hover:bg-[#353535] hover:text-white/80"
-                                     title="Canviar icona"
-                                   >
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={(e) => handleOptionIconClick(e, option.id)}
+                                      className="h-5 w-5 p-0 text-white hover:bg-[#353535] hover:text-white/80 pointer-events-auto"
+                                      title="Canviar icona"
+                                    >
                                      <IconComponent className="h-3 w-3" />
                                    </Button>
                                  );
@@ -899,13 +897,13 @@ const DatabaseToolbar = ({
                                return null;
                              })()}
                              {!option.icon && (
-                               <Button
-                                 variant="ghost"
-                                 size="sm"
-                                 onClick={() => handleOptionIconClick(option.id)}
-                                 className="h-5 w-5 p-0 text-[#b8b8b8] hover:bg-[#353535] hover:text-white"
-                                 title="Afegir icona"
-                               >
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={(e) => handleOptionIconClick(e, option.id)}
+                                  className="h-5 w-5 p-0 text-[#b8b8b8] hover:bg-[#353535] hover:text-white pointer-events-auto"
+                                  title="Afegir icona"
+                                >
                                  <ImageIcon className="h-3 w-3" />
                                </Button>
                              )}
@@ -1455,27 +1453,23 @@ const DatabaseToolbar = ({
            </PopoverContent>
         </Popover>
 
-        {/* Icon Picker - Positioned absolutely to avoid conflicts */}
-        {showIconPicker && (
-          <IconPickerPopover
-            open={showIconPicker}
-            onOpenChange={(open) => {
-              console.log('🎯 DatabaseToolbar: IconPicker onOpenChange called with:', open);
-              setShowIconPicker(open);
-              // If closing icon picker, ensure main popover stays open
-              if (!open && isSettingsOpen) {
-                console.log('🎯 DatabaseToolbar: Keeping main popover open after icon picker closes');
-                setTimeout(() => setIsSettingsOpen(true), 0);
-              }
-            }}
-            onIconSelect={handleIconSelect}
-            selectedIcon={iconTarget?.type === 'property' 
-              ? properties.find(p => p.id === iconTarget?.id)?.icon 
-              : properties.flatMap(p => p.options || []).find(o => o.id === iconTarget?.id)?.icon
+        {/* Icon Picker - Always rendered to avoid mount/unmount issues */}
+        <IconPickerPopover
+          open={showIconPicker}
+          onOpenChange={(open) => {
+            setShowIconPicker(open);
+            // Keep main popover open when icon picker closes
+            if (!open && isSettingsOpen) {
+              setTimeout(() => setIsSettingsOpen(true), 0);
             }
-            title={iconTarget?.type === 'property' ? 'Seleccionar Icona de Propietat' : 'Seleccionar Icona d\'Opció'}
-          />
-        )}
+          }}
+          onIconSelect={handleIconSelect}
+          selectedIcon={iconTarget?.type === 'property' 
+            ? properties.find(p => p.id === iconTarget?.id)?.icon 
+            : properties.flatMap(p => p.options || []).find(o => o.id === iconTarget?.id)?.icon
+          }
+          title={iconTarget?.type === 'property' ? 'Seleccionar Icona de Propietat' : 'Seleccionar Icona d\'Opció'}
+        />
 
       </div>
     </div>;

@@ -124,7 +124,7 @@ export const IconPickerPopover: React.FC<IconPickerPopoverProps> = ({
     );
   };
 
-  if (!open) return null;
+  if (!open) return <div style={{ display: 'none' }} />;
 
   return (
     <Draggable
@@ -136,8 +136,9 @@ export const IconPickerPopover: React.FC<IconPickerPopoverProps> = ({
     >
       <div
         ref={dragRef}
-        className="fixed z-[9999] w-80 bg-[#1f1f1f] border border-[#333] rounded-lg shadow-xl"
+        className="fixed z-[9999] w-80 bg-[#1f1f1f] border border-[#333] rounded-lg shadow-xl pointer-events-auto"
         style={{ maxHeight: '70vh' }}
+        onClick={(e) => e.stopPropagation()}
       >
         {/* Header with drag handle */}
         <div className="drag-handle flex items-center justify-between p-3 border-b border-[#333] cursor-move bg-[#2a2a2a] rounded-t-lg">
