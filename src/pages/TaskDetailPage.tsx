@@ -1,17 +1,17 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useDadesApp } from "@/hooks/useDadesApp";
 import { TaskDetailsCard } from "@/components/task-detail/TaskDetailsCard";
 import { LazySubtasksCard, LazyNotesCard, LazyPomodoroCard } from "@/components/LazyComponents";
-import { memo } from "react";
+import { memo, Suspense } from "react";
+import { TaskProvider, useTaskContext } from "@/contexts/TaskContext";
+import { CachedRoute } from "@/components/ui/route-cache";
 
-const TaskDetailPage = memo(() => {
-  const { taskId } = useParams();
+const TaskDetailContent = memo(() => {
   const navigate = useNavigate();
-  const { tasks, folders, loading } = useDadesApp();
+  const { task, folder, loading } = useTaskContext();
 
-  if (loading && (!tasks || tasks.length === 0)) {
+  if (loading && !task) {
     return (
       <div className="w-full min-h-screen bg-background text-foreground">
         <div className="flex items-center justify-center h-64">
@@ -20,9 +20,6 @@ const TaskDetailPage = memo(() => {
       </div>
     );
   }
-
-  const task = tasks.find(t => t.id === taskId);
-  const folder = task?.folder_id ? folders.find(f => f.id === task.folder_id) : null;
 
   if (!task) {
     return (
@@ -164,6 +161,24 @@ const TaskDetailPage = memo(() => {
         </div>
       </div>
     </div>
+  );
+});
+
+const TaskDetailPage = memo(() => {
+  return (
+    <TaskProvider>
+      <Suspense fallback={
+        <div className="w-full min-h-screen bg-background text-foreground">
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        </div>
+      }>
+        <CachedRoute path={window.location.pathname} enabled={true}>
+          <TaskDetailContent />
+        </CachedRoute>
+      </Suspense>
+    </TaskProvider>
   );
 });
 

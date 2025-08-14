@@ -4,6 +4,7 @@ import { Calendar, Clock, User, FolderOpen } from "lucide-react";
 import { format } from "date-fns";
 import { ca } from "date-fns/locale";
 import { memo } from "react";
+import { useTaskContext } from "@/contexts/TaskContext";
 
 interface Task {
   id: string;
@@ -18,11 +19,16 @@ interface Task {
 }
 
 interface TaskDetailsCardProps {
-  task: Task;
+  // Props are now optional since we get data from context
+  task?: any;
   folderName?: string;
 }
 
-export const TaskDetailsCard = memo(({ task, folderName }: TaskDetailsCardProps) => {
+export const TaskDetailsCard = memo(({ task: propTask, folderName: propFolderName }: TaskDetailsCardProps = {}) => {
+  // Use context data as priority, fallback to props for backwards compatibility
+  const contextData = useTaskContext();
+  const task = propTask || contextData?.task;
+  const folderName = propFolderName || contextData?.folder?.name;
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completada': return 'bg-green-500/20 text-green-700 border-green-500/30';

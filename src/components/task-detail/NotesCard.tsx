@@ -2,23 +2,36 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { FileText, Save } from "lucide-react";
-import { useTaskNotes } from "@/hooks/useTaskNotes";
 import { memo } from "react";
+import { useTaskContext } from "@/contexts/TaskContext";
 
 interface NotesCardProps {
-  taskId: string;
+  taskId?: string; // Optional since we can get it from context
 }
 
-export const NotesCard = memo(({ taskId }: NotesCardProps) => {
+export const NotesCard = memo(({ taskId: propTaskId }: NotesCardProps = {}) => {
+  // Use context data as priority
+  const contextData = useTaskContext();
   const {
     notes,
-    loading,
+    notesLoading: loading,
     isSaving,
     isModified,
     lastSaved,
     updateNotes,
     forceSave
-  } = useTaskNotes(taskId);
+  } = contextData || {};
+  
+  // For backwards compatibility, if no context data is available
+  const finalData = contextData || {
+    notes: '',
+    loading: false,
+    isSaving: false,
+    isModified: false,
+    lastSaved: null,
+    updateNotes: () => {},
+    forceSave: () => {}
+  };
 
   return (
     <Card className="animate-fade-in h-full flex flex-col">
@@ -28,22 +41,22 @@ export const NotesCard = memo(({ taskId }: NotesCardProps) => {
             <FileText className="h-5 w-5 text-primary" />
             Notes
           </CardTitle>
-          {isModified && (
+          {finalData.isModified && (
             <Button
               variant="outline"
               size="sm"
-              onClick={forceSave}
-              disabled={isSaving || !isModified}
+              onClick={finalData.forceSave}
+              disabled={finalData.isSaving || !finalData.isModified}
               className="gap-1 h-7 text-xs"
             >
               <Save className="h-3 w-3" />
-              {isSaving ? 'Guardant...' : 'Guardar'}
+              {finalData.isSaving ? 'Guardant...' : 'Guardar'}
             </Button>
           )}
         </div>
-        {lastSaved && (
+        {finalData.lastSaved && (
           <p className="text-xs text-muted-foreground">
-            Última actualització: {lastSaved.toLocaleTimeString('ca-ES')}
+            Última actualització: {finalData.lastSaved.toLocaleTimeString('ca-ES')}
           </p>
         )}
       </CardHeader>
@@ -52,15 +65,15 @@ export const NotesCard = memo(({ taskId }: NotesCardProps) => {
         <div className="flex-1 flex flex-col min-h-0">
           <Textarea
             placeholder="Escriu les teves notes sobre aquesta tasca..."
-            value={notes}
-            onChange={(e) => updateNotes(e.target.value)}
+            value={finalData.notes}
+            onChange={(e) => finalData.updateNotes(e.target.value)}
             className="flex-1 resize-none border border-border/20 focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0 p-3 bg-background/50 text-sm leading-relaxed rounded-lg"
-            disabled={loading}
+            disabled={finalData.loading}
           />
         </div>
         <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground border-t border-border/20 pt-2 mx-0">
-          <span>{notes.length} caràcters</span>
-          {isModified && (
+          <span>{finalData.notes.length} caràcters</span>
+          {finalData.isModified && (
             <span className="text-yellow-600 flex items-center gap-1">
               <div className="w-1.5 h-1.5 rounded-full bg-yellow-600 animate-pulse" />
               Canvis no guardats

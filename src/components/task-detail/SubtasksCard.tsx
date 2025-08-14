@@ -5,29 +5,42 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { Plus, CheckSquare, Trash2 } from "lucide-react";
-import { useTaskSubtasks } from "@/hooks/useTaskSubtasks";
+import { useTaskContext } from "@/contexts/TaskContext";
 
 interface SubtasksCardProps {
-  taskId: string;
+  taskId?: string; // Optional since we can get it from context
 }
 
-export const SubtasksCard = memo(({ taskId }: SubtasksCardProps) => {
+export const SubtasksCard = memo(({ taskId: propTaskId }: SubtasksCardProps = {}) => {
+  // Use context data as priority
+  const contextData = useTaskContext();
   const {
     subtasks,
-    loading,
+    subtasksLoading: loading,
     completedCount,
     progressPercentage,
     createSubtask,
     deleteSubtask,
     toggleSubtask
-  } = useTaskSubtasks(taskId);
+  } = contextData || {};
+  
+  // For backwards compatibility only use fallback when no context
+  const finalData = contextData || {
+    subtasks: [],
+    loading: true,
+    completedCount: 0,
+    progressPercentage: 0,
+    createSubtask: async () => {},
+    deleteSubtask: async () => {},
+    toggleSubtask: async () => {}
+  };
   
   const [newSubtask, setNewSubtask] = useState('');
   const [isAdding, setIsAdding] = useState(false);
 
   const handleAddSubtask = async () => {
     if (newSubtask.trim()) {
-      await createSubtask(newSubtask);
+      await finalData.createSubtask(newSubtask);
       setNewSubtask('');
       setIsAdding(false);
     }
@@ -51,13 +64,13 @@ export const SubtasksCard = memo(({ taskId }: SubtasksCardProps) => {
             Afegir
           </Button>
         </div>
-        {subtasks.length > 0 && (
+        {finalData.subtasks.length > 0 && (
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span>{completedCount} de {subtasks.length} completades</span>
-              <span>{Math.round(progressPercentage)}%</span>
+              <span>{finalData.completedCount} de {finalData.subtasks.length} completades</span>
+              <span>{Math.round(finalData.progressPercentage)}%</span>
             </div>
-            <Progress value={progressPercentage} className="h-1.5" />
+            <Progress value={finalData.progressPercentage} className="h-1.5" />
           </div>
         )}
       </CardHeader>
@@ -90,7 +103,7 @@ export const SubtasksCard = memo(({ taskId }: SubtasksCardProps) => {
           </div>
         )}
 
-        {subtasks.length === 0 ? (
+        {finalData.subtasks.length === 0 ? (
           <div className="flex-1 flex items-center justify-center text-center text-muted-foreground">
             <div>
               <CheckSquare className="h-8 w-8 mx-auto mb-2 opacity-30" />
@@ -101,14 +114,14 @@ export const SubtasksCard = memo(({ taskId }: SubtasksCardProps) => {
         ) : (
           <div className="flex-1 overflow-y-auto scrollbar-thin">
             <div className="space-y-1">
-              {subtasks.map((subtask) => (
+              {finalData.subtasks.map((subtask) => (
                 <div
                   key={subtask.id}
                   className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/40 group animate-fade-in transition-colors"
                 >
                   <Checkbox
                     checked={subtask.completed}
-                    onCheckedChange={() => toggleSubtask(subtask.id)}
+                    onCheckedChange={() => finalData.toggleSubtask(subtask.id)}
                     className="flex-shrink-0"
                   />
                   <span
@@ -123,7 +136,7 @@ export const SubtasksCard = memo(({ taskId }: SubtasksCardProps) => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => deleteSubtask(subtask.id)}
+                    onClick={() => finalData.deleteSubtask(subtask.id)}
                     className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0 flex-shrink-0"
                   >
                     <Trash2 className="h-3 w-3" />
