@@ -10,6 +10,8 @@ import AuthPage from "@/pages/AuthPage";
 import { useDadesApp } from "@/hooks/useDadesApp";
 import { Button } from "@/components/ui/button";
 import { LogOut, User } from "lucide-react";
+import { useShortcut } from "@/hooks/useKeyboardShortcuts";
+import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
   const { user, loading, signOut } = useAuth();
@@ -20,6 +22,29 @@ const Index = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const { createTask, updateTask, folders } = useDadesApp();
+  const { toast } = useToast();
+
+  // Registrar drecera per crear tasca (Cmd/Ctrl + N)
+  useShortcut(
+    'createTask',
+    'Crear Tasca',
+    ['meta', 'n'],
+    () => {
+      if (!showCreateDialog) {
+        setShowCreateDialog(true);
+        toast({
+          title: "Drecera activada",
+          description: "S'ha obert el formulari de creació de tasques",
+          duration: 2000,
+        });
+      }
+    },
+    {
+      description: 'Obrir el formulari per crear una nova tasca',
+      category: 'actions',
+      enabled: !!user // Només si l'usuari està autenticat
+    }
+  );
 
   // Sincronitzar activeTab amb paràmetres URL
   useEffect(() => {
