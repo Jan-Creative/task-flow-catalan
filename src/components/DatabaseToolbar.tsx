@@ -1456,25 +1456,26 @@ const DatabaseToolbar = ({
         </Popover>
 
         {/* Icon Picker - Positioned absolutely to avoid conflicts */}
-        <IconPickerPopover
-          open={showIconPicker}
-          onOpenChange={(open) => {
-            console.log('🎯 DatabaseToolbar: IconPicker onOpenChange called with:', open);
-            console.log('🎯 DatabaseToolbar: Current showIconPicker state:', showIconPicker);
-            setShowIconPicker(open);
-            // If closing icon picker, ensure main popover stays open
-            if (!open && isSettingsOpen) {
-              console.log('🎯 DatabaseToolbar: Keeping main popover open after icon picker closes');
-              setTimeout(() => setIsSettingsOpen(true), 0);
+        {showIconPicker && (
+          <IconPickerPopover
+            open={showIconPicker}
+            onOpenChange={(open) => {
+              console.log('🎯 DatabaseToolbar: IconPicker onOpenChange called with:', open);
+              setShowIconPicker(open);
+              // If closing icon picker, ensure main popover stays open
+              if (!open && isSettingsOpen) {
+                console.log('🎯 DatabaseToolbar: Keeping main popover open after icon picker closes');
+                setTimeout(() => setIsSettingsOpen(true), 0);
+              }
+            }}
+            onIconSelect={handleIconSelect}
+            selectedIcon={iconTarget?.type === 'property' 
+              ? properties.find(p => p.id === iconTarget?.id)?.icon 
+              : properties.flatMap(p => p.options || []).find(o => o.id === iconTarget?.id)?.icon
             }
-          }}
-          onIconSelect={handleIconSelect}
-          selectedIcon={iconTarget?.type === 'property' 
-            ? properties.find(p => p.id === iconTarget?.id)?.icon 
-            : properties.flatMap(p => p.options || []).find(o => o.id === iconTarget?.id)?.icon
-          }
-          title={iconTarget?.type === 'property' ? 'Seleccionar Icona de Propietat' : 'Seleccionar Icona d\'Opció'}
-        />
+            title={iconTarget?.type === 'property' ? 'Seleccionar Icona de Propietat' : 'Seleccionar Icona d\'Opció'}
+          />
+        )}
 
       </div>
     </div>;

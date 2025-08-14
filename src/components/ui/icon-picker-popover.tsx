@@ -32,7 +32,6 @@ export const IconPickerPopover: React.FC<IconPickerPopoverProps> = ({
   position,
   triggerRef
 }) => {
-  console.log('🎯 IconPickerPopover: Component rendered with open =', open);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [pendingIcon, setPendingIcon] = useState<string | null>(null);
