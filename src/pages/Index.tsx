@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { LogOut, User } from "lucide-react";
 import { useShortcut } from "@/hooks/useKeyboardShortcuts";
 import { useToast } from "@/hooks/use-toast";
+import { PageTransition } from "@/components/ui/page-transition";
 
 const Index = () => {
   const { user, loading, signOut } = useAuth();
@@ -80,7 +81,7 @@ const Index = () => {
     setShowCreateDialog(true);
   };
 
-  const renderCurrentPage = () => {
+  const renderCurrentPage = useCallback(() => {
     switch (activeTab) {
       case "avui":
         return <TodayPage 
@@ -97,7 +98,7 @@ const Index = () => {
           onNavigateToSettings={() => setActiveTab("configuracio")}
         />;
     }
-  };
+  }, [activeTab, handleEditTask]);
 
   // Show loading spinner while checking auth
   if (loading) {
@@ -139,7 +140,9 @@ const Index = () => {
         </Button>
       </div>
 
-      {renderCurrentPage()}
+      <PageTransition activeTab={activeTab}>
+        {renderCurrentPage()}
+      </PageTransition>
       
       <BottomNavigation
         activeTab={activeTab}
