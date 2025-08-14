@@ -1,16 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock, User, FolderOpen } from "lucide-react";
 import { format } from "date-fns";
 import { ca } from "date-fns/locale";
 import { memo } from "react";
 import { useTaskContext } from "@/contexts/TaskContext";
-import { usePropertyLabels } from "@/hooks/usePropertyLabels";
 import { useTaskProperties } from "@/hooks/useTaskProperties";
 import { PropertyBadge } from "@/components/ui/property-badge";
-import { PriorityBadge } from "@/components/ui/priority-badge";
-import { getIconByName } from "@/lib/iconLibrary";
-import { cn } from "@/lib/utils";
 
 interface Task {
   id: string;
@@ -38,25 +33,6 @@ export const TaskDetailsCard = memo(({ task: propTask, folderName: propFolderNam
   
   // Obtenir les propietats de la tasca
   const { data: taskProperties = [] } = useTaskProperties(task?.id);
-  
-  const { 
-    getStatusLabel, 
-    getPriorityLabel, 
-    getStatusColor: getDynamicStatusColor, 
-    getPriorityColor: getDynamicPriorityColor,
-    getStatusIcon,
-    getPriorityIcon
-  } = usePropertyLabels();
-
-  const getStatusColor = (status: string) => {
-    const color = getDynamicStatusColor(status);
-    return `bg-[${color}]/20 text-foreground border-[${color}]/30`;
-  };
-
-  const getPriorityColor = (priority: string) => {
-    const color = getDynamicPriorityColor(priority);
-    return `bg-[${color}]/20 text-foreground border-[${color}]/30`;
-  };
 
   return (
     <Card className="animate-fade-in h-full flex flex-col">
@@ -77,26 +53,7 @@ export const TaskDetailsCard = memo(({ task: propTask, folderName: propFolderNam
           </div>
 
           <div className="flex flex-wrap gap-1.5">
-            {/* Estat - sempre mostrar */}
-            <Badge className={cn("text-xs flex items-center gap-1", getStatusColor(task.status))}>
-              {(() => {
-                const statusIconName = getStatusIcon(task.status);
-                if (statusIconName) {
-                  const iconDef = getIconByName(statusIconName);
-                  if (iconDef) {
-                    const StatusIconComponent = iconDef.icon;
-                    return <StatusIconComponent className="h-3 w-3" />;
-                  }
-                }
-                return null;
-              })()}
-              {getStatusLabel(task.status)}
-            </Badge>
-
-            {/* Prioritat - sempre mostrar */}
-            <PriorityBadge priority={task.priority} size="sm" />
-
-            {/* Propietats personalitzades */}
+            {/* Mostrar totes les propietats amb PropertyBadge per consistència */}
             {taskProperties.map((taskProp) => (
               <PropertyBadge
                 key={taskProp.id}
