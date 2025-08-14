@@ -3,13 +3,15 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
-import { List, LayoutGrid, Filter, SortAsc, Plus, ChevronDown, Settings, X, Eye, Table, ArrowUpDown, Group, Palette, Link, Lock, FileText, Bot, MoreHorizontal, CheckSquare, AlertTriangle, ArrowLeft, Circle, Edit3, Copy, Trash2 } from "lucide-react";
+import { List, LayoutGrid, Filter, SortAsc, Plus, ChevronDown, Settings, X, Eye, Table, ArrowUpDown, Group, Palette, Link, Lock, FileText, Bot, MoreHorizontal, CheckSquare, AlertTriangle, ArrowLeft, Circle, Edit3, Copy, Trash2, Image as ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { useProperties } from "@/hooks/useProperties";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { IconPicker } from './ui/icon-picker';
+import { getIconByName, getDefaultIconForProperty } from '@/lib/iconLibrary';
 
 interface DatabaseToolbarProps {
   viewMode: "list" | "kanban";
@@ -52,6 +54,10 @@ const DatabaseToolbar = ({
   const [newOptionInput, setNewOptionInput] = useState('');
   const [showNewOptionInput, setShowNewOptionInput] = useState(false);
   const [isCreatingProperty, setIsCreatingProperty] = useState(false);
+
+  // Icon picker states
+  const [showIconPicker, setShowIconPicker] = useState(false);
+  const [iconTarget, setIconTarget] = useState<{ type: 'property' | 'option'; id: string } | null>(null);
   
   const { properties, getPropertyByName, updatePropertyOption, createPropertyOption, deletePropertyOption, deletePropertyDefinition, updatePropertyDefinition, loading, ensureSystemProperties, fetchProperties } = useProperties();
   const { toast } = useToast();
@@ -127,6 +133,46 @@ const DatabaseToolbar = ({
         variant: "destructive",
       });
     }
+  };
+
+  // Icon handling functions
+  const handleIconSelect = async (iconName: string) => {
+    if (!iconTarget) return;
+    
+    try {
+      if (iconTarget.type === 'property') {
+        await updatePropertyDefinition(iconTarget.id, { icon: iconName });
+        toast({
+          title: "Icona actualitzada",
+          description: "La icona de la propietat s'ha actualitzat correctament.",
+        });
+      } else {
+        await updatePropertyOption(iconTarget.id, { icon: iconName });
+        toast({
+          title: "Icona actualitzada",
+          description: "La icona de l'opció s'ha actualitzat correctament.",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Hi ha hagut un error actualitzant la icona.",
+        variant: "destructive",
+      });
+    } finally {
+      setShowIconPicker(false);
+      setIconTarget(null);
+    }
+  };
+
+  const handlePropertyIconClick = (propertyId: string) => {
+    setIconTarget({ type: 'property', id: propertyId });
+    setShowIconPicker(true);
+  };
+
+  const handleOptionIconClick = (optionId: string) => {
+    setIconTarget({ type: 'option', id: optionId });
+    setShowIconPicker(true);
   };
 
   // Option editing functions
@@ -742,7 +788,8 @@ const DatabaseToolbar = ({
                         <div className="flex items-center gap-2">
                           {currentProperty.name === 'Estat' ? <CheckSquare className="h-4 w-4 text-[#b8b8b8]" /> :
                            currentProperty.name === 'Prioritat' ? <AlertTriangle className="h-4 w-4 text-[#b8b8b8]" /> :
-                           <Circle className="h-4 w-4 text-[#b8b8b8]" />}
+                           <Circle className="h-4 w-4 text-[#b8b8b8]" />
+                          }
                           <input 
                             type="text" 
                             value={editingPropertyName || currentProperty?.name || ''}

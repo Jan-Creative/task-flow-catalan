@@ -19,6 +19,16 @@ export interface Carpeta {
   is_system: boolean;
 }
 
+export interface PropertyOption {
+  id: string;
+  value: string;
+  label: string;
+  color: string;
+  icon?: string;
+  is_default: boolean;
+  sort_order: number;
+}
+
 export interface EstadistiquesTasques {
   total: number;
   completades: number;

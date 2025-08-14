@@ -144,6 +144,7 @@ export type Database = {
         Row: {
           color: string
           created_at: string
+          icon: string | null
           id: string
           is_default: boolean
           label: string
@@ -155,6 +156,7 @@ export type Database = {
         Insert: {
           color?: string
           created_at?: string
+          icon?: string | null
           id?: string
           is_default?: boolean
           label: string
@@ -166,6 +168,7 @@ export type Database = {
         Update: {
           color?: string
           created_at?: string
+          icon?: string | null
           id?: string
           is_default?: boolean
           label?: string
