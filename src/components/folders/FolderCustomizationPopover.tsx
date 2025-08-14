@@ -29,11 +29,18 @@ export function FolderCustomizationPopover({
 
   const handleSave = async () => {
     setIsLoading(true);
+    console.log("Saving folder updates:", { 
+      folderId, 
+      icon: selectedIcon, 
+      color: selectedColor 
+    });
+    
     try {
       await onUpdate({
         icon: selectedIcon || undefined,
         color: selectedColor
       });
+      console.log("Folder update successful");
       setIsOpen(false);
     } catch (error) {
       console.error("Error updating folder:", error);

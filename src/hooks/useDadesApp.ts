@@ -336,14 +336,18 @@ export const useDadesApp = () => {
   const actualitzarCarpeta = useCallback(async (folderId: string, updates: ActualitzarCarpetaData) => {
     if (!user) throw new Error("User not authenticated");
 
+    console.log("Updating folder:", { folderId, updates });
+
     // Optimistic update
     queryClient.setQueryData([CLAU_CACHE_DADES, user.id], (old: any) => {
       if (!old) return old;
+      const updatedFolders = old.folders.map((folder: Carpeta) => 
+        folder.id === folderId ? { ...folder, ...updates } : folder
+      );
+      console.log("Optimistic update applied:", updatedFolders);
       return {
         ...old,
-        folders: old.folders.map((folder: Carpeta) => 
-          folder.id === folderId ? { ...folder, ...updates } : folder
-        )
+        folders: updatedFolders
       };
     });
 
@@ -357,16 +361,22 @@ export const useDadesApp = () => {
 
       if (error) throw error;
 
+      console.log("Database update successful");
+
+      // Force invalidate queries to ensure fresh data
+      queryClient.invalidateQueries({ queryKey: [CLAU_CACHE_DADES, user.id] });
+
       toast({
         title: "Carpeta actualitzada",
         description: "La carpeta s'ha actualitzat correctament",
       });
     } catch (error) {
+      console.error("Database update failed:", error);
       // Revert on error
       queryClient.invalidateQueries({ queryKey: [CLAU_CACHE_DADES, user.id] });
       handleError(error instanceof Error ? error : new Error("No s'ha pogut actualitzar la carpeta"));
     }
-  }, [user, queryClient, toast, handleError]);
+  }, [user?.id, queryClient, toast, handleError]);
 
   // Folder deletion with validation and optimistic updates
   const eliminarCarpeta = useCallback(async (folderId: string) => {

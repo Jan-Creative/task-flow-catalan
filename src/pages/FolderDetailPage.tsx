@@ -50,8 +50,15 @@ const FolderDetailPage = () => {
   // Find current folder - get real inbox folder from database
   const realInboxFolder = folders.find(f => f.is_system && f.name === 'Bustia');
   const currentFolder = folderId === 'inbox' 
-    ? realInboxFolder || { id: 'inbox', name: 'Bustia', color: '#6366f1', is_system: true }
+    ? realInboxFolder 
     : folders.find(f => f.id === folderId);
+  
+  console.log("Current folder data:", { 
+    folderId, 
+    realInboxFolder, 
+    currentFolder, 
+    allFolders: folders 
+  });
 
   // Custom handler for status changes with different behavior per view mode
   const handleStatusChange = async (taskId: string, status: any) => {
@@ -251,10 +258,14 @@ const FolderDetailPage = () => {
   }
 
   if (!currentFolder) {
+    console.warn("No folder found for folderId:", folderId);
     return (
       <div className="min-h-screen bg-gradient-gentle flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-xl font-semibold text-foreground mb-2">Carpeta no trobada</h2>
+          <p className="text-muted-foreground mb-4">
+            {folderId === 'inbox' ? 'No s\'ha trobat la carpeta Bustia' : 'La carpeta especificada no existeix'}
+          </p>
           <Button onClick={() => navigate('/')} variant="outline">
             Tornar a l'inici
           </Button>
@@ -284,8 +295,16 @@ const FolderDetailPage = () => {
               currentIcon={currentFolder.icon}
               currentColor={currentFolder.color}
               onUpdate={async (updates) => {
+                console.log("FolderDetailPage onUpdate called:", { 
+                  folderId: currentFolder.id, 
+                  isSystem: currentFolder.is_system,
+                  updates 
+                });
+                
                 if (!currentFolder.is_system) {
                   await updateFolder(currentFolder.id, updates);
+                } else {
+                  console.warn("Cannot update system folder");
                 }
               }}
             >
