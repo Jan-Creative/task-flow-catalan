@@ -41,21 +41,34 @@ export const IconPickerPopover: React.FC<IconPickerPopoverProps> = ({
   }, [searchQuery, selectedCategory]);
 
   const handleIconClick = (iconName: string) => {
+    console.log('🔥 IconPicker: handleIconClick called with:', iconName);
+    console.log('🔥 IconPicker: Current pendingIcon state:', pendingIcon);
     setPendingIcon(iconName);
+    console.log('🔥 IconPicker: Setting pendingIcon to:', iconName);
   };
 
   const handleConfirmSelection = async () => {
-    if (!pendingIcon) return;
+    console.log('🔥 IconPicker: handleConfirmSelection called');
+    console.log('🔥 IconPicker: pendingIcon value:', pendingIcon);
+    console.log('🔥 IconPicker: onIconSelect function:', typeof onIconSelect);
+    
+    if (!pendingIcon) {
+      console.log('🔥 IconPicker: No pendingIcon, returning early');
+      return;
+    }
     
     setIsLoading(true);
     try {
+      console.log('🔥 IconPicker: Calling onIconSelect with:', pendingIcon);
       await onIconSelect(pendingIcon);
+      console.log('🔥 IconPicker: onIconSelect completed successfully');
       onOpenChange(false);
       setSearchQuery('');
       setSelectedCategory('all');
       setPendingIcon(null);
+      console.log('🔥 IconPicker: State reset and popover closed');
     } catch (error) {
-      console.error('Error saving icon:', error);
+      console.error('🔥 IconPicker: Error saving icon:', error);
     } finally {
       setIsLoading(false);
     }
@@ -75,9 +88,25 @@ export const IconPickerPopover: React.FC<IconPickerPopoverProps> = ({
   const IconPreview: React.FC<{ icon: IconDefinition; isSelected: boolean; isPending: boolean }> = ({ icon, isSelected, isPending }) => {
     const IconComponent = icon.icon;
     
+    const handleClick = (e: React.MouseEvent) => {
+      console.log('🔥 IconPreview: Button clicked for icon:', icon.name);
+      console.log('🔥 IconPreview: Event details:', e.type, e.button);
+      console.log('🔥 IconPreview: isLoading:', isLoading);
+      e.preventDefault();
+      e.stopPropagation();
+      handleIconClick(icon.name);
+    };
+
+    const handleMouseDown = (e: React.MouseEvent) => {
+      console.log('🔥 IconPreview: MouseDown for icon:', icon.name);
+      e.preventDefault();
+      e.stopPropagation();
+    };
+    
     return (
       <button
-        onClick={() => handleIconClick(icon.name)}
+        onClick={handleClick}
+        onMouseDown={handleMouseDown}
         disabled={isLoading}
         className={cn(
           "group relative flex flex-col items-center justify-center p-2 rounded-md border transition-colors duration-200",
@@ -178,8 +207,8 @@ export const IconPickerPopover: React.FC<IconPickerPopoverProps> = ({
             ))}
           </div>
 
-          {/* Icons Grid */}
-          <ScrollArea className="h-64 w-full scroll-area">
+          {/* Icons Grid - Temporarily remove ScrollArea */}
+          <div className="h-64 w-full overflow-y-auto bg-[#1a1a1a] rounded-md border border-[#333]">
             <div className="grid grid-cols-8 gap-1 p-1">
               {filteredIcons.slice(0, 64).map((icon) => (
                 <IconPreview
@@ -209,7 +238,7 @@ export const IconPickerPopover: React.FC<IconPickerPopoverProps> = ({
                 )}
               </div>
             )}
-          </ScrollArea>
+          </div>
 
           {/* Results count */}
           {filteredIcons.length > 0 && (
