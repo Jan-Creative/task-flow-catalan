@@ -265,7 +265,11 @@ export const PropertyManager = () => {
                   let IconComponent = null;
                   if (isPriorityProperty) {
                     // Per prioritats, usar la lògica de banderes
-                    const dummyGetPriorityIcon = () => option.icon; // Mock function per compatibility
+                    const dummyGetPriorityIcon = (value: string) => {
+                      // Per prioritats estàndard, no retornar cap icona perquè getPriorityIconComponent
+                      // utilitzi Flag com a fallback. Per "urgent", retornar la icona personalitzada.
+                      return ['baixa', 'mitjana', 'alta'].includes(value) ? undefined : option.icon;
+                    };
                     IconComponent = getPriorityIconComponent(option.value, dummyGetPriorityIcon);
                   } else if (option.icon) {
                     // Per altres propietats, usar la icona personalitzada
