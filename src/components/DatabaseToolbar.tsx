@@ -7,6 +7,8 @@ import { List, LayoutGrid, Filter, SortAsc, Plus, ChevronDown, Settings, X, Eye,
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { useProperties } from "@/hooks/useProperties";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 
 interface DatabaseToolbarProps {
@@ -37,7 +39,7 @@ const DatabaseToolbar = ({
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [currentSortView, setCurrentSortView] = useState<'main' | 'prioritat' | 'estat'>('main');
-  const [currentPropertyView, setCurrentPropertyView] = useState<'main' | 'estat' | 'prioritat' | 'nova_propietat'>('main');
+  const [currentPropertyView, setCurrentPropertyView] = useState<'main' | 'nova_propietat' | string>('main');
   const [editingPropertyName, setEditingPropertyName] = useState<string>('');
   const [editingOptionId, setEditingOptionId] = useState<string | null>(null);
   const [editingOptionValue, setEditingOptionValue] = useState<string>('');
@@ -51,13 +53,23 @@ const DatabaseToolbar = ({
   const [showNewOptionInput, setShowNewOptionInput] = useState(false);
   const [isCreatingProperty, setIsCreatingProperty] = useState(false);
   
-  const { properties, getPropertyByName, updatePropertyOption, createPropertyOption, deletePropertyOption, updatePropertyDefinition, loading, ensureSystemProperties } = useProperties();
+  const { properties, getPropertyByName, updatePropertyOption, createPropertyOption, deletePropertyOption, updatePropertyDefinition, loading, ensureSystemProperties, fetchProperties } = useProperties();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   // Get current property data
   const estatProperty = getPropertyByName('Estat');
   const prioritatProperty = getPropertyByName('Prioritat');
+  
+  // Get current property for editing
+  const currentProperty = currentPropertyView === 'main' || currentPropertyView === 'nova_propietat' 
+    ? null 
+    : properties.find(p => p.id === currentPropertyView) || null;
+  
+  // Separate system and custom properties
+  const systemProperties = properties.filter(p => p.is_system);
+  const customProperties = properties.filter(p => !p.is_system);
 
   // Auto-create system properties - Stable dependency array
   useEffect(() => {
@@ -75,12 +87,8 @@ const DatabaseToolbar = ({
     setCurrentPropertyView('main');
   };
 
-  const handleEstatClick = () => {
-    setCurrentPropertyView('estat');
-  };
-
-  const handlePrioritatClick = () => {
-    setCurrentPropertyView('prioritat');
+  const handlePropertyClick = (propertyId: string) => {
+    setCurrentPropertyView(propertyId);
   };
 
   const handleNovaPropietatClick = () => {
@@ -130,8 +138,8 @@ const DatabaseToolbar = ({
     
     try {
       // Get current property to determine sort order
-      const currentProperty = currentPropertyView === 'estat' ? estatProperty : prioritatProperty;
-      const currentOptions = currentProperty?.options || [];
+      const propertyForOption = properties.find(p => p.id === propertyId);
+      const currentOptions = propertyForOption?.options || [];
       
       await createPropertyOption(propertyId, {
         label: newOptionName,
@@ -213,18 +221,39 @@ const DatabaseToolbar = ({
     setIsCreatingProperty(true);
     
     try {
-      // For now, we'll simulate property creation without backend
-      // TODO: Add proper property creation when backend is ready
-      console.log('Creating property:', newPropertyName, newPropertyOptions);
-      
-      // Simulate creation success
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Create the property definition directly via Supabase
+      const { data: newPropertyData, error: propError } = await supabase
+        .from('property_definitions')
+        .insert({
+          name: newPropertyName,
+          type: 'select' as const,
+          is_system: false,
+          user_id: user?.id
+        })
+        .select()
+        .single();
+
+      if (propError) throw propError;
+
+      // Create the options for the new property
+      for (const [index, option] of newPropertyOptions.entries()) {
+        await createPropertyOption(newPropertyData.id, {
+          label: option.label,
+          value: option.label.toLowerCase().replace(/\s+/g, '_'),
+          color: option.color,
+          sort_order: index,
+          is_default: index === 0
+        });
+      }
 
       // Reset form
       setNewPropertyName('');
       setNewPropertyOptions([]);
       setNewOptionInput('');
       setShowNewOptionInput(false);
+      
+      // Refresh properties to show the new one
+      await fetchProperties();
       
       // Navigate back to main view
       setCurrentPropertyView('main');
@@ -578,29 +607,41 @@ const DatabaseToolbar = ({
 
                 {/* Properties Section */}
                 <div className="space-y-1">
-                  {/* Estat */}
-                  <div 
-                    className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer"
-                    onClick={handleEstatClick}
-                  >
-                    <div className="flex items-center gap-3">
-                      <CheckSquare className="h-4 w-4 text-[#b8b8b8]" />
-                      <span className="text-sm text-white">Estat</span>
+                  {/* System Properties */}
+                  {systemProperties.map((property) => {
+                    const Icon = property.name === 'Estat' ? CheckSquare : 
+                                property.name === 'Prioritat' ? AlertTriangle : 
+                                Circle;
+                    
+                    return (
+                      <div 
+                        key={property.id}
+                        className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer"
+                        onClick={() => handlePropertyClick(property.id)}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Icon className="h-4 w-4 text-[#b8b8b8]" />
+                          <span className="text-sm text-white">{property.name}</span>
+                        </div>
+                        <ChevronDown className="h-3 w-3 text-[#b8b8b8] rotate-[-90deg]" />
+                      </div>
+                    );
+                  })}
+                  
+                  {/* Custom Properties */}
+                  {customProperties.map((property) => (
+                    <div 
+                      key={property.id}
+                      className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer"
+                      onClick={() => handlePropertyClick(property.id)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Circle className="h-4 w-4 text-[#b8b8b8]" />
+                        <span className="text-sm text-white">{property.name}</span>
+                      </div>
+                      <ChevronDown className="h-3 w-3 text-[#b8b8b8] rotate-[-90deg]" />
                     </div>
-                    <ChevronDown className="h-3 w-3 text-[#b8b8b8] rotate-[-90deg]" />
-                  </div>
-
-                  {/* Prioritat */}
-                  <div 
-                    className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer"
-                    onClick={handlePrioritatClick}
-                  >
-                    <div className="flex items-center gap-3">
-                      <AlertTriangle className="h-4 w-4 text-[#b8b8b8]" />
-                      <span className="text-sm text-white">Prioritat</span>
-                    </div>
-                    <ChevronDown className="h-3 w-3 text-[#b8b8b8] rotate-[-90deg]" />
-                  </div>
+                  ))}
 
                   {/* Noves propietats */}
                   <div 
@@ -632,7 +673,7 @@ const DatabaseToolbar = ({
               </div>
             )}
 
-            {currentPropertyView === 'estat' && (
+            {currentProperty && (
               <div className="p-4">
                 {loading ? (
                   <div className="flex items-center justify-center py-8">
@@ -652,14 +693,16 @@ const DatabaseToolbar = ({
                           <ArrowLeft className="h-4 w-4" />
                         </Button>
                         <div className="flex items-center gap-2">
-                          <CheckSquare className="h-4 w-4 text-[#b8b8b8]" />
+                          {currentProperty.name === 'Estat' ? <CheckSquare className="h-4 w-4 text-[#b8b8b8]" /> :
+                           currentProperty.name === 'Prioritat' ? <AlertTriangle className="h-4 w-4 text-[#b8b8b8]" /> :
+                           <Circle className="h-4 w-4 text-[#b8b8b8]" />}
                           <input 
                             type="text" 
-                            value={editingPropertyName || estatProperty?.name || 'Estat'}
+                            value={editingPropertyName || currentProperty?.name || ''}
                             onChange={(e) => setEditingPropertyName(e.target.value)}
                             onBlur={() => {
-                              if (estatProperty && editingPropertyName && editingPropertyName !== estatProperty.name) {
-                                handlePropertyNameChange(estatProperty.id, editingPropertyName);
+                              if (currentProperty && editingPropertyName && editingPropertyName !== currentProperty.name) {
+                                handlePropertyNameChange(currentProperty.id, editingPropertyName);
                               }
                               setEditingPropertyName('');
                             }}
@@ -687,9 +730,9 @@ const DatabaseToolbar = ({
                       <p className="text-xs text-[#b8b8b8]">Tipus: Select</p>
                     </div>
 
-                    {/* Current status options */}
+                    {/* Current property options */}
                     <div className="space-y-2 mb-4">
-                      {estatProperty?.options?.map((option) => (
+                      {currentProperty?.options?.map((option) => (
                         <div key={option.id} className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-[#2a2a2a] group">
                           <div className="flex items-center gap-3">
                             <input
@@ -769,8 +812,8 @@ const DatabaseToolbar = ({
                             value={newOptionName}
                             onChange={(e) => setNewOptionName(e.target.value)}
                             onKeyDown={(e) => {
-                              if (e.key === 'Enter' && estatProperty) {
-                                handleCreateOption(estatProperty.id);
+                              if (e.key === 'Enter' && currentProperty) {
+                                handleCreateOption(currentProperty.id);
                               }
                               if (e.key === 'Escape') {
                                 setShowAddOption(false);
@@ -786,7 +829,7 @@ const DatabaseToolbar = ({
                               variant="ghost"
                               size="sm"
                               className="h-6 w-6 p-0 text-green-400 hover:bg-[#404040]"
-                              onClick={() => estatProperty && handleCreateOption(estatProperty.id)}
+                              onClick={() => currentProperty && handleCreateOption(currentProperty.id)}
                             >
                               <CheckSquare className="h-3 w-3" />
                             </Button>
