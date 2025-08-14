@@ -11,6 +11,7 @@ import { SettingsRow } from "@/components/settings/SettingsRow";
 import { EditableField } from "@/components/settings/EditableField";
 import { ToggleRow } from "@/components/settings/ToggleRow";
 import { PasswordChangeModal } from "@/components/settings/PasswordChangeModal";
+import { PropertyManager } from "@/components/settings/PropertyManager";
 import { useToast } from "@/hooks/use-toast";
 
 const SettingsPage = () => {
@@ -18,6 +19,7 @@ const SettingsPage = () => {
   const { theme, setTheme } = useTheme();
   const { toast } = useToast();
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showPropertyManager, setShowPropertyManager] = useState(false);
 
   const getInitials = (email: string) => {
     return email?.slice(0, 2).toUpperCase() || "??";
@@ -127,18 +129,30 @@ const SettingsPage = () => {
 
         {/* Properties Settings */}
         <SettingsGroup title="Propietats">
-          <SettingsRow
-            icon={Settings2}
-            label="Gestionar propietats"
-            description="Configura propietats personalitzades"
-            showChevron
-            onClick={() => {
-              toast({
-                title: "Pròximament",
-                description: "La gestió de propietats estarà disponible aviat",
-              });
-            }}
-          />
+          {!showPropertyManager ? (
+            <SettingsRow
+              icon={Settings2}
+              label="Gestionar propietats"
+              description="Configura propietats personalitzades"
+              showChevron
+              onClick={() => setShowPropertyManager(true)}
+            />
+          ) : (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">Gestió de Propietats</h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowPropertyManager(false)}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  ← Tornar
+                </Button>
+              </div>
+              <PropertyManager />
+            </div>
+          )}
         </SettingsGroup>
 
         {/* App Info */}
