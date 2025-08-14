@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock, User, FolderOpen } from "lucide-react";
 import { format } from "date-fns";
 import { ca } from "date-fns/locale";
+import { memo } from "react";
 
 interface Task {
   id: string;
@@ -21,7 +22,7 @@ interface TaskDetailsCardProps {
   folderName?: string;
 }
 
-export const TaskDetailsCard = ({ task, folderName }: TaskDetailsCardProps) => {
+export const TaskDetailsCard = memo(({ task, folderName }: TaskDetailsCardProps) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completada': return 'bg-green-500/20 text-green-700 border-green-500/30';
@@ -91,4 +92,4 @@ export const TaskDetailsCard = ({ task, folderName }: TaskDetailsCardProps) => {
       </CardContent>
     </Card>
   );
-};
+});

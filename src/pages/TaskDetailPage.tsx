@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { useDadesApp } from "@/hooks/useDadesApp";
 import { TaskDetailsCard } from "@/components/task-detail/TaskDetailsCard";
 import { LazySubtasksCard, LazyNotesCard, LazyPomodoroCard } from "@/components/LazyComponents";
+import { memo } from "react";
 
-const TaskDetailPage = () => {
+const TaskDetailPage = memo(() => {
   const { taskId } = useParams();
   const navigate = useNavigate();
   const { tasks, folders, loading } = useDadesApp();
@@ -59,7 +60,7 @@ const TaskDetailPage = () => {
 
       {/* Dashboard Grid - Sistema responsiu fluid sense altures fixes */}
       <div className="p-4 pb-24">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-7xl mx-auto task-detail-grid">
           {/* Desktop XL Layout - Grid Complex (1440px+) */}
           <div className="hidden 2xl:grid 2xl:grid-cols-6 gap-6 min-h-[600px] auto-rows-fr">
             {/* Task Details Card - Quadrada mitjana */}
@@ -164,6 +165,6 @@ const TaskDetailPage = () => {
       </div>
     </div>
   );
-};
+});
 
 export default TaskDetailPage;

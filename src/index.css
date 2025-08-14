@@ -171,4 +171,24 @@ All colors MUST be HSL.
     box-shadow: 0 0 0 2px hsl(var(--success) / 0.1);
     transition: all 0.2s ease-in-out;
   }
+
+  /* Optimized rendering */
+  .tab-content {
+    contain: layout style paint;
+  }
+
+  /* Shimmer animation for better loading states */
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  /* Task detail page optimizations */
+  .task-detail-grid {
+    contain: layout style paint;
+  }
 }

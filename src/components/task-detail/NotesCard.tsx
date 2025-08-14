@@ -3,12 +3,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { FileText, Save } from "lucide-react";
 import { useTaskNotes } from "@/hooks/useTaskNotes";
+import { memo } from "react";
 
 interface NotesCardProps {
   taskId: string;
 }
 
-export const NotesCard = ({ taskId }: NotesCardProps) => {
+export const NotesCard = memo(({ taskId }: NotesCardProps) => {
   const {
     notes,
     loading,
@@ -69,4 +70,4 @@ export const NotesCard = ({ taskId }: NotesCardProps) => {
       </CardContent>
     </Card>
   );
-};
+});

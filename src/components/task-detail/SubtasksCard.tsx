@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, memo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +11,7 @@ interface SubtasksCardProps {
   taskId: string;
 }
 
-export const SubtasksCard = ({ taskId }: SubtasksCardProps) => {
+export const SubtasksCard = memo(({ taskId }: SubtasksCardProps) => {
   const {
     subtasks,
     loading,
@@ -136,4 +136,4 @@ export const SubtasksCard = ({ taskId }: SubtasksCardProps) => {
       </CardContent>
     </Card>
   );
-};
+});

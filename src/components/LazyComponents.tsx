@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, memo } from 'react';
 import { ListSkeleton } from '@/components/ui/skeleton';
 
 // Lazy load heavy components
@@ -38,37 +38,46 @@ const FolderDetailSkeleton = () => (
   </div>
 );
 
-const CardSkeleton = () => (
-  <div className="h-48 bg-muted rounded-lg animate-pulse" />
-);
+const CardSkeleton = memo(() => (
+  <div className="h-full min-h-[200px] bg-muted/50 rounded-lg animate-pulse relative overflow-hidden">
+    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-[shimmer_1.5s_infinite] transition-transform duration-300" />
+    <div className="p-4 space-y-3">
+      <div className="h-6 bg-muted-foreground/20 rounded animate-pulse" />
+      <div className="space-y-2">
+        <div className="h-4 bg-muted-foreground/15 rounded animate-pulse" />
+        <div className="h-4 bg-muted-foreground/15 rounded w-3/4 animate-pulse" />
+      </div>
+    </div>
+  </div>
+));
 
-// Wrapper components with Suspense
-export const LazyTaskDetailPage = (props: any) => (
+// Wrapper components with Suspense and optimized fallbacks
+export const LazyTaskDetailPage = memo((props: any) => (
   <Suspense fallback={<TaskDetailSkeleton />}>
     <TaskDetailPage {...props} />
   </Suspense>
-);
+));
 
-export const LazyFolderDetailPage = (props: any) => (
+export const LazyFolderDetailPage = memo((props: any) => (
   <Suspense fallback={<FolderDetailSkeleton />}>
     <FolderDetailPage {...props} />
   </Suspense>
-);
+));
 
-export const LazyPomodoroCard = (props: any) => (
+export const LazyPomodoroCard = memo((props: any) => (
   <Suspense fallback={<CardSkeleton />}>
     <PomodoroCard {...props} />
   </Suspense>
-);
+));
 
-export const LazySubtasksCard = (props: any) => (
+export const LazySubtasksCard = memo((props: any) => (
   <Suspense fallback={<CardSkeleton />}>
     <SubtasksCard {...props} />
   </Suspense>
-);
+));
 
-export const LazyNotesCard = (props: any) => (
+export const LazyNotesCard = memo((props: any) => (
   <Suspense fallback={<CardSkeleton />}>
     <NotesCard {...props} />
   </Suspense>
-);
+));
