@@ -519,8 +519,8 @@ const DatabaseToolbar = ({
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      console.log('🎯 DatabaseToolbar: Navigating to settings for property creation');
-                      window.location.hash = '#/settings';
+                      console.log('🎯 DatabaseToolbar: Opening property creation dialog');
+                      openCreateDialog();
                       setIsSettingsOpen(false);
                     }}
                   >

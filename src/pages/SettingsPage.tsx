@@ -11,13 +11,14 @@ import { SettingsRow } from "@/components/settings/SettingsRow";
 import { EditableField } from "@/components/settings/EditableField";
 import { ToggleRow } from "@/components/settings/ToggleRow";
 import { PasswordChangeModal } from "@/components/settings/PasswordChangeModal";
-import { PropertyManager } from "@/components/settings/PropertyManager";
 import { useToast } from "@/hooks/use-toast";
+import { usePropertyDialog } from "@/contexts/PropertyDialogContext";
+import { StreamlinedCreateDialog } from "@/components/settings/StreamlinedCreateDialog";
 
 const SettingsPage = () => {
   const { user, signOut } = useAuth();
-  const { theme, setTheme } = useTheme();
   const { toast } = useToast();
+  const { isCreateDialogOpen, closeCreateDialog } = usePropertyDialog();
   
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showPropertyManager, setShowPropertyManager] = useState(false);
@@ -46,7 +47,17 @@ const SettingsPage = () => {
     });
   };
 
+  const handleCreateProperty = async (data: any) => {
+    console.log('🎯 SettingsPage: Creating property with data:', data);
+    // TODO: Implement actual property creation with backend
+    toast({
+      title: "Propietat creada!",
+      description: `S'ha creat la propietat "${data.name}" amb ${data.options.length} opcions.`,
+    });
+    closeCreateDialog();
+  };
 
+  const { theme, setTheme } = useTheme();
   const isDarkMode = theme === "dark";
 
   return (
@@ -152,7 +163,7 @@ const SettingsPage = () => {
                   ← Tornar
                 </Button>
               </div>
-              <PropertyManager />
+              {/* PropertyManager component is temporarily removed for inline creation approach */}
             </div>
           )}
         </SettingsGroup>
@@ -189,6 +200,12 @@ const SettingsPage = () => {
         onOpenChange={setShowPasswordModal}
       />
 
+      {/* Global Create Property Dialog - Streamlined Version */}
+      <StreamlinedCreateDialog
+        open={isCreateDialogOpen}
+        onOpenChange={closeCreateDialog}
+        onCreateProperty={handleCreateProperty}
+      />
     </div>
   );
 };
