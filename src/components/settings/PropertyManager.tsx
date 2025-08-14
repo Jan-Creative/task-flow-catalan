@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useProperties } from "@/hooks/useProperties";
 import { useToast } from "@/hooks/use-toast";
 import { SettingsItem } from "./SettingsItem";
-import { CreatePropertyDialog } from "./CreatePropertyDialog";
+import { InlinePropertyCreator } from "./InlinePropertyCreator";
 import { EditPropertyDialog } from "./EditPropertyDialog";
 import { DeleteConfirmationDialog } from "./DeleteConfirmationDialog";
 
@@ -14,7 +14,6 @@ export const PropertyManager = () => {
   const { properties, loading } = useProperties();
   const { toast } = useToast();
   const [expandedProperty, setExpandedProperty] = useState<string | null>(null);
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState<any>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -24,7 +23,6 @@ export const PropertyManager = () => {
     name: string;
     propertyId?: string;
   } | null>(null);
-  const [isCreating, setIsCreating] = useState(false);
 
   // Debug function to track button clicks
   const debugClick = (action: string, data?: any) => {
@@ -32,7 +30,6 @@ export const PropertyManager = () => {
       timestamp: new Date().toISOString(),
       action,
       data,
-      createDialogOpen,
       loading,
     });
   };
@@ -56,9 +53,6 @@ export const PropertyManager = () => {
   };
 
   const handleCreateProperty = async (data: any) => {
-    debugClick('handleCreateProperty', data);
-    setIsCreating(true);
-    
     try {
       // TODO: Implement backend integration
       console.log('Creating property:', data);
@@ -70,8 +64,6 @@ export const PropertyManager = () => {
         title: "Propietat creada",
         description: `La propietat "${data.name}" s'ha creat correctament.`,
       });
-      
-      setCreateDialogOpen(false);
     } catch (error) {
       console.error('Error creating property:', error);
       toast({
@@ -79,16 +71,8 @@ export const PropertyManager = () => {
         description: "No s'ha pogut crear la propietat. Torna-ho a intentar.",
         variant: "destructive",
       });
-    } finally {
-      setIsCreating(false);
+      throw error;
     }
-  };
-
-  const handleOpenCreateDialog = (e?: React.MouseEvent) => {
-    e?.preventDefault();
-    e?.stopPropagation();
-    debugClick('handleOpenCreateDialog');
-    setCreateDialogOpen(true);
   };
 
   const handleEditProperty = (property: any) => {
@@ -205,83 +189,58 @@ export const PropertyManager = () => {
             <Tag className="h-4 w-4" />
             Propietats Personalitzades
           </h4>
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-primary hover:bg-primary/10 transition-all duration-200 hover:scale-105 relative z-10"
-            onClick={handleOpenCreateDialog}
-            disabled={isCreating}
-            aria-label="Crear nova propietat personalitzada"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            {isCreating ? "Creant..." : "Nova Propietat"}
-          </Button>
         </div>
         
-        {customProperties.length === 0 ? (
-          <Card className="bg-secondary/20 border-border/30">
-            <CardContent className="p-6 text-center">
-              <Tag className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-              <p className="text-muted-foreground mb-3">
-                No tens propietats personalitzades
-              </p>
-              <p className="text-sm text-muted-foreground mb-4">
-                Crea propietats per organitzar millor les teves tasques
-              </p>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={handleOpenCreateDialog}
-                disabled={isCreating}
-                className="transition-all duration-200 hover:scale-105"
-                aria-label="Crear la teva primera propietat personalitzada"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                {isCreating ? "Creant..." : "Crear Primera Propietat"}
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-2">
-            {customProperties.map((property) => (
-              <SettingsItem
-                key={property.id}
-                label={property.name}
-                description={`${property.options?.length || 0} opcions disponibles`}
-                icon={Tag}
-                className="cursor-pointer"
-                onClick={() => toggleProperty(property.id)}
-              >
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="bg-primary/20 text-primary border-primary/30">
-                    Personalitzada
-                  </Badge>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEditProperty(property);
-                    }}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-destructive hover:bg-destructive/10"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteProperty(property);
-                    }}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </SettingsItem>
-            ))}
-          </div>
-        )}
+        <div className="space-y-2">
+          {/* Inline Property Creator */}
+          <InlinePropertyCreator onCreateProperty={handleCreateProperty} />
+          
+          {/* Existing Custom Properties */}
+          {customProperties.map((property) => (
+            <SettingsItem
+              key={property.id}
+              label={property.name}
+              description={`${property.options?.length || 0} opcions disponibles`}
+              icon={Tag}
+              className="cursor-pointer"
+              onClick={() => toggleProperty(property.id)}
+            >
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="bg-primary/20 text-primary border-primary/30">
+                  Personalitzada
+                </Badge>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleEditProperty(property);
+                  }}
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-destructive hover:bg-destructive/10"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteProperty(property);
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </SettingsItem>
+          ))}
+          
+          {/* Empty State when no custom properties exist */}
+          {customProperties.length === 0 && (
+            <div className="ml-12 py-4 text-center text-muted-foreground text-sm">
+              Crea la teva primera propietat personalitzada utilitzant l'opció de dalt
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Property Options Expansion */}
@@ -348,15 +307,6 @@ export const PropertyManager = () => {
       )}
 
       {/* Dialogs */}
-      <CreatePropertyDialog
-        open={createDialogOpen}
-        onOpenChange={(open) => {
-          debugClick('createDialogOpenChange', { open });
-          setCreateDialogOpen(open);
-        }}
-        onCreateProperty={handleCreateProperty}
-      />
-
       <EditPropertyDialog
         open={editDialogOpen}
         onOpenChange={setEditDialogOpen}
