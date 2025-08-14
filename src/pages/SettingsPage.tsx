@@ -1,163 +1,177 @@
 import { useState } from "react";
-import { User, Settings2, Palette, Database, Smartphone } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent } from "@/components/ui/card";
+import { User, Mail, Lock, Palette, Settings2, LogOut, Moon, Sun, Monitor, Smartphone, Database } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { UserProfileCard } from "@/components/settings/UserProfileCard";
-import { SettingsSection } from "@/components/settings/SettingsSection";
-import { PropertyManager } from "@/components/settings/PropertyManager";
-import { ThemeSelector } from "@/components/settings/ThemeSelector";
+import { useAuth } from "@/hooks/useAuth";
+import { useTheme } from "next-themes";
+import { SettingsGroup } from "@/components/settings/SettingsGroup";
+import { SettingsRow } from "@/components/settings/SettingsRow";
+import { EditableField } from "@/components/settings/EditableField";
+import { ToggleRow } from "@/components/settings/ToggleRow";
+import { PasswordChangeModal } from "@/components/settings/PasswordChangeModal";
+import { useToast } from "@/hooks/use-toast";
 
 const SettingsPage = () => {
-  const [activeTab, setActiveTab] = useState("user");
+  const { user, signOut } = useAuth();
+  const { theme, setTheme } = useTheme();
+  const { toast } = useToast();
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+
+  const getInitials = (email: string) => {
+    return email?.slice(0, 2).toUpperCase() || "??";
+  };
+
+  const getDisplayName = () => {
+    return user?.user_metadata?.full_name || user?.email?.split('@')[0] || "Usuari";
+  };
+
+  const handleNameChange = async (newName: string) => {
+    // TODO: Implementar canvi de nom quan estigui disponible
+    toast({
+      title: "Nom actualitzat",
+      description: `El nom s'ha canviat a "${newName}"`,
+    });
+  };
+
+  const handleEmailChange = async (newEmail: string) => {
+    // TODO: Implementar canvi d'email quan estigui disponible
+    toast({
+      title: "Email actualitzat", 
+      description: `L'email s'ha canviat a "${newEmail}"`,
+    });
+  };
+
+  const isDarkMode = theme === "dark";
 
   return (
-    <div className="p-6 pb-24 space-y-6">
+    <div className="min-h-screen bg-background pb-24">
       {/* Header */}
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold text-foreground">Configuració</h1>
-        <p className="text-muted-foreground">Personalitza l'experiència de l'aplicació</p>
-      </div>
+      <div className="px-4 py-6 space-y-4">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Configuració</h1>
+          <p className="text-muted-foreground text-sm">Personalitza l'experiència de l'aplicació</p>
+        </div>
 
-      {/* User Profile Card - Always visible */}
-      <UserProfileCard />
-
-      {/* Settings Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 bg-secondary/20 backdrop-blur-glass">
-          <TabsTrigger 
-            value="user" 
-            className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
-          >
-            <User className="h-4 w-4 mr-2" />
-            Usuari
-          </TabsTrigger>
-          <TabsTrigger 
-            value="properties"
-            className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
-          >
-            <Settings2 className="h-4 w-4 mr-2" />
-            Propietats
-          </TabsTrigger>
-          <TabsTrigger 
-            value="appearance"
-            className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
-          >
-            <Palette className="h-4 w-4 mr-2" />
-            Aparença
-          </TabsTrigger>
-        </TabsList>
-
-        {/* User Settings Tab */}
-        <TabsContent value="user" className="space-y-6 mt-6">
-          <SettingsSection
-            title="Gestió del Compte"
-            description="Configura la informació del teu perfil i compte"
-            icon={User}
-          >
-            <div className="space-y-4">
-              <div className="p-4 bg-secondary/20 rounded-lg border border-border/30">
-                <h4 className="font-medium text-foreground mb-2">Configuració del Perfil</h4>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Gestiona la informació bàsica del teu compte
-                </p>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Canviar nom d'usuari</span>
-                    <Badge variant="outline" className="text-xs">Pròximament</Badge>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Actualitzar email</span>
-                    <Badge variant="outline" className="text-xs">Pròximament</Badge>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Canviar contrasenya</span>
-                    <Badge variant="outline" className="text-xs">Pròximament</Badge>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Avatar personalitzat</span>
-                    <Badge variant="outline" className="text-xs">Pròximament</Badge>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-4 bg-secondary/20 rounded-lg border border-border/30">
-                <h4 className="font-medium text-foreground mb-2">Seguretat</h4>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Configuracions de seguretat i privacitat
-                </p>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Autenticació en dos factors</span>
-                    <Badge variant="outline" className="text-xs">Pròximament</Badge>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Sessions actives</span>
-                    <Badge variant="outline" className="text-xs">Pròximament</Badge>
-                  </div>
-                </div>
-              </div>
+        {/* User Profile Section */}
+        <div className="flex items-center gap-4 py-4">
+          <Avatar className="h-16 w-16">
+            <AvatarImage src="" />
+            <AvatarFallback className="bg-primary/20 text-primary text-lg font-medium">
+              {getInitials(user?.email || "")}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-lg font-semibold text-foreground truncate">
+              {getDisplayName()}
+            </h2>
+            <p className="text-muted-foreground text-sm truncate">
+              {user?.email}
+            </p>
+            <div className="flex items-center gap-2 mt-1">
+              <Badge variant="secondary" className="text-xs">
+                Connectat
+              </Badge>
             </div>
-          </SettingsSection>
-        </TabsContent>
-
-        {/* Properties Settings Tab */}
-        <TabsContent value="properties" className="space-y-6 mt-6">
-          <SettingsSection
-            title="Gestió de Propietats"
-            description="Configura les propietats personalitzades per organitzar les teves tasques"
-            icon={Settings2}
-          >
-            <PropertyManager />
-          </SettingsSection>
-        </TabsContent>
-
-        {/* Appearance Settings Tab */}
-        <TabsContent value="appearance" className="space-y-6 mt-6">
-          <SettingsSection
-            title="Personalització Visual"
-            description="Configura l'aparença i el tema de l'aplicació"
-            icon={Palette}
-          >
-            <ThemeSelector />
-          </SettingsSection>
-        </TabsContent>
-      </Tabs>
-
-      {/* App Info - At the bottom */}
-      <div className="space-y-4">
-        <h2 className="text-xl font-semibold text-foreground">Informació de l'App</h2>
-        
-        <div className="grid gap-4 md:grid-cols-2">
-          <Card className="bg-card/60 backdrop-blur-glass border-border/50">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-primary/20 rounded-lg">
-                  <Smartphone className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-semibold">Versió</h3>
-                  <p className="text-sm text-muted-foreground">v1.0.0 Beta</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-card/60 backdrop-blur-glass border-border/50">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-success/20 rounded-lg">
-                  <Database className="h-5 w-5 text-success" />
-                </div>
-                <div>
-                  <h3 className="font-semibold">Backend</h3>
-                  <p className="text-sm text-muted-foreground">Supabase - Connectat</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          </div>
         </div>
       </div>
+
+      <div className="space-y-8">
+        {/* Account Settings */}
+        <SettingsGroup title="Compte">
+          <SettingsRow
+            icon={User}
+            label="Nom"
+          >
+            <EditableField
+              value={getDisplayName()}
+              onSave={handleNameChange}
+              placeholder="Introdueix el teu nom"
+            />
+          </SettingsRow>
+          <Separator className="ml-12" />
+          <SettingsRow
+            icon={Mail}
+            label="Email"
+          >
+            <EditableField
+              value={user?.email || ""}
+              onSave={handleEmailChange}
+              placeholder="Introdueix el teu email"
+              type="email"
+              disabled={true}
+            />
+          </SettingsRow>
+          <Separator className="ml-12" />
+          <SettingsRow
+            icon={Lock}
+            label="Contrasenya"
+            value="••••••••"
+            onClick={() => setShowPasswordModal(true)}
+            showChevron
+          />
+        </SettingsGroup>
+
+        {/* Appearance Settings */}
+        <SettingsGroup title="Aparença">
+          <ToggleRow
+            icon={isDarkMode ? Moon : Sun}
+            label="Mode fosc"
+            description="Activa o desactiva el tema fosc"
+            checked={isDarkMode}
+            onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
+          />
+        </SettingsGroup>
+
+        {/* Properties Settings */}
+        <SettingsGroup title="Propietats">
+          <SettingsRow
+            icon={Settings2}
+            label="Gestionar propietats"
+            description="Configura propietats personalitzades"
+            showChevron
+            onClick={() => {
+              toast({
+                title: "Pròximament",
+                description: "La gestió de propietats estarà disponible aviat",
+              });
+            }}
+          />
+        </SettingsGroup>
+
+        {/* App Info */}
+        <SettingsGroup title="Informació">
+          <SettingsRow
+            icon={Smartphone}
+            label="Versió"
+            value="v1.0.0 Beta"
+          />
+          <Separator className="ml-12" />
+          <SettingsRow
+            icon={Database}
+            label="Backend"
+            value="Supabase - Connectat"
+          />
+        </SettingsGroup>
+
+        {/* Logout */}
+        <SettingsGroup>
+          <SettingsRow
+            icon={LogOut}
+            label="Tancar sessió"
+            onClick={signOut}
+            className="text-destructive"
+          />
+        </SettingsGroup>
+      </div>
+
+      {/* Password Change Modal */}
+      <PasswordChangeModal
+        open={showPasswordModal}
+        onOpenChange={setShowPasswordModal}
+      />
     </div>
   );
 };
