@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { LogOut, User } from "lucide-react";
 import { useShortcut } from "@/hooks/useKeyboardShortcuts";
 import { useToast } from "@/hooks/use-toast";
+import { KeyboardDebugger } from "@/components/KeyboardDebugger";
 
 const Index = () => {
   const { user, loading, signOut } = useAuth();
@@ -156,6 +157,11 @@ const Index = () => {
         folders={folders}
         editingTask={editingTask}
       />
+
+      {/* Debug component - remove in production */}
+      <div className="fixed bottom-20 left-4 right-4 z-40">
+        <KeyboardDebugger />
+      </div>
     </div>
   );
 };
