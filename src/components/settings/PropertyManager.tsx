@@ -24,6 +24,18 @@ export const PropertyManager = () => {
     name: string;
     propertyId?: string;
   } | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
+
+  // Debug function to track button clicks
+  const debugClick = (action: string, data?: any) => {
+    console.log(`🔍 PropertyManager Debug - ${action}:`, {
+      timestamp: new Date().toISOString(),
+      action,
+      data,
+      createDialogOpen,
+      loading,
+    });
+  };
 
   if (loading) {
     return (
@@ -44,20 +56,39 @@ export const PropertyManager = () => {
   };
 
   const handleCreateProperty = async (data: any) => {
+    debugClick('handleCreateProperty', data);
+    setIsCreating(true);
+    
     try {
       // TODO: Implement backend integration
       console.log('Creating property:', data);
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       toast({
         title: "Propietat creada",
         description: `La propietat "${data.name}" s'ha creat correctament.`,
       });
+      
+      setCreateDialogOpen(false);
     } catch (error) {
+      console.error('Error creating property:', error);
       toast({
         title: "Error",
         description: "No s'ha pogut crear la propietat. Torna-ho a intentar.",
         variant: "destructive",
       });
+    } finally {
+      setIsCreating(false);
     }
+  };
+
+  const handleOpenCreateDialog = (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    debugClick('handleOpenCreateDialog');
+    setCreateDialogOpen(true);
   };
 
   const handleEditProperty = (property: any) => {
@@ -177,11 +208,13 @@ export const PropertyManager = () => {
           <Button
             variant="outline"
             size="sm"
-            className="text-primary hover:bg-primary/10"
-            onClick={() => setCreateDialogOpen(true)}
+            className="text-primary hover:bg-primary/10 transition-all duration-200 hover:scale-105 relative z-10"
+            onClick={handleOpenCreateDialog}
+            disabled={isCreating}
+            aria-label="Crear nova propietat personalitzada"
           >
             <Plus className="h-4 w-4 mr-2" />
-            Nova Propietat
+            {isCreating ? "Creant..." : "Nova Propietat"}
           </Button>
         </div>
         
@@ -198,10 +231,13 @@ export const PropertyManager = () => {
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => setCreateDialogOpen(true)}
+                onClick={handleOpenCreateDialog}
+                disabled={isCreating}
+                className="transition-all duration-200 hover:scale-105"
+                aria-label="Crear la teva primera propietat personalitzada"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Crear Primera Propietat
+                {isCreating ? "Creant..." : "Crear Primera Propietat"}
               </Button>
             </CardContent>
           </Card>
@@ -314,7 +350,10 @@ export const PropertyManager = () => {
       {/* Dialogs */}
       <CreatePropertyDialog
         open={createDialogOpen}
-        onOpenChange={setCreateDialogOpen}
+        onOpenChange={(open) => {
+          debugClick('createDialogOpenChange', { open });
+          setCreateDialogOpen(open);
+        }}
         onCreateProperty={handleCreateProperty}
       />
 

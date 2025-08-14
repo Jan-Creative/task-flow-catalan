@@ -93,11 +93,22 @@ export const CreatePropertyDialog = ({
   };
 
   const handleSubmit = () => {
-    if (!validateForm()) return;
+    console.log('🔍 CreatePropertyDialog handleSubmit called');
+    
+    if (!validateForm()) {
+      console.log('🔍 Form validation failed:', errors);
+      return;
+    }
 
     const validOptions = options
       .filter(opt => opt.value.trim())
       .map(opt => ({ value: opt.value.trim(), color: opt.color }));
+
+    console.log('🔍 Calling onCreateProperty with:', {
+      name: name.trim(),
+      description: description.trim() || undefined,
+      options: validOptions,
+    });
 
     onCreateProperty({
       name: name.trim(),
@@ -110,7 +121,6 @@ export const CreatePropertyDialog = ({
     setDescription("");
     setOptions([{ id: "1", value: "", color: "#3b82f6" }]);
     setErrors({});
-    onOpenChange(false);
   };
 
   const handleCancel = () => {
@@ -121,9 +131,12 @@ export const CreatePropertyDialog = ({
     onOpenChange(false);
   };
 
+  // Debug logging
+  console.log('🔍 CreatePropertyDialog render:', { open, optionsCount: options.length });
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden z-50">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Type className="h-5 w-5 text-primary" />
@@ -265,7 +278,11 @@ export const CreatePropertyDialog = ({
           <Button variant="outline" onClick={handleCancel}>
             Cancel·lar
           </Button>
-          <Button onClick={handleSubmit} className="bg-primary text-primary-foreground hover:bg-primary/90">
+          <Button 
+            onClick={handleSubmit} 
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
+            disabled={!name.trim() || options.filter(opt => opt.value.trim()).length === 0}
+          >
             Crear Propietat
           </Button>
         </DialogFooter>
