@@ -42,7 +42,10 @@ export const IconPickerPopover: React.FC<IconPickerPopoverProps> = ({
     return searchIcons(searchQuery, selectedCategory === 'all' ? undefined : selectedCategory);
   }, [searchQuery, selectedCategory]);
 
-  const handleIconClick = (iconName: string) => {
+  const handleIconClick = (iconName: string, e: React.MouseEvent) => {
+    console.log('Icon clicked:', iconName);
+    e.stopPropagation();
+    e.preventDefault();
     setPendingIcon(iconName);
   };
 
@@ -79,11 +82,11 @@ export const IconPickerPopover: React.FC<IconPickerPopoverProps> = ({
     
     return (
       <button
-        onClick={() => handleIconClick(icon.name)}
+        onClick={(e) => handleIconClick(icon.name, e)}
         disabled={isLoading}
         className={cn(
-          "group relative flex flex-col items-center justify-center p-2 rounded-md border transition-all duration-200",
-          "hover:bg-[#353535] hover:border-[#555] hover:scale-105",
+          "group relative flex flex-col items-center justify-center p-2 rounded-md border transition-colors duration-200",
+          "hover:bg-[#353535] hover:border-[#555]",
           "focus:outline-none focus:ring-1 focus:ring-blue-500",
           "disabled:opacity-50 disabled:cursor-not-allowed",
           isPending ? "bg-orange-600 text-white border-orange-500" : 
@@ -119,8 +122,9 @@ export const IconPickerPopover: React.FC<IconPickerPopoverProps> = ({
     <Draggable
       nodeRef={dragRef}
       handle=".drag-handle"
-      bounds="parent"
+      bounds="body"
       defaultPosition={position || { x: 100, y: 100 }}
+      cancel="button, input, .scroll-area"
     >
       <div
         ref={dragRef}
@@ -185,7 +189,7 @@ export const IconPickerPopover: React.FC<IconPickerPopoverProps> = ({
           </div>
 
           {/* Icons Grid */}
-          <ScrollArea className="h-64 w-full">
+          <ScrollArea className="h-64 w-full scroll-area">
             <div className="grid grid-cols-8 gap-1 p-1">
               {filteredIcons.slice(0, 64).map((icon) => (
                 <IconPreview
