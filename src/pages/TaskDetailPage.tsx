@@ -12,7 +12,7 @@ const TaskDetailPage = () => {
 
   if (loading && (!tasks || tasks.length === 0)) {
     return (
-      <div className="w-full min-h-screen bg-background text-foreground animate-fade-in">
+      <div className="w-full min-h-screen bg-background text-foreground">
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
@@ -25,9 +25,9 @@ const TaskDetailPage = () => {
 
   if (!task) {
     return (
-      <div className="w-full min-h-screen bg-background text-foreground animate-fade-in">
+      <div className="w-full min-h-screen bg-background text-foreground">
         <div className="flex items-center justify-center h-64">
-          <div className="text-center animate-scale-in">
+          <div className="text-center">
             <h2 className="text-xl font-semibold mb-2">Tasca no trobada</h2>
             <p className="text-muted-foreground">La tasca que busques no existeix.</p>
             <Button onClick={() => navigate(-1)} className="mt-4">
@@ -40,9 +40,9 @@ const TaskDetailPage = () => {
   }
 
   return (
-    <div className="w-full min-h-screen bg-background text-foreground animate-fade-in">
+    <div className="w-full min-h-screen bg-background text-foreground">
       {/* Header with back button */}
-      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b border-border/50 animate-slide-in-left">
+      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b border-border/50">
         <div className="flex items-center gap-4 p-4">
           <Button
             variant="ghost"

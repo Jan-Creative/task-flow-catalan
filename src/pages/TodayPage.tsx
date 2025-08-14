@@ -193,7 +193,7 @@ const TodayPage = ({ onEditTask, onNavigateToSettings }: TodayPageProps) => {
 
   if (loading && (!todayTasks || todayTasks.length === 0)) {
     return (
-      <div className="flex items-center justify-center min-h-[400px] animate-fade-in">
+      <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
           <p className="text-muted-foreground">Carregant tasques...</p>
@@ -203,18 +203,17 @@ const TodayPage = ({ onEditTask, onNavigateToSettings }: TodayPageProps) => {
   }
 
   return (
-    <div className="w-full max-w-full p-4 pb-24 space-y-6 overflow-x-hidden animate-fade-in">
+    <div className="w-full max-w-full p-4 pb-24 space-y-6 overflow-x-hidden">
       {/* Header */}
       <div className="space-y-4">
-        <h1 className="text-3xl font-bold text-foreground animate-slide-in-left">Avui</h1>
+        <h1 className="text-3xl font-bold text-foreground">Avui</h1>
         
         {/* Quick stats */}
         <div className="grid grid-cols-3 gap-3">
           {getStatusOptions().slice(0, 3).map((option, index) => (
             <Card 
               key={option.value} 
-              className="bg-card/60 backdrop-blur-glass border-border/50 animate-scale-in"
-              style={{ animationDelay: `${index * 0.1}s` }}
+              className="bg-card/60 backdrop-blur-glass border-border/50"
             >
               <CardContent className="p-3 text-center">
                 <div className={`text-2xl font-bold ${index === 0 ? 'text-warning' : index === 1 ? 'text-primary' : 'text-success'}`}>
@@ -243,7 +242,7 @@ const TodayPage = ({ onEditTask, onNavigateToSettings }: TodayPageProps) => {
 
       {/* Content */}
       {filteredTasks.length === 0 ? (
-        <Card className="bg-card/60 backdrop-blur-glass border-border/50 animate-fade-in">
+        <Card className="bg-card/60 backdrop-blur-glass border-border/50">
           <CardContent className="p-8 text-center">
             <div className="text-muted-foreground">
               <SlidersHorizontal className="h-12 w-12 mx-auto mb-4 opacity-50" />
@@ -255,29 +254,24 @@ const TodayPage = ({ onEditTask, onNavigateToSettings }: TodayPageProps) => {
       ) : (
         <>
           {viewMode === "list" && (
-            <div className="space-y-2 animate-fade-in">
-              {filteredTasks.map((task, index) => (
-                <div
+            <div className="space-y-2">
+              {filteredTasks.map((task) => (
+                <TaskChecklistItem
                   key={task.id}
-                  className="animate-scale-in"
-                  style={{ animationDelay: `${index * 0.05}s` }}
-                >
-                  <TaskChecklistItem
-                    task={task}
-                    onStatusChange={handleStatusChange}
-                    onEdit={onEditTask}
-                    onDelete={deleteTask}
-                    viewMode={viewMode}
-                    completingTasks={completingTasks}
-                  />
-                </div>
+                  task={task}
+                  onStatusChange={handleStatusChange}
+                  onEdit={onEditTask}
+                  onDelete={deleteTask}
+                  viewMode={viewMode}
+                  completingTasks={completingTasks}
+                />
               ))}
             </div>
           )}
 
           {viewMode === "kanban" && (
-            <div className="flex gap-4 overflow-x-auto pb-4 animate-fade-in">
-              {statusColumns.map((status, columnIndex) => {
+            <div className="flex gap-4 overflow-x-auto pb-4">
+              {statusColumns.map((status) => {
                 let statusTasks = filteredTasks.filter(task => task.status === status);
                 
                 // Apply priority sorting within each column in kanban view
@@ -297,8 +291,7 @@ const TodayPage = ({ onEditTask, onNavigateToSettings }: TodayPageProps) => {
                 return (
                   <div 
                     key={status} 
-                    className="min-w-80 flex-shrink-0 animate-scale-in"
-                    style={{ animationDelay: `${columnIndex * 0.1}s` }}
+                    className="min-w-80 flex-shrink-0"
                   >
                     <div className="sticky top-0 z-10 mb-4">
                       <div 
@@ -316,21 +309,16 @@ const TodayPage = ({ onEditTask, onNavigateToSettings }: TodayPageProps) => {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      {statusTasks.map((task, taskIndex) => (
-                        <div
+                      {statusTasks.map((task) => (
+                        <TaskChecklistItem
                           key={task.id}
-                          className="animate-fade-in"
-                          style={{ animationDelay: `${(columnIndex * 0.1) + (taskIndex * 0.05)}s` }}
-                        >
-                          <TaskChecklistItem
-                            task={task}
-                            onStatusChange={handleStatusChange}
-                            onEdit={onEditTask}
-                            onDelete={deleteTask}
-                            viewMode="kanban"
-                            completingTasks={completingTasks}
-                          />
-                        </div>
+                          task={task}
+                          onStatusChange={handleStatusChange}
+                          onEdit={onEditTask}
+                          onDelete={deleteTask}
+                          viewMode="kanban"
+                          completingTasks={completingTasks}
+                        />
                       ))}
                     </div>
                   </div>
