@@ -64,14 +64,7 @@ export class KeyboardService {
    * Registra una drecera
    */
   registerShortcut(shortcut: KeyboardShortcut): void {
-    console.log('🔍 KeyboardService - Registering shortcut:', {
-      id: shortcut.id,
-      name: shortcut.name,
-      keys: shortcut.keys,
-      enabled: shortcut.enabled
-    });
     this.shortcuts.set(shortcut.id, shortcut);
-    console.log('🔍 KeyboardService - Total shortcuts registered:', this.shortcuts.size);
   }
 
   /**
@@ -86,20 +79,10 @@ export class KeyboardService {
    * Comprova si una combinació de tecles coincideix amb una drecera
    */
   matchesShortcut(combination: KeyCombination, shortcut: KeyboardShortcut): boolean {
-    if (!shortcut.enabled || shortcut.keys.length === 0) {
-      console.log('🔍 KeyboardService - Shortcut disabled or no keys:', shortcut.id, { enabled: shortcut.enabled, keys: shortcut.keys });
-      return false;
-    }
+    if (!shortcut.enabled || shortcut.keys.length === 0) return false;
     
     const combinationString = KeyboardService.combinationToString(combination);
     const shortcutString = KeyboardService.keysToString(shortcut.keys);
-    
-    console.log('🔍 KeyboardService - Comparing strings:', {
-      combination: combinationString,
-      shortcut: shortcutString,
-      shortcutId: shortcut.id,
-      match: combinationString === shortcutString
-    });
     
     return combinationString === shortcutString;
   }
@@ -139,45 +122,25 @@ export class KeyboardService {
    * Gestiona events de teclat globals
    */
   handleKeyDown(event: KeyboardEvent): boolean {
-    console.log('🔍 KeyboardService - Handling keydown:', {
-      key: event.key,
-      ctrlKey: event.ctrlKey,
-      metaKey: event.metaKey,
-      shiftKey: event.shiftKey,
-      altKey: event.altKey,
-      target: (event.target as Element)?.tagName,
-      activeElement: document.activeElement?.tagName
-    });
-
     // No processar si s'està editant text
     if (KeyboardService.isTextInput(event.target as Element)) {
-      console.log('🔍 KeyboardService - Skipping (text input detected)');
       return false;
     }
 
     const combination = KeyboardService.eventToKeyCombination(event);
-    console.log('🔍 KeyboardService - Key combination:', combination);
-    
-    const combinationString = KeyboardService.combinationToString(combination);
-    console.log('🔍 KeyboardService - Combination string:', combinationString);
-    
     const matchingShortcuts = this.findMatchingShortcuts(combination);
-    console.log('🔍 KeyboardService - Matching shortcuts:', matchingShortcuts.length, matchingShortcuts.map(s => ({ id: s.id, keys: s.keys })));
     
     if (matchingShortcuts.length > 0) {
-      console.log('🔍 KeyboardService - Preventing default and executing shortcut');
       event.preventDefault();
       event.stopPropagation();
       
       // Executar la primera drecera que coincideixi
       const shortcut = matchingShortcuts[0];
-      const success = this.executeShortcut(shortcut.id);
-      console.log('🔍 KeyboardService - Shortcut execution result:', success);
+      this.executeShortcut(shortcut.id);
       
       return true;
     }
     
-    console.log('🔍 KeyboardService - No matching shortcuts found');
     return false;
   }
 
