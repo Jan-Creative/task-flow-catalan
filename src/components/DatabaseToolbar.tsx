@@ -153,15 +153,18 @@ const DatabaseToolbar = ({
           description: "La icona de l'opció s'ha actualitzat correctament.",
         });
       }
+      
+      // Refresh data to show updated icon
+      await fetchProperties();
+      
     } catch (error) {
+      console.error('Icon update error:', error);
       toast({
         title: "Error",
         description: "Hi ha hagut un error actualitzant la icona.",
         variant: "destructive",
       });
-    } finally {
-      setShowIconPicker(false);
-      setIconTarget(null);
+      throw error; // Re-throw to be handled by the popover
     }
   };
 

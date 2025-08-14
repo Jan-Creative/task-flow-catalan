@@ -34,14 +34,37 @@ export const IconPickerPopover: React.FC<IconPickerPopoverProps> = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [pendingIcon, setPendingIcon] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const dragRef = useRef<HTMLDivElement>(null);
 
   const filteredIcons = useMemo(() => {
     return searchIcons(searchQuery, selectedCategory === 'all' ? undefined : selectedCategory);
   }, [searchQuery, selectedCategory]);
 
-  const handleIconSelect = (iconName: string) => {
-    onIconSelect(iconName);
+  const handleIconClick = (iconName: string) => {
+    setPendingIcon(iconName);
+  };
+
+  const handleConfirmSelection = async () => {
+    if (!pendingIcon) return;
+    
+    setIsLoading(true);
+    try {
+      await onIconSelect(pendingIcon);
+      onOpenChange(false);
+      setSearchQuery('');
+      setSelectedCategory('all');
+      setPendingIcon(null);
+    } catch (error) {
+      console.error('Error saving icon:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setPendingIcon(null);
     onOpenChange(false);
     setSearchQuery('');
     setSelectedCategory('all');
@@ -51,16 +74,19 @@ export const IconPickerPopover: React.FC<IconPickerPopoverProps> = ({
     setSearchQuery('');
   };
 
-  const IconPreview: React.FC<{ icon: IconDefinition; isSelected: boolean }> = ({ icon, isSelected }) => {
+  const IconPreview: React.FC<{ icon: IconDefinition; isSelected: boolean; isPending: boolean }> = ({ icon, isSelected, isPending }) => {
     const IconComponent = icon.icon;
     
     return (
       <button
-        onClick={() => handleIconSelect(icon.name)}
+        onClick={() => handleIconClick(icon.name)}
+        disabled={isLoading}
         className={cn(
           "group relative flex flex-col items-center justify-center p-2 rounded-md border transition-all duration-200",
           "hover:bg-[#353535] hover:border-[#555] hover:scale-105",
           "focus:outline-none focus:ring-1 focus:ring-blue-500",
+          "disabled:opacity-50 disabled:cursor-not-allowed",
+          isPending ? "bg-orange-600 text-white border-orange-500" : 
           isSelected ? "bg-blue-600 text-white border-blue-500" : "bg-[#2a2a2a] border-[#444] text-[#b8b8b8]"
         )}
         title={`${icon.name} - ${icon.keywords.join(', ')}`}
@@ -68,17 +94,20 @@ export const IconPickerPopover: React.FC<IconPickerPopoverProps> = ({
         <IconComponent 
           className={cn(
             "h-3.5 w-3.5 mb-1 transition-colors",
-            isSelected ? "text-white" : "text-[#b8b8b8] group-hover:text-white"
+            isPending || isSelected ? "text-white" : "text-[#b8b8b8] group-hover:text-white"
           )} 
         />
         <span className={cn(
           "text-[10px] font-medium truncate max-w-full transition-colors",
-          isSelected ? "text-white" : "text-[#888] group-hover:text-white"
+          isPending || isSelected ? "text-white" : "text-[#888] group-hover:text-white"
         )}>
           {icon.name}
         </span>
-        {isSelected && (
-          <div className="absolute inset-0 rounded-md ring-1 ring-blue-400" />
+        {(isSelected || isPending) && (
+          <div className={cn(
+            "absolute inset-0 rounded-md ring-1",
+            isPending ? "ring-orange-400" : "ring-blue-400"
+          )} />
         )}
       </button>
     );
@@ -163,6 +192,7 @@ export const IconPickerPopover: React.FC<IconPickerPopoverProps> = ({
                   key={icon.name}
                   icon={icon}
                   isSelected={selectedIcon === icon.name}
+                  isPending={pendingIcon === icon.name}
                 />
               ))}
             </div>
@@ -193,6 +223,27 @@ export const IconPickerPopover: React.FC<IconPickerPopoverProps> = ({
               {Math.min(filteredIcons.length, 64)} de {filteredIcons.length} icones
             </div>
           )}
+
+          {/* Action buttons */}
+          <div className="flex gap-2 mt-3 pt-3 border-t border-[#333]">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCancel}
+              disabled={isLoading}
+              className="flex-1 h-8 text-xs bg-[#2a2a2a] border-[#444] text-[#b8b8b8] hover:bg-[#353535] hover:text-white"
+            >
+              Cancel·lar
+            </Button>
+            <Button
+              size="sm"
+              onClick={handleConfirmSelection}
+              disabled={!pendingIcon || isLoading}
+              className="flex-1 h-8 text-xs bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+            >
+              {isLoading ? "Guardant..." : "Confirmar"}
+            </Button>
+          </div>
         </div>
       </div>
     </Draggable>
