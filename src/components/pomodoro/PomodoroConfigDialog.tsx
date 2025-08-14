@@ -9,6 +9,7 @@ interface PomodoroConfigDialogProps {
   breakDuration: number;
   onWorkDurationChange: (duration: number) => void;
   onBreakDurationChange: (duration: number) => void;
+  disabled?: boolean;
 }
 
 const PRESETS = [
@@ -22,7 +23,8 @@ export const PomodoroConfigDialog = ({
   workDuration,
   breakDuration,
   onWorkDurationChange,
-  onBreakDurationChange
+  onBreakDurationChange,
+  disabled = false
 }: PomodoroConfigDialogProps) => {
   const [tempWork, setTempWork] = useState(workDuration);
   const [tempBreak, setTempBreak] = useState(breakDuration);
@@ -50,10 +52,25 @@ export const PomodoroConfigDialog = ({
     setter(newValue);
   };
 
+  // Reset temp values when opening
+  const handleOpenChange = (newOpen: boolean) => {
+    if (newOpen) {
+      setTempWork(workDuration);
+      setTempBreak(breakDuration);
+    }
+    setOpen(newOpen);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="h-8 w-8 p-0"
+          disabled={disabled}
+          title={disabled ? "No es pot configurar mentre el timer està actiu" : "Configuració Pomodoro"}
+        >
           <Settings className="h-4 w-4" />
         </Button>
       </DialogTrigger>

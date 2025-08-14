@@ -1,0 +1,352 @@
+import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+
+interface PomodoroSession {
+  id: string;
+  duration_minutes: number;
+  break_duration_minutes: number;
+  started_at: string;
+  completed_at?: string;
+  is_completed: boolean;
+  session_type: 'work' | 'break';
+  task_id: string;
+}
+
+interface PomodoroState {
+  isActive: boolean;
+  timeLeft: number;
+  isBreak: boolean;
+  currentTaskId: string | null;
+  currentSessionId: string | null;
+  workDuration: number;
+  breakDuration: number;
+  startTime: number | null;
+  completedSessions: number;
+  totalWorkTime: number;
+}
+
+interface PomodoroContextType extends PomodoroState {
+  startTimer: (taskId: string) => Promise<void>;
+  pauseTimer: () => void;
+  resetTimer: () => void;
+  setWorkDuration: (duration: number) => void;
+  setBreakDuration: (duration: number) => void;
+  formatTime: (seconds: number) => string;
+  hasActiveTimer: boolean;
+}
+
+const PomodoroContext = createContext<PomodoroContextType | undefined>(undefined);
+
+const STORAGE_KEY = 'global_pomodoro_state';
+
+export const PomodoroProvider = ({ children }: { children: React.ReactNode }) => {
+  const [state, setState] = useState<PomodoroState>({
+    isActive: false,
+    timeLeft: 25 * 60,
+    isBreak: false,
+    currentTaskId: null,
+    currentSessionId: null,
+    workDuration: 25,
+    breakDuration: 5,
+    startTime: null,
+    completedSessions: 0,
+    totalWorkTime: 0,
+  });
+
+  const timerRef = useRef<number | null>(null);
+  const { toast } = useToast();
+
+  // Save state to localStorage
+  const saveState = useCallback((newState: Partial<PomodoroState>) => {
+    const updatedState = { ...state, ...newState };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      ...updatedState,
+      timestamp: performance.now()
+    }));
+    setState(updatedState);
+  }, [state]);
+
+  // Load state from localStorage
+  const loadState = useCallback(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        const timeDiff = performance.now() - (parsed.timestamp || 0);
+        
+        // Only recover if less than 2 hours old
+        if (timeDiff < 2 * 60 * 60 * 1000 && parsed.currentTaskId) {
+          // Recalculate time left based on real time passed
+          if (parsed.startTime && parsed.isActive) {
+            const realElapsed = Math.floor((Date.now() - parsed.startTime) / 1000);
+            const totalDuration = parsed.isBreak ? parsed.breakDuration * 60 : parsed.workDuration * 60;
+            const newTimeLeft = Math.max(0, totalDuration - realElapsed);
+            
+            setState({
+              ...parsed,
+              timeLeft: newTimeLeft,
+              isActive: newTimeLeft > 0
+            });
+            return true;
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error loading pomodoro state:', error);
+    }
+    return false;
+  }, []);
+
+  // Clear state
+  const clearState = useCallback(() => {
+    localStorage.removeItem(STORAGE_KEY);
+    setState(prev => ({
+      ...prev,
+      isActive: false,
+      currentTaskId: null,
+      currentSessionId: null,
+      startTime: null,
+      timeLeft: prev.workDuration * 60
+    }));
+  }, []);
+
+  // Create session in database
+  const createSession = async (taskId: string, sessionType: 'work' | 'break') => {
+    try {
+      const { data, error } = await supabase
+        .from('pomodoro_sessions')
+        .insert({
+          task_id: taskId,
+          session_type: sessionType,
+          duration_minutes: sessionType === 'work' ? state.workDuration : state.breakDuration,
+          break_duration_minutes: state.breakDuration,
+          started_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error creating session:', error);
+      throw error;
+    }
+  };
+
+  // Complete session in database
+  const completeSession = async (sessionId: string) => {
+    try {
+      await supabase
+        .from('pomodoro_sessions')
+        .update({
+          completed_at: new Date().toISOString(),
+          is_completed: true
+        })
+        .eq('id', sessionId);
+    } catch (error) {
+      console.error('Error completing session:', error);
+    }
+  };
+
+  // Update statistics
+  const updateStats = useCallback(async (taskId: string) => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const { data } = await supabase
+        .from('pomodoro_sessions')
+        .select('*')
+        .eq('task_id', taskId)
+        .eq('session_type', 'work')
+        .eq('is_completed', true)
+        .gte('started_at', `${today}T00:00:00Z`)
+        .lt('started_at', `${today}T23:59:59Z`);
+
+      const completed = data?.length || 0;
+      const totalTime = data?.reduce((acc, session) => acc + session.duration_minutes, 0) || 0;
+      
+      setState(prev => ({
+        ...prev,
+        completedSessions: completed,
+        totalWorkTime: totalTime
+      }));
+    } catch (error) {
+      console.error('Error updating stats:', error);
+    }
+  }, []);
+
+  // Timer logic
+  useEffect(() => {
+    if (state.isActive && state.timeLeft > 0) {
+      timerRef.current = window.setInterval(() => {
+        setState(prev => {
+          const newTimeLeft = prev.timeLeft - 1;
+          
+          // Auto-save every 5 seconds
+          if (newTimeLeft % 5 === 0) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({
+              ...prev,
+              timeLeft: newTimeLeft,
+              timestamp: performance.now()
+            }));
+          }
+          
+          return { ...prev, timeLeft: newTimeLeft };
+        });
+      }, 1000);
+    } else {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    }
+
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, [state.isActive, state.timeLeft]);
+
+  // Handle session completion
+  useEffect(() => {
+    if (state.timeLeft === 0 && state.isActive && state.currentSessionId) {
+      const handleCompletion = async () => {
+        try {
+          await completeSession(state.currentSessionId!);
+          
+          if (state.currentTaskId) {
+            await updateStats(state.currentTaskId);
+          }
+          
+          // Show notification
+          if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification(state.isBreak ? 'Descans completat!' : 'Sessió de treball completada!', {
+              body: state.isBreak ? 'Hora de tornar al treball' : 'Hora de fer una pausa',
+              icon: '/favicon.ico'
+            });
+          }
+          
+          toast({
+            title: state.isBreak ? 'Descans completat!' : 'Sessió completada!',
+            description: state.isBreak ? 'Hora de tornar al treball' : 'Hora de fer una pausa'
+          });
+          
+          // Switch to next phase
+          setState(prev => ({
+            ...prev,
+            isActive: false,
+            isBreak: !prev.isBreak,
+            timeLeft: !prev.isBreak ? prev.breakDuration * 60 : prev.workDuration * 60,
+            currentSessionId: null
+          }));
+          
+        } catch (error) {
+          console.error('Error handling completion:', error);
+        }
+      };
+      
+      handleCompletion();
+    }
+  }, [state.timeLeft, state.isActive, state.currentSessionId, state.isBreak, state.currentTaskId, toast, updateStats]);
+
+  // Initialize from localStorage
+  useEffect(() => {
+    const recovered = loadState();
+    if (!recovered) {
+      // Request notification permission
+      if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+      }
+    }
+  }, [loadState]);
+
+  const startTimer = async (taskId: string) => {
+    try {
+      const sessionType = state.isBreak ? 'break' : 'work';
+      const session = await createSession(taskId, sessionType);
+      const duration = state.isBreak ? state.breakDuration : state.workDuration;
+      const now = Date.now();
+      
+      saveState({
+        isActive: true,
+        currentTaskId: taskId,
+        currentSessionId: session.id,
+        timeLeft: duration * 60,
+        startTime: now
+      });
+      
+      if (taskId) {
+        await updateStats(taskId);
+      }
+      
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No s'ha pogut iniciar el timer"
+      });
+    }
+  };
+
+  const pauseTimer = () => {
+    saveState({ isActive: false });
+  };
+
+  const resetTimer = async () => {
+    if (state.currentSessionId) {
+      try {
+        await completeSession(state.currentSessionId);
+      } catch (error) {
+        console.error('Error completing session on reset:', error);
+      }
+    }
+    clearState();
+  };
+
+  const setWorkDuration = (duration: number) => {
+    saveState({ 
+      workDuration: duration,
+      timeLeft: !state.isBreak ? duration * 60 : state.timeLeft
+    });
+  };
+
+  const setBreakDuration = (duration: number) => {
+    saveState({ 
+      breakDuration: duration,
+      timeLeft: state.isBreak ? duration * 60 : state.timeLeft
+    });
+  };
+
+  const formatTime = (seconds: number): string => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+
+  const hasActiveTimer = state.isActive || (state.currentTaskId !== null);
+
+  return (
+    <PomodoroContext.Provider value={{
+      ...state,
+      startTimer,
+      pauseTimer,
+      resetTimer,
+      setWorkDuration,
+      setBreakDuration,
+      formatTime,
+      hasActiveTimer
+    }}>
+      {children}
+    </PomodoroContext.Provider>
+  );
+};
+
+export const usePomodoroContext = () => {
+  const context = useContext(PomodoroContext);
+  if (context === undefined) {
+    throw new Error('usePomodoroContext must be used within a PomodoroProvider');
+  }
+  return context;
+};

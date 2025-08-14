@@ -5,6 +5,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import { LazyTaskDetailPage, LazyFolderDetailPage } from "@/components/LazyComponents";
 import NotFound from "./pages/NotFound";
+import { PomodoroWidget } from "@/components/pomodoro/PomodoroWidget";
 
 const App = () => (
   <div className="w-full min-h-screen overflow-x-hidden">
@@ -20,6 +21,7 @@ const App = () => (
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
+      <PomodoroWidget />
     </TooltipProvider>
   </div>
 );

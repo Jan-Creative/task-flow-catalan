@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { PomodoroProvider } from "@/contexts/PomodoroContext";
 import App from "./App.tsx";
 import "./index.css";
 import { Toaster } from "@/components/ui/sonner";
@@ -32,9 +33,11 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           enableSystem
           disableTransitionOnChange
         >
-          <App />
-          <Toaster />
-          <NotificationDisplay />
+          <PomodoroProvider>
+            <App />
+            <Toaster />
+            <NotificationDisplay />
+          </PomodoroProvider>
         </ThemeProvider>
       </QueryClientProvider>
     </ErrorBoundary>

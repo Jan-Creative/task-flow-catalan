@@ -4,7 +4,7 @@ import { ListSkeleton } from '@/components/ui/skeleton';
 // Lazy load heavy components
 const TaskDetailPage = lazy(() => import('@/pages/TaskDetailPage'));
 const FolderDetailPage = lazy(() => import('@/pages/FolderDetailPage'));
-const PomodoroCard = lazy(() => import('@/components/task-detail/PomodoroCard').then(module => ({ default: module.PomodoroCard })));
+const PomodoroCard = lazy(() => import('@/components/pomodoro/PomodoroCard').then(module => ({ default: module.PomodoroCard })));
 const SubtasksCard = lazy(() => import('@/components/task-detail/SubtasksCard').then(module => ({ default: module.SubtasksCard })));
 const NotesCard = lazy(() => import('@/components/task-detail/NotesCard').then(module => ({ default: module.NotesCard })));
 
