@@ -137,16 +137,24 @@ const DatabaseToolbar = ({
 
   // Icon handling functions
   const handleIconSelect = async (iconName: string) => {
-    if (!iconTarget) return;
+    console.log('🎯 DatabaseToolbar: handleIconSelect called with:', iconName);
+    console.log('🎯 DatabaseToolbar: iconTarget:', iconTarget);
+    
+    if (!iconTarget) {
+      console.log('🎯 DatabaseToolbar: No iconTarget, returning');
+      return;
+    }
     
     try {
       if (iconTarget.type === 'property') {
+        console.log('🎯 DatabaseToolbar: Updating property icon');
         await updatePropertyDefinition(iconTarget.id, { icon: iconName });
         toast({
           title: "Icona actualitzada",
           description: "La icona de la propietat s'ha actualitzat correctament.",
         });
       } else {
+        console.log('🎯 DatabaseToolbar: Updating option icon');
         await updatePropertyOption(iconTarget.id, { icon: iconName });
         toast({
           title: "Icona actualitzada",
@@ -155,10 +163,12 @@ const DatabaseToolbar = ({
       }
       
       // Refresh data to show updated icon
+      console.log('🎯 DatabaseToolbar: Refreshing properties');
       await fetchProperties();
+      console.log('🎯 DatabaseToolbar: Icon update completed successfully');
       
     } catch (error) {
-      console.error('Icon update error:', error);
+      console.error('🎯 DatabaseToolbar: Icon update error:', error);
       toast({
         title: "Error",
         description: "Hi ha hagut un error actualitzant la icona.",
@@ -679,7 +689,14 @@ const DatabaseToolbar = ({
         </Popover>
 
         {/* Settings button with menu */}
-        <Popover open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+        <Popover 
+          open={isSettingsOpen} 
+          onOpenChange={(open) => {
+            // Don't close if icon picker is open
+            if (!open && showIconPicker) return;
+            setIsSettingsOpen(open);
+          }}
+        >
           <PopoverTrigger asChild>
             <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-[#b8b8b8] hover:bg-[#353535] hover:text-white rounded-md">
               <Settings className="h-3.5 w-3.5" />
@@ -1432,18 +1449,26 @@ const DatabaseToolbar = ({
            </PopoverContent>
         </Popover>
 
+        {/* Icon Picker - Positioned absolutely to avoid conflicts */}
+        <IconPickerPopover
+          open={showIconPicker}
+          onOpenChange={(open) => {
+            console.log('IconPicker onOpenChange:', open);
+            setShowIconPicker(open);
+            // If closing icon picker, ensure main popover stays open
+            if (!open && isSettingsOpen) {
+              setTimeout(() => setIsSettingsOpen(true), 0);
+            }
+          }}
+          onIconSelect={handleIconSelect}
+          selectedIcon={iconTarget?.type === 'property' 
+            ? properties.find(p => p.id === iconTarget?.id)?.icon 
+            : properties.flatMap(p => p.options || []).find(o => o.id === iconTarget?.id)?.icon
+          }
+          title={iconTarget?.type === 'property' ? 'Seleccionar Icona de Propietat' : 'Seleccionar Icona d\'Opció'}
+        />
+
       </div>
-      
-      <IconPickerPopover
-        open={showIconPicker}
-        onOpenChange={setShowIconPicker}
-        onIconSelect={handleIconSelect}
-        selectedIcon={iconTarget?.type === 'property' 
-          ? properties.find(p => p.id === iconTarget?.id)?.icon 
-          : properties.flatMap(p => p.options || []).find(o => o.id === iconTarget?.id)?.icon
-        }
-        title={iconTarget?.type === 'property' ? 'Seleccionar Icona de Propietat' : 'Seleccionar Icona d\'Opció'}
-      />
     </div>;
 };
 export default DatabaseToolbar;

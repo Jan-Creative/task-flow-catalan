@@ -43,24 +43,32 @@ export const IconPickerPopover: React.FC<IconPickerPopoverProps> = ({
   }, [searchQuery, selectedCategory]);
 
   const handleIconClick = (iconName: string, e: React.MouseEvent) => {
-    console.log('Icon clicked:', iconName);
+    console.log('🎯 Icon clicked:', iconName);
     e.stopPropagation();
     e.preventDefault();
+    console.log('🎯 Setting pending icon:', iconName);
     setPendingIcon(iconName);
+    console.log('🎯 Pending icon state after set:', iconName);
   };
 
   const handleConfirmSelection = async () => {
-    if (!pendingIcon) return;
+    console.log('🎯 Confirming selection. Pending icon:', pendingIcon);
+    if (!pendingIcon) {
+      console.log('🎯 No pending icon to confirm');
+      return;
+    }
     
     setIsLoading(true);
     try {
+      console.log('🎯 Calling onIconSelect with:', pendingIcon);
       await onIconSelect(pendingIcon);
       onOpenChange(false);
       setSearchQuery('');
       setSelectedCategory('all');
       setPendingIcon(null);
+      console.log('🎯 Icon selection completed successfully');
     } catch (error) {
-      console.error('Error saving icon:', error);
+      console.error('🎯 Error saving icon:', error);
     } finally {
       setIsLoading(false);
     }
@@ -128,7 +136,7 @@ export const IconPickerPopover: React.FC<IconPickerPopoverProps> = ({
     >
       <div
         ref={dragRef}
-        className="fixed z-50 w-80 bg-[#1f1f1f] border border-[#333] rounded-lg shadow-xl"
+        className="fixed z-[9999] w-80 bg-[#1f1f1f] border border-[#333] rounded-lg shadow-xl"
         style={{ maxHeight: '70vh' }}
       >
         {/* Header with drag handle */}
