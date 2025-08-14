@@ -99,8 +99,23 @@ const DatabaseToolbar = ({
   const handlePropertyNameChange = async (propertyId: string, newName: string) => {
     if (!newName.trim()) return;
     
+    // Check for duplicate names
+    const existingProperty = properties.find(p => p.name.toLowerCase() === newName.trim().toLowerCase() && p.id !== propertyId);
+    if (existingProperty) {
+      toast({
+        title: "Error",
+        description: "Ja existeix una propietat amb aquest nom.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
-      await updatePropertyDefinition(propertyId, { name: newName });
+      await updatePropertyDefinition(propertyId, { name: newName.trim() });
+      
+      // Clear editing state
+      setEditingPropertyName('');
+      
       toast({
         title: "Propietat actualitzada",
         description: `El nom s'ha canviat a "${newName}"`,

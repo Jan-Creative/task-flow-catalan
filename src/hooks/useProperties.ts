@@ -201,6 +201,9 @@ export const useProperties = () => {
 
       if (error) throw error;
 
+      // Refresh properties after update to ensure UI sync
+      await fetchProperties();
+      
       // Invalidate queries for immediate refresh
       queryClient.invalidateQueries({ queryKey: ['properties'] });
       return data;
