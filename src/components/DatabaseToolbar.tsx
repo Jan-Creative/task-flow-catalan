@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { useProperties } from "@/hooks/useProperties";
 import { useToast } from "@/hooks/use-toast";
-import { usePropertyDialog } from "@/contexts/PropertyDialogContext";
+
 interface DatabaseToolbarProps {
   viewMode: "list" | "kanban";
   onViewModeChange: (mode: "list" | "kanban") => void;
@@ -37,15 +37,22 @@ const DatabaseToolbar = ({
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [currentSortView, setCurrentSortView] = useState<'main' | 'prioritat' | 'estat'>('main');
-  const [currentPropertyView, setCurrentPropertyView] = useState<'main' | 'estat' | 'prioritat'>('main');
+  const [currentPropertyView, setCurrentPropertyView] = useState<'main' | 'estat' | 'prioritat' | 'nova_propietat'>('main');
   const [editingPropertyName, setEditingPropertyName] = useState<string>('');
   const [editingOptionId, setEditingOptionId] = useState<string | null>(null);
   const [editingOptionValue, setEditingOptionValue] = useState<string>('');
   const [newOptionName, setNewOptionName] = useState('');
   const [showAddOption, setShowAddOption] = useState(false);
+  
+  // Nueva propietat states
+  const [newPropertyName, setNewPropertyName] = useState('');
+  const [newPropertyOptions, setNewPropertyOptions] = useState<{id: string, label: string, color: string}[]>([]);
+  const [newOptionInput, setNewOptionInput] = useState('');
+  const [showNewOptionInput, setShowNewOptionInput] = useState(false);
+  const [isCreatingProperty, setIsCreatingProperty] = useState(false);
+  
   const { properties, getPropertyByName, updatePropertyOption, createPropertyOption, deletePropertyOption, updatePropertyDefinition, loading, ensureSystemProperties } = useProperties();
   const { toast } = useToast();
-  const { openCreateDialog } = usePropertyDialog();
   const navigate = useNavigate();
 
   // Get current property data
@@ -74,6 +81,10 @@ const DatabaseToolbar = ({
 
   const handlePrioritatClick = () => {
     setCurrentPropertyView('prioritat');
+  };
+
+  const handleNovaPropietatClick = () => {
+    setCurrentPropertyView('nova_propietat');
   };
 
   // Property name editing functions
@@ -162,6 +173,84 @@ const DatabaseToolbar = ({
         });
       }
     }
+  };
+
+  // Nueva propietat functions
+  const handleAddNewOption = () => {
+    if (!newOptionInput.trim()) return;
+    
+    const newOption = {
+      id: `temp_${Date.now()}`,
+      label: newOptionInput,
+      color: '#6366f1'
+    };
+    
+    setNewPropertyOptions([...newPropertyOptions, newOption]);
+    setNewOptionInput('');
+    setShowNewOptionInput(false);
+  };
+
+  const handleRemoveNewOption = (optionId: string) => {
+    setNewPropertyOptions(newPropertyOptions.filter(opt => opt.id !== optionId));
+  };
+
+  const handleUpdateNewOptionColor = (optionId: string, color: string) => {
+    setNewPropertyOptions(newPropertyOptions.map(opt => 
+      opt.id === optionId ? { ...opt, color } : opt
+    ));
+  };
+
+  const handleCreateNewProperty = async () => {
+    if (!newPropertyName.trim() || newPropertyOptions.length === 0) {
+      toast({
+        title: "Error",
+        description: "La propietat ha de tenir un nom i almenys una opció",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsCreatingProperty(true);
+    
+    try {
+      // For now, we'll simulate property creation without backend
+      // TODO: Add proper property creation when backend is ready
+      console.log('Creating property:', newPropertyName, newPropertyOptions);
+      
+      // Simulate creation success
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Reset form
+      setNewPropertyName('');
+      setNewPropertyOptions([]);
+      setNewOptionInput('');
+      setShowNewOptionInput(false);
+      
+      // Navigate back to main view
+      setCurrentPropertyView('main');
+      
+      toast({
+        title: "Propietat creada",
+        description: `S'ha creat la propietat "${newPropertyName}" amb ${newPropertyOptions.length} opcions`,
+      });
+      
+    } catch (error) {
+      console.error('Error creating property:', error);
+      toast({
+        title: "Error",
+        description: "No s'ha pogut crear la propietat",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreatingProperty(false);
+    }
+  };
+
+  const resetNewPropertyForm = () => {
+    setNewPropertyName('');
+    setNewPropertyOptions([]);
+    setNewOptionInput('');
+    setShowNewOptionInput(false);
   };
 
   const getColorForOption = (color: string) => {
@@ -516,13 +605,7 @@ const DatabaseToolbar = ({
                   {/* Noves propietats */}
                   <div 
                     className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer transition-all duration-200 hover:text-blue-400"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      console.log('🎯 DatabaseToolbar: Opening property creation dialog');
-                      openCreateDialog();
-                      setIsSettingsOpen(false);
-                    }}
+                    onClick={handleNovaPropietatClick}
                   >
                     <div className="flex items-center gap-3">
                       <Plus className="h-4 w-4 text-[#b8b8b8] group-hover:text-blue-400 transition-colors" />
@@ -990,11 +1073,163 @@ const DatabaseToolbar = ({
                          <span className="text-sm">Eliminar propietat</span>
                        </div>
                      </div>
-                   </>
-                 )}
-               </div>
-             )}
-          </PopoverContent>
+                    </>
+                  )}
+                </div>
+              )}
+
+            {currentPropertyView === 'nova_propietat' && (
+              <div className="p-4">
+                {/* Header with back button */}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0 text-[#b8b8b8] hover:bg-[#353535] hover:text-white"
+                      onClick={() => {
+                        handleBackToMain();
+                        resetNewPropertyForm();
+                      }}
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Plus className="h-4 w-4 text-[#b8b8b8]" />
+                      <span className="text-sm font-medium text-white">Nova propietat</span>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0 text-[#b8b8b8] hover:bg-[#353535] hover:text-white"
+                    onClick={() => {
+                      setIsSettingsOpen(false);
+                      resetNewPropertyForm();
+                    }}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                {/* Property name input */}
+                <div className="mb-4">
+                  <input
+                    type="text"
+                    value={newPropertyName}
+                    onChange={(e) => setNewPropertyName(e.target.value)}
+                    placeholder="Nom de la propietat"
+                    className="w-full bg-transparent text-sm font-medium text-white border-none outline-none focus:bg-[#2a2a2a] rounded px-2 py-1.5 placeholder-[#b8b8b8]"
+                    autoFocus
+                  />
+                </div>
+
+                {/* Property type info */}
+                <div className="mb-4">
+                  <p className="text-xs text-[#b8b8b8]">Tipus: Select</p>
+                </div>
+
+                {/* Options list */}
+                <div className="space-y-2 mb-4">
+                  {newPropertyOptions.map((option) => (
+                    <div key={option.id} className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-[#2a2a2a] group">
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="color"
+                          value={option.color}
+                          onChange={(e) => handleUpdateNewOptionColor(option.id, e.target.value)}
+                          className="h-3 w-3 rounded-full border-none cursor-pointer"
+                          style={{ backgroundColor: option.color }}
+                        />
+                        <span className="text-sm text-white">{option.label}</span>
+                      </div>
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-6 w-6 p-0 text-red-400 hover:bg-[#404040]"
+                          onClick={() => handleRemoveNewOption(option.id)}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Add new option */}
+                  {showNewOptionInput ? (
+                    <div className="flex items-center gap-3 py-2 px-3 rounded-md bg-[#2a2a2a]">
+                      <Circle className="h-3 w-3 text-[#6366f1]" />
+                      <input
+                        type="text"
+                        value={newOptionInput}
+                        onChange={(e) => setNewOptionInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            handleAddNewOption();
+                          }
+                          if (e.key === 'Escape') {
+                            setShowNewOptionInput(false);
+                            setNewOptionInput('');
+                          }
+                        }}
+                        placeholder="Nom de l'opció"
+                        className="bg-[#353535] text-sm text-white border border-[#555] outline-none rounded px-2 py-1 flex-1"
+                        autoFocus
+                      />
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 text-green-400 hover:bg-[#404040]"
+                          onClick={handleAddNewOption}
+                        >
+                          <CheckSquare className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 text-[#b8b8b8] hover:bg-[#404040]"
+                          onClick={() => {
+                            setShowNewOptionInput(false);
+                            setNewOptionInput('');
+                          }}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div 
+                      className="flex items-center gap-3 py-2 px-3 rounded-md hover:bg-[#2a2a2a] cursor-pointer text-[#b8b8b8] hover:text-white"
+                      onClick={() => setShowNewOptionInput(true)}
+                    >
+                      <Plus className="h-3 w-3" />
+                      <span className="text-sm">Afegir una opció</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Create button */}
+                <div className="mt-6">
+                  <Button
+                    onClick={handleCreateNewProperty}
+                    disabled={!newPropertyName.trim() || newPropertyOptions.length === 0 || isCreatingProperty}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isCreatingProperty ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                        Creant...
+                      </>
+                    ) : (
+                      'Crear propietat'
+                    )}
+                  </Button>
+                </div>
+              </div>
+            )}
+           </PopoverContent>
         </Popover>
 
       </div>
