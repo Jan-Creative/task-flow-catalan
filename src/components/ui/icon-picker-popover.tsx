@@ -99,7 +99,7 @@ export const IconPickerPopover: React.FC<IconPickerPopoverProps> = ({
 
     const handleMouseDown = (e: React.MouseEvent) => {
       console.log('🔥 IconPreview: MouseDown for icon:', icon.name);
-      e.preventDefault();
+      // DON'T preventDefault here - it blocks onClick
       e.stopPropagation();
     };
     
