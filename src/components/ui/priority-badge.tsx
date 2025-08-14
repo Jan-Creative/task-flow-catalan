@@ -16,27 +16,27 @@ export const PriorityBadge = ({ priority, className, size = "md" }: PriorityBadg
   const PriorityIconComponent = getPriorityIconComponent(priority, getPriorityIcon);
   
   const sizeClasses = {
-    sm: "px-2 py-1 text-xs gap-1.5",
-    md: "px-2.5 py-1.5 text-xs gap-2", 
-    lg: "px-3 py-2 text-sm gap-2"
+    sm: "px-1.5 py-0.5 text-xs gap-1",
+    md: "px-2 py-1 text-xs gap-1.5", 
+    lg: "px-2.5 py-1.5 text-sm gap-1.5"
   };
   
   const iconSizes = {
     sm: "h-2.5 w-2.5",
-    md: "h-3 w-3",
-    lg: "h-3.5 w-3.5"
+    md: "h-2.5 w-2.5",
+    lg: "h-3 w-3"
   };
 
   return (
     <div 
       className={cn(
-        "inline-flex items-center rounded-full font-medium backdrop-blur-sm border",
+        "inline-flex items-center rounded-full font-medium backdrop-blur-sm border border-opacity-20",
         sizeClasses[size],
         className
       )}
       style={{ 
-        backgroundColor: `${priorityColor}15`,
-        borderColor: `${priorityColor}30`,
+        backgroundColor: `${priorityColor}08`,
+        borderColor: `${priorityColor}25`,
         color: priorityColor
       }}
     >
