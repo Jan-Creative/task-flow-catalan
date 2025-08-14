@@ -91,12 +91,17 @@ export const IconPickerPopover: React.FC<IconPickerPopoverProps> = ({
     return (
       <button
         onClick={(e) => handleIconClick(icon.name, e)}
+        onMouseDown={(e) => {
+          e.stopPropagation();
+          e.preventDefault();
+        }}
         disabled={isLoading}
         className={cn(
           "group relative flex flex-col items-center justify-center p-2 rounded-md border transition-colors duration-200",
           "hover:bg-[#353535] hover:border-[#555]",
           "focus:outline-none focus:ring-1 focus:ring-blue-500",
           "disabled:opacity-50 disabled:cursor-not-allowed",
+          "pointer-events-auto icon-button-clickable",
           isPending ? "bg-orange-600 text-white border-orange-500" : 
           isSelected ? "bg-blue-600 text-white border-blue-500" : "bg-[#2a2a2a] border-[#444] text-[#b8b8b8]"
         )}
@@ -132,7 +137,7 @@ export const IconPickerPopover: React.FC<IconPickerPopoverProps> = ({
       handle=".drag-handle"
       bounds="body"
       defaultPosition={position || { x: 100, y: 100 }}
-      cancel="button, input, .scroll-area"
+      cancel="input, .scroll-area, .drag-handle-only"
     >
       <div
         ref={dragRef}
@@ -141,7 +146,7 @@ export const IconPickerPopover: React.FC<IconPickerPopoverProps> = ({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header with drag handle */}
-        <div className="drag-handle flex items-center justify-between p-3 border-b border-[#333] cursor-move bg-[#2a2a2a] rounded-t-lg">
+        <div className="drag-handle drag-handle-only flex items-center justify-between p-3 border-b border-[#333] cursor-move bg-[#2a2a2a] rounded-t-lg">
           <div className="flex items-center gap-2">
             <Move className="h-4 w-4 text-[#888]" />
             <h3 className="text-sm font-semibold text-white">{title}</h3>
