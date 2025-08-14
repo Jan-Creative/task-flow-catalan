@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import OptimizedTaskItem from "@/components/OptimizedTaskItem";
-import { VirtualTaskList } from "@/components/VirtualTaskList";
+import TaskChecklistItem from "@/components/TaskChecklistItem";
 import DatabaseToolbar from "@/components/DatabaseToolbar";
 import { useDadesApp } from "@/hooks/useDadesApp";
 import { usePropertyLabels } from "@/hooks/usePropertyLabels";
@@ -254,7 +253,7 @@ const TodayPage = ({ onEditTask, onNavigateToSettings }: TodayPageProps) => {
           {viewMode === "list" && (
             <div className="space-y-2">
               {filteredTasks.map((task) => (
-                <OptimizedTaskItem
+                <TaskChecklistItem
                   key={task.id}
                   task={task}
                   onStatusChange={handleStatusChange}
@@ -305,7 +304,7 @@ const TodayPage = ({ onEditTask, onNavigateToSettings }: TodayPageProps) => {
                     </div>
                     <div className="space-y-2">
                       {statusTasks.map((task) => (
-                        <OptimizedTaskItem
+                        <TaskChecklistItem
                           key={task.id}
                           task={task}
                           onStatusChange={handleStatusChange}
