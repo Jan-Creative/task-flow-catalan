@@ -1,6 +1,5 @@
-import React, { useState, useMemo, useRef } from 'react';
-import { Search, X, Move } from 'lucide-react';
-import Draggable from 'react-draggable';
+import React, { useState, useMemo } from 'react';
+import { Search, X } from 'lucide-react';
 import { 
   iconLibrary, 
   iconCategories, 
@@ -36,39 +35,27 @@ export const IconPickerPopover: React.FC<IconPickerPopoverProps> = ({
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [pendingIcon, setPendingIcon] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const dragRef = useRef<HTMLDivElement>(null);
 
   const filteredIcons = useMemo(() => {
     return searchIcons(searchQuery, selectedCategory === 'all' ? undefined : selectedCategory);
   }, [searchQuery, selectedCategory]);
 
-  const handleIconClick = (iconName: string, e: React.MouseEvent) => {
-    console.log('🎯 Icon clicked:', iconName);
-    e.stopPropagation();
-    e.preventDefault();
-    console.log('🎯 Setting pending icon:', iconName);
+  const handleIconClick = (iconName: string) => {
     setPendingIcon(iconName);
-    console.log('🎯 Pending icon state after set:', iconName);
   };
 
   const handleConfirmSelection = async () => {
-    console.log('🎯 Confirming selection. Pending icon:', pendingIcon);
-    if (!pendingIcon) {
-      console.log('🎯 No pending icon to confirm');
-      return;
-    }
+    if (!pendingIcon) return;
     
     setIsLoading(true);
     try {
-      console.log('🎯 Calling onIconSelect with:', pendingIcon);
       await onIconSelect(pendingIcon);
       onOpenChange(false);
       setSearchQuery('');
       setSelectedCategory('all');
       setPendingIcon(null);
-      console.log('🎯 Icon selection completed successfully');
     } catch (error) {
-      console.error('🎯 Error saving icon:', error);
+      console.error('Error saving icon:', error);
     } finally {
       setIsLoading(false);
     }
@@ -90,18 +77,13 @@ export const IconPickerPopover: React.FC<IconPickerPopoverProps> = ({
     
     return (
       <button
-        onClick={(e) => handleIconClick(icon.name, e)}
-        onMouseDown={(e) => {
-          e.stopPropagation();
-          e.preventDefault();
-        }}
+        onClick={() => handleIconClick(icon.name)}
         disabled={isLoading}
         className={cn(
           "group relative flex flex-col items-center justify-center p-2 rounded-md border transition-colors duration-200",
           "hover:bg-[#353535] hover:border-[#555]",
           "focus:outline-none focus:ring-1 focus:ring-blue-500",
           "disabled:opacity-50 disabled:cursor-not-allowed",
-          "pointer-events-auto icon-button-clickable",
           isPending ? "bg-orange-600 text-white border-orange-500" : 
           isSelected ? "bg-blue-600 text-white border-blue-500" : "bg-[#2a2a2a] border-[#444] text-[#b8b8b8]"
         )}
@@ -132,34 +114,28 @@ export const IconPickerPopover: React.FC<IconPickerPopoverProps> = ({
   if (!open) return <div style={{ display: 'none' }} />;
 
   return (
-    <Draggable
-      nodeRef={dragRef}
-      handle=".drag-handle"
-      bounds="body"
-      defaultPosition={position || { x: 100, y: 100 }}
-      cancel="input, .scroll-area, .drag-handle-only"
+    <div
+      className="fixed z-[9999] w-80 bg-[#1f1f1f] border border-[#333] rounded-lg shadow-xl"
+      style={{ 
+        maxHeight: '70vh',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)'
+      }}
+      onClick={(e) => e.stopPropagation()}
     >
-      <div
-        ref={dragRef}
-        className="fixed z-[9999] w-80 bg-[#1f1f1f] border border-[#333] rounded-lg shadow-xl pointer-events-auto"
-        style={{ maxHeight: '70vh' }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header with drag handle */}
-        <div className="drag-handle drag-handle-only flex items-center justify-between p-3 border-b border-[#333] cursor-move bg-[#2a2a2a] rounded-t-lg">
-          <div className="flex items-center gap-2">
-            <Move className="h-4 w-4 text-[#888]" />
-            <h3 className="text-sm font-semibold text-white">{title}</h3>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onOpenChange(false)}
-            className="h-6 w-6 p-0 text-[#888] hover:text-white hover:bg-[#404040]"
-          >
-            <X className="h-3 w-3" />
-          </Button>
-        </div>
+      {/* Header */}
+      <div className="flex items-center justify-between p-3 border-b border-[#333] bg-[#2a2a2a] rounded-t-lg">
+        <h3 className="text-sm font-semibold text-white">{title}</h3>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => onOpenChange(false)}
+          className="h-6 w-6 p-0 text-[#888] hover:text-white hover:bg-[#404040]"
+        >
+          <X className="h-3 w-3" />
+        </Button>
+      </div>
 
         <div className="p-3 space-y-3">
           {/* Search Bar */}
@@ -264,6 +240,5 @@ export const IconPickerPopover: React.FC<IconPickerPopoverProps> = ({
           </div>
         </div>
       </div>
-    </Draggable>
   );
 };
