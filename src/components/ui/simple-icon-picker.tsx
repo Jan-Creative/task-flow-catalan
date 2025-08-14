@@ -3,7 +3,6 @@ import { Search, X } from 'lucide-react';
 import { 
   iconLibrary, 
   iconCategories, 
-  getIconsByCategory, 
   searchIcons, 
   type IconDefinition 
 } from '@/lib/iconLibrary';
@@ -14,7 +13,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 
-interface IconPickerProps {
+interface SimpleIconPickerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onIconSelect: (iconName: string) => void;
@@ -22,7 +21,7 @@ interface IconPickerProps {
   title?: string;
 }
 
-export const IconPicker: React.FC<IconPickerProps> = ({
+export const SimpleIconPicker: React.FC<SimpleIconPickerProps> = ({
   open,
   onOpenChange,
   onIconSelect,
@@ -36,7 +35,8 @@ export const IconPicker: React.FC<IconPickerProps> = ({
     return searchIcons(searchQuery, selectedCategory === 'all' ? undefined : selectedCategory);
   }, [searchQuery, selectedCategory]);
 
-  const handleIconSelect = (iconName: string) => {
+  const handleIconClick = (iconName: string) => {
+    console.log('🚀 Simple Icon clicked:', iconName);
     onIconSelect(iconName);
     onOpenChange(false);
     setSearchQuery('');
@@ -45,39 +45,6 @@ export const IconPicker: React.FC<IconPickerProps> = ({
 
   const clearSearch = () => {
     setSearchQuery('');
-  };
-
-  const IconPreview: React.FC<{ icon: IconDefinition; isSelected: boolean }> = ({ icon, isSelected }) => {
-    const IconComponent = icon.icon;
-    
-    return (
-      <button
-        onClick={() => handleIconSelect(icon.name)}
-        className={cn(
-          "group relative flex flex-col items-center justify-center p-3 rounded-lg border transition-all duration-200",
-          "hover:bg-accent hover:border-accent-foreground/20 hover:scale-105",
-          "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
-          isSelected ? "bg-primary text-primary-foreground border-primary" : "bg-background border-border"
-        )}
-        title={`${icon.name} - ${icon.keywords.join(', ')}`}
-      >
-        <IconComponent 
-          className={cn(
-            "h-5 w-5 mb-1 transition-colors",
-            isSelected ? "text-primary-foreground" : "text-foreground group-hover:text-accent-foreground"
-          )} 
-        />
-        <span className={cn(
-          "text-xs font-medium truncate max-w-full transition-colors",
-          isSelected ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground"
-        )}>
-          {icon.name}
-        </span>
-        {isSelected && (
-          <div className="absolute inset-0 rounded-lg ring-2 ring-primary ring-offset-2" />
-        )}
-      </button>
-    );
   };
 
   return (
@@ -131,13 +98,40 @@ export const IconPicker: React.FC<IconPickerProps> = ({
           {/* Icons Grid */}
           <ScrollArea className="h-96 w-full">
             <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-2 p-1">
-              {filteredIcons.map((icon) => (
-                <IconPreview
-                  key={icon.name}
-                  icon={icon}
-                  isSelected={selectedIcon === icon.name}
-                />
-              ))}
+              {filteredIcons.map((icon) => {
+                const IconComponent = icon.icon;
+                const isSelected = selectedIcon === icon.name;
+                
+                return (
+                  <button
+                    key={icon.name}
+                    onClick={() => handleIconClick(icon.name)}
+                    className={cn(
+                      "group relative flex flex-col items-center justify-center p-3 rounded-lg border transition-all duration-200",
+                      "hover:bg-accent hover:border-accent-foreground/20 hover:scale-105",
+                      "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
+                      isSelected ? "bg-primary text-primary-foreground border-primary" : "bg-background border-border"
+                    )}
+                    title={`${icon.name} - ${icon.keywords.join(', ')}`}
+                  >
+                    <IconComponent 
+                      className={cn(
+                        "h-5 w-5 mb-1 transition-colors",
+                        isSelected ? "text-primary-foreground" : "text-foreground group-hover:text-accent-foreground"
+                      )} 
+                    />
+                    <span className={cn(
+                      "text-xs font-medium truncate max-w-full transition-colors",
+                      isSelected ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground"
+                    )}>
+                      {icon.name}
+                    </span>
+                    {isSelected && (
+                      <div className="absolute inset-0 rounded-lg ring-2 ring-primary ring-offset-2" />
+                    )}
+                  </button>
+                );
+              })}
             </div>
             
             {filteredIcons.length === 0 && (

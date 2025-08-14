@@ -10,7 +10,7 @@ import { useProperties } from "@/hooks/useProperties";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { IconPickerPopover } from '@/components/ui/icon-picker-popover';
+import { SimpleIconPicker } from '@/components/ui/simple-icon-picker';
 import { getIconByName, getDefaultIconForProperty } from '@/lib/iconLibrary';
 
 interface DatabaseToolbarProps {
@@ -1453,8 +1453,8 @@ const DatabaseToolbar = ({
            </PopoverContent>
         </Popover>
 
-        {/* Icon Picker - Always rendered to avoid mount/unmount issues */}
-        <IconPickerPopover
+        {/* Simple Icon Picker - New simple system */}
+        <SimpleIconPicker
           open={showIconPicker}
           onOpenChange={(open) => {
             setShowIconPicker(open);
