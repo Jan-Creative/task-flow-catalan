@@ -9,6 +9,8 @@ import { SettingsItem } from "./SettingsItem";
 import { InlinePropertyCreator } from "./InlinePropertyCreator";
 import { EditPropertyDialog } from "./EditPropertyDialog";
 import { DeleteConfirmationDialog } from "./DeleteConfirmationDialog";
+import { getIconByName } from "@/lib/iconLibrary";
+import { getPriorityIconComponent } from "@/utils/priorityHelpers";
 
 export const PropertyManager = () => {
   const { properties, loading } = useProperties();
@@ -255,18 +257,45 @@ export const PropertyManager = () => {
             <div className="space-y-2">
               {properties
                 .find(p => p.id === expandedProperty)
-                ?.options?.map((option, index) => (
-                  <div
-                    key={option.id}
-                    className="flex items-center justify-between p-2 bg-secondary/20 rounded border border-border/20"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div
-                        className="w-4 h-4 rounded"
-                        style={{ backgroundColor: option.color || '#6b7280' }}
-                      />
-                      <span className="text-sm">{option.value}</span>
-                    </div>
+                ?.options?.map((option, index) => {
+                  const property = properties.find(p => p.id === expandedProperty);
+                  const isPriorityProperty = property?.name === 'Prioritat';
+                  
+                  // Determinar quin icona mostrar
+                  let IconComponent = null;
+                  if (isPriorityProperty) {
+                    // Per prioritats, usar la lògica de banderes
+                    const dummyGetPriorityIcon = () => option.icon; // Mock function per compatibility
+                    IconComponent = getPriorityIconComponent(option.value, dummyGetPriorityIcon);
+                  } else if (option.icon) {
+                    // Per altres propietats, usar la icona personalitzada
+                    const iconDef = getIconByName(option.icon);
+                    IconComponent = iconDef?.icon;
+                  }
+                  
+                  return (
+                    <div
+                      key={option.id}
+                      className="flex items-center justify-between p-2 bg-secondary/20 rounded border border-border/20"
+                    >
+                      <div className="flex items-center gap-3">
+                        {IconComponent && (
+                          <IconComponent 
+                            className="w-4 h-4" 
+                            style={{ color: option.color || '#6b7280' }}
+                          />
+                        )}
+                        {!IconComponent && (
+                          <div
+                            className="w-4 h-4 rounded"
+                            style={{ backgroundColor: option.color || '#6b7280' }}
+                          />
+                        )}
+                        <span className="text-sm font-medium">{option.label}</span>
+                        <Badge variant="outline" className="text-xs">
+                          {option.value}
+                        </Badge>
+                      </div>
                     <div className="flex items-center gap-1">
                       <Button 
                         variant="ghost" 
@@ -286,9 +315,10 @@ export const PropertyManager = () => {
                       >
                         <Trash2 className="h-3 w-3" />
                       </Button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               <Button
                 variant="outline"
                 size="sm"
