@@ -1,6 +1,8 @@
-import { useRef, useEffect } from "react";
-import { Renderer, Program, Mesh, Triangle, Vec2 } from "ogl";
+import React, { useRef, useEffect } from "react";
 import "./DarkVeil.css";
+
+// Import OGL dynamically to avoid conflicts with React
+let OGL: any = null;
 
 const vertex = `
 attribute vec2 position;
@@ -96,66 +98,80 @@ export const DarkVeilBackground = ({
   const ref = useRef<HTMLCanvasElement>(null);
   
   useEffect(() => {
-    const canvas = ref.current;
-    if (!canvas) return;
-    
-    const parent = canvas.parentElement;
-    if (!parent) return;
+    // Load OGL dynamically to avoid React conflicts
+    const loadOGL = async () => {
+      if (!OGL) {
+        try {
+          OGL = await import("ogl");
+        } catch (error) {
+          console.error("Failed to load OGL:", error);
+          return;
+        }
+      }
 
-    const renderer = new Renderer({
-      dpr: Math.min(window.devicePixelRatio, 2),
-      canvas,
-    });
+      const canvas = ref.current;
+      if (!canvas || !OGL) return;
+      
+      const parent = canvas.parentElement;
+      if (!parent) return;
 
-    const gl = renderer.gl;
-    const geometry = new Triangle(gl);
+      const renderer = new OGL.Renderer({
+        dpr: Math.min(window.devicePixelRatio, 2),
+        canvas,
+      });
 
-    const program = new Program(gl, {
-      vertex,
-      fragment,
-      uniforms: {
-        uTime: { value: 0 },
-        uResolution: { value: new Vec2() },
-        uHueShift: { value: hueShift },
-        uNoise: { value: noiseIntensity },
-        uScan: { value: scanlineIntensity },
-        uScanFreq: { value: scanlineFrequency },
-        uWarp: { value: warpAmount },
-      },
-    });
+      const gl = renderer.gl;
+      const geometry = new OGL.Triangle(gl);
 
-    const mesh = new Mesh(gl, { geometry, program });
+      const program = new OGL.Program(gl, {
+        vertex,
+        fragment,
+        uniforms: {
+          uTime: { value: 0 },
+          uResolution: { value: new OGL.Vec2() },
+          uHueShift: { value: hueShift },
+          uNoise: { value: noiseIntensity },
+          uScan: { value: scanlineIntensity },
+          uScanFreq: { value: scanlineFrequency },
+          uWarp: { value: warpAmount },
+        },
+      });
 
-    const resize = () => {
-      const w = parent.clientWidth;
-      const h = parent.clientHeight;
-      renderer.setSize(w * resolutionScale, h * resolutionScale);
-      program.uniforms.uResolution.value.set(w, h);
+      const mesh = new OGL.Mesh(gl, { geometry, program });
+
+      const resize = () => {
+        const w = parent.clientWidth;
+        const h = parent.clientHeight;
+        renderer.setSize(w * resolutionScale, h * resolutionScale);
+        program.uniforms.uResolution.value.set(w, h);
+      };
+
+      window.addEventListener("resize", resize);
+      resize();
+
+      const start = performance.now();
+      let frame = 0;
+
+      const loop = () => {
+        program.uniforms.uTime.value = ((performance.now() - start) / 1000) * speed;
+        program.uniforms.uHueShift.value = hueShift;
+        program.uniforms.uNoise.value = noiseIntensity;
+        program.uniforms.uScan.value = scanlineIntensity;
+        program.uniforms.uScanFreq.value = scanlineFrequency;
+        program.uniforms.uWarp.value = warpAmount;
+        renderer.render({ scene: mesh });
+        frame = requestAnimationFrame(loop);
+      };
+
+      loop();
+
+      return () => {
+        cancelAnimationFrame(frame);
+        window.removeEventListener("resize", resize);
+      };
     };
 
-    window.addEventListener("resize", resize);
-    resize();
-
-    const start = performance.now();
-    let frame = 0;
-
-    const loop = () => {
-      program.uniforms.uTime.value = ((performance.now() - start) / 1000) * speed;
-      program.uniforms.uHueShift.value = hueShift;
-      program.uniforms.uNoise.value = noiseIntensity;
-      program.uniforms.uScan.value = scanlineIntensity;
-      program.uniforms.uScanFreq.value = scanlineFrequency;
-      program.uniforms.uWarp.value = warpAmount;
-      renderer.render({ scene: mesh });
-      frame = requestAnimationFrame(loop);
-    };
-
-    loop();
-
-    return () => {
-      cancelAnimationFrame(frame);
-      window.removeEventListener("resize", resize);
-    };
+    loadOGL();
   }, [
     hueShift,
     noiseIntensity,
