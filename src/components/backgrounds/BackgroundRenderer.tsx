@@ -47,7 +47,7 @@ export const BackgroundRenderer: React.FC = () => {
   }
 
   return (
-    <div className="fixed inset-0 -z-10 overflow-hidden">
+    <div className="fixed inset-0 -z-10 overflow-hidden" key={settings.type}>
       {renderBackground()}
     </div>
   );

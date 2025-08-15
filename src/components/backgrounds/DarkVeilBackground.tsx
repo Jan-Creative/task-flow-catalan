@@ -185,9 +185,8 @@ export const DarkVeilBackground = ({
   return (
     <canvas
       ref={ref}
-      className="fixed inset-0 w-full h-full pointer-events-none darkveil-canvas"
+      className="absolute inset-0 w-full h-full pointer-events-none"
       style={{ 
-        zIndex: 1,
         willChange: 'transform'
       }}
       aria-hidden="true"

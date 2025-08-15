@@ -91,7 +91,7 @@ export const MeshGradientBackground: React.FC<MeshGradientBackgroundProps> = ({
   return (
     <canvas
       ref={canvasRef}
-      className="absolute inset-0 w-full h-full opacity-60"
+      className="absolute inset-0 w-full h-full opacity-60 pointer-events-none"
       style={{ filter: 'blur(1px)' }}
     />
   );
