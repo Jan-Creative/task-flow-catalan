@@ -53,14 +53,14 @@ const TaskDetailContent = memo(() => {
     <div className="relative w-full min-h-screen bg-background text-foreground overflow-hidden">
       {/* Dark Veil Background Effect */}
       <DarkVeilBackground 
-        speed={0.3}
-        hueShift={10}
-        noiseIntensity={0.05}
-        scanlineIntensity={0.02}
+        speed={0.5}
+        hueShift={20}
+        noiseIntensity={0.1}
+        scanlineIntensity={0.05}
       />
       
       {/* Header with back button */}
-      <div className="sticky top-0 z-20 bg-background/70 backdrop-blur-md border-b border-border/30">
+      <div className="sticky top-0 z-30 bg-background/70 backdrop-blur-md border-b border-border/30">
         <div className="flex items-center gap-4 p-4">
           <Button
             variant="ghost"
@@ -76,7 +76,7 @@ const TaskDetailContent = memo(() => {
       </div>
 
       {/* Dashboard Grid - Sistema responsiu fluid sense altures fixes */}
-      <div className="relative z-10 p-4 pb-24">
+      <div className="relative z-20 p-4 pb-24">
         <div className="max-w-7xl mx-auto task-detail-grid">
           {/* Desktop XL Layout - Grid Complex (1440px+) */}
           <div className="hidden 2xl:grid 2xl:grid-cols-6 gap-6 min-h-[600px] auto-rows-fr">
