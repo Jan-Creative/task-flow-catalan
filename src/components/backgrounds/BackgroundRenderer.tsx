@@ -6,6 +6,7 @@ import { ParticlesBackground } from './ParticlesBackground';
 
 export const BackgroundRenderer: React.FC = () => {
   const { settings } = useBackground();
+  console.log('BackgroundRenderer - settings:', settings);
 
   const renderBackground = () => {
     switch (settings.type) {

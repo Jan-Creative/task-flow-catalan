@@ -7,7 +7,6 @@ import { memo, Suspense, useEffect } from "react";
 import { TaskProvider, useTaskContext } from "@/contexts/TaskContext";
 import { CachedRoute } from "@/components/ui/route-cache";
 import { useTaskCache } from "@/hooks/useTaskCache";
-import { DarkVeilBackground } from "@/components/backgrounds/DarkVeilBackground";
 import { FloatingBackgroundButton } from "@/components/backgrounds/FloatingBackgroundButton";
 import "@/styles/background-effects.css";
 
@@ -52,13 +51,6 @@ const TaskDetailContent = memo(() => {
 
   return (
     <div className="relative w-full min-h-screen bg-background text-foreground overflow-hidden">
-      {/* Dark Veil Background Effect */}
-      <DarkVeilBackground 
-        speed={0.5}
-        hueShift={20}
-        noiseIntensity={0.1}
-        scanlineIntensity={0.05}
-      />
       
       {/* Header with back button */}
       <div className="sticky top-0 z-30 bg-background/70 backdrop-blur-md border-b border-border/30">

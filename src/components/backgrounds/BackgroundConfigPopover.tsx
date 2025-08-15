@@ -19,6 +19,7 @@ interface BackgroundConfigPopoverProps {
 
 export const BackgroundConfigPopover: React.FC<BackgroundConfigPopoverProps> = ({ children }) => {
   const { settings, updateSettings, setBackgroundType } = useBackground();
+  console.log('BackgroundConfigPopover - current settings:', settings);
   const [isOpen, setIsOpen] = useState(false);
   
   const handleReset = () => {
@@ -40,7 +41,10 @@ export const BackgroundConfigPopover: React.FC<BackgroundConfigPopoverProps> = (
           {/* Background Type Selection */}
           <div className="space-y-2">
             <label className="text-sm font-medium">Tipus de fons</label>
-            <Select value={settings.type} onValueChange={(value: BackgroundType) => setBackgroundType(value)}>
+            <Select value={settings.type} onValueChange={(value: BackgroundType) => {
+              console.log('Changing background type to:', value);
+              setBackgroundType(value);
+            }}>
               <SelectTrigger className="w-full">
                 <SelectValue />
               </SelectTrigger>
