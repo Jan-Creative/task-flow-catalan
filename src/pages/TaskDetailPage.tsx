@@ -8,6 +8,7 @@ import { TaskProvider, useTaskContext } from "@/contexts/TaskContext";
 import { CachedRoute } from "@/components/ui/route-cache";
 import { useTaskCache } from "@/hooks/useTaskCache";
 import { DarkVeilBackground } from "@/components/backgrounds/DarkVeilBackground";
+import { FloatingBackgroundButton } from "@/components/backgrounds/FloatingBackgroundButton";
 import "@/styles/background-effects.css";
 
 const TaskDetailContent = memo(() => {
@@ -180,6 +181,9 @@ const TaskDetailContent = memo(() => {
           </div>
         </div>
       </div>
+
+      {/* Floating Background Configuration Button */}
+      <FloatingBackgroundButton />
     </div>
   );
 });
