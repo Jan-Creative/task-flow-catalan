@@ -25,7 +25,7 @@ const TaskDetailContent = memo(() => {
 
   if (loading && !task) {
     return (
-      <div className="w-full min-h-screen bg-background text-foreground">
+      <div className="w-full min-h-screen bg-transparent text-foreground">
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
@@ -35,9 +35,9 @@ const TaskDetailContent = memo(() => {
 
   if (!task) {
     return (
-      <div className="w-full min-h-screen bg-background text-foreground">
+      <div className="w-full min-h-screen bg-transparent text-foreground">
         <div className="flex items-center justify-center h-64">
-          <div className="text-center">
+          <div className="text-center bg-background/70 backdrop-blur-md p-6 rounded-lg border border-border/30">
             <h2 className="text-xl font-semibold mb-2">Tasca no trobada</h2>
             <p className="text-muted-foreground">La tasca que busques no existeix.</p>
             <Button onClick={() => navigate(-1)} className="mt-4">
@@ -50,7 +50,7 @@ const TaskDetailContent = memo(() => {
   }
 
   return (
-    <div className="relative w-full min-h-screen bg-background text-foreground overflow-hidden">
+    <div className="relative w-full min-h-screen bg-transparent text-foreground overflow-hidden">
       
       {/* Header with back button */}
       <div className="sticky top-0 z-30 bg-background/70 backdrop-blur-md border-b border-border/30">
@@ -184,7 +184,7 @@ const TaskDetailPage = memo(() => {
   return (
     <TaskProvider>
       <Suspense fallback={
-        <div className="w-full min-h-screen bg-background text-foreground">
+        <div className="w-full min-h-screen bg-transparent text-foreground">
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
