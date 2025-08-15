@@ -7,6 +7,7 @@ import { LazyTaskDetailPage, LazyFolderDetailPage } from "@/components/LazyCompo
 import NotFound from "./pages/NotFound";
 import { PomodoroWidget } from "@/components/pomodoro/PomodoroWidget";
 import { RouteCacheProvider } from "@/components/ui/route-cache";
+import { BackgroundRefresher } from "@/components/ui/navigation-optimizers";
 
 const App = () => (
   <div className="w-full min-h-screen overflow-x-hidden">
@@ -14,7 +15,8 @@ const App = () => (
       <Toaster />
       <SonnerToaster />
       <BrowserRouter>
-        <RouteCacheProvider maxAge={10 * 60 * 1000} maxEntries={15}>
+        <RouteCacheProvider maxAge={15 * 60 * 1000} maxEntries={25}>
+          <BackgroundRefresher />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/task/:taskId" element={<LazyTaskDetailPage />} />

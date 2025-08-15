@@ -53,12 +53,13 @@ export const useDadesApp = () => {
       };
     },
     enabled: !!user,
-    staleTime: 1000 * 60 * 10, // 10 minutes - Longer cache
-    gcTime: 1000 * 60 * 15, // 15 minutes  
+    staleTime: 1000 * 60 * 15, // 15 minutes - Extended cache
+    gcTime: 1000 * 60 * 30, // 30 minutes  
     refetchOnWindowFocus: false,
     refetchOnMount: false, // Prevent unnecessary refetches
     refetchOnReconnect: false,
-    refetchInterval: false // Disable automatic background refetching
+    refetchInterval: false, // Disable automatic background refetching
+    notifyOnChangeProps: ['data', 'error'] // Only notify on data/error changes
   });
 
   // Optimized data processing with memoization

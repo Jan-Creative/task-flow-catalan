@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useCallback, useMemo, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { useDadesApp } from '@/hooks/useDadesApp';
 import { useTaskSubtasks } from '@/hooks/useTaskSubtasks';
 import { useTaskNotes } from '@/hooks/useTaskNotes';
@@ -50,6 +51,7 @@ export const useTaskContext = () => {
 
 export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { taskId } = useParams();
+  const queryClient = useQueryClient();
   
   // Main task data
   const { 
@@ -61,6 +63,27 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     deleteTask: appDeleteTask,
     refreshData 
   } = useDadesApp();
+
+  // Preload adjacent tasks when component mounts or taskId changes
+  useEffect(() => {
+    if (taskId && tasks.length > 0) {
+      const currentIndex = tasks.findIndex(t => t.id === taskId);
+      if (currentIndex !== -1) {
+        const adjacentTasks = [
+          tasks[currentIndex - 1],
+          tasks[currentIndex + 1]
+        ].filter(Boolean);
+
+        adjacentTasks.forEach(task => {
+          // Prefetch task data for smoother navigation
+          queryClient.prefetchQuery({
+            queryKey: ['task-properties', task.id],
+            staleTime: 1000 * 60 * 5
+          });
+        });
+      }
+    }
+  }, [taskId, tasks, queryClient]);
   
   // Find current task and folder
   const task = useMemo(() => 
@@ -110,11 +133,35 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const refreshTaskData = useCallback(() => {
     refreshData();
   }, [refreshData]);
-  
+
   const preloadAdjacentTasks = useCallback(() => {
-    // TODO: Implement preloading of adjacent tasks
-    // This will help with smoother navigation
-  }, []);
+    if (!taskId || !tasks.length) return;
+    
+    const currentIndex = tasks.findIndex(t => t.id === taskId);
+    if (currentIndex === -1) return;
+
+    // Preload adjacent tasks data
+    const adjacentTasks = [
+      tasks[currentIndex - 1],
+      tasks[currentIndex + 1]
+    ].filter(Boolean);
+
+    adjacentTasks.forEach(task => {
+      // Trigger preload for task properties, subtasks, and notes
+      queryClient.prefetchQuery({
+        queryKey: ['task-properties', task.id],
+        staleTime: 1000 * 60 * 5
+      });
+      queryClient.prefetchQuery({
+        queryKey: ['task-subtasks', task.id], 
+        staleTime: 1000 * 60 * 5
+      });
+      queryClient.prefetchQuery({
+        queryKey: ['task-notes', task.id],
+        staleTime: 1000 * 60 * 5
+      });
+    });
+  }, [taskId, tasks]);
   
   const contextValue = useMemo(() => ({
     // Task basic data

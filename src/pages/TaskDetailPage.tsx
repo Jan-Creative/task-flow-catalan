@@ -3,13 +3,23 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TaskDetailsCard } from "@/components/task-detail/TaskDetailsCard";
 import { LazySubtasksCard, LazyNotesCard, LazyPomodoroCard } from "@/components/LazyComponents";
-import { memo, Suspense } from "react";
+import { memo, Suspense, useEffect } from "react";
 import { TaskProvider, useTaskContext } from "@/contexts/TaskContext";
 import { CachedRoute } from "@/components/ui/route-cache";
+import { useTaskCache } from "@/hooks/useTaskCache";
 
 const TaskDetailContent = memo(() => {
   const navigate = useNavigate();
-  const { task, folder, loading } = useTaskContext();
+  const { task, folder, loading, preloadAdjacentTasks } = useTaskContext();
+  const { preloadAdjacentTasks: cachePreload } = useTaskCache();
+
+  // Preload adjacent tasks for smooth navigation
+  useEffect(() => {
+    if (task?.id) {
+      preloadAdjacentTasks();
+      cachePreload(task.id);
+    }
+  }, [task?.id, preloadAdjacentTasks, cachePreload]);
 
   if (loading && !task) {
     return (

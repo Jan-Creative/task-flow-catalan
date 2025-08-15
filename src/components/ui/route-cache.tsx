@@ -20,8 +20,8 @@ const CACHE_KEY_PREFIX = 'route_cache_';
 
 export const RouteCacheProvider = memo(({ 
   children, 
-  maxAge = 5 * 60 * 1000, // 5 minutes
-  maxEntries = 10 
+  maxAge = 15 * 60 * 1000, // 15 minutes - Extended cache
+  maxEntries = 20 // More entries for better navigation
 }: RouteCacheProviderProps) => {
   const location = useLocation();
   const currentPath = location.pathname;
@@ -113,7 +113,7 @@ export const CachedRoute = memo(({ path, children, enabled = true }: CachedRoute
 // Hook to check if a route is cached
 export const useRouteCached = (path: string): boolean => {
   return useMemo(() => {
-    return !!routeCache[path] && (Date.now() - routeCache[path].timestamp) < 5 * 60 * 1000;
+    return !!routeCache[path] && (Date.now() - routeCache[path].timestamp) < 15 * 60 * 1000;
   }, [path]);
 };
 

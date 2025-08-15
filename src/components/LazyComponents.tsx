@@ -1,32 +1,15 @@
 import { lazy, Suspense, memo } from 'react';
 import { ListSkeleton } from '@/components/ui/skeleton';
+import { TaskDetailSkeleton, DelayedSkeleton } from '@/components/ui/optimized-skeleton';
 
-// Lazy load heavy components
-const TaskDetailPage = lazy(() => import('@/pages/TaskDetailPage'));
+// Bundled TaskDetail components for better performance
+const TaskDetailBundle = lazy(() => import('@/pages/TaskDetailPage'));
 const FolderDetailPage = lazy(() => import('@/pages/FolderDetailPage'));
+
+// Individual components for better caching
 const PomodoroCard = lazy(() => import('@/components/pomodoro/PomodoroCard').then(module => ({ default: module.PomodoroCard })));
 const SubtasksCard = lazy(() => import('@/components/task-detail/SubtasksCard').then(module => ({ default: module.SubtasksCard })));
 const NotesCard = lazy(() => import('@/components/task-detail/NotesCard').then(module => ({ default: module.NotesCard })));
-
-// Loading fallbacks
-const TaskDetailSkeleton = () => (
-  <div className="w-full min-h-screen bg-background p-4 space-y-6">
-    <div className="flex items-center gap-4 mb-6">
-      <div className="w-6 h-6 bg-muted rounded animate-pulse" />
-      <div className="h-8 w-64 bg-muted rounded animate-pulse" />
-    </div>
-    <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-      <div className="xl:col-span-2 space-y-6">
-        <div className="h-32 bg-muted rounded-lg animate-pulse" />
-        <div className="h-48 bg-muted rounded-lg animate-pulse" />
-      </div>
-      <div className="space-y-6">
-        <div className="h-32 bg-muted rounded-lg animate-pulse" />
-        <div className="h-48 bg-muted rounded-lg animate-pulse" />
-      </div>
-    </div>
-  </div>
-);
 
 const FolderDetailSkeleton = () => (
   <div className="w-full min-h-screen bg-background p-4">
@@ -51,10 +34,10 @@ const CardSkeleton = memo(() => (
   </div>
 ));
 
-// Wrapper components with Suspense and optimized fallbacks
+// Export optimized lazy-wrapped components with intelligent loading
 export const LazyTaskDetailPage = memo((props: any) => (
-  <Suspense fallback={<TaskDetailSkeleton />}>
-    <TaskDetailPage {...props} />
+  <Suspense fallback={<DelayedSkeleton><TaskDetailSkeleton /></DelayedSkeleton>}>
+    <TaskDetailBundle {...props} />
   </Suspense>
 ));
 
