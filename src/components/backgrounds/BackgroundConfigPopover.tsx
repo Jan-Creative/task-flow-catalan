@@ -4,12 +4,16 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Palette, Waves, Sparkles, X, Check, RotateCcw } from 'lucide-react';
+import { Palette, Waves, Sparkles, X, Check, RotateCcw, Shapes, Zap, Binary } from 'lucide-react';
 
 const backgroundOptions = [
   { value: 'dark-veil', label: 'Dark Veil', icon: Waves },
   { value: 'mesh-gradient', label: 'Mesh Gradient', icon: Palette },
   { value: 'particles', label: 'Particles', icon: Sparkles },
+  { value: 'geometric', label: 'Geometric', icon: Shapes },
+  { value: 'wave', label: 'Wave', icon: Waves },
+  { value: 'neon', label: 'Neon', icon: Zap },
+  { value: 'matrix', label: 'Matrix', icon: Binary },
   { value: 'none', label: 'None', icon: X },
 ] as const;
 

@@ -93,7 +93,7 @@ export const DarkVeilBackground = ({
   scanlineIntensity = 0.01,
   scanlineFrequency = 0.5,
   warpAmount = 0.1,
-  resolutionScale = 0.8
+  resolutionScale = 1.0
 }: DarkVeilBackgroundProps) => {
   const ref = useRef<HTMLCanvasElement>(null);
   
@@ -142,8 +142,11 @@ export const DarkVeilBackground = ({
       const resize = () => {
         const w = parent.clientWidth;
         const h = parent.clientHeight;
-        renderer.setSize(w * resolutionScale, h * resolutionScale);
-        program.uniforms.uResolution.value.set(w, h);
+        const scale = Math.min(window.devicePixelRatio, 2) * resolutionScale;
+        renderer.setSize(w, h);
+        canvas.style.width = `${w}px`;
+        canvas.style.height = `${h}px`;
+        program.uniforms.uResolution.value.set(w * scale, h * scale);
       };
 
       window.addEventListener("resize", resize);

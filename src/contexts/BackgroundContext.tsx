@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-export type BackgroundType = 'dark-veil' | 'mesh-gradient' | 'particles' | 'none';
+export type BackgroundType = 'dark-veil' | 'mesh-gradient' | 'particles' | 'geometric' | 'wave' | 'neon' | 'matrix' | 'none';
 
 interface BackgroundSettings {
   type: BackgroundType;

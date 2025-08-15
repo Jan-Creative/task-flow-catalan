@@ -3,6 +3,10 @@ import { useBackground } from '@/contexts/BackgroundContext';
 import { DarkVeilBackground } from './DarkVeilBackground';
 import { MeshGradientBackground } from './MeshGradientBackground';
 import { ParticlesBackground } from './ParticlesBackground';
+import { GeometricBackground } from './GeometricBackground';
+import { WaveBackground } from './WaveBackground';
+import { NeonBackground } from './NeonBackground';
+import { MatrixBackground } from './MatrixBackground';
 
 export const BackgroundRenderer: React.FC = () => {
   const { settings } = useBackground();
@@ -31,6 +35,38 @@ export const BackgroundRenderer: React.FC = () => {
       case 'particles':
         return (
           <ParticlesBackground
+            speed={settings.speed}
+            intensity={settings.intensity}
+            hueShift={settings.hueShift}
+          />
+        );
+      case 'geometric':
+        return (
+          <GeometricBackground
+            speed={settings.speed}
+            intensity={settings.intensity}
+            hueShift={settings.hueShift}
+          />
+        );
+      case 'wave':
+        return (
+          <WaveBackground
+            speed={settings.speed}
+            intensity={settings.intensity}
+            hueShift={settings.hueShift}
+          />
+        );
+      case 'neon':
+        return (
+          <NeonBackground
+            speed={settings.speed}
+            intensity={settings.intensity}
+            hueShift={settings.hueShift}
+          />
+        );
+      case 'matrix':
+        return (
+          <MatrixBackground
             speed={settings.speed}
             intensity={settings.intensity}
             hueShift={settings.hueShift}
