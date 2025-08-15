@@ -1,0 +1,110 @@
+/* Dark Veil Background Effects */
+
+@keyframes veil-pulse {
+  0%, 100% {
+    opacity: 0.1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.3;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes veil-drift {
+  0% {
+    transform: translateX(0) translateY(0);
+  }
+  33% {
+    transform: translateX(20px) translateY(-10px);
+  }
+  66% {
+    transform: translateX(-15px) translateY(15px);
+  }
+  100% {
+    transform: translateX(0) translateY(0);
+  }
+}
+
+@keyframes veil-shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+/* Background gradient animations */
+.veil-gradient-base {
+  background: radial-gradient(
+    ellipse at center,
+    hsla(var(--primary) / 0.1) 0%,
+    hsla(var(--background)) 50%,
+    hsla(var(--background)) 100%
+  );
+  animation: veil-pulse 8s ease-in-out infinite;
+}
+
+/* Particle effects */
+.veil-particle {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    hsla(var(--primary) / 0.4) 0%,
+    hsla(var(--primary) / 0.2) 40%,
+    transparent 70%
+  );
+  animation: veil-drift 15s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.veil-particle:nth-child(2n) {
+  animation-delay: -5s;
+  animation-duration: 20s;
+}
+
+.veil-particle:nth-child(3n) {
+  animation-delay: -10s;
+  animation-duration: 12s;
+}
+
+/* Scanline effects */
+.veil-scanlines {
+  background-image: linear-gradient(
+    90deg,
+    transparent 98%,
+    hsla(var(--primary) / 0.1) 100%
+  );
+  background-size: 4px 4px;
+  animation: veil-shimmer 3s linear infinite;
+}
+
+/* Noise texture overlay */
+.veil-noise {
+  background-image: 
+    radial-gradient(circle at 20% 50%, transparent 20%, hsla(var(--foreground) / 0.02) 21%, hsla(var(--foreground) / 0.02) 34%, transparent 35%, transparent),
+    linear-gradient(75deg, transparent 24%, hsla(var(--foreground) / 0.02) 25%, hsla(var(--foreground) / 0.02) 26%, transparent 27%, transparent 74%, hsla(var(--foreground) / 0.02) 75%, hsla(var(--foreground) / 0.02) 76%, transparent 77%, transparent);
+  background-size: 16px 16px, 8px 8px;
+}
+
+/* Performance optimizations */
+.veil-optimized {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .veil-particle,
+  .veil-gradient-base,
+  .veil-scanlines {
+    animation: none;
+  }
+  
+  .veil-particle {
+    opacity: 0.1;
+  }
+}

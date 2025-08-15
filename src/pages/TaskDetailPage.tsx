@@ -7,6 +7,8 @@ import { memo, Suspense, useEffect } from "react";
 import { TaskProvider, useTaskContext } from "@/contexts/TaskContext";
 import { CachedRoute } from "@/components/ui/route-cache";
 import { useTaskCache } from "@/hooks/useTaskCache";
+import { DarkVeilBackground } from "@/components/backgrounds/DarkVeilBackground";
+import "@/styles/background-effects.css";
 
 const TaskDetailContent = memo(() => {
   const navigate = useNavigate();
@@ -48,9 +50,17 @@ const TaskDetailContent = memo(() => {
   }
 
   return (
-    <div className="w-full min-h-screen bg-background text-foreground">
+    <div className="relative w-full min-h-screen bg-background text-foreground overflow-hidden">
+      {/* Dark Veil Background Effect */}
+      <DarkVeilBackground 
+        speed={0.3}
+        hueShift={10}
+        noiseIntensity={0.05}
+        scanlineIntensity={0.02}
+      />
+      
       {/* Header with back button */}
-      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b border-border/50">
+      <div className="sticky top-0 z-20 bg-background/70 backdrop-blur-md border-b border-border/30">
         <div className="flex items-center gap-4 p-4">
           <Button
             variant="ghost"
@@ -66,7 +76,7 @@ const TaskDetailContent = memo(() => {
       </div>
 
       {/* Dashboard Grid - Sistema responsiu fluid sense altures fixes */}
-      <div className="p-4 pb-24">
+      <div className="relative z-10 p-4 pb-24">
         <div className="max-w-7xl mx-auto task-detail-grid">
           {/* Desktop XL Layout - Grid Complex (1440px+) */}
           <div className="hidden 2xl:grid 2xl:grid-cols-6 gap-6 min-h-[600px] auto-rows-fr">
