@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { useDadesApp } from "@/hooks/useDadesApp";
 import { usePropertyLabels } from "@/hooks/usePropertyLabels";
 import TaskChecklistItem from "@/components/TaskChecklistItem";
-import CreateTaskDrawer from "@/components/CreateTaskDrawer";
+import CreateTaskModal from "@/components/CreateTaskModal";
 import DatabaseToolbar from "@/components/DatabaseToolbar";
 import BottomNavigation from "@/components/BottomNavigation";
 import { FolderCustomizationPopover } from "@/components/folders/FolderCustomizationPopover";
@@ -454,8 +454,8 @@ const FolderDetailPage = () => {
         onCreateTask={handleCreateTaskFromNav}
       />
 
-      {/* Create Task Drawer */}
-      <CreateTaskDrawer
+      {/* Create Task Modal */}
+      <CreateTaskModal
         open={showCreateTask}
         onClose={() => {
           setShowCreateTask(false);

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import BottomNavigation from "@/components/BottomNavigation";
-import CreateTaskDrawer from "@/components/CreateTaskDrawer";
+import CreateTaskModal from "@/components/CreateTaskModal";
 import TodayPage from "@/pages/TodayPage";
 import FoldersPage from "@/pages/FoldersPage";
 import SettingsPage from "@/pages/SettingsPage";
@@ -151,7 +151,7 @@ const Index = () => {
         onCreateTask={() => setShowCreateDialog(true)}
       />
 
-      <CreateTaskDrawer
+      <CreateTaskModal
         open={showCreateDialog}
         onClose={() => {
           setShowCreateDialog(false);
