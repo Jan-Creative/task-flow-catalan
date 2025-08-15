@@ -32,16 +32,92 @@ export const TaskDetailsCard = memo(({ task: propTask, folderName: propFolderNam
   const task = propTask || contextData?.task;
   const folderName = propFolderName || contextData?.folder?.name;
   
-  // Obtenir les propietats de la tasca i del sistema
+  // Obtenir les propietats de la tasca
   const { data: taskProperties = [] } = useTaskProperties(task?.id);
   const { getStatusOptions, getPriorityOptions } = useProperties();
 
-  // Obtenir opcions de sistema per Status i Priority
-  const statusOptions = getStatusOptions();
-  const priorityOptions = getPriorityOptions();
+  // Crear llista unificada de totes les propietats
+  const allProperties = [];
   
-  const currentStatusOption = statusOptions.find(opt => opt.value === task?.status);
-  const currentPriorityOption = priorityOptions.find(opt => opt.value === task?.priority);
+  // 1. Propietats de sistema: Status (només si existeix)
+  if (task?.status) {
+    const statusOptions = getStatusOptions();
+    const currentStatusOption = statusOptions.find(opt => opt.value === task.status);
+    if (currentStatusOption) {
+      allProperties.push({
+        id: `status-${task.status}`,
+        propertyName: "Estat",
+        optionValue: currentStatusOption.value,
+        optionLabel: currentStatusOption.label,
+        optionColor: currentStatusOption.color,
+        optionIcon: currentStatusOption.icon,
+        order: 1
+      });
+    }
+  }
+
+  // 2. Propietats de sistema: Priority (només si existeix)
+  if (task?.priority) {
+    const priorityOptions = getPriorityOptions();
+    const currentPriorityOption = priorityOptions.find(opt => opt.value === task.priority);
+    if (currentPriorityOption) {
+      allProperties.push({
+        id: `priority-${task.priority}`,
+        propertyName: "Prioritat",
+        optionValue: currentPriorityOption.value,
+        optionLabel: currentPriorityOption.label,
+        optionColor: currentPriorityOption.color,
+        optionIcon: currentPriorityOption.icon,
+        order: 2
+      });
+    }
+  }
+
+  // 3. Propietat especial: Carpeta (només si existeix)
+  if (folderName) {
+    allProperties.push({
+      id: `folder-${task?.folder_id}`,
+      propertyName: "Carpeta",
+      optionValue: task?.folder_id || 'folder',
+      optionLabel: folderName,
+      optionColor: '#6366f1', // Color blau per carpetes
+      optionIcon: 'folder',
+      order: 3
+    });
+  }
+
+  // 4. Propietat especial: Data límit (només si existeix)
+  if (task?.due_date) {
+    allProperties.push({
+      id: `due-date-${task.due_date}`,
+      propertyName: "Data límit",
+      optionValue: task.due_date,
+      optionLabel: format(new Date(task.due_date), 'dd MMM', { locale: ca }),
+      optionColor: '#ef4444', // Color vermell per dates límit
+      optionIcon: 'calendar',
+      order: 4
+    });
+  }
+
+  // 5. Propietats personalitzades de la base de dades (exclure Status i Priority si existeixen)
+  taskProperties
+    .filter(taskProp => 
+      !['Estat', 'Prioritat'].includes(taskProp.property_definitions.name)
+    )
+    .forEach(taskProp => {
+      allProperties.push({
+        id: taskProp.id,
+        propertyName: taskProp.property_definitions.name,
+        optionValue: taskProp.property_options.value,
+        optionLabel: taskProp.property_options.label,
+        optionColor: taskProp.property_options.color,
+        optionIcon: taskProp.property_options.icon,
+        order: 5
+      });
+    });
+
+  // Ordenar propietats per importància
+  allProperties.sort((a, b) => a.order - b.order);
 
   return (
     <Card className="animate-fade-in h-full flex flex-col">
@@ -62,67 +138,31 @@ export const TaskDetailsCard = memo(({ task: propTask, folderName: propFolderNam
             )}
           </div>
 
-          {/* Propietats de la tasca */}
-          <div className="space-y-2">
-            <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              Propietats
-            </h4>
-            <div className="flex flex-wrap gap-1.5">
-              {/* Propietats de sistema: Status i Priority */}
-              {currentStatusOption && (
-                <PropertyBadge
-                  propertyName="Estat"
-                  optionValue={currentStatusOption.value}
-                  optionLabel={currentStatusOption.label}
-                  optionColor={currentStatusOption.color}
-                  optionIcon={currentStatusOption.icon}
-                  size="sm"
-                />
-              )}
-              
-              {currentPriorityOption && (
-                <PropertyBadge
-                  propertyName="Prioritat"
-                  optionValue={currentPriorityOption.value}
-                  optionLabel={currentPriorityOption.label}
-                  optionColor={currentPriorityOption.color}
-                  optionIcon={currentPriorityOption.icon}
-                  size="sm"
-                />
-              )}
-
-              {/* Propietats personalitzades de la base de dades */}
-              {taskProperties.map((taskProp) => (
-                <PropertyBadge
-                  key={taskProp.id}
-                  propertyName={taskProp.property_definitions.name}
-                  optionValue={taskProp.property_options.value}
-                  optionLabel={taskProp.property_options.label}
-                  optionColor={taskProp.property_options.color}
-                  optionIcon={taskProp.property_options.icon}
-                  size="sm"
-                />
-              ))}
+          {/* Propietats de la tasca - Sistema unificat */}
+          {allProperties.length > 0 && (
+            <div className="space-y-2">
+              <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                Propietats
+              </h4>
+              <div className="flex flex-wrap gap-1.5">
+                {allProperties.map((property) => (
+                  <PropertyBadge
+                    key={property.id}
+                    propertyName={property.propertyName}
+                    optionValue={property.optionValue}
+                    optionLabel={property.optionLabel}
+                    optionColor={property.optionColor}
+                    optionIcon={property.optionIcon}
+                    size="sm"
+                  />
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Informació addicional */}
         <div className="space-y-2 text-xs mt-4">
-          {folderName && (
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <FolderOpen className="h-3 w-3 flex-shrink-0" />
-              <span className="truncate">{folderName}</span>
-            </div>
-          )}
-          
-          {task.due_date && (
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Calendar className="h-3 w-3 flex-shrink-0" />
-              <span>Venciment: {format(new Date(task.due_date), 'dd MMM', { locale: ca })}</span>
-            </div>
-          )}
-          
           <div className="flex items-center gap-2 text-muted-foreground">
             <Clock className="h-3 w-3 flex-shrink-0" />
             <span>Creada: {format(new Date(task.created_at), 'dd MMM', { locale: ca })}</span>
