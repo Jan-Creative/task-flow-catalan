@@ -5,6 +5,7 @@ import { ca } from "date-fns/locale";
 import { memo } from "react";
 import { useTaskContext } from "@/contexts/TaskContext";
 import { useTaskProperties } from "@/hooks/useTaskProperties";
+import { useProperties } from "@/hooks/useProperties";
 import { PropertyBadge } from "@/components/ui/property-badge";
 
 interface Task {
@@ -31,8 +32,16 @@ export const TaskDetailsCard = memo(({ task: propTask, folderName: propFolderNam
   const task = propTask || contextData?.task;
   const folderName = propFolderName || contextData?.folder?.name;
   
-  // Obtenir les propietats de la tasca
+  // Obtenir les propietats de la tasca i del sistema
   const { data: taskProperties = [] } = useTaskProperties(task?.id);
+  const { getStatusOptions, getPriorityOptions } = useProperties();
+
+  // Obtenir opcions de sistema per Status i Priority
+  const statusOptions = getStatusOptions();
+  const priorityOptions = getPriorityOptions();
+  
+  const currentStatusOption = statusOptions.find(opt => opt.value === task?.status);
+  const currentPriorityOption = priorityOptions.find(opt => opt.value === task?.priority);
 
   return (
     <Card className="animate-fade-in h-full flex flex-col">
@@ -44,7 +53,8 @@ export const TaskDetailsCard = memo(({ task: propTask, folderName: propFolderNam
       </CardHeader>
       
       <CardContent className="flex-1 flex flex-col justify-between p-4 pt-0">
-        <div className="space-y-3">
+        <div className="space-y-4">
+          {/* Títol i descripció */}
           <div>
             <h3 className="text-base font-semibold mb-1 leading-tight">{task.title}</h3>
             {task.description && (
@@ -52,22 +62,52 @@ export const TaskDetailsCard = memo(({ task: propTask, folderName: propFolderNam
             )}
           </div>
 
-          <div className="flex flex-wrap gap-1.5">
-            {/* Mostrar totes les propietats amb PropertyBadge per consistència */}
-            {taskProperties.map((taskProp) => (
-              <PropertyBadge
-                key={taskProp.id}
-                propertyName={taskProp.property_definitions.name}
-                optionValue={taskProp.property_options.value}
-                optionLabel={taskProp.property_options.label}
-                optionColor={taskProp.property_options.color}
-                optionIcon={taskProp.property_options.icon}
-                size="sm"
-              />
-            ))}
+          {/* Propietats de la tasca */}
+          <div className="space-y-2">
+            <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              Propietats
+            </h4>
+            <div className="flex flex-wrap gap-1.5">
+              {/* Propietats de sistema: Status i Priority */}
+              {currentStatusOption && (
+                <PropertyBadge
+                  propertyName="Estat"
+                  optionValue={currentStatusOption.value}
+                  optionLabel={currentStatusOption.label}
+                  optionColor={currentStatusOption.color}
+                  optionIcon={currentStatusOption.icon}
+                  size="sm"
+                />
+              )}
+              
+              {currentPriorityOption && (
+                <PropertyBadge
+                  propertyName="Prioritat"
+                  optionValue={currentPriorityOption.value}
+                  optionLabel={currentPriorityOption.label}
+                  optionColor={currentPriorityOption.color}
+                  optionIcon={currentPriorityOption.icon}
+                  size="sm"
+                />
+              )}
+
+              {/* Propietats personalitzades de la base de dades */}
+              {taskProperties.map((taskProp) => (
+                <PropertyBadge
+                  key={taskProp.id}
+                  propertyName={taskProp.property_definitions.name}
+                  optionValue={taskProp.property_options.value}
+                  optionLabel={taskProp.property_options.label}
+                  optionColor={taskProp.property_options.color}
+                  optionIcon={taskProp.property_options.icon}
+                  size="sm"
+                />
+              ))}
+            </div>
           </div>
         </div>
 
+        {/* Informació addicional */}
         <div className="space-y-2 text-xs mt-4">
           {folderName && (
             <div className="flex items-center gap-2 text-muted-foreground">
