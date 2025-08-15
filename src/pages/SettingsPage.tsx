@@ -11,6 +11,7 @@ import { SettingsRow } from "@/components/settings/SettingsRow";
 import { EditableField } from "@/components/settings/EditableField";
 import { ToggleRow } from "@/components/settings/ToggleRow";
 import { PasswordChangeModal } from "@/components/settings/PasswordChangeModal";
+import { BackgroundSelector } from "@/components/settings/BackgroundSelector";
 import { useToast } from "@/hooks/use-toast";
 
 const SettingsPage = () => {
@@ -128,6 +129,9 @@ const SettingsPage = () => {
             onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
           />
         </SettingsGroup>
+
+        {/* Background Settings */}
+        <BackgroundSelector />
 
         {/* Properties Settings */}
         <SettingsGroup title="Propietats">

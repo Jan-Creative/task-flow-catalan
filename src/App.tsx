@@ -8,9 +8,11 @@ import NotFound from "./pages/NotFound";
 import { PomodoroWidget } from "@/components/pomodoro/PomodoroWidget";
 import { RouteCacheProvider } from "@/components/ui/route-cache";
 import { BackgroundRefresher } from "@/components/ui/navigation-optimizers";
+import { BackgroundRenderer } from "@/components/backgrounds/BackgroundRenderer";
 
 const App = () => (
   <div className="w-full min-h-screen overflow-x-hidden">
+    <BackgroundRenderer />
     <TooltipProvider>
       <Toaster />
       <SonnerToaster />
