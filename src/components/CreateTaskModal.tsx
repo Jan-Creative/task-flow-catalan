@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { X, MoreHorizontal, CalendarIcon } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { MoreHorizontal, CalendarIcon, FileText, Folder } from "lucide-react";
 import { PropertyBadge } from "@/components/ui/property-badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -33,6 +34,10 @@ interface PropertyDropdownState {
   selectedProperty: string | null;
 }
 
+interface DescriptionState {
+  isOpen: boolean;
+}
+
 const CreateTaskModal = ({ open, onClose, onSubmit, folders, editingTask }: CreateTaskModalProps) => {
   const {
     title,
@@ -54,7 +59,7 @@ const CreateTaskModal = ({ open, onClose, onSubmit, folders, editingTask }: Crea
     isValid,
   } = useCreateTaskForm({ editingTask, onSubmit, onClose });
 
-  const { properties } = useProperties();
+  const { properties, setTaskProperty } = useProperties();
   
   const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
   const [priorityDropdownOpen, setPriorityDropdownOpen] = useState(false);
@@ -62,6 +67,7 @@ const CreateTaskModal = ({ open, onClose, onSubmit, folders, editingTask }: Crea
     isOpen: false,
     selectedProperty: null
   });
+  const [descriptionOpen, setDescriptionOpen] = useState(false);
 
   // Auto-focus title input when modal opens
   useEffect(() => {
@@ -112,38 +118,68 @@ const CreateTaskModal = ({ open, onClose, onSubmit, folders, editingTask }: Crea
   const getMorePropsOptions = () => {
     const { selectedProperty } = morePropsDropdown;
     
-    if (selectedProperty === 'Carpeta') {
-      return folders.map(folder => ({
-        value: folder.id,
-        label: folder.name,
-        color: '#6366f1',
-        onSelect: () => {
-          setFolderId(folder.id);
-          setMorePropsDropdown({ isOpen: false, selectedProperty: null });
-        }
-      }));
-    }
-    
-    if (selectedProperty === 'Descripció') {
-      return [
-        {
-          value: 'description',
-          label: 'Afegir descripció',
-          color: '#64748b',
+    // Dynamic property options based on selected property
+    if (selectedProperty) {
+      if (selectedProperty === 'Carpeta') {
+        return folders.map(folder => ({
+          value: folder.id,
+          label: folder.name,
+          color: '#6366f1',
           onSelect: () => {
-            // Focus description input (we'll add it in a future iteration)
+            setFolderId(folder.id);
             setMorePropsDropdown({ isOpen: false, selectedProperty: null });
           }
-        }
-      ];
+        }));
+      }
+      
+      if (selectedProperty === 'Descripció') {
+        return [
+          {
+            value: 'description',
+            label: 'Obrir editor de descripció',
+            color: '#64748b',
+            onSelect: () => {
+              setDescriptionOpen(true);
+              setMorePropsDropdown({ isOpen: false, selectedProperty: null });
+            }
+          }
+        ];
+      }
+
+      // Handle custom properties from database
+      const property = properties.find(p => p.name === selectedProperty);
+      if (property) {
+        return property.options.map(option => ({
+          value: option.value,
+          label: option.label,
+          color: option.color,
+          icon: option.icon,
+          onSelect: async () => {
+            // Here we would save the property to the task
+            // For now, just close the dropdown
+            setMorePropsDropdown({ isOpen: false, selectedProperty: null });
+          }
+        }));
+      }
     }
 
-    // Default property list
-    return [
-      { name: 'Carpeta', icon: 'Folder', currentValue: currentFolder?.name },
-      { name: 'Data límit', icon: 'Calendar', currentValue: dueDate ? format(dueDate, "dd/MM/yyyy") : null },
-      { name: 'Descripció', icon: 'FileText', currentValue: description ? 'Afegida' : null },
+    // Build dynamic property list
+    const systemProperties = [
+      { name: 'Carpeta', icon: Folder, currentValue: currentFolder?.name },
+      { name: 'Data límit', icon: CalendarIcon, currentValue: dueDate ? format(dueDate, "dd/MM/yyyy") : null },
+      { name: 'Descripció', icon: FileText, currentValue: description ? 'Afegida' : null },
     ];
+
+    // Add custom properties (excluding system ones already handled)
+    const customProperties = properties
+      .filter(p => !['Estat', 'Prioritat'].includes(p.name))
+      .map(property => ({
+        name: property.name,
+        icon: FileText, // Default icon for custom properties
+        currentValue: null // We'll implement this later
+      }));
+
+    return [...systemProperties, ...customProperties];
   };
 
   return (
@@ -154,19 +190,11 @@ const CreateTaskModal = ({ open, onClose, onSubmit, folders, editingTask }: Crea
           "shadow-2xl rounded-2xl overflow-hidden"
         )}
       >
-        {/* Header with close button */}
-        <div className="flex justify-between items-center p-6 pb-4">
+        {/* Header */}
+        <div className="p-6 pb-4">
           <h2 className="text-lg font-semibold text-white">
             {isEditing ? "Editar Tasca" : "Nova Tasca"}
           </h2>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            className="text-white/60 hover:text-white hover:bg-white/10 p-1 h-8 w-8"
-          >
-            <X className="h-4 w-4" />
-          </Button>
         </div>
 
         <form onSubmit={handleSubmit} className="px-6 pb-6 space-y-4">
@@ -356,13 +384,13 @@ const CreateTaskModal = ({ open, onClose, onSubmit, folders, editingTask }: Crea
                         key={prop.name}
                         variant="ghost"
                         size="sm"
-                        onClick={() => prop.name === 'Data límit' ? 
-                          handlePropertySelect(prop.name) : 
-                          handlePropertySelect(prop.name)
-                        }
+                        onClick={() => handlePropertySelect(prop.name)}
                         className="w-full justify-between text-white hover:bg-white/10 h-8 text-xs"
                       >
-                        <span>{prop.name}</span>
+                        <div className="flex items-center gap-2">
+                          {prop.icon && <prop.icon className="h-3 w-3" />}
+                          <span>{prop.name}</span>
+                        </div>
                         {prop.currentValue && (
                           <span className="text-white/60 text-xs">{prop.currentValue}</span>
                         )}
@@ -373,6 +401,33 @@ const CreateTaskModal = ({ open, onClose, onSubmit, folders, editingTask }: Crea
               </PopoverContent>
             </Popover>
           </div>
+
+          {/* Description Field */}
+          {descriptionOpen && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium text-white/80">Descripció</label>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setDescriptionOpen(false)}
+                  className="text-white/60 hover:text-white/80 h-6 w-6 p-0"
+                >
+                  ×
+                </Button>
+              </div>
+              <Textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Afegeix una descripció per la tasca..."
+                className={cn(
+                  "bg-white/5 border-white/20 focus:border-primary/50 focus:ring-1 focus:ring-primary/30",
+                  "text-white placeholder:text-white/40 backdrop-blur-sm resize-none"
+                )}
+                rows={3}
+              />
+            </div>
+          )}
 
           {/* Action Buttons */}
           <div className="flex gap-3 pt-4">
