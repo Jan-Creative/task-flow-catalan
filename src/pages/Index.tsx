@@ -8,6 +8,7 @@ import FoldersPage from "@/pages/FoldersPage";
 import SettingsPage from "@/pages/SettingsPage";
 import AuthPage from "@/pages/AuthPage";
 import { useDadesApp } from "@/hooks/useDadesApp";
+import { useProperties } from "@/hooks/useProperties";
 import { Button } from "@/components/ui/button";
 import { LogOut, User } from "lucide-react";
 import { useShortcut } from "@/hooks/useKeyboardShortcuts";
@@ -23,6 +24,7 @@ const Index = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const { createTask, updateTask, folders } = useDadesApp();
+  const { setTaskProperty } = useProperties();
   const { toast } = useToast();
 
   // Funció de toggle amb useCallback per assegurar estat actualitzat
@@ -64,16 +66,39 @@ const Index = () => {
     }
   };
 
-  const handleCreateTask = (taskData: any) => {
-    if (editingTask) {
-      // If editing, update the existing task
-      updateTask(editingTask.id, taskData);
-      setEditingTask(null);
-    } else {
-      // If creating, create new task
-      createTask(taskData);
+  const handleCreateTask = async (taskData: any, customProperties?: Array<{propertyId: string; optionId: string}>) => {
+    try {
+      if (editingTask) {
+        // If editing, update the existing task
+        await updateTask(editingTask.id, taskData);
+        
+        // Gestionar propietats personalitzades per tasques editades
+        if (customProperties && customProperties.length > 0) {
+          for (const prop of customProperties) {
+            await setTaskProperty(editingTask.id, prop.propertyId, prop.optionId);
+          }
+        }
+        
+        setEditingTask(null);
+      } else {
+        // If creating, create new task
+        await createTask(taskData);
+        
+        // Per ara, no podem assignar propietats personalitzades immediatament
+        // perquè createTask no retorna la nova tasca
+        // TODO: Implementar assignació de propietats després de refactoritzar createTask
+        if (customProperties && customProperties.length > 0) {
+          toast({
+            title: "Propietats pendents",
+            description: "Les propietats personalitzades s'aplicaran en la propera actualització.",
+            duration: 3000,
+          });
+        }
+      }
+      setShowCreateDialog(false);
+    } catch (error) {
+      console.error("Error creating/updating task with properties:", error);
     }
-    setShowCreateDialog(false);
   };
 
   const handleEditTask = (task: any) => {

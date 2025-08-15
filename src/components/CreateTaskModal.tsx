@@ -24,7 +24,10 @@ interface CreateTaskModalProps {
     priority: "alta" | "mitjana" | "baixa";
     due_date?: string;
     folder_id?: string;
-  }) => void;
+  }, customProperties?: Array<{
+    propertyId: string;
+    optionId: string;
+  }>) => void;
   folders: Array<{ id: string; name: string; }>;
   editingTask?: Tasca | null;
 }
@@ -60,6 +63,16 @@ const CreateTaskModal = ({ open, onClose, onSubmit, folders, editingTask }: Crea
   } = useCreateTaskForm({ editingTask, onSubmit, onClose });
 
   const { properties, setTaskProperty } = useProperties();
+  
+  // Estat per propietats personalitzades seleccionades
+  const [selectedCustomProperties, setSelectedCustomProperties] = useState<Array<{
+    propertyId: string;
+    optionId: string;
+    propertyName: string;
+    optionLabel: string;
+    optionColor: string;
+    optionIcon?: string;
+  }>>([]);
   
   const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
   const [priorityDropdownOpen, setPriorityDropdownOpen] = useState(false);
@@ -154,9 +167,23 @@ const CreateTaskModal = ({ open, onClose, onSubmit, folders, editingTask }: Crea
           label: option.label,
           color: option.color,
           icon: option.icon,
-          onSelect: async () => {
-            // Here we would save the property to the task
-            // For now, just close the dropdown
+          onSelect: () => {
+            // Afegir la propietat personalitzada a l'estat
+            const newProperty = {
+              propertyId: property.id,
+              optionId: option.id,
+              propertyName: property.name,
+              optionLabel: option.label,
+              optionColor: option.color,
+              optionIcon: option.icon
+            };
+            
+            // Evitar duplicats - substituir si ja existeix aquesta propietat
+            setSelectedCustomProperties(prev => {
+              const filtered = prev.filter(p => p.propertyId !== property.id);
+              return [...filtered, newProperty];
+            });
+            
             setMorePropsDropdown({ isOpen: false, selectedProperty: null });
           }
         }));
@@ -182,6 +209,44 @@ const CreateTaskModal = ({ open, onClose, onSubmit, folders, editingTask }: Crea
     return [...systemProperties, ...customProperties];
   };
 
+  // Gestió personalitzada de submit per incloure propietats personalitzades
+  const handleCustomSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title.trim()) return;
+
+    // Preparar dades de la tasca
+    const taskData = {
+      title: title.trim(),
+      description: description.trim() || undefined,
+      status,
+      priority,
+      due_date: dueDate ? format(dueDate, "yyyy-MM-dd") : undefined,
+      folder_id: folderId || undefined,
+    };
+
+    // Preparar propietats personalitzades
+    const customPropsData = selectedCustomProperties.map(prop => ({
+      propertyId: prop.propertyId,
+      optionId: prop.optionId
+    }));
+
+    // Cridar onSubmit amb ambdós paràmetres
+    onSubmit(taskData, customPropsData.length > 0 ? customPropsData : undefined);
+
+    // Reset form només si no estem editant
+    if (!editingTask) {
+      setTitle("");
+      setDescription("");
+      setStatus("pendent");
+      setPriority("mitjana");
+      setDueDate(undefined);
+      setFolderId("");
+      setSelectedCustomProperties([]);
+    }
+
+    onClose();
+  };
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent 
@@ -197,7 +262,7 @@ const CreateTaskModal = ({ open, onClose, onSubmit, folders, editingTask }: Crea
           </h2>
         </div>
 
-        <form onSubmit={handleSubmit} className="px-6 pb-6 space-y-4">
+        <form onSubmit={handleCustomSubmit} className="px-6 pb-6 space-y-4">
           {/* Title Input - Main focus */}
           <div>
             <Input
@@ -401,6 +466,39 @@ const CreateTaskModal = ({ open, onClose, onSubmit, folders, editingTask }: Crea
               </PopoverContent>
             </Popover>
           </div>
+
+          {/* Propietats personalitzades seleccionades */}
+          {selectedCustomProperties.length > 0 && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-white/80">Propietats seleccionades</label>
+              <div className="flex flex-wrap gap-1.5">
+                {selectedCustomProperties.map((prop) => (
+                  <div key={prop.propertyId} className="relative group">
+                    <PropertyBadge
+                      propertyName={prop.propertyName}
+                      optionValue={prop.optionId}
+                      optionLabel={prop.optionLabel}
+                      optionColor={prop.optionColor}
+                      optionIcon={prop.optionIcon}
+                      size="sm"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedCustomProperties(prev => 
+                          prev.filter(p => p.propertyId !== prop.propertyId)
+                        );
+                      }}
+                      className="absolute -top-1 -right-1 h-4 w-4 p-0 bg-red-500/80 hover:bg-red-600 text-white text-xs rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      ×
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Description Field */}
           {descriptionOpen && (
