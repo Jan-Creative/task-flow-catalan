@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { usePropertyLabels } from "@/hooks/usePropertyLabels";
+import { useOptimizedPropertyLabels } from "@/hooks/useOptimizedPropertyLabels";
 import { getIconByName } from "@/lib/iconLibrary";
-import { PriorityBadge } from "@/components/ui/priority-badge";
+import { SmoothPriorityBadge } from "@/components/ui/smooth-priority-badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -49,7 +49,7 @@ const TaskChecklistItem = memo(({
     getStatusLabel, 
     getStatusColor: getDynamicStatusColor,
     getStatusIcon
-  } = usePropertyLabels();
+  } = useOptimizedPropertyLabels();
 
   const priorityColor = useMemo(() => {
     const color = getDynamicPriorityColor(task.priority);
@@ -124,7 +124,7 @@ const TaskChecklistItem = memo(({
           </h3>
           
           {/* Priority Badge */}
-          <PriorityBadge priority={task.priority} size="sm" />
+          <SmoothPriorityBadge priority={task.priority} size="sm" />
           
           {isInProgress && (
             <Badge variant="outline" className="text-xs px-1.5 py-0 flex items-center gap-1" style={statusColor}>

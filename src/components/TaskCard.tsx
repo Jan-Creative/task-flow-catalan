@@ -3,9 +3,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { usePropertyLabels } from "@/hooks/usePropertyLabels";
+import { useOptimizedPropertyLabels } from "@/hooks/useOptimizedPropertyLabels";
 import { getIconByName } from "@/lib/iconLibrary";
-import { PriorityBadge } from "@/components/ui/priority-badge";
+import { SmoothPriorityBadge } from "@/components/ui/smooth-priority-badge";
 
 interface Task {
   id: string;
@@ -32,7 +32,7 @@ const TaskCard = ({ task, onStatusChange, onEdit, onDelete }: TaskCardProps) => 
     getPriorityColor: getDynamicPriorityColor,
     getStatusIcon,
     getPriorityIcon
-  } = usePropertyLabels();
+  } = useOptimizedPropertyLabels();
 
   const getStatusColor = (status: Task['status']) => {
     const color = getDynamicStatusColor(status);
@@ -56,7 +56,7 @@ const TaskCard = ({ task, onStatusChange, onEdit, onDelete }: TaskCardProps) => 
           >
             {task.title}
           </h3>
-          <PriorityBadge priority={task.priority} size="sm" />
+          <SmoothPriorityBadge priority={task.priority} size="sm" />
         </div>
 
         {task.description && (

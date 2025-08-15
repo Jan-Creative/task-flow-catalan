@@ -11,9 +11,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Clock, Edit, MoreVertical, Trash2, Calendar } from "lucide-react";
 import type { Tasca } from '@/types';
-import { usePropertyLabels } from '@/hooks/usePropertyLabels';
+import { useOptimizedPropertyLabels } from '@/hooks/useOptimizedPropertyLabels';
 import { getIconByName } from '@/lib/iconLibrary';
-import { PriorityBadge } from '@/components/ui/priority-badge';
+import { SmoothPriorityBadge } from '@/components/ui/smooth-priority-badge';
 import { cn } from '@/lib/utils';
 
 interface OptimizedTaskItemProps {
@@ -40,7 +40,7 @@ const OptimizedTaskItem = memo<OptimizedTaskItemProps>(({
     getPriorityColor: getDynamicPriorityColor,
     getStatusIcon,
     getPriorityIcon
-  } = usePropertyLabels();
+  } = useOptimizedPropertyLabels();
   const handleStatusChange = useCallback((checked: boolean) => {
     const newStatus = checked ? 'completat' : 'pendent';
     onStatusChange?.(task.id, newStatus);
@@ -107,7 +107,7 @@ const OptimizedTaskItem = memo<OptimizedTaskItemProps>(({
                 </h3>
                 
                 {/* Priority Badge */}
-                <PriorityBadge priority={task.priority} size="sm" />
+                <SmoothPriorityBadge priority={task.priority} size="sm" />
               </div>
               
               {task.description && (
