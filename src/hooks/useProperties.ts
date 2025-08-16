@@ -104,6 +104,15 @@ export const useProperties = () => {
 
       if (error) throw error;
 
+      // Optimistic update
+      setProperties(prevProperties => 
+        prevProperties.map(prop => 
+          prop.id === propertyId 
+            ? { ...prop, options: [...prop.options, data].sort((a, b) => a.sort_order - b.sort_order) }
+            : prop
+        )
+      );
+
       // Invalidate queries for immediate refresh
       queryClient.invalidateQueries({ queryKey: ['properties'] });
       return data;
@@ -150,6 +159,14 @@ export const useProperties = () => {
 
       if (error) throw error;
 
+      // Optimistic update
+      setProperties(prevProperties => 
+        prevProperties.map(prop => ({
+          ...prop,
+          options: prop.options.filter(opt => opt.id !== optionId)
+        }))
+      );
+
       // Invalidate queries for immediate refresh
       queryClient.invalidateQueries({ queryKey: ['properties'] });
     } catch (error) {
@@ -184,8 +201,14 @@ export const useProperties = () => {
 
       if (error) throw error;
 
+      // Optimistic update
+      setProperties(prevProperties => 
+        prevProperties.filter(prop => prop.id !== propertyId)
+      );
+
       // Invalidate queries for immediate refresh
       queryClient.invalidateQueries({ queryKey: ['properties'] });
+      queryClient.invalidateQueries({ queryKey: ['task-properties'] });
     } catch (error) {
       throw error;
     }
@@ -202,8 +225,12 @@ export const useProperties = () => {
 
       if (error) throw error;
 
-      // Refresh properties after update to ensure UI sync
-      await fetchProperties();
+      // Optimistic update
+      setProperties(prevProperties => 
+        prevProperties.map(prop => 
+          prop.id === propertyId ? { ...prop, ...propertyData } : prop
+        )
+      );
       
       // Invalidate queries for immediate refresh
       queryClient.invalidateQueries({ queryKey: ['properties'] });
@@ -228,6 +255,36 @@ export const useProperties = () => {
       return data || [];
     } catch (error) {
       return [];
+    }
+  };
+
+  const createPropertyDefinition = async (propertyData: Omit<PropertyDefinition, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
+    if (!user) throw new Error('User not authenticated');
+
+    try {
+      const { data, error } = await supabase
+        .from('property_definitions')
+        .insert({
+          ...propertyData,
+          user_id: user.id
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Optimistic update
+      setProperties(prevProperties => [...prevProperties, { 
+        ...data, 
+        type: data.type as 'select' | 'multiselect',
+        options: [] 
+      }]);
+      
+      // Invalidate queries for immediate refresh
+      queryClient.invalidateQueries({ queryKey: ['properties'] });
+      return data;
+    } catch (error) {
+      throw error;
     }
   };
 
@@ -261,6 +318,10 @@ export const useProperties = () => {
 
         if (error) throw error;
       }
+
+      // Invalidate task properties query for immediate refresh in TaskDetailsCard
+      queryClient.invalidateQueries({ queryKey: ['task-properties', taskId] });
+      queryClient.invalidateQueries({ queryKey: ['task-properties'] });
     } catch (error) {
       throw error;
     }
@@ -403,6 +464,7 @@ export const useProperties = () => {
     fetchProperties,
     getPropertyByName,
     getOptionsByProperty,
+    createPropertyDefinition,
     createPropertyOption,
     updatePropertyOption,
     deletePropertyOption,
