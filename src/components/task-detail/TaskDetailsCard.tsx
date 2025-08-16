@@ -80,7 +80,7 @@ export const TaskDetailsCard = memo(({ task: propTask, folderName: propFolderNam
       propertyName: "Carpeta",
       optionValue: task?.folder_id || 'folder',
       optionLabel: folderName,
-      optionColor: '#6366f1', // Color blau per carpetes
+      optionColor: '#6366f1', // TODO: move to design tokens
       optionIcon: 'folder',
       order: 3
     });

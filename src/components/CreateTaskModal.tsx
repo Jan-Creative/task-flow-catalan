@@ -183,6 +183,12 @@ const CreateTaskModal = ({ open, onClose, onSubmit, folders, editingTask }: Crea
               const filtered = prev.filter(p => p.propertyId !== property.id);
               return [...filtered, newProperty];
             });
+
+            // Si estem editant una tasca existent, aplicar immediatament a la BD
+            if (editingTask?.id) {
+              // Ignora el resultat; la targeta de detalls es refrescarà via React Query
+              setTaskProperty(editingTask.id, property.id, option.id).catch(() => {});
+            }
             
             setMorePropsDropdown({ isOpen: false, selectedProperty: null });
           }

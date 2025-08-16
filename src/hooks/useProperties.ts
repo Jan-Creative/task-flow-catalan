@@ -348,6 +348,24 @@ export const useProperties = () => {
     fetchProperties();
   }, [fetchProperties]);
 
+  // Realtime subscription: refresh properties on any change
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel('properties-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'property_definitions' }, () => {
+        fetchProperties();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'property_options' }, () => {
+        fetchProperties();
+      })
+      .subscribe();
+
+    return () => {
+      try { supabase.removeChannel(channel); } catch {}
+    };
+  }, [user?.id, fetchProperties]);
+
   const ensureSystemProperties = async () => {
     if (!user) return;
 
