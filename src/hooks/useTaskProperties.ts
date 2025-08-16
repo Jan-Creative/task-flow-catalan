@@ -1,4 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface TaskPropertyWithDetails {
@@ -22,7 +23,9 @@ export interface TaskPropertyWithDetails {
 }
 
 export const useTaskProperties = (taskId: string) => {
-  return useQuery({
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
     queryKey: ['task-properties', taskId],
     queryFn: async (): Promise<TaskPropertyWithDetails[]> => {
       if (!taskId) return [];
@@ -41,4 +44,28 @@ export const useTaskProperties = (taskId: string) => {
     },
     enabled: !!taskId,
   });
+
+  // Realtime: refresh when task properties/options/definitions change
+  useEffect(() => {
+    if (!taskId) return;
+
+    const channel = supabase
+      .channel(`task-properties-${taskId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'task_properties', filter: `task_id=eq.${taskId}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ['task-properties', taskId] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'property_options' }, () => {
+        queryClient.invalidateQueries({ queryKey: ['task-properties', taskId] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'property_definitions' }, () => {
+        queryClient.invalidateQueries({ queryKey: ['task-properties', taskId] });
+      })
+      .subscribe();
+
+    return () => {
+      try { supabase.removeChannel(channel); } catch {}
+    };
+  }, [taskId, queryClient]);
+
+  return query;
 };

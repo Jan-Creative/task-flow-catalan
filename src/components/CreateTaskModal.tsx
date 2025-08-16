@@ -68,6 +68,7 @@ const CreateTaskModal = ({ open, onClose, onSubmit, folders, editingTask }: Crea
   const [selectedCustomProperties, setSelectedCustomProperties] = useState<Array<{
     propertyId: string;
     optionId: string;
+    optionValue: string;
     propertyName: string;
     optionLabel: string;
     optionColor: string;
@@ -172,6 +173,7 @@ const CreateTaskModal = ({ open, onClose, onSubmit, folders, editingTask }: Crea
             const newProperty = {
               propertyId: property.id,
               optionId: option.id,
+              optionValue: option.value,
               propertyName: property.name,
               optionLabel: option.label,
               optionColor: option.color,
@@ -482,7 +484,7 @@ const CreateTaskModal = ({ open, onClose, onSubmit, folders, editingTask }: Crea
                   <div key={prop.propertyId} className="relative group">
                     <PropertyBadge
                       propertyName={prop.propertyName}
-                      optionValue={prop.optionId}
+                      optionValue={prop.optionValue}
                       optionLabel={prop.optionLabel}
                       optionColor={prop.optionColor}
                       optionIcon={prop.optionIcon}

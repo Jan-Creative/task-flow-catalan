@@ -182,6 +182,8 @@ export const useDadesApp = () => {
         title: "Tasca creada",
         description: "La tasca s'ha creat correctament",
       });
+
+      return newTask;
     } catch (error) {
       // Revert optimistic update
       queryClient.setQueryData([CLAU_CACHE_DADES, user.id], (old: any) => {
@@ -193,6 +195,7 @@ export const useDadesApp = () => {
       });
       
       handleError(error instanceof Error ? error : new Error("No s'ha pogut crear la tasca"));
+      throw error;
     }
   }, [user, dadesOptimitzades?.carpetes, queryClient, toast, setTaskProperty, getPropertyByName, handleError]);
 

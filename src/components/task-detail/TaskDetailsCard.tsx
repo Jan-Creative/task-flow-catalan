@@ -38,6 +38,7 @@ export const TaskDetailsCard = memo(({ task: propTask, folderName: propFolderNam
 
   // Crear llista unificada de totes les propietats
   const allProperties = [];
+  let hasSystemPriority = false;
   
   // 1. Propietats de sistema: Status (només si existeix)
   if (task?.status) {
@@ -70,6 +71,7 @@ export const TaskDetailsCard = memo(({ task: propTask, folderName: propFolderNam
         optionIcon: currentPriorityOption.icon,
         order: 2
       });
+      hasSystemPriority = true;
     }
   }
 
@@ -99,20 +101,24 @@ export const TaskDetailsCard = memo(({ task: propTask, folderName: propFolderNam
     });
   }
 
-  // 5. Propietats personalitzades de la base de dades (exclure Status i Priority si existeixen)
+  // 5. Propietats personalitzades de la base de dades (excloure Estat sempre i Prioritat només si ja hem afegit la de sistema)
   taskProperties
-    .filter(taskProp => 
-      !['Estat', 'Prioritat'].includes(taskProp.property_definitions.name)
-    )
+    .filter(taskProp => {
+      const name = taskProp.property_definitions.name;
+      if (name === 'Estat') return false;
+      if (name === 'Prioritat' && hasSystemPriority) return false;
+      return true;
+    })
     .forEach(taskProp => {
+      const name = taskProp.property_definitions.name;
       allProperties.push({
         id: taskProp.id,
-        propertyName: taskProp.property_definitions.name,
+        propertyName: name,
         optionValue: taskProp.property_options.value,
         optionLabel: taskProp.property_options.label,
         optionColor: taskProp.property_options.color,
         optionIcon: taskProp.property_options.icon,
-        order: 5
+        order: name === 'Prioritat' ? 2 : 5
       });
     });
 

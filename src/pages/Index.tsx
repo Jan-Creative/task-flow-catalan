@@ -81,18 +81,13 @@ const Index = () => {
         
         setEditingTask(null);
       } else {
-        // If creating, create new task
-        await createTask(taskData);
+        // If creating, create new task and immediately assign custom properties
+        const created = await createTask(taskData);
         
-        // Per ara, no podem assignar propietats personalitzades immediatament
-        // perquè createTask no retorna la nova tasca
-        // TODO: Implementar assignació de propietats després de refactoritzar createTask
-        if (customProperties && customProperties.length > 0) {
-          toast({
-            title: "Propietats pendents",
-            description: "Les propietats personalitzades s'aplicaran en la propera actualització.",
-            duration: 3000,
-          });
+        if (created?.id && customProperties && customProperties.length > 0) {
+          await Promise.all(
+            customProperties.map((prop) => setTaskProperty(created.id, prop.propertyId, prop.optionId))
+          );
         }
       }
       setShowCreateDialog(false);
