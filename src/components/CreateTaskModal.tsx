@@ -11,7 +11,7 @@ import { format } from "date-fns";
 import { ca } from "date-fns/locale";
 import { useCreateTaskForm } from "@/hooks/tasks/useCreateTaskForm";
 import { useProperties } from "@/hooks/useProperties";
-import type { Tasca } from "@/types";
+import type { Tasca, TaskStatus, TaskPriority } from "@/types";
 import { cn } from "@/lib/utils";
 
 interface CreateTaskModalProps {
@@ -20,8 +20,8 @@ interface CreateTaskModalProps {
   onSubmit: (task: {
     title: string;
     description?: string;
-    status: "pendent" | "en_proces" | "completat";
-    priority: "alta" | "mitjana" | "baixa";
+    status: TaskStatus;
+    priority: TaskPriority;
     due_date?: string;
     folder_id?: string;
   }, customProperties?: Array<{
@@ -226,8 +226,8 @@ const CreateTaskModal = ({ open, onClose, onSubmit, folders, editingTask }: Crea
     const taskData = {
       title: title.trim(),
       description: description.trim() || undefined,
-      status,
-      priority,
+      status: status as TaskStatus,
+      priority: priority as TaskPriority,
       due_date: dueDate ? format(dueDate, "yyyy-MM-dd") : undefined,
       folder_id: folderId || undefined,
     };

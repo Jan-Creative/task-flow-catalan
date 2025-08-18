@@ -1,11 +1,7 @@
 import { useCallback } from 'react';
 import { useDadesApp } from './useDadesApp';
 import { useProperties } from './useProperties';
-
-export interface CustomProperty {
-  propertyId: string;
-  optionId: string;
-}
+import type { CustomProperty } from '@/types';
 
 // ============= UNIFIED TASK OPERATIONS =============
 export const useTaskOperations = () => {

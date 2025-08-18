@@ -4,6 +4,7 @@ import { ArrowLeft, FolderOpen, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useDadesApp } from "@/hooks/useDadesApp";
+import type { Task } from "@/types";
 import { useUnifiedProperties } from "@/hooks/useUnifiedProperties";
 import { useTaskOperations } from "@/hooks/useTaskOperations";
 import TaskChecklistItem from "@/components/TaskChecklistItem";
@@ -13,17 +14,6 @@ import BottomNavigation from "@/components/BottomNavigation";
 import { FolderCustomizationPopover } from "@/components/folders/FolderCustomizationPopover";
 import { getIconByName } from "@/lib/iconLibrary";
 
-interface Task {
-  id: string;
-  title: string;
-  description?: string;
-  status: "pendent" | "en_proces" | "completat";
-  priority: "alta" | "mitjana" | "baixa";
-  folder_id?: string;
-  due_date?: string;
-  created_at: string;
-  updated_at: string;
-}
 
 const FolderDetailPage = () => {
   const { folderId } = useParams<{ folderId: string }>();

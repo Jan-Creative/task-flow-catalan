@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { format } from "date-fns";
 import { usePropertyLabels } from "@/hooks/usePropertyLabels";
-import type { Tasca } from "@/types";
+import type { Tasca, TaskStatus, TaskPriority } from "@/types";
 
 interface UseCreateTaskFormProps {
   editingTask?: Tasca | null;
@@ -12,8 +12,8 @@ interface UseCreateTaskFormProps {
 interface TaskFormData {
   title: string;
   description?: string;
-  status: "pendent" | "en_proces" | "completat";
-  priority: "alta" | "mitjana" | "baixa";
+  status: TaskStatus;
+  priority: TaskPriority;
   due_date?: string;
   folder_id?: string;
 }
@@ -24,10 +24,10 @@ export const useCreateTaskForm = ({ editingTask, onSubmit, onClose }: UseCreateT
   // Form state
   const [title, setTitle] = useState(editingTask?.title || "");
   const [description, setDescription] = useState(editingTask?.description || "");
-  const [status, setStatus] = useState<"pendent" | "en_proces" | "completat">(
+  const [status, setStatus] = useState<TaskStatus>(
     editingTask?.status || "pendent"
   );
-  const [priority, setPriority] = useState<"alta" | "mitjana" | "baixa">(
+  const [priority, setPriority] = useState<TaskPriority>(
     editingTask?.priority || "mitjana"
   );
   const [dueDate, setDueDate] = useState<Date | undefined>(

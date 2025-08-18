@@ -1,21 +1,14 @@
+import type { Task } from "@/types";
 import { Calendar, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { useOptimizedPropertyLabels } from "@/hooks/useOptimizedPropertyLabels";
 import { getIconByName } from "@/lib/iconLibrary";
 import { SmoothPriorityBadge } from "@/components/ui/smooth-priority-badge";
 
-interface Task {
-  id: string;
-  title: string;
-  description?: string;
-  status: "pendent" | "en_proces" | "completat";
-  priority: "alta" | "mitjana" | "baixa";
-  due_date?: string;
-  folder_id?: string;
-}
 
 interface TaskCardProps {
   task: Task;
