@@ -25,7 +25,7 @@ export const useDadesApp = () => {
   const { setTaskProperty, getPropertyByName } = useProperties();
   const { handleError } = useGestorErrors();
 
-  // Parallel data fetching with React Query
+  // Optimized parallel data fetching with React Query
   const { data, isLoading: loading, error } = useQuery({
     queryKey: [CLAU_CACHE_DADES, user?.id],
     queryFn: async () => {

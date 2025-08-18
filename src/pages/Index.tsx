@@ -2,13 +2,11 @@ import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import BottomNavigation from "@/components/BottomNavigation";
-import CreateTaskModal from "@/components/CreateTaskModal";
-import TodayPage from "@/pages/TodayPage";
-import FoldersPage from "@/pages/FoldersPage";
-import SettingsPage from "@/pages/SettingsPage";
+import { LazyPage, TodayPageLazy, FoldersPageLazy, SettingsPageLazy, CreateTaskModalLazy } from "@/lib/lazyLoading";
 import AuthPage from "@/pages/AuthPage";
 import { useDadesApp } from "@/hooks/useDadesApp";
 import { useTaskOperations } from "@/hooks/useTaskOperations";
+import { usePerformanceMonitor, useCacheOptimization, useMemoryCleanup } from "@/hooks/usePerformanceOptimization";
 import { Button } from "@/components/ui/button";
 import { LogOut, User } from "lucide-react";
 import { useShortcut } from "@/hooks/useKeyboardShortcuts";
@@ -26,6 +24,11 @@ const Index = () => {
   const { folders } = useDadesApp();
   const { handleCreateTask, handleEditTask: handleEditTaskOp } = useTaskOperations();
   const { toast } = useToast();
+  
+  // Performance optimizations
+  usePerformanceMonitor();
+  useCacheOptimization();
+  useMemoryCleanup();
 
   // Funció de toggle amb useCallback per assegurar estat actualitzat
   const toggleCreateDialog = useCallback(() => {
@@ -85,22 +88,28 @@ const Index = () => {
     setShowCreateDialog(true);
   };
 
-  // Keep-alive rendering - All pages stay mounted
+  // Keep-alive rendering with lazy loading - All pages stay mounted
   const renderKeepAlivePages = useCallback(() => (
     <div className="relative w-full">
       <TabPage tabId="avui" activeTab={activeTab}>
-        <TodayPage 
-          onEditTask={handleEditTaskClick} 
-          onNavigateToSettings={() => setActiveTab("configuracio")} 
-        />
+        <LazyPage pageName="Avui">
+          <TodayPageLazy 
+            onEditTask={handleEditTaskClick} 
+            onNavigateToSettings={() => setActiveTab("configuracio")} 
+          />
+        </LazyPage>
       </TabPage>
       
       <TabPage tabId="carpetes" activeTab={activeTab}>
-        <FoldersPage />
+        <LazyPage pageName="Carpetes">
+          <FoldersPageLazy />
+        </LazyPage>
       </TabPage>
       
       <TabPage tabId="configuracio" activeTab={activeTab}>
-        <SettingsPage />
+        <LazyPage pageName="Configuració">
+          <SettingsPageLazy />
+        </LazyPage>
       </TabPage>
     </div>
   ), [activeTab, handleEditTaskClick]);
@@ -155,7 +164,7 @@ const Index = () => {
         onCreateTask={() => setShowCreateDialog(true)}
       />
 
-      <CreateTaskModal
+      <CreateTaskModalLazy
         open={showCreateDialog}
         onClose={() => {
           setShowCreateDialog(false);
