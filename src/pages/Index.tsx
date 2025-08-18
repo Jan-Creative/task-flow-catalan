@@ -8,7 +8,7 @@ import FoldersPage from "@/pages/FoldersPage";
 import SettingsPage from "@/pages/SettingsPage";
 import AuthPage from "@/pages/AuthPage";
 import { useDadesApp } from "@/hooks/useDadesApp";
-import { useProperties } from "@/hooks/useProperties";
+import { useTaskOperations } from "@/hooks/useTaskOperations";
 import { Button } from "@/components/ui/button";
 import { LogOut, User } from "lucide-react";
 import { useShortcut } from "@/hooks/useKeyboardShortcuts";
@@ -23,8 +23,8 @@ const Index = () => {
   });
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
-  const { createTask, updateTask, folders } = useDadesApp();
-  const { setTaskProperty } = useProperties();
+  const { folders } = useDadesApp();
+  const { handleCreateTask, handleEditTask: handleEditTaskOp } = useTaskOperations();
   const { toast } = useToast();
 
   // Funció de toggle amb useCallback per assegurar estat actualitzat
@@ -66,29 +66,13 @@ const Index = () => {
     }
   };
 
-  const handleCreateTask = async (taskData: any, customProperties?: Array<{propertyId: string; optionId: string}>) => {
+  const handleTaskSubmit = async (taskData: any, customProperties?: Array<{propertyId: string; optionId: string}>) => {
     try {
       if (editingTask) {
-        // If editing, update the existing task
-        await updateTask(editingTask.id, taskData);
-        
-        // Gestionar propietats personalitzades per tasques editades
-        if (customProperties && customProperties.length > 0) {
-          for (const prop of customProperties) {
-            await setTaskProperty(editingTask.id, prop.propertyId, prop.optionId);
-          }
-        }
-        
+        await handleEditTaskOp(editingTask.id, taskData, customProperties);
         setEditingTask(null);
       } else {
-        // If creating, create new task and immediately assign custom properties
-        const created = await createTask(taskData);
-        
-        if (created?.id && customProperties && customProperties.length > 0) {
-          await Promise.all(
-            customProperties.map((prop) => setTaskProperty(created.id, prop.propertyId, prop.optionId))
-          );
-        }
+        await handleCreateTask(taskData, customProperties);
       }
       setShowCreateDialog(false);
     } catch (error) {
@@ -177,7 +161,7 @@ const Index = () => {
           setShowCreateDialog(false);
           setEditingTask(null);
         }}
-        onSubmit={handleCreateTask}
+        onSubmit={handleTaskSubmit}
         folders={folders}
         editingTask={editingTask}
       />

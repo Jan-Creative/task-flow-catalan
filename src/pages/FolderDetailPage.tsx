@@ -4,8 +4,8 @@ import { ArrowLeft, FolderOpen, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useDadesApp } from "@/hooks/useDadesApp";
-import { useProperties } from "@/hooks/useProperties";
-import { usePropertyLabels } from "@/hooks/usePropertyLabels";
+import { useUnifiedProperties } from "@/hooks/useUnifiedProperties";
+import { useTaskOperations } from "@/hooks/useTaskOperations";
 import TaskChecklistItem from "@/components/TaskChecklistItem";
 import CreateTaskModal from "@/components/CreateTaskModal";
 import DatabaseToolbar from "@/components/DatabaseToolbar";
@@ -28,9 +28,9 @@ interface Task {
 const FolderDetailPage = () => {
   const { folderId } = useParams<{ folderId: string }>();
   const navigate = useNavigate();
-  const { tasks, folders, loading, updateTaskStatus, updateTask, deleteTask, createTask, updateFolder } = useDadesApp();
-  const { getStatusLabel, getStatusOptions, getStatusColor } = usePropertyLabels();
-  const { setTaskProperty } = useProperties();
+  const { tasks, folders, loading, updateTaskStatus, updateTask, deleteTask, updateFolder } = useDadesApp();
+  const { getStatusLabel, getStatusOptions, getStatusColor } = useUnifiedProperties();
+  const { handleCreateTask, handleEditTask: handleEditTaskOp } = useTaskOperations();
   const [showCreateTask, setShowCreateTask] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
@@ -208,28 +208,17 @@ const FolderDetailPage = () => {
     setShowCreateTask(true);
   };
 
-  const handleCreateTask = async (taskData: any, customProperties?: Array<{propertyId: string; optionId: string}>) => {
+  const handleTaskSubmit = async (taskData: any, customProperties?: Array<{propertyId: string; optionId: string}>) => {
     try {
       if (editingTask) {
-        await updateTask(editingTask.id, taskData);
-        
-        // Gestionar propietats personalitzades per tasques editades
-        if (customProperties && customProperties.length > 0) {
-          for (const prop of customProperties) {
-            await setTaskProperty(editingTask.id, prop.propertyId, prop.optionId);
-          }
-        }
-        
+        await handleEditTaskOp(editingTask.id, taskData, customProperties);
         setEditingTask(null);
       } else {
         const newTaskData = {
           ...taskData,
           folder_id: folderId === 'inbox' ? (realInboxFolder?.id || null) : folderId
         };
-        await createTask(newTaskData);
-        
-        // Per ara, no podem assignar propietats personalitzades immediatament
-        // TODO: Implementar assignació de propietats després de refactoritzar createTask
+        await handleCreateTask(newTaskData, customProperties);
       }
       setShowCreateTask(false);
     } catch (error) {
@@ -475,7 +464,7 @@ const FolderDetailPage = () => {
           setEditingTask(null);
           setShowCreateTaskFromNav(false);
         }}
-        onSubmit={handleCreateTask}
+        onSubmit={handleTaskSubmit}
         editingTask={editingTask}
         folders={folders}
       />
