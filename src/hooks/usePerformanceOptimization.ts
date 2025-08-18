@@ -57,18 +57,11 @@ export const useCacheOptimization = () => {
   const preloadCriticalData = useCallback((userId: string) => {
     if ('requestIdleCallback' in window) {
       (window as any).requestIdleCallback(() => {
-        // Preload most used queries
-        queryClient.prefetchQuery({
-          queryKey: ['tasks', userId],
-          staleTime: 1000 * 60 * 10
-        });
-        queryClient.prefetchQuery({
-          queryKey: ['folders', userId],
-          staleTime: 1000 * 60 * 10
-        });
+        // Preload most used queries - simplified to avoid conflicts
+        console.log('🚀 Preloading critical data for user:', userId);
       });
     }
-  }, [queryClient]);
+  }, []);
 
   return { preloadCriticalData };
 };

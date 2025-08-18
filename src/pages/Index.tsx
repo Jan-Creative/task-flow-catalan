@@ -25,9 +25,9 @@ const Index = () => {
   const { handleCreateTask, handleEditTask: handleEditTaskOp } = useTaskOperations();
   const { toast } = useToast();
   
-  // Performance optimizations
-  usePerformanceMonitor();
-  useCacheOptimization();
+  // Performance optimizations - simplified to avoid conflicts
+  const performanceMetrics = usePerformanceMonitor();
+  const { preloadCriticalData } = useCacheOptimization();
   useMemoryCleanup();
 
   // Funció de toggle amb useCallback per assegurar estat actualitzat

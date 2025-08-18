@@ -56,20 +56,7 @@ export const createOptimizedQueryClient = () => {
         retry: 1,
         retryDelay: 1000,
       }
-    },
-    
-    // Optimized memory management
-    queryCache: {
-      onError: (error) => {
-        console.error('Query Cache Error:', error);
-      },
-      onSuccess: (data, query) => {
-        // Log successful queries for debugging in dev mode
-        if (process.env.NODE_ENV === 'development') {
-          console.log(`✅ Cache hit for: ${query.queryKey.join('-')}`);
-        }
-      }
-    } as any,
+    }
   });
 };
 
