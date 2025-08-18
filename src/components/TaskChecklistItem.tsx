@@ -1,3 +1,4 @@
+import type { Task } from "@/types";
 import React, { memo, useCallback, useMemo } from "react";
 import { Calendar, MoreHorizontal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -15,15 +16,6 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 
-interface Task {
-  id: string;
-  title: string;
-  description?: string;
-  status: "pendent" | "en_proces" | "completat";
-  priority: "alta" | "mitjana" | "baixa";
-  due_date?: string;
-  folder_id?: string;
-}
 
 interface TaskChecklistItemProps {
   task: Task;
