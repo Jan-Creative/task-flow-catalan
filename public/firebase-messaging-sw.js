@@ -7,13 +7,12 @@ importScripts('https://www.gstatic.com/firebasejs/10.13.2/firebase-messaging-com
 
 // Configuració de Firebase (necessària per FCM)
 const firebaseConfig = {
-  // Aquestes claus seran afegides quan configurem Firebase
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyAMTxVyQchcy04W9bg3uPxu2FyyZvK9v0M",
+  authDomain: "notification-app-c4dfa.firebaseapp.com",
+  projectId: "notification-app-c4dfa",
+  storageBucket: "notification-app-c4dfa.firebasestorage.app",
+  messagingSenderId: "653569130057",
+  appId: "1:653569130057:web:f5857a45e6c2bcfd294998"
 };
 
 // Inicialitzar Firebase

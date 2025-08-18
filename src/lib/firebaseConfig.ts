@@ -2,14 +2,14 @@
 import { initializeApp } from 'firebase/app';
 import { getMessaging, getToken, onMessage, MessagePayload } from 'firebase/messaging';
 
-// Configuració Firebase (aquestes claus hauran de ser reemplaçades amb les reals)
+// Configuració Firebase amb claus reals
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com", 
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyAMTxVyQchcy04W9bg3uPxu2FyyZvK9v0M",
+  authDomain: "notification-app-c4dfa.firebaseapp.com", 
+  projectId: "notification-app-c4dfa",
+  storageBucket: "notification-app-c4dfa.firebasestorage.app",
+  messagingSenderId: "653569130057",
+  appId: "1:653569130057:web:f5857a45e6c2bcfd294998"
 };
 
 // Inicialitzar Firebase
@@ -18,8 +18,8 @@ export const app = initializeApp(firebaseConfig);
 // Obtenir instància de messaging
 export const messaging = typeof window !== 'undefined' ? getMessaging(app) : null;
 
-// VAPID Key per Web Push (haurem de generar-la a Firebase Console)
-const VAPID_KEY = "YOUR_VAPID_KEY";
+// VAPID Key per Web Push
+const VAPID_KEY = "BgFZfHT8U2KEBnHa2UU4mnzxGljooHI_BDMf_SZmU9s";
 
 /**
  * Sol·licitar permisos de notificació i obtenir FCM token

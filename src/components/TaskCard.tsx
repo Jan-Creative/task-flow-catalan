@@ -1,5 +1,5 @@
 import type { Task } from "@/types";
-import { Calendar, Clock } from "lucide-react";
+import { Calendar, Clock, Bell } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import React from "react";
@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { useOptimizedPropertyLabels } from "@/hooks/useOptimizedPropertyLabels";
 import { getIconByName } from "@/lib/iconLibrary";
 import { SmoothPriorityBadge } from "@/components/ui/smooth-priority-badge";
+import { TaskReminderDialog } from "@/components/TaskReminderDialog";
 
 
 interface TaskCardProps {
@@ -97,6 +98,19 @@ const TaskCard = ({ task, onStatusChange, onEdit, onDelete }: TaskCardProps) => 
             >
               {task.status === 'pendent' ? getStatusLabel('en_proces') : getStatusLabel('completat')}
             </Button>
+          )}
+
+          {task.status !== 'completat' && (
+            <TaskReminderDialog taskId={task.id} taskTitle={task.title}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs hover:bg-accent/50 rounded-2xl"
+              >
+                <Bell className="h-3 w-3 mr-1" />
+                Recordatori
+              </Button>
+            </TaskReminderDialog>
           )}
           
           <Button
