@@ -47,6 +47,162 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_history: {
+        Row: {
+          created_at: string
+          delivery_status: string
+          fcm_response: Json | null
+          id: string
+          message: string
+          reminder_id: string | null
+          sent_at: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          delivery_status?: string
+          fcm_response?: Json | null
+          id?: string
+          message: string
+          reminder_id?: string | null
+          sent_at?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          delivery_status?: string
+          fcm_response?: Json | null
+          id?: string
+          message?: string
+          reminder_id?: string | null
+          sent_at?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notification_preferences: {
+        Row: {
+          created_at: string
+          custom_notifications: boolean
+          deadline_alerts: boolean
+          enabled: boolean
+          id: string
+          notification_sound: boolean
+          quiet_hours_end: string | null
+          quiet_hours_start: string | null
+          task_reminders: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          custom_notifications?: boolean
+          deadline_alerts?: boolean
+          enabled?: boolean
+          id?: string
+          notification_sound?: boolean
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          task_reminders?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          custom_notifications?: boolean
+          deadline_alerts?: boolean
+          enabled?: boolean
+          id?: string
+          notification_sound?: boolean
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          task_reminders?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notification_reminders: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          metadata: Json | null
+          notification_type: string
+          scheduled_at: string
+          sent_at: string | null
+          status: string
+          task_id: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          metadata?: Json | null
+          notification_type?: string
+          scheduled_at: string
+          sent_at?: string | null
+          status?: string
+          task_id?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          metadata?: Json | null
+          notification_type?: string
+          scheduled_at?: string
+          sent_at?: string | null
+          status?: string
+          task_id?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notification_subscriptions: {
+        Row: {
+          created_at: string
+          device_info: Json | null
+          device_type: string
+          fcm_token: string
+          id: string
+          is_active: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          device_info?: Json | null
+          device_type?: string
+          fcm_token: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          device_info?: Json | null
+          device_type?: string
+          fcm_token?: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       pomodoro_sessions: {
         Row: {
           break_duration_minutes: number
