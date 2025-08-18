@@ -260,16 +260,21 @@ export const TaskRemindersCard = ({ taskId, taskTitle }: TaskRemindersCardProps)
             <div className="flex items-center gap-2 text-amber-800 dark:text-amber-200">
               <AlertCircle className="h-4 w-4" />
               <p className="text-sm">
-                Cal activar els permisos de notificació per crear recordatoris.
+                {!isSupported 
+                  ? "Firebase Messaging no és compatible amb Safari. Utilitza Chrome, Edge, Firefox o Brave per rebre notificacions push."
+                  : "Cal activar els permisos de notificació per crear recordatoris."
+                }
               </p>
             </div>
-            <Button 
-              onClick={initializeNotifications}
-              size="sm" 
-              className="mt-2"
-            >
-              Activar notificacions
-            </Button>
+            {isSupported && (
+              <Button 
+                onClick={initializeNotifications}
+                size="sm" 
+                className="mt-2"
+              >
+                Activar notificacions
+              </Button>
+            )}
           </div>
         )}
 

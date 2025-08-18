@@ -19,7 +19,7 @@ export const app = initializeApp(firebaseConfig);
 export const messaging = typeof window !== 'undefined' ? getMessaging(app) : null;
 
 // VAPID Key per Web Push
-const VAPID_KEY = "BgFZfHT8U2KEBnHa2UU4mnzxGljooHI_BDMf_SZmU9s";
+const VAPID_KEY = "BDaie0OXdfKEQeTiv-sqcXg6hoElx3LxT0hfE5l5i6zkQCMMtx-IJFodq3UssaBTWc5TBDmt0gsBHqOL0wZGGHg";
 
 /**
  * Sol·licitar permisos de notificació i obtenir FCM token
@@ -47,14 +47,16 @@ export const requestNotificationPermission = async (): Promise<string | null> =>
     }
 
     // Registrar service worker si no està ja registrat
+    let registration: ServiceWorkerRegistration | undefined;
     if ('serviceWorker' in navigator) {
-      const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+      registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
       console.log('✅ Service Worker registrat:', registration);
     }
 
     // Obtenir FCM token
     const token = await getToken(messaging, {
-      vapidKey: VAPID_KEY
+      vapidKey: VAPID_KEY,
+      serviceWorkerRegistration: registration
     });
 
     if (token) {
@@ -86,11 +88,16 @@ export const onForegroundMessage = (callback: (payload: MessagePayload) => void)
  * Verificar si les notificacions estan suportades
  */
 export const isNotificationSupported = (): boolean => {
-  return (
+  const isBasicSupport = (
     'Notification' in window &&
     'serviceWorker' in navigator &&
     'PushManager' in window
   );
+  
+  // Detectar Safari que no suporta Firebase Messaging
+  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+  
+  return isBasicSupport && !isSafari;
 };
 
 /**

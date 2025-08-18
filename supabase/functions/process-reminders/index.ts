@@ -25,15 +25,7 @@ serve(async (req) => {
     
     const { data: pendingReminders, error: remindersError } = await supabaseClient
       .from('notification_reminders')
-      .select(`
-        *,
-        tasks (
-          title,
-          description,
-          status,
-          priority
-        )
-      `)
+      .select('*')
       .eq('status', 'pending')
       .lte('scheduled_at', now)
       .order('scheduled_at', { ascending: true })
@@ -108,10 +100,9 @@ serve(async (req) => {
         let notificationBody = reminder.message;
 
         // Personalitzar segons tipus
-        if (reminder.notification_type === 'task_reminder' && reminder.tasks) {
-          const task = Array.isArray(reminder.tasks) ? reminder.tasks[0] : reminder.tasks;
+        if (reminder.notification_type === 'task_reminder') {
           notificationTitle = `⏰ ${reminder.title}`;
-          notificationBody = `Tasca: ${task.title}${task.description ? ` - ${task.description}` : ''}`;
+          // Usem el missatge del recordatori directament
         }
 
         // Cridar edge function per enviar notificació

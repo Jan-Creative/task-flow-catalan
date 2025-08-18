@@ -399,21 +399,31 @@ export const useNotifications = () => {
         body: { manual_trigger: true, source: 'user_request' }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error detallat:', error);
+        toast({
+          title: 'Error en el processador',
+          description: error.message || 'Error desconegut',
+          variant: 'destructive',
+        });
+        throw error;
+      }
 
       toast({
         title: 'Processador executat! ⚡',
-        description: `Processats: ${data?.processed || 0} recordatoris`,
+        description: `Processats: ${data?.processed || 0} recordatoris (${data?.successful || 0} exitosos, ${data?.failed || 0} fallits)`,
       });
 
       return data;
     } catch (error) {
       console.error('Error executant processador:', error);
-      toast({
-        title: 'Error',
-        description: 'No s\'ha pogut executar el processador',
-        variant: 'destructive',
-      });
+      if (!error.message?.includes('Error en el processador')) {
+        toast({
+          title: 'Error',
+          description: 'No s\'ha pogut executar el processador',
+          variant: 'destructive',
+        });
+      }
       throw error;
     }
   }, [toast]);
