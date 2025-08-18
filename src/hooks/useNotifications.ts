@@ -95,11 +95,23 @@ export const useNotifications = () => {
       }
     } catch (error) {
       console.error('Error inicialitzant notificacions:', error);
-      toast({
-        title: 'Error',
-        description: 'No s\'han pogut activar les notificacions',
-        variant: 'destructive',
-      });
+      
+      // Capturar errors específics de Firebase per evitar rebuigs no gestionats
+      if (error instanceof Error) {
+        if (error.message.includes('unsupported-browser')) {
+          toast({
+            title: 'Navegador no compatible',
+            description: 'Aquest navegador no suporta notificacions push',
+            variant: 'destructive',
+          });
+        } else {
+          toast({
+            title: 'Error',
+            description: 'No s\'han pogut activar les notificacions',
+            variant: 'destructive',
+          });
+        }
+      }
       return false;
     } finally {
       setIsInitializing(false);
@@ -378,6 +390,76 @@ export const useNotifications = () => {
     }
   }, [user, loadPreferences, loadSubscriptions]);
 
+  /**
+   * Executar processador de recordatoris manualment
+   */
+  const runRemindersProcessor = useCallback(async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('process-reminders', {
+        body: { manual_trigger: true, source: 'user_request' }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Processador executat! ⚡',
+        description: `Processats: ${data?.processed || 0} recordatoris`,
+      });
+
+      return data;
+    } catch (error) {
+      console.error('Error executant processador:', error);
+      toast({
+        title: 'Error',
+        description: 'No s\'ha pogut executar el processador',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  }, [toast]);
+
+  /**
+   * Enviar notificació de prova
+   */
+  const sendTestNotification = useCallback(async () => {
+    if (!user) return;
+
+    try {
+      const testDate = new Date(Date.now() + 10000); // 10 segons
+      
+      const { data, error } = await supabase
+        .from('notification_reminders')
+        .insert({
+          user_id: user.id,
+          title: '🧪 Prova de notificació',
+          message: 'Si reps això, el sistema funciona perfectament!',
+          scheduled_at: testDate.toISOString(),
+          notification_type: 'custom',
+          status: 'pending',
+          metadata: { test: true }
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast({
+        title: 'Notificació de prova programada! 🧪',
+        description: 'Rebràs una notificació en 10 segons',
+      });
+
+      return data;
+    } catch (error) {
+      console.error('Error enviant notificació de prova:', error);
+      toast({
+        title: 'Error',
+        description: 'No s\'ha pogut enviar la notificació de prova',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  }, [user, toast]);
+
   return {
     // Estats
     isSupported,
@@ -395,5 +477,7 @@ export const useNotifications = () => {
     cancelReminder,
     loadPreferences,
     loadSubscriptions,
+    runRemindersProcessor,
+    sendTestNotification,
   };
 };

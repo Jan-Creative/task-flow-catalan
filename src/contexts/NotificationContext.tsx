@@ -30,6 +30,8 @@ interface NotificationContextType {
   ) => Promise<void>;
   cancelReminder: (reminderId: string) => Promise<void>;
   refreshData: () => Promise<void>;
+  runRemindersProcessor: () => Promise<void>;
+  sendTestNotification: () => Promise<void>;
 }
 
 const NotificationContext = createContext<NotificationContextType | null>(null);
@@ -64,6 +66,8 @@ export const NotificationProvider = ({ children }: NotificationProviderProps) =>
     cancelReminder: hookCancelReminder,
     loadPreferences,
     loadSubscriptions,
+    runRemindersProcessor: hookRunProcessor,
+    sendTestNotification: hookSendTest,
   } = useNotifications();
 
   // Inicializar automáticamente las notificaciones cuando el usuario se autentica
@@ -200,6 +204,22 @@ export const NotificationProvider = ({ children }: NotificationProviderProps) =>
     }
   };
 
+  const runRemindersProcessor = async () => {
+    try {
+      await hookRunProcessor();
+    } catch (error) {
+      console.error('Error running reminders processor:', error);
+    }
+  };
+
+  const sendTestNotification = async () => {
+    try {
+      await hookSendTest();
+    } catch (error) {
+      console.error('Error sending test notification:', error);
+    }
+  };
+
   const contextValue: NotificationContextType = {
     isSupported,
     permissionStatus,
@@ -213,6 +233,8 @@ export const NotificationProvider = ({ children }: NotificationProviderProps) =>
     createCustomNotification,
     cancelReminder,
     refreshData,
+    runRemindersProcessor,
+    sendTestNotification,
   };
 
   return (

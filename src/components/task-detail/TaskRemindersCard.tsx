@@ -50,7 +50,12 @@ export const TaskRemindersCard = ({ taskId, taskTitle }: TaskRemindersCardProps)
     cancelReminder, 
     isSupported, 
     permissionStatus,
-    initializeNotifications 
+    initializeNotifications,
+    fcmToken,
+    subscriptions,
+    preferences,
+    runRemindersProcessor,
+    sendTestNotification
   } = useNotificationContext();
   const { toast } = useToast();
 
@@ -308,6 +313,59 @@ export const TaskRemindersCard = ({ taskId, taskTitle }: TaskRemindersCardProps)
           </div>
         ) : (
           <p className="text-sm text-muted-foreground">No hi ha recordatoris programats.</p>
+        )}
+
+        {/* Estat del sistema de notificacions */}
+        {permissionStatus === "granted" && (
+          <div className="space-y-3 p-3 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg">
+            <div className="flex items-center gap-2 text-green-800 dark:text-green-200">
+              <div className="w-2 h-2 bg-green-500 rounded-full" />
+              <span className="text-sm font-medium">Sistema actiu</span>
+            </div>
+            
+            <div className="grid grid-cols-1 gap-2 text-xs text-green-700 dark:text-green-300">
+              <div className="flex justify-between">
+                <span>Token FCM:</span>
+                <span>{fcmToken ? '✓ Registrat' : '✗ No registrat'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Subscripcions:</span>
+                <span>{subscriptions?.length || 0} actives</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Preferències:</span>
+                <span>{preferences?.enabled ? '✓ Habilitades' : '✗ Deshabilitades'}</span>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <Button
+                onClick={initializeNotifications}
+                size="sm"
+                variant="outline"
+                className="flex-1 text-xs"
+              >
+                Reinicia permisos
+              </Button>
+              <Button
+                onClick={runRemindersProcessor}
+                size="sm"
+                variant="outline"
+                className="flex-1 text-xs"
+              >
+                Executa processador
+              </Button>
+            </div>
+            
+            <Button
+              onClick={sendTestNotification}
+              size="sm"
+              variant="outline"
+              className="w-full text-xs"
+            >
+              🧪 Prova ràpida
+            </Button>
+          </div>
         )}
 
         {/* Botó per crear nou recordatori */}
