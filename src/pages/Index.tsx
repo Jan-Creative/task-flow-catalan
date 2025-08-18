@@ -80,7 +80,7 @@ const Index = () => {
     }
   };
 
-  const handleEditTask = (task: any) => {
+  const handleEditTaskClick = (task: any) => {
     setEditingTask(task);
     setShowCreateDialog(true);
   };
@@ -90,7 +90,7 @@ const Index = () => {
     <div className="relative w-full">
       <TabPage tabId="avui" activeTab={activeTab}>
         <TodayPage 
-          onEditTask={handleEditTask} 
+          onEditTask={handleEditTaskClick} 
           onNavigateToSettings={() => setActiveTab("configuracio")} 
         />
       </TabPage>
@@ -103,7 +103,7 @@ const Index = () => {
         <SettingsPage />
       </TabPage>
     </div>
-  ), [activeTab, handleEditTask]);
+  ), [activeTab, handleEditTaskClick]);
 
   // Show loading spinner while checking auth
   if (loading) {
