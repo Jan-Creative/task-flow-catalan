@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useNotificationContext } from "@/contexts/NotificationContext";
 import { Bell, Clock, Plus, X, AlertCircle } from "lucide-react";
 import { PWAInstallPrompt } from "@/components/ui/pwa-install-prompt";
+import { ServiceWorkerStatus } from "@/components/ui/service-worker-status";
 import { format } from "date-fns";
 import { ca } from "date-fns/locale";
 
@@ -333,9 +334,12 @@ export const TaskRemindersCard = ({ taskId, taskTitle }: TaskRemindersCardProps)
         {/* Estat del sistema de notificacions */}
         {permissionStatus === "granted" && (
           <div className="space-y-3 p-3 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg">
-            <div className="flex items-center gap-2 text-green-800 dark:text-green-200">
-              <div className="w-2 h-2 bg-green-500 rounded-full" />
-              <span className="text-sm font-medium">Sistema actiu</span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-green-800 dark:text-green-200">
+                <div className="w-2 h-2 bg-green-500 rounded-full" />
+                <span className="text-sm font-medium">Sistema actiu</span>
+              </div>
+              <ServiceWorkerStatus />
             </div>
             
             <div className="grid grid-cols-1 gap-2 text-xs text-green-700 dark:text-green-300">

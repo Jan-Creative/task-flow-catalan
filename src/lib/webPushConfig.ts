@@ -72,7 +72,7 @@ export const requestNotificationPermission = async (): Promise<NotificationPermi
 };
 
 /**
- * Registra el service worker
+ * Registra el service worker amb retry logic per Safari iOS
  */
 export const registerServiceWorker = async (): Promise<ServiceWorkerRegistration> => {
   if (!('serviceWorker' in navigator)) {
@@ -83,23 +83,109 @@ export const registerServiceWorker = async (): Promise<ServiceWorkerRegistration
     scope: '/'
   });
   
-  console.log('✅ Service Worker registrat:', registration);
+  // Esperar que el SW estigui actiu abans de continuar (especialment crucial per Safari iOS)
+  await waitForServiceWorkerReady(registration);
+  
+  console.log('✅ Service Worker registrat i actiu:', registration);
   return registration;
 };
 
 /**
- * Crea una subscripció Web Push
+ * Espera que el Service Worker estigui completament actiu
+ */
+export const waitForServiceWorkerReady = async (
+  registration: ServiceWorkerRegistration,
+  timeout: number = 10000
+): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    const timeoutId = setTimeout(() => {
+      reject(new Error('Timeout esperant Service Worker actiu'));
+    }, timeout);
+
+    const checkReady = () => {
+      if (registration.active && registration.active.state === 'activated') {
+        clearTimeout(timeoutId);
+        console.log('🟢 Service Worker completament actiu');
+        resolve();
+        return;
+      }
+
+      if (registration.installing) {
+        console.log('🔧 Service Worker instal·lant...');
+        registration.installing.addEventListener('statechange', checkReady);
+        return;
+      }
+
+      if (registration.waiting) {
+        console.log('⏳ Service Worker esperant...');
+        registration.waiting.addEventListener('statechange', checkReady);
+        return;
+      }
+
+      // Retry després d'un petit delay
+      setTimeout(checkReady, 100);
+    };
+
+    checkReady();
+  });
+};
+
+/**
+ * Detecta si el navegador suporta Declarative Web Push (Safari 18.5+)
+ */
+export const supportsDeclarativeWebPush = (): boolean => {
+  return 'serviceWorker' in navigator && 
+         'PushManager' in window && 
+         'pushManager' in ServiceWorkerRegistration.prototype &&
+         // Verificar si el manifest suporta push_subscription_change
+         'getRegistrations' in navigator.serviceWorker &&
+         isSafari() && 
+         // Només Safari 18.5+ (aproximació basada en userAgent)
+         navigator.userAgent.includes('Safari') && 
+         !navigator.userAgent.includes('Chrome');
+};
+
+/**
+ * Crea una subscripció Web Push amb retry logic per Safari iOS
  */
 export const createPushSubscription = async (
-  registration: ServiceWorkerRegistration
+  registration: ServiceWorkerRegistration,
+  retries: number = 3
 ): Promise<PushSubscription> => {
-  const subscription = await registration.pushManager.subscribe({
-    userVisibleOnly: true,
-    applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
-  });
-  
-  console.log('🔑 Subscripció Web Push creada:', subscription);
-  return subscription;
+  let lastError: Error | null = null;
+
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      console.log(`🔄 Intent ${attempt}/${retries} crear subscripció Web Push...`);
+      
+      // Verificar que el SW està realment actiu
+      if (!registration.active || registration.active.state !== 'activated') {
+        console.log('⏳ Esperant Service Worker actiu...');
+        await waitForServiceWorkerReady(registration);
+      }
+
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      });
+      
+      console.log(`🔑 Subscripció Web Push creada correctament (intent ${attempt}):`, subscription);
+      return subscription;
+      
+    } catch (error) {
+      lastError = error as Error;
+      console.warn(`❌ Error intent ${attempt}/${retries}:`, error);
+      
+      if (attempt < retries) {
+        // Esperar abans del següent intent (exponential backoff)
+        const delay = Math.pow(2, attempt) * 1000;
+        console.log(`⏳ Esperant ${delay}ms abans del següent intent...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
+
+  throw new Error(`No s'ha pogut crear la subscripció després de ${retries} intents: ${lastError?.message}`);
 };
 
 /**

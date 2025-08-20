@@ -69,5 +69,9 @@
       "url": "/?action=new-task",
       "icons": []
     }
-  ]
+  ],
+  "push_subscription_change": {
+    "enabled": true,
+    "service_worker_url": "/web-push-sw.js"
+  }
 }

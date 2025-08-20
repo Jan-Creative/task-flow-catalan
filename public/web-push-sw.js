@@ -34,7 +34,19 @@ self.addEventListener('activate', (event) => {
         })
       );
     }).then(() => {
+      console.log('🎯 Prenent control de tots els clients');
       return self.clients.claim();
+    }).then(() => {
+      // Notificar als clients que el SW està actiu
+      console.log('📡 Notificant als clients que el SW està actiu');
+      return self.clients.matchAll().then(clients => {
+        clients.forEach(client => {
+          client.postMessage({
+            type: 'SW_ACTIVATED',
+            timestamp: Date.now()
+          });
+        });
+      });
     })
   );
 });

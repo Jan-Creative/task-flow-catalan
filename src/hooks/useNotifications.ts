@@ -13,8 +13,11 @@ import {
   getExistingSubscription,
   formatSubscriptionForDatabase,
   getDeviceInfo,
+  supportsDeclarativeWebPush,
+  waitForServiceWorkerReady,
   type WebPushSubscription
 } from '@/lib/webPushConfig';
+import { useServiceWorkerStatus } from './useServiceWorkerStatus';
 
 // Interfaces
 interface NotificationReminder {
@@ -56,6 +59,7 @@ interface WebPushSubscriptionDB {
 export const useNotifications = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { status: swStatus, isReady: swReady } = useServiceWorkerStatus();
   
   // Estats
   const [isSupported, setIsSupported] = useState(false);
@@ -66,52 +70,79 @@ export const useNotifications = () => {
   const [subscriptions, setSubscriptions] = useState<WebPushSubscriptionDB[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
   const [subscription, setSubscription] = useState<PushSubscription | null>(null);
+  const [supportsDeclarative, setSupportsDeclarative] = useState(false);
 
   // Verificar compatibilitat al carregar
   useEffect(() => {
     const supported = isWebPushSupported();
     const usable = canUseWebPush();
+    const declarative = supportsDeclarativeWebPush();
     
     setIsSupported(supported);
     setCanUse(usable);
+    setSupportsDeclarative(declarative);
     
     if ('Notification' in window) {
       setPermissionStatus(Notification.permission);
     }
     
-    console.log('🔍 Web Push Support:', { supported, usable, isSafari: isSafari(), isPWA: isPWA() });
-  }, []);
+    console.log('🔍 Web Push Support:', { 
+      supported, 
+      usable, 
+      declarative,
+      isSafari: isSafari(), 
+      isPWA: isPWA(),
+      swStatus: swStatus
+    });
+  }, [swStatus]);
 
   /**
-   * Inicialitzar notificacions
+   * Inicialitzar notificacions amb detecció Apple/Safari optimitzada
    */
   const initializeNotifications = useCallback(async (): Promise<boolean> => {
     try {
+      console.log('🚀 Iniciant sistema de notificacions...');
+      console.log('📱 Context:', { 
+        isSafari: isSafari(), 
+        isPWA: isPWA(), 
+        canUse, 
+        userAgent: navigator.userAgent 
+      });
+
       if (!canUse) {
-        throw new Error(
-          isSafari() && !isPWA() 
-            ? 'Safari requereix que l\'app estigui instal·lada com PWA' 
-            : 'Web Push no és compatible amb aquest navegador'
-        );
+        const errorMsg = isSafari() && !isPWA() 
+          ? 'Safari requereix que l\'app estigui instal·lada com PWA per utilitzar notificacions' 
+          : 'Web Push no és compatible amb aquest navegador';
+        
+        console.warn('⚠️', errorMsg);
+        throw new Error(errorMsg);
       }
 
       // Sol·licitar permisos
+      console.log('🔐 Sol·licitant permisos de notificació...');
       const permission = await requestNotificationPermission();
       setPermissionStatus(permission);
       
       if (permission !== 'granted') {
         throw new Error('Permisos de notificació no concedits');
       }
+      console.log('✅ Permisos concedits');
 
-      // Registrar service worker
+      // Registrar service worker amb retry logic
+      console.log('🔧 Registrant Service Worker...');
       const registration = await registerServiceWorker();
+      console.log('✅ Service Worker registrat i actiu');
       
       // Verificar subscripció existent
+      console.log('🔍 Verificant subscripció existent...');
       let pushSubscription = await getExistingSubscription(registration);
       
       if (!pushSubscription) {
-        // Crear nova subscripció
+        console.log('🆕 Creant nova subscripció Web Push...');
+        // Crear nova subscripció amb retry logic
         pushSubscription = await createPushSubscription(registration);
+      } else {
+        console.log('♻️ Utilitzant subscripció existent');
       }
       
       setSubscription(pushSubscription);
@@ -119,10 +150,12 @@ export const useNotifications = () => {
 
       // Guardar subscripció a la BD
       if (user && pushSubscription) {
+        console.log('💾 Guardant subscripció a la base de dades...');
         await saveSubscription(pushSubscription);
       }
 
       setIsInitialized(true);
+      console.log('🎉 Sistema de notificacions inicialitzat correctament');
       
       toast({
         title: "✅ Notificacions habilitades",
@@ -132,9 +165,23 @@ export const useNotifications = () => {
       return true;
     } catch (error) {
       console.error('❌ Error inicialitzant notificacions:', error);
+      
+      // Missatges d'error més específics per Safari/iOS
+      let errorMessage = 'No s\'han pogut configurar les notificacions';
+      
+      if (error instanceof Error) {
+        if (error.message.includes('Service Worker')) {
+          errorMessage = 'Error amb el Service Worker. Assegura\'t que l\'app estigui instal·lada com PWA en Safari.';
+        } else if (error.message.includes('push requires')) {
+          errorMessage = 'El Service Worker no està actiu. Torna a intentar-ho en uns segons.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
       toast({
         title: "❌ Error",
-        description: error instanceof Error ? error.message : 'No s\'han pogut configurar les notificacions',
+        description: errorMessage,
         variant: 'destructive'
       });
       return false;
