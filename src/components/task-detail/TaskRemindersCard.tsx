@@ -49,9 +49,10 @@ export const TaskRemindersCard = ({ taskId, taskTitle }: TaskRemindersCardProps)
     createTaskReminder, 
     cancelReminder, 
     isSupported, 
+    canUse,
     permissionStatus,
     initializeNotifications,
-    fcmToken,
+    isSubscribed,
     subscriptions,
     preferences,
     runRemindersProcessor,
@@ -260,13 +261,13 @@ export const TaskRemindersCard = ({ taskId, taskTitle }: TaskRemindersCardProps)
             <div className="flex items-center gap-2 text-amber-800 dark:text-amber-200">
               <AlertCircle className="h-4 w-4" />
               <p className="text-sm">
-                {!isSupported 
-                  ? "Firebase Messaging no és compatible amb Safari. Utilitza Chrome, Edge, Firefox o Brave per rebre notificacions push."
+                {!canUse 
+                  ? "Web Push no és compatible amb aquest navegador o requereix PWA instal·lada (Safari)."
                   : "Cal activar els permisos de notificació per crear recordatoris."
                 }
               </p>
             </div>
-            {isSupported && (
+            {canUse && (
               <Button 
                 onClick={initializeNotifications}
                 size="sm" 
@@ -330,12 +331,12 @@ export const TaskRemindersCard = ({ taskId, taskTitle }: TaskRemindersCardProps)
             
             <div className="grid grid-cols-1 gap-2 text-xs text-green-700 dark:text-green-300">
               <div className="flex justify-between">
-                <span>Token FCM:</span>
-                <span>{fcmToken ? '✓ Registrat' : '✗ No registrat'}</span>
+                <span>Subscripció:</span>
+                <span>{isSubscribed ? '✓ Registrada' : '✗ No registrada'}</span>
               </div>
               <div className="flex justify-between">
-                <span>Subscripcions:</span>
-                <span>{subscriptions?.length || 0} actives</span>
+                <span>Dispositius:</span>
+                <span>{subscriptions?.length || 0} actius</span>
               </div>
               <div className="flex justify-between">
                 <span>Preferències:</span>

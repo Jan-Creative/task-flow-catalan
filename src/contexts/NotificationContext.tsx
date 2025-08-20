@@ -1,33 +1,26 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect } from 'react';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import type { NotificationPreferences, NotificationSubscription } from '@/hooks/useNotifications';
+import type { NotificationPreferences, WebPushSubscriptionDB } from '@/hooks/useNotifications';
 
+// Context Type
 interface NotificationContextType {
-  // Estado
+  // Estats
   isSupported: boolean;
+  canUse: boolean;
   permissionStatus: NotificationPermission;
-  fcmToken: string | null;
+  isSubscribed: boolean;
   preferences: NotificationPreferences | null;
-  subscriptions: NotificationSubscription[];
+  subscriptions: WebPushSubscriptionDB[];
   isInitialized: boolean;
+  subscription: PushSubscription | null;
   
-  // Acciones
-  initializeNotifications: () => Promise<void>;
+  // Accions
+  initializeNotifications: () => Promise<boolean>;
   updatePreferences: (updates: Partial<NotificationPreferences>) => Promise<void>;
-  createTaskReminder: (
-    taskId: string,
-    title: string,
-    message: string,
-    scheduledAt: Date
-  ) => Promise<void>;
-  createCustomNotification: (
-    title: string,
-    message: string,
-    scheduledAt: Date,
-    metadata?: Record<string, any>
-  ) => Promise<void>;
+  createTaskReminder: (taskId: string, title: string, message: string, scheduledAt: Date) => Promise<void>;
+  createCustomNotification: (title: string, message: string, scheduledAt: Date) => Promise<void>;
   cancelReminder: (reminderId: string) => Promise<void>;
   refreshData: () => Promise<void>;
   runRemindersProcessor: () => Promise<void>;
@@ -39,202 +32,144 @@ const NotificationContext = createContext<NotificationContextType | null>(null);
 export const useNotificationContext = () => {
   const context = useContext(NotificationContext);
   if (!context) {
-    throw new Error('useNotificationContext debe usarse dentro de un NotificationProvider');
+    throw new Error('useNotificationContext must be used within a NotificationProvider');
   }
   return context;
 };
 
 interface NotificationProviderProps {
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
-export const NotificationProvider = ({ children }: NotificationProviderProps) => {
+export const NotificationProvider: React.FC<NotificationProviderProps> = ({ children }) => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [isInitialized, setIsInitialized] = useState(false);
-  
-  const {
-    isSupported,
-    permissionStatus,
-    fcmToken,
-    preferences,
-    subscriptions,
-    initializeNotifications: hookInitialize,
-    updatePreferences: hookUpdatePreferences,
-    createTaskReminder: hookCreateTaskReminder,
-    createCustomNotification: hookCreateCustomNotification,
-    cancelReminder: hookCancelReminder,
-    loadPreferences,
-    loadSubscriptions,
-    runRemindersProcessor: hookRunProcessor,
-    sendTestNotification: hookSendTest,
-  } = useNotifications();
+  const notifications = useNotifications();
 
-  // Inicializar automáticamente las notificaciones cuando el usuario se autentica
+  // Auto-inicialitzar quan l'usuari es conecta
   useEffect(() => {
-    const autoInitialize = async () => {
-      if (user && isSupported && !isInitialized) {
-        try {
-          if (permissionStatus === 'default') {
-            // Mostrar mensaje informativo antes de solicitar permisos
-            toast({
-              title: "Notificacions disponibles",
-              description: "Pots activar les notificacions per rebre recordatoris de tasques.",
-              duration: 5000,
-            });
-          } else if (permissionStatus === 'granted' && !fcmToken) {
-            // Si ya se concedieron permisos pero no hay token, inicializar
-            await hookInitialize();
-          }
-          setIsInitialized(true);
-        } catch (error) {
-          console.error('Error auto-inicializando notificaciones:', error);
-          setIsInitialized(true);
-        }
+    if (user && notifications.canUse && !notifications.isInitialized) {
+      console.log('🔄 Auto-inicialitzant notificacions per usuari autenticat');
+      notifications.initializeNotifications();
+    }
+  }, [user, notifications.canUse, notifications.isInitialized]);
+
+  // Wrapper functions with error handling
+  const wrappedActions = {
+    initializeNotifications: async () => {
+      try {
+        return await notifications.initializeNotifications();
+      } catch (error) {
+        console.error('Error in initializeNotifications:', error);
+        toast({
+          title: "❌ Error",
+          description: "No s'han pogut inicialitzar les notificacions",
+          variant: 'destructive'
+        });
+        return false;
       }
-    };
+    },
 
-    autoInitialize();
-  }, [user, isSupported, permissionStatus, fcmToken, isInitialized, hookInitialize, toast]);
+    updatePreferences: async (updates: Partial<NotificationPreferences>) => {
+      try {
+        await notifications.updatePreferences(updates);
+      } catch (error) {
+        console.error('Error in updatePreferences:', error);
+        toast({
+          title: "❌ Error",
+          description: "No s'han pogut actualitzar les preferències",
+          variant: 'destructive'
+        });
+      }
+    },
 
-  // Funciones envueltas con manejo de errores
-  const initializeNotifications = async () => {
-    try {
-      await hookInitialize();
-      toast({
-        title: "Notificacions activades",
-        description: "Rebràs recordatoris per les teves tasques.",
-      });
-    } catch (error) {
-      toast({
-        title: "Error activant notificacions",
-        description: "No s'han pogut activar les notificacions. Prova-ho més tard.",
-        variant: "destructive",
-      });
-      throw error;
-    }
-  };
+    createTaskReminder: async (taskId: string, title: string, message: string, scheduledAt: Date) => {
+      try {
+        await notifications.createTaskReminder(taskId, title, message, scheduledAt);
+      } catch (error) {
+        console.error('Error in createTaskReminder:', error);
+        toast({
+          title: "❌ Error",
+          description: "No s'ha pogut crear el recordatori",
+          variant: 'destructive'
+        });
+      }
+    },
 
-  const updatePreferences = async (updates: Partial<NotificationPreferences>) => {
-    try {
-      await hookUpdatePreferences(updates);
-      toast({
-        title: "Preferències actualitzades",
-        description: "Les teves preferències de notificació s'han guardat.",
-      });
-    } catch (error) {
-      toast({
-        title: "Error actualitzant preferències",
-        description: "No s'han pogut guardar les preferències.",
-        variant: "destructive",
-      });
-      throw error;
-    }
-  };
+    createCustomNotification: async (title: string, message: string, scheduledAt: Date) => {
+      try {
+        await notifications.createCustomNotification(title, message, scheduledAt);
+      } catch (error) {
+        console.error('Error in createCustomNotification:', error);
+        toast({
+          title: "❌ Error",
+          description: "No s'ha pogut crear la notificació",
+          variant: 'destructive'
+        });
+      }
+    },
 
-  const createTaskReminder = async (
-    taskId: string,
-    title: string,
-    message: string,
-    scheduledAt: Date
-  ) => {
-    try {
-      await hookCreateTaskReminder(taskId, title, message, scheduledAt);
-      toast({
-        title: "Recordatori creat",
-        description: `T'avisarem el ${scheduledAt.toLocaleDateString()} a les ${scheduledAt.toLocaleTimeString()}.`,
-      });
-    } catch (error) {
-      toast({
-        title: "Error creant recordatori",
-        description: "No s'ha pogut crear el recordatori.",
-        variant: "destructive",
-      });
-      throw error;
-    }
-  };
+    cancelReminder: async (reminderId: string) => {
+      try {
+        await notifications.cancelReminder(reminderId);
+      } catch (error) {
+        console.error('Error in cancelReminder:', error);
+        toast({
+          title: "❌ Error",
+          description: "No s'ha pogut cancel·lar el recordatori",
+          variant: 'destructive'
+        });
+      }
+    },
 
-  const createCustomNotification = async (
-    title: string,
-    message: string,
-    scheduledAt: Date,
-    metadata: Record<string, any> = {}
-  ) => {
-    try {
-      await hookCreateCustomNotification(title, message, scheduledAt, metadata);
-      toast({
-        title: "Notificació programada",
-        description: `T'avisarem el ${scheduledAt.toLocaleDateString()} a les ${scheduledAt.toLocaleTimeString()}.`,
-      });
-    } catch (error) {
-      toast({
-        title: "Error programant notificació",
-        description: "No s'ha pogut programar la notificació.",
-        variant: "destructive",
-      });
-      throw error;
-    }
-  };
+    refreshData: async () => {
+      try {
+        await notifications.refreshData();
+      } catch (error) {
+        console.error('Error in refreshData:', error);
+      }
+    },
 
-  const cancelReminder = async (reminderId: string) => {
-    try {
-      await hookCancelReminder(reminderId);
-      toast({
-        title: "Recordatori cancel·lat",
-        description: "El recordatori s'ha cancel·lat correctament.",
-      });
-    } catch (error) {
-      toast({
-        title: "Error cancel·lant recordatori",
-        description: "No s'ha pogut cancel·lar el recordatori.",
-        variant: "destructive",
-      });
-      throw error;
-    }
-  };
+    runRemindersProcessor: async () => {
+      try {
+        await notifications.runRemindersProcessor();
+      } catch (error) {
+        console.error('Error in runRemindersProcessor:', error);
+        toast({
+          title: "❌ Error",
+          description: "No s'ha pogut executar el processador",
+          variant: 'destructive'
+        });
+      }
+    },
 
-  const refreshData = async () => {
-    try {
-      await Promise.all([
-        loadPreferences(),
-        loadSubscriptions(),
-      ]);
-    } catch (error) {
-      console.error('Error refreshing notification data:', error);
-    }
-  };
-
-  const runRemindersProcessor = async () => {
-    try {
-      await hookRunProcessor();
-    } catch (error) {
-      console.error('Error running reminders processor:', error);
-    }
-  };
-
-  const sendTestNotification = async () => {
-    try {
-      await hookSendTest();
-    } catch (error) {
-      console.error('Error sending test notification:', error);
+    sendTestNotification: async () => {
+      try {
+        await notifications.sendTestNotification();
+      } catch (error) {
+        console.error('Error in sendTestNotification:', error);
+        toast({
+          title: "❌ Error",
+          description: "No s'ha pogut enviar la notificació de prova",
+          variant: 'destructive'
+        });
+      }
     }
   };
 
   const contextValue: NotificationContextType = {
-    isSupported,
-    permissionStatus,
-    fcmToken,
-    preferences,
-    subscriptions,
-    isInitialized,
-    initializeNotifications,
-    updatePreferences,
-    createTaskReminder,
-    createCustomNotification,
-    cancelReminder,
-    refreshData,
-    runRemindersProcessor,
-    sendTestNotification,
+    // Estats
+    isSupported: notifications.isSupported,
+    canUse: notifications.canUse,
+    permissionStatus: notifications.permissionStatus,
+    isSubscribed: notifications.isSubscribed,
+    preferences: notifications.preferences,
+    subscriptions: notifications.subscriptions,
+    isInitialized: notifications.isInitialized,
+    subscription: notifications.subscription,
+    
+    // Accions amb error handling
+    ...wrappedActions
   };
 
   return (
