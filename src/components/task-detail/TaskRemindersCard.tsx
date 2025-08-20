@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useNotificationContext } from "@/contexts/NotificationContext";
 import { Bell, Clock, Plus, X, AlertCircle } from "lucide-react";
+import { PWAInstallPrompt } from "@/components/ui/pwa-install-prompt";
 import { format } from "date-fns";
 import { ca } from "date-fns/locale";
 
@@ -234,10 +235,13 @@ export const TaskRemindersCard = ({ taskId, taskTitle }: TaskRemindersCardProps)
             Recordatoris
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <div className="flex items-center gap-2 text-muted-foreground">
             <AlertCircle className="h-4 w-4" />
-            <p className="text-sm">Les notificacions no estan suportades en aquest navegador.</p>
+            <p className="text-sm">Les notificacions Web Push no estan suportades en aquest navegador.</p>
+          </div>
+          <div className="text-xs text-muted-foreground">
+            <p>Navegadors compatibles: Chrome, Edge, Firefox, Safari (amb PWA)</p>
           </div>
         </CardContent>
       </Card>
@@ -256,13 +260,13 @@ export const TaskRemindersCard = ({ taskId, taskTitle }: TaskRemindersCardProps)
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {permissionStatus !== "granted" && (
+        {permissionStatus !== "granted" && !canUse && (
           <div className="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg">
             <div className="flex items-center gap-2 text-amber-800 dark:text-amber-200">
               <AlertCircle className="h-4 w-4" />
               <p className="text-sm">
                 {!canUse 
-                  ? "Web Push no és compatible amb aquest navegador o requereix PWA instal·lada (Safari)."
+                  ? "Web Push requereix instal·lar l'app com PWA en Safari/iOS."
                   : "Cal activar els permisos de notificació per crear recordatoris."
                 }
               </p>
@@ -277,6 +281,11 @@ export const TaskRemindersCard = ({ taskId, taskTitle }: TaskRemindersCardProps)
               </Button>
             )}
           </div>
+        )}
+
+        {/* PWA Install Prompt per Safari/iOS */}
+        {!canUse && (
+          <PWAInstallPrompt onInstallComplete={() => window.location.reload()} />
         )}
 
         {/* Llista de recordatoris existents */}

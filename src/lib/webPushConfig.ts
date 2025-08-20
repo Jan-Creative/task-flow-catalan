@@ -1,4 +1,5 @@
 // Configuració Web Push natiu per Apple/Safari compatibility
+import { appleWebPushConfig, compatibilityChecker } from './appleWebPushConfig';
 
 // VAPID Keys generats per la nostra aplicació
 const VAPID_PUBLIC_KEY = "BDaie0OXdfKEQeTiv-sqcXg6hoElx3LxT0hfE5l5i6zkQCMMtx-IJFodq3UssaBTWc5TBDmt0gsBHqOL0wZGGHg";
@@ -25,19 +26,14 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
  * Verifica si el navegador suporta Web Push nativement
  */
 export const isWebPushSupported = (): boolean => {
-  return (
-    'serviceWorker' in navigator &&
-    'PushManager' in window &&
-    'Notification' in window &&
-    'showNotification' in ServiceWorkerRegistration.prototype
-  );
+  return compatibilityChecker.checkAll().webPushSupported;
 };
 
 /**
  * Detecta si estem en Safari
  */
 export const isSafari = (): boolean => {
-  return /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+  return compatibilityChecker.checkAll().isSafari;
 };
 
 /**
@@ -53,14 +49,15 @@ export const isPWA = (): boolean => {
  * Verifica si podem usar Web Push (PWA instal·lada en Safari)
  */
 export const canUseWebPush = (): boolean => {
-  if (!isWebPushSupported()) return false;
-  
-  // Safari requereix PWA instal·lada
-  if (isSafari() && !isPWA()) {
-    return false;
-  }
-  
-  return true;
+  const compatibility = compatibilityChecker.checkAll();
+  return compatibility.canUseNotifications;
+};
+
+/**
+ * Obté recomanació d'ús segons el dispositiu
+ */
+export const getUsageRecommendation = () => {
+  return compatibilityChecker.getRecommendation();
 };
 
 /**
