@@ -31,8 +31,16 @@ serve(async (req) => {
     const vapidPrivateKey = Deno.env.get('VAPID_PRIVATE_KEY');
     const vapidSubject = Deno.env.get('VAPID_SUBJECT') || 'mailto:hello@taskflow.app';
 
+    console.log('🔑 Verificant VAPID keys...', {
+      hasPublicKey: !!vapidPublicKey,
+      hasPrivateKey: !!vapidPrivateKey,
+      subject: vapidSubject
+    });
+
     if (!vapidPublicKey || !vapidPrivateKey) {
-      throw new Error('VAPID keys no configurades. Afegeix VAPID_PUBLIC_KEY i VAPID_PRIVATE_KEY als secrets');
+      const errorMsg = `VAPID keys no configurades. Té publicKey: ${!!vapidPublicKey}, té privateKey: ${!!vapidPrivateKey}`;
+      console.error('❌', errorMsg);
+      throw new Error(errorMsg);
     }
 
     webpush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey);
