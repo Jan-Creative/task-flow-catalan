@@ -140,7 +140,26 @@ serve(async (req) => {
           // Usem el missatge del recordatori directament
         }
 
+        // Abans d'enviar, verificar si hi ha subscripcions actives
+        const { data: activeSubscriptions } = await supabaseClient
+          .from('web_push_subscriptions')
+          .select('id')
+          .eq('user_id', reminder.user_id)
+          .eq('is_active', true);
+
+        if (!activeSubscriptions || activeSubscriptions.length === 0) {
+          console.log(`⚠️ No hi ha subscripcions actives per usuari ${reminder.user_id}`);
+          await markReminderAsFailed(supabaseClient, reminder.id, 'No active subscriptions found');
+          results.push({
+            reminderId: reminder.id,
+            success: false,
+            error: 'No active subscriptions found',
+          });
+          continue;
+        }
+
         // Cridar edge function per enviar notificació
+        console.log(`📡 Enviant notificació via send-notification per recordatori ${reminder.id}`);
         const { data: sendResult, error: sendError } = await supabaseClient.functions.invoke(
           'send-notification',
           {
@@ -168,13 +187,26 @@ serve(async (req) => {
             error: sendError.message,
           });
         } else {
-          console.log(`✅ Notificació enviada per recordatori ${reminder.id}`);
-          await markReminderAsSent(supabaseClient, reminder.id);
-          results.push({
-            reminderId: reminder.id,
-            success: true,
-            result: sendResult,
-          });
+          // Verificar si l'enviament ha estat exitós segons la resposta
+          console.log(`📋 Resposta de send-notification:`, sendResult);
+          
+          if (sendResult?.success === false) {
+            console.log(`⚠️ Enviament fallit segons resposta: ${sendResult.message}`);
+            await markReminderAsFailed(supabaseClient, reminder.id, sendResult.message || 'Send notification failed');
+            results.push({
+              reminderId: reminder.id,
+              success: false,
+              error: sendResult.message || 'Send notification failed',
+            });
+          } else {
+            console.log(`✅ Notificació enviada correctament per recordatori ${reminder.id}`);
+            await markReminderAsSent(supabaseClient, reminder.id);
+            results.push({
+              reminderId: reminder.id,
+              success: true,
+              result: sendResult,
+            });
+          }
         }
 
       } catch (error) {

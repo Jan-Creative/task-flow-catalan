@@ -290,18 +290,20 @@ export const TaskRemindersCard = ({ taskId, taskTitle }: TaskRemindersCardProps)
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {permissionStatus !== "granted" && !canUse && (
+        {(permissionStatus !== "granted" || !canUse) && (
           <div className="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg">
             <div className="flex items-center gap-2 text-amber-800 dark:text-amber-200">
               <AlertCircle className="h-4 w-4" />
               <p className="text-sm">
                 {!canUse 
-                  ? "Web Push requereix instal·lar l'app com PWA en Safari/iOS."
-                  : "Cal activar els permisos de notificació per crear recordatoris."
+                  ? "📱 Safari/iOS requereix instal·lar l'app com PWA per utilitzar notificacions push."
+                  : permissionStatus !== "granted"
+                  ? "🔐 Cal activar els permisos de notificació per crear recordatoris."
+                  : "⚠️ Sistema de notificacions no disponible."
                 }
               </p>
             </div>
-            {canUse && (
+            {canUse && permissionStatus !== "granted" && (
               <Button 
                 onClick={initializeNotifications}
                 size="sm" 
@@ -309,6 +311,11 @@ export const TaskRemindersCard = ({ taskId, taskTitle }: TaskRemindersCardProps)
               >
                 Activar notificacions
               </Button>
+            )}
+            {!canUse && (
+              <div className="mt-2 text-xs text-amber-700 dark:text-amber-300">
+                <p>Per Safari: Busca el botó "Compartir" → "Afegir a la pantalla d'inici"</p>
+              </div>
             )}
           </div>
         )}
@@ -421,7 +428,7 @@ export const TaskRemindersCard = ({ taskId, taskTitle }: TaskRemindersCardProps)
           <Button
             onClick={() => setShowCreateForm(true)}
             className="w-full"
-            disabled={permissionStatus !== "granted"}
+            disabled={permissionStatus !== "granted" || !canUse}
           >
             <Plus className="h-4 w-4 mr-2" />
             Crear recordatori

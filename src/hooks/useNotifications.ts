@@ -456,9 +456,19 @@ export const useNotifications = () => {
 
       if (error) throw error;
       
+      // Verificar la resposta de l'edge function
+      if (data?.success === false) {
+        toast({
+          title: "⚠️ Test fallit",
+          description: data.message || "No s'han trobat subscripcions actives",
+          variant: 'destructive'
+        });
+        return;
+      }
+      
       toast({
         title: "✅ Prova enviada",
-        description: "La notificació de prova s'ha enviat correctament",
+        description: `Notificació enviada a ${data?.devices || 0} dispositius`,
       });
     } catch (error) {
       console.error('❌ Error enviant prova:', error);
