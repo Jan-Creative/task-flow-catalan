@@ -63,31 +63,66 @@ serve(async (req) => {
           .eq('user_id', reminder.user_id)
           .single();
 
+        // Assumir preferències per defecte si no existeixen
+        const userPreferences = preferences || {
+          enabled: true,
+          task_reminders: true,
+          deadline_alerts: true,
+          custom_notifications: true
+        };
+
         // Comprovar si les notificacions estan activades
-        if (!preferences?.enabled) {
+        if (!userPreferences.enabled) {
           console.log(`⏭️ Notificacions desactivades per usuari ${reminder.user_id}`);
-          await markReminderAsCancelled(supabaseClient, reminder.id, 'User notifications disabled');
+          // No cancel·lar, només ajornar amb metadata
+          await supabaseClient
+            .from('notification_reminders')
+            .update({
+              status: 'pending',
+              metadata: {
+                paused_reason: 'User notifications disabled',
+                paused_at: new Date().toISOString(),
+                retry_count: (reminder.metadata?.retry_count || 0) + 1
+              }
+            })
+            .eq('id', reminder.id);
           continue;
         }
 
         // Comprovar tipus específic de notificació
-        if (reminder.notification_type === 'task_reminder' && !preferences?.task_reminders) {
+        if (reminder.notification_type === 'task_reminder' && !userPreferences.task_reminders) {
           console.log(`⏭️ Recordatoris de tasca desactivats per usuari ${reminder.user_id}`);
-          await markReminderAsCancelled(supabaseClient, reminder.id, 'Task reminders disabled');
+          await supabaseClient
+            .from('notification_reminders')
+            .update({
+              metadata: {
+                paused_reason: 'Task reminders disabled',
+                paused_at: new Date().toISOString()
+              }
+            })
+            .eq('id', reminder.id);
           continue;
         }
 
-        if (reminder.notification_type === 'deadline' && !preferences?.deadline_alerts) {
+        if (reminder.notification_type === 'deadline' && !userPreferences.deadline_alerts) {
           console.log(`⏭️ Alertes de venciment desactivades per usuari ${reminder.user_id}`);
-          await markReminderAsCancelled(supabaseClient, reminder.id, 'Deadline alerts disabled');
+          await supabaseClient
+            .from('notification_reminders')
+            .update({
+              metadata: {
+                paused_reason: 'Deadline alerts disabled',
+                paused_at: new Date().toISOString()
+              }
+            })
+            .eq('id', reminder.id);
           continue;
         }
 
         // Comprovar horari de silenci
-        if (isInQuietHours(preferences)) {
+        if (isInQuietHours(userPreferences)) {
           console.log(`🔇 Recordatori ajornat per horari de silenci`);
           // Ajornar a la propera hora vàlida
-          const nextValidTime = getNextValidTime(preferences);
+          const nextValidTime = getNextValidTime(userPreferences);
           await supabaseClient
             .from('notification_reminders')
             .update({ scheduled_at: nextValidTime.toISOString() })

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -66,9 +67,24 @@ export const TaskRemindersCard = ({ taskId, taskTitle }: TaskRemindersCardProps)
   const loadReminders = async () => {
     try {
       setLoading(true);
-      // Simulem la càrrega des de Supabase
-      // TODO: Implementar la consulta real a la base de dades
-      setReminders([]); // Temporal fins implementar Supabase
+      const { data, error } = await supabase
+        .from('notification_reminders')
+        .select('*')
+        .eq('task_id', taskId)
+        .order('scheduled_at', { ascending: false });
+
+      if (error) throw error;
+      
+      const formattedReminders = (data || []).map(reminder => ({
+        id: reminder.id,
+        title: reminder.title,
+        message: reminder.message,
+        scheduled_for: reminder.scheduled_at,
+        status: reminder.status as 'pending' | 'sent' | 'cancelled',
+        created_at: reminder.created_at
+      }));
+      
+      setReminders(formattedReminders);
     } catch (error) {
       console.error('Error loading reminders:', error);
     } finally {
@@ -78,6 +94,27 @@ export const TaskRemindersCard = ({ taskId, taskTitle }: TaskRemindersCardProps)
 
   useEffect(() => {
     loadReminders();
+
+    // Realtime subscription per actualitzacions de recordatoris
+    const channel = supabase
+      .channel('task-reminders')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'notification_reminders',
+          filter: `task_id=eq.${taskId}`
+        },
+        () => {
+          loadReminders();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [taskId]);
 
   const calculateScheduledDate = (quickValue: string): Date => {
@@ -154,28 +191,22 @@ export const TaskRemindersCard = ({ taskId, taskTitle }: TaskRemindersCardProps)
 
     setIsCreating(true);
     try {
-      await createTaskReminder(
+      const newReminder = await createTaskReminder(
         taskId,
         taskTitle,
         customMessage || `Recordatori: ${taskTitle}`,
         scheduledDate
       );
 
-      toast({
-        title: "Recordatori creat!",
-        description: `Rebràs una notificació el ${format(scheduledDate, "d 'de' MMMM 'a les' HH:mm", { locale: ca })}.`,
-      });
+      if (newReminder) {
+        toast({
+          title: "Recordatori creat!",
+          description: `Rebràs una notificació el ${format(scheduledDate, "d 'de' MMMM 'a les' HH:mm", { locale: ca })}.`,
+        });
 
-      // Afegir el nou recordatori a la llista local
-      const newReminder: NotificationReminder = {
-        id: Date.now().toString(),
-        title: taskTitle,
-        message: customMessage || `Recordatori: ${taskTitle}`,
-        scheduled_for: scheduledDate.toISOString(),
-        status: 'pending',
-        created_at: new Date().toISOString()
-      };
-      setReminders(prev => [newReminder, ...prev]);
+        // Recarregar recordatoris des de la BD
+        await loadReminders();
+      }
 
       // Reset form
       resetForm();

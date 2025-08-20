@@ -305,10 +305,10 @@ export const useNotifications = () => {
     message: string,
     scheduledAt: Date
   ) => {
-    if (!user) return;
+    if (!user) return null;
 
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('notification_reminders')
         .insert({
           user_id: user.id,
@@ -318,7 +318,9 @@ export const useNotifications = () => {
           scheduled_at: scheduledAt.toISOString(),
           notification_type: 'task_reminder',
           status: 'pending'
-        });
+        })
+        .select()
+        .single();
 
       if (error) throw error;
       
@@ -326,6 +328,8 @@ export const useNotifications = () => {
         title: "✅ Recordatori creat",
         description: "El recordatori s'ha programat correctament",
       });
+      
+      return data;
     } catch (error) {
       console.error('❌ Error creant recordatori:', error);
       toast({
@@ -333,6 +337,7 @@ export const useNotifications = () => {
         description: "No s'ha pogut crear el recordatori",
         variant: 'destructive'
       });
+      return null;
     }
   }, [user, toast]);
 

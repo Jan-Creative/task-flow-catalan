@@ -1,16 +1,12 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import webpush from "npm:web-push@3.6.7";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
-
-// VAPID Configuration
-const VAPID_PUBLIC_KEY = "BDaie0OXdfKEQeTiv-sqcXg6hoElx3LxT0hfE5l5i6zkQCMMtx-IJFodq3UssaBTWc5TBDmt0gsBHqOL0wZGGHg";
-const VAPID_PRIVATE_KEY = "BKg8lJsKqEe7FnMW7UJQczOQ8Q4B0-Tn0oJ9B4K9QjRDfPGe_MqOEo-vhX0K8Y6LjGx4A8K4xV1K5k9Fo6KjNDg";
-const VAPID_SUBJECT = "mailto:hello@taskflow.app";
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -29,6 +25,17 @@ serve(async (req) => {
     if (!userId) {
       throw new Error('userId és obligatori');
     }
+
+    // Configurar VAPID amb variables d'entorn
+    const vapidPublicKey = Deno.env.get('VAPID_PUBLIC_KEY');
+    const vapidPrivateKey = Deno.env.get('VAPID_PRIVATE_KEY');
+    const vapidSubject = Deno.env.get('VAPID_SUBJECT') || 'mailto:hello@taskflow.app';
+
+    if (!vapidPublicKey || !vapidPrivateKey) {
+      throw new Error('VAPID keys no configurades. Afegeix VAPID_PUBLIC_KEY i VAPID_PRIVATE_KEY als secrets');
+    }
+
+    webpush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey);
 
     // Obtenir subscripcions Web Push de l'usuari
     const { data: subscriptions, error } = await supabaseClient
@@ -56,7 +63,7 @@ serve(async (req) => {
 
     console.log(`🔍 Trobades ${subscriptions.length} subscripcions per l'usuari`);
 
-    // Preparar payload de notificació
+    // Preparar payload de notificació optimitzat per Safari
     const notificationPayload = {
       title: title || 'TaskFlow',
       body: body || 'Nova notificació',
@@ -80,42 +87,66 @@ serve(async (req) => {
 
     for (const subscription of subscriptions) {
       try {
-        const result = await sendWebPushNotification(
-          subscription,
-          notificationPayload
+        // Reconstruir objecte de subscripció per web-push
+        const pushSubscription = {
+          endpoint: subscription.endpoint,
+          keys: {
+            p256dh: subscription.p256dh_key,
+            auth: subscription.auth_key
+          }
+        };
+
+        // Determinar opcions segons tipus d'endpoint
+        const options: any = {
+          TTL: 60 * 60 * 24 * 7, // 1 setmana
+        };
+
+        // Configuració específica per Apple/Safari
+        if (subscription.endpoint.includes('web.push.apple.com')) {
+          options.headers = {
+            'apns-priority': '10',
+            'apns-topic': 'taskflow.app',
+            'apns-push-type': 'alert'
+          };
+        }
+
+        console.log(`📱 Enviant a ${subscription.device_type}: ${subscription.endpoint.substring(0, 50)}...`);
+
+        // Enviar notificació amb web-push
+        await webpush.sendNotification(
+          pushSubscription,
+          JSON.stringify(notificationPayload),
+          options
         );
+
+        sentCount++;
+        console.log(`✅ Notificació enviada a dispositiu ${subscription.device_type}`);
         
         results.push({
           endpoint: subscription.endpoint.substring(0, 50) + '...',
-          success: result.success,
-          status: result.status,
-          error: result.error
+          success: true,
+          deviceType: subscription.device_type
         });
-        
-        if (result.success) {
-          sentCount++;
-          console.log(`✅ Notificació enviada a dispositiu ${subscription.device_type}`);
-        } else {
-          failedCount++;
-          console.log(`❌ Error enviant a dispositiu ${subscription.device_type}:`, result.error);
-          
-          // Si l'endpoint ha expirat o és invàlid, desactivar subscripció
-          if (result.status === 410 || result.status === 404) {
-            await supabaseClient
-              .from('web_push_subscriptions')
-              .update({ is_active: false })
-              .eq('id', subscription.id);
-            console.log(`🗑️ Subscripció ${subscription.id} desactivada (endpoint invàlid)`);
-          }
-        }
-      } catch (error) {
+
+      } catch (error: any) {
         failedCount++;
-        console.error(`❌ Error crític enviant notificació:`, error);
+        console.log(`❌ Error enviant a dispositiu ${subscription.device_type}:`, error.message);
+        
         results.push({
           endpoint: subscription.endpoint.substring(0, 50) + '...',
           success: false,
-          error: error.message
+          error: error.message,
+          deviceType: subscription.device_type
         });
+
+        // Si l'endpoint ha expirat o és invàlid, desactivar subscripció
+        if (error.statusCode === 410 || error.statusCode === 404) {
+          await supabaseClient
+            .from('web_push_subscriptions')
+            .update({ is_active: false })
+            .eq('id', subscription.id);
+          console.log(`🗑️ Subscripció ${subscription.id} desactivada (endpoint invàlid)`);
+        }
       }
     }
 
@@ -133,7 +164,8 @@ serve(async (req) => {
             sent: sentCount,
             failed: failedCount,
             results: results,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            method: 'web-push-library'
           }
         });
     } catch (error) {
@@ -166,137 +198,3 @@ serve(async (req) => {
     });
   }
 });
-
-/**
- * Enviar notificació Web Push amb protocol natiu
- */
-async function sendWebPushNotification(
-  subscription: any,
-  payload: any
-) {
-  try {
-    // Preparar l'endpoint
-    const endpoint = subscription.endpoint;
-    const p256dh = subscription.p256dh_key;
-    const auth = subscription.auth_key;
-
-    if (!endpoint || !p256dh || !auth) {
-      throw new Error('Dades de subscripció incompletes');
-    }
-
-    // Convertir payload a JSON
-    const payloadString = JSON.stringify(payload);
-    const payloadBuffer = new TextEncoder().encode(payloadString);
-
-    // Generar capçaleres VAPID
-    const vapidHeaders = await generateVAPIDHeaders(endpoint);
-
-    // Determinar tipus d'endpoint per configuració específica
-    const endpointType = getEndpointType(endpoint);
-    console.log(`📱 Enviant a ${endpointType}: ${endpoint.substring(0, 50)}...`);
-
-    // Configurar capçaleres segons l'endpoint
-    const headers = {
-      'Content-Type': 'application/octet-stream',
-      'TTL': '2419200', // 4 setmanes
-      ...vapidHeaders
-    };
-
-    // Afegir capçaleres específiques per Safari/Apple
-    if (endpointType === 'apple') {
-      headers['apns-priority'] = '10';
-      headers['apns-topic'] = 'taskflow.app';
-    }
-
-    // Enviar la notificació
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers,
-      body: payloadBuffer
-    });
-
-    const responseText = await response.text().catch(() => '');
-
-    if (response.ok) {
-      return { 
-        success: true, 
-        status: response.status,
-        endpoint: endpointType
-      };
-    } else {
-      return { 
-        success: false, 
-        status: response.status, 
-        error: `${response.status}: ${responseText}`,
-        endpoint: endpointType
-      };
-    }
-  } catch (error) {
-    console.error('❌ Error en sendWebPushNotification:', error);
-    return { 
-      success: false, 
-      error: error.message,
-      endpoint: 'unknown'
-    };
-  }
-}
-
-/**
- * Detectar tipus d'endpoint
- */
-function getEndpointType(endpoint: string): string {
-  if (endpoint.includes('fcm.googleapis.com')) return 'android';
-  if (endpoint.includes('updates.push.services.mozilla.com')) return 'firefox';
-  if (endpoint.includes('wns.windows.com')) return 'windows';
-  if (endpoint.includes('web.push.apple.com')) return 'apple';
-  if (endpoint.includes('push.services.mozilla.com')) return 'firefox';
-  return 'generic';
-}
-
-/**
- * Generar capçaleres VAPID amb JWT
- */
-async function generateVAPIDHeaders(endpoint: string): Promise<Record<string, string>> {
-  try {
-    // Extreure audiència de l'endpoint
-    const url = new URL(endpoint);
-    const audience = `${url.protocol}//${url.host}`;
-
-    // Crear JWT payload
-    const jwtPayload = {
-      aud: audience,
-      exp: Math.floor(Date.now() / 1000) + (12 * 60 * 60), // 12 hores
-      sub: VAPID_SUBJECT
-    };
-
-    // Per simplicitat, usar una implementació JWT bàsica
-    // En producció caldria una implementació completa amb signatura
-    const jwt = await createSimpleJWT(jwtPayload);
-
-    return {
-      'Authorization': `vapid t=${jwt}, k=${VAPID_PUBLIC_KEY}`
-    };
-  } catch (error) {
-    console.error('❌ Error generant VAPID headers:', error);
-    return {};
-  }
-}
-
-/**
- * Crear JWT simple (versió simplificada per testing)
- */
-async function createSimpleJWT(payload: any): Promise<string> {
-  const header = {
-    typ: 'JWT',
-    alg: 'ES256'
-  };
-
-  const encodedHeader = btoa(JSON.stringify(header));
-  const encodedPayload = btoa(JSON.stringify(payload));
-  
-  // Signatura simplificada per testing
-  // En producció caldria usar crypto.subtle.sign amb la clau privada VAPID
-  const signature = btoa('simple-signature-for-testing');
-  
-  return `${encodedHeader}.${encodedPayload}.${signature}`;
-}
