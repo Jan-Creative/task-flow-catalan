@@ -191,22 +191,20 @@ export const TaskRemindersCard = ({ taskId, taskTitle }: TaskRemindersCardProps)
 
     setIsCreating(true);
     try {
-      const newReminder = await createTaskReminder(
+      await createTaskReminder(
         taskId,
         taskTitle,
         customMessage || `Recordatori: ${taskTitle}`,
         scheduledDate
       );
 
-      if (newReminder) {
-        toast({
-          title: "Recordatori creat!",
-          description: `Rebràs una notificació el ${format(scheduledDate, "d 'de' MMMM 'a les' HH:mm", { locale: ca })}.`,
-        });
+      toast({
+        title: "Recordatori creat!",
+        description: `Rebràs una notificació el ${format(scheduledDate, "d 'de' MMMM 'a les' HH:mm", { locale: ca })}.`,
+      });
 
-        // Recarregar recordatoris des de la BD
-        await loadReminders();
-      }
+      // Recarregar recordatoris des de la BD
+      await loadReminders();
 
       // Reset form
       resetForm();
