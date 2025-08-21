@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { SettingsSection } from "@/components/SettingsSection";
-import { UserProfile } from "@/components/UserProfile";
+import { SettingsSection } from "@/components/settings/SettingsSection";
+import { UserProfileCard } from "@/components/settings/UserProfileCard";
 import { NotificationDisplay } from "@/components/NotificationDisplay";
-import { Bell, Bug } from "lucide-react";
+import { Bell, Bug, User } from "lucide-react";
 
 import { NotificationDebugPanel } from "@/components/NotificationDebugPanel";
 
@@ -18,16 +18,11 @@ const SettingsPage = () => {
 
       {/* User Profile */}
       <SettingsSection
-        icon="user"
+        icon={User}
         title="Perfil"
         description="Gestiona la teva informació personal"
       >
-        <UserProfile
-          user={user}
-          onOpenDialog={() => setIsProfileDialogOpen(true)}
-          isDialogOpen={isProfileDialogOpen}
-          setIsDialogOpen={setIsProfileDialogOpen}
-        />
+        <UserProfileCard />
       </SettingsSection>
 
       {/* Notificacions */}
