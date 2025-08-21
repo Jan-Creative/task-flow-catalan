@@ -139,7 +139,6 @@ export const useNotifications = () => {
       
       if (!pushSubscription) {
         console.log('🆕 Creant nova subscripció Web Push...');
-        // Crear nova subscripció amb retry logic
         pushSubscription = await createPushSubscription(registration);
       } else {
         console.log('♻️ Utilitzant subscripció existent');
@@ -148,10 +147,15 @@ export const useNotifications = () => {
       setSubscription(pushSubscription);
       setIsSubscribed(true);
 
-      // Guardar subscripció a la BD
+      // Guardar subscripció a la BD amb millor logging
       if (user && pushSubscription) {
         console.log('💾 Guardant subscripció a la base de dades...');
-        await saveSubscription(pushSubscription);
+        const saved = await saveSubscription(pushSubscription);
+        if (saved) {
+          console.log('✅ Subscripció guardada correctament');
+        } else {
+          console.error('❌ Error guardant subscripció');
+        }
       }
 
       setIsInitialized(true);
@@ -189,16 +193,25 @@ export const useNotifications = () => {
   }, [canUse, user, toast]);
 
   /**
-   * Guardar subscripció a la base de dades
+   * Guardar subscripció a la base de dades amb millor control d'errors
    */
-  const saveSubscription = useCallback(async (pushSubscription: PushSubscription) => {
-    if (!user) return;
+  const saveSubscription = useCallback(async (pushSubscription: PushSubscription): Promise<boolean> => {
+    if (!user) {
+      console.warn('⚠️ No es pot guardar subscripció sense usuari');
+      return false;
+    }
 
     try {
       const subscriptionData = formatSubscriptionForDatabase(pushSubscription);
       const deviceInfo = getDeviceInfo();
 
-      const { error } = await supabase
+      console.log('💾 Intentant guardar subscripció:', {
+        endpoint: subscriptionData.endpoint.substring(0, 50) + '...',
+        deviceType: deviceInfo.deviceType,
+        userId: user.id
+      });
+
+      const { data, error } = await supabase
         .from('web_push_subscriptions')
         .upsert({
           user_id: user.id,
@@ -210,34 +223,62 @@ export const useNotifications = () => {
           is_active: true
         }, {
           onConflict: 'user_id,endpoint'
-        });
+        })
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error BD guardant subscripció:', error);
+        throw error;
+      }
       
-      console.log('✅ Subscripció guardada a la BD');
-      await loadSubscriptions();
+      console.log('✅ Subscripció guardada/actualitzada:', data);
+      await loadSubscriptions(); // Recarregar per verificar
+      return true;
     } catch (error) {
       console.error('❌ Error guardant subscripció:', error);
+      toast({
+        title: "⚠️ Advertència",
+        description: "No s'ha pogut guardar la subscripció a la BD",
+        variant: 'destructive'
+      });
+      return false;
     }
-  }, [user]);
+  }, [user, toast]);
 
   /**
    * Carregar subscripcions de l'usuari
    */
   const loadSubscriptions = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      console.log('⚠️ loadSubscriptions: no user');
+      return;
+    }
 
     try {
+      console.log('🔍 Carregant subscripcions per usuari:', user.id);
       const { data, error } = await supabase
         .from('web_push_subscriptions')
         .select('*')
         .eq('user_id', user.id)
         .eq('is_active', true);
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error carregant subscripcions:', error);
+        throw error;
+      }
+      
+      console.log('📋 Subscripcions trobades:', data?.length || 0);
       setSubscriptions(data || []);
+      
+      if (data && data.length > 0) {
+        setIsSubscribed(true);
+        console.log('✅ Subscripcions actives carregades');
+      } else {
+        console.log('⚠️ No hi ha subscripcions actives');
+      }
     } catch (error) {
       console.error('❌ Error carregant subscripcions:', error);
+      setSubscriptions([]);
     }
   }, [user]);
 
@@ -245,19 +286,29 @@ export const useNotifications = () => {
    * Carregar preferències de l'usuari
    */
   const loadPreferences = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      console.log('⚠️ loadPreferences: no user');
+      return;
+    }
 
     try {
+      console.log('🔍 Carregant preferències per usuari:', user.id);
       const { data, error } = await supabase
         .from('notification_preferences')
         .select('*')
         .eq('user_id', user.id)
         .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error carregant preferències:', error);
+        throw error;
+      }
+      
+      console.log('📋 Preferències trobades:', !!data);
       setPreferences(data);
     } catch (error) {
       console.error('❌ Error carregant preferències:', error);
+      setPreferences(null);
     }
   }, [user]);
 
@@ -436,12 +487,26 @@ export const useNotifications = () => {
   }, [toast]);
 
   /**
-   * Enviar notificació de prova
+   * Enviar notificació de prova amb millor feedback
    */
   const sendTestNotification = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      toast({
+        title: "❌ Error",
+        description: "Has d'estar autenticat per enviar notificacions",
+        variant: 'destructive'
+      });
+      return;
+    }
 
     try {
+      console.log('🧪 Enviant notificació de prova...');
+      
+      // Primer verificar que tenim subscripcions locals
+      if (subscriptions.length === 0) {
+        await loadSubscriptions();
+      }
+
       const { data, error } = await supabase.functions.invoke('send-notification', {
         body: {
           userId: user.id,
@@ -454,22 +519,46 @@ export const useNotifications = () => {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error invocant send-notification:', error);
+        throw error;
+      }
+      
+      console.log('📋 Resposta send-notification:', data);
       
       // Verificar la resposta de l'edge function
       if (data?.success === false) {
-        toast({
-          title: "⚠️ Test fallit",
-          description: data.message || "No s'han trobat subscripcions actives",
-          variant: 'destructive'
-        });
+        if (data.message?.includes('No active subscriptions')) {
+          toast({
+            title: "⚠️ Sense subscripcions",
+            description: "No s'han trobat subscripcions actives. Prova d'inicialitzar les notificacions primer.",
+            variant: 'destructive'
+          });
+        } else {
+          toast({
+            title: "⚠️ Test fallit",
+            description: data.message || "Error desconegut en l'enviament",
+            variant: 'destructive'
+          });
+        }
         return;
       }
       
-      toast({
-        title: "✅ Prova enviada",
-        description: `Notificació enviada a ${data?.devices || 0} dispositius`,
-      });
+      const sentCount = data?.sent || 0;
+      const totalCount = data?.total || 0;
+      
+      if (sentCount > 0) {
+        toast({
+          title: "✅ Prova enviada",
+          description: `Notificació enviada correctament a ${sentCount}/${totalCount} dispositius`,
+        });
+      } else {
+        toast({
+          title: "⚠️ Sense enviaments",
+          description: `No s'ha enviat a cap dels ${totalCount} dispositius registrats`,
+          variant: 'destructive'
+        });
+      }
     } catch (error) {
       console.error('❌ Error enviant prova:', error);
       toast({
@@ -478,7 +567,7 @@ export const useNotifications = () => {
         variant: 'destructive'
       });
     }
-  }, [user, toast]);
+  }, [user, toast, subscriptions, loadSubscriptions]);
 
   /**
    * Refrescar dades
@@ -490,7 +579,7 @@ export const useNotifications = () => {
         loadSubscriptions()
       ]);
     }
-  }, [user, loadPreferences, loadSubscriptions]);
+  }, [user]);
 
   // Carregar dades quan l'usuari canvia
   useEffect(() => {
