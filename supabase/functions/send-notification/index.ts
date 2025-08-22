@@ -111,9 +111,11 @@ serve(async (req) => {
 
         // Configuració específica per Apple/Safari
         if (subscription.endpoint.includes('web.push.apple.com')) {
+          // Apple Web Push requires a valid APNS topic for VAPID-based Web Push
+          // According to Apple's Web Push implementation, the topic must be 'web.push'
           options.headers = {
             'apns-priority': '10',
-            'apns-topic': 'taskflow.app',
+            'apns-topic': 'web.push',
             'apns-push-type': 'alert'
           };
         }
@@ -139,26 +141,33 @@ serve(async (req) => {
           deviceType: subscription.device_type
         });
 
-      } catch (error: any) {
-        failedCount++;
-        console.log(`❌ Error enviant a dispositiu ${subscription.device_type}:`, error.message);
-        
-        results.push({
-          endpoint: subscription.endpoint.substring(0, 50) + '...',
-          success: false,
-          error: error.message,
-          deviceType: subscription.device_type
-        });
-
-        // Si l'endpoint ha expirat o és invàlid, desactivar subscripció
-        if (error.statusCode === 410 || error.statusCode === 404) {
-          await supabaseClient
-            .from('web_push_subscriptions')
-            .update({ is_active: false })
-            .eq('id', subscription.id);
-          console.log(`🗑️ Subscripció ${subscription.id} desactivada (endpoint invàlid)`);
+        } catch (error: any) {
+          failedCount++;
+          const status = error?.statusCode ?? null;
+          const responseBody = error?.body ?? null;
+          console.log(`❌ Error enviant a dispositiu ${subscription.device_type}:`, {
+            message: error?.message,
+            statusCode: status,
+            body: typeof responseBody === 'string' ? responseBody : undefined
+          });
+          
+          results.push({
+            endpoint: subscription.endpoint.substring(0, 50) + '...',
+            success: false,
+            error: error?.message,
+            statusCode: status,
+            deviceType: subscription.device_type
+          });
+  
+          // Si l'endpoint ha expirat o és invàlid, desactivar subscripció
+          if (status === 410 || status === 404) {
+            await supabaseClient
+              .from('web_push_subscriptions')
+              .update({ is_active: false })
+              .eq('id', subscription.id);
+            console.log(`🗑️ Subscripció ${subscription.id} desactivada (endpoint invàlid)`);
+          }
         }
-      }
     }
 
     // Guardar historial de notificació
