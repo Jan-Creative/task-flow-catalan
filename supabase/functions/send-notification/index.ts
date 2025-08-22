@@ -128,7 +128,10 @@ serve(async (req) => {
         );
 
         sentCount++;
-        console.log(`✅ Notificació enviada a dispositiu ${subscription.device_type}`);
+        
+        // Create VAPID fingerprint for debugging
+        const vapidFingerprint = vapidPublicKey ? vapidPublicKey.substring(0, 8) : 'unknown';
+        console.log(`✅ Notificació enviada a dispositiu ${subscription.device_type} (VAPID: ${vapidFingerprint})`);
         
         results.push({
           endpoint: subscription.endpoint.substring(0, 50) + '...',

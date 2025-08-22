@@ -1,8 +1,43 @@
 // Configuració Web Push natiu per Apple/Safari compatibility
 import { appleWebPushConfig, compatibilityChecker } from './appleWebPushConfig';
 
-// VAPID Keys generats per la nostra aplicació
-const VAPID_PUBLIC_KEY = "BDaie0OXdfKEQeTiv-sqcXg6hoElx3LxT0hfE5l5i6zkQCMMtx-IJFodq3UssaBTWc5TBDmt0gsBHqOL0wZGGHg";
+// VAPID Public Key - loaded dynamically from server
+let VAPID_PUBLIC_KEY: string | null = null;
+let VAPID_FINGERPRINT: string | null = null;
+
+/**
+ * Loads VAPID public key from server
+ */
+export const loadVapidPublicKey = async (): Promise<string> => {
+  if (VAPID_PUBLIC_KEY) {
+    return VAPID_PUBLIC_KEY;
+  }
+
+  try {
+    const response = await fetch('https://umfrvkakvgsypqcyyzke.supabase.co/functions/v1/vapid-public-key');
+    const data = await response.json();
+    
+    if (!data.publicKey) {
+      throw new Error('No VAPID public key received from server');
+    }
+    
+    VAPID_PUBLIC_KEY = data.publicKey;
+    VAPID_FINGERPRINT = data.fingerprint;
+    
+    console.log(`✅ VAPID public key loaded, fingerprint: ${VAPID_FINGERPRINT}`);
+    return VAPID_PUBLIC_KEY;
+  } catch (error) {
+    console.error('❌ Error loading VAPID public key:', error);
+    throw error;
+  }
+};
+
+/**
+ * Gets VAPID fingerprint for debugging
+ */
+export const getVapidFingerprint = (): string | null => {
+  return VAPID_FINGERPRINT;
+};
 
 /**
  * Converteix una clau VAPID de base64url a Uint8Array
@@ -164,9 +199,12 @@ export const createPushSubscription = async (
         await waitForServiceWorkerReady(registration);
       }
 
+      // Load VAPID key if not already loaded
+      const vapidKey = await loadVapidPublicKey();
+      
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+        applicationServerKey: urlBase64ToUint8Array(vapidKey)
       });
       
       console.log(`🔑 Subscripció Web Push creada correctament (intent ${attempt}):`, subscription);

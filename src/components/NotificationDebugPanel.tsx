@@ -8,7 +8,7 @@ import { ChevronDown, ChevronUp, Bug, Wifi, Bell, Database, Smartphone } from 'l
 import { useNotificationContext } from '@/contexts/NotificationContext';
 import { useServiceWorkerStatus } from '@/hooks/useServiceWorkerStatus';
 import { useAuth } from '@/hooks/useAuth';
-import { isSafari, isPWA, canUseWebPush, isWebPushSupported } from '@/lib/webPushConfig';
+import { isSafari, isPWA, canUseWebPush, isWebPushSupported, getVapidFingerprint } from '@/lib/webPushConfig';
 
 export const NotificationDebugPanel = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -66,7 +66,7 @@ export const NotificationDebugPanel = () => {
         <CollapsibleContent>
           <CardContent className="space-y-6">
             {/* Estat general */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               <div className="space-y-2">
                 <div className="text-sm font-medium">Navegador compatible</div>
                 <Badge variant="outline" className={getStatusColor(isSupported)}>
@@ -89,6 +89,12 @@ export const NotificationDebugPanel = () => {
                 <div className="text-sm font-medium">Inicialitzat</div>
                 <Badge variant="outline" className={getStatusColor(isInitialized)}>
                   {getStatusText(isInitialized)}
+                </Badge>
+              </div>
+              <div className="space-y-2">
+                <div className="text-sm font-medium">VAPID Client</div>
+                <Badge variant="outline" className="font-mono text-xs">
+                  {getVapidFingerprint() || "No carregat"}
                 </Badge>
               </div>
             </div>
@@ -139,23 +145,33 @@ export const NotificationDebugPanel = () => {
 
             {/* Subscripcions */}
             <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Database className="h-4 w-4" />
-                <h4 className="font-semibold">Subscripcions ({subscriptions.length})</h4>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Database className="h-4 w-4" />
+                  <h4 className="font-semibold">Subscripcions Web Push</h4>
+                </div>
+                <Badge variant="outline">
+                  {subscriptions.length} total
+                </Badge>
               </div>
               {subscriptions.length > 0 ? (
                 <div className="space-y-2">
                   {subscriptions.map((sub, index) => (
-                    <div key={sub.id} className="flex items-center justify-between p-2 bg-muted rounded-lg">
-                      <div className="space-y-1">
-                        <div className="text-sm font-medium">{sub.device_type}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {sub.endpoint.substring(0, 50)}...
-                        </div>
+                    <div key={sub.id} className="p-3 bg-muted rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <Badge variant={sub.is_active ? "default" : "secondary"}>
+                          {sub.is_active ? "Activa" : "Inactiva"}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground">
+                          {sub.device_type}
+                        </span>
                       </div>
-                      <Badge variant="outline" className={getStatusColor(sub.is_active)}>
-                        {sub.is_active ? 'Activa' : 'Inactiva'}
-                      </Badge>
+                      <div className="text-xs font-mono bg-background p-2 rounded border">
+                        {sub.endpoint.substring(0, 80)}...
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        Creat: {new Date(sub.created_at).toLocaleString()}
+                      </div>
                     </div>
                   ))}
                 </div>
