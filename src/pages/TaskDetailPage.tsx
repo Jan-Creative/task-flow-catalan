@@ -4,17 +4,19 @@ import { Button } from "@/components/ui/button";
 import { TaskDetailsCard } from "@/components/task-detail/TaskDetailsCard";
 import { TaskRemindersCard } from "@/components/task-detail/TaskRemindersCard";
 import { LazySubtasksCard, LazyNotesCard, LazyPomodoroCard } from "@/components/LazyComponents";
-import { memo, Suspense, useEffect } from "react";
+import { memo, Suspense, useEffect, useState } from "react";
 import { TaskProvider, useTaskContext } from "@/contexts/TaskContext";
 import { CachedRoute } from "@/components/ui/route-cache";
 import { useTaskCache } from "@/hooks/useTaskCache";
 import { FloatingBackgroundButton } from "@/components/backgrounds/FloatingBackgroundButton";
+import BottomNavigation from "@/components/BottomNavigation";
 import "@/styles/background-effects.css";
 
 const TaskDetailContent = memo(() => {
   const navigate = useNavigate();
   const { task, folder, loading, preloadAdjacentTasks } = useTaskContext();
   const { preloadAdjacentTasks: cachePreload } = useTaskCache();
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   // Preload adjacent tasks for smooth navigation
   useEffect(() => {
@@ -201,6 +203,51 @@ const TaskDetailContent = memo(() => {
 
       {/* Floating Background Configuration Button */}
       <FloatingBackgroundButton />
+
+      {/* Bottom Navigation */}
+      <BottomNavigation
+        activeTab="avui" // Per defecte marcar "Avui"
+        onTabChange={(tab) => {
+          if (tab === "avui") {
+            navigate("/");
+          } else if (tab === "carpetes") {
+            navigate("/?tab=carpetes");
+          } else if (tab === "configuracio") {
+            navigate("/?tab=configuracio");
+          }
+        }}
+        onCreateTask={() => setShowCreateDialog(true)}
+      />
+
+      {/* Create Task Modal */}
+      {showCreateDialog && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="bg-background rounded-lg p-6 w-full max-w-md mx-4">
+            <h2 className="text-lg font-semibold mb-4">Crear Nova Tasca</h2>
+            <p className="text-muted-foreground text-sm">
+              Per crear una nova tasca, navega a la pàgina principal.
+            </p>
+            <div className="flex gap-2 mt-4">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowCreateDialog(false)}
+                className="flex-1"
+              >
+                Cancel·lar
+              </Button>
+              <Button 
+                onClick={() => {
+                  setShowCreateDialog(false);
+                  navigate("/");
+                }}
+                className="flex-1"
+              >
+                Anar a l'inici
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 });
