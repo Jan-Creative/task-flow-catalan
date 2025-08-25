@@ -273,34 +273,128 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
 }
 
 /**
- * Obté informació del dispositiu per a la BD
+ * Detecta si estem en iPad (que es reporta com macOS en userAgent)
+ */
+export const isIPad = (): boolean => {
+  // iPad amb iOS 13+ es reporta com Mac, hem de detectar-lo per altres mètodes
+  return (
+    /Mac/i.test(navigator.userAgent) &&
+    navigator.maxTouchPoints && 
+    navigator.maxTouchPoints > 1
+  ) || /iPad/i.test(navigator.userAgent);
+};
+
+/**
+ * Detecta si estem en macOS real (no iPad)
+ */
+export const isMacOS = (): boolean => {
+  return /Mac/i.test(navigator.userAgent) && !isIPad();
+};
+
+/**
+ * Obté la plataforma específica amb detecció millorada
+ */
+export const getPlatformType = (): 'ios-iphone' | 'ios-ipad' | 'macos-safari' | 'macos-pwa' | 'android' | 'web' => {
+  const userAgent = navigator.userAgent;
+  const isPWAMode = isPWA();
+  
+  // Detectar iPhone
+  if (/iPhone/i.test(userAgent)) {
+    return 'ios-iphone';
+  }
+  
+  // Detectar iPad (inclou iPadOS 13+ que es reporta com Mac)
+  if (isIPad()) {
+    return 'ios-ipad';
+  }
+  
+  // Detectar macOS real
+  if (isMacOS()) {
+    return isPWAMode ? 'macos-pwa' : 'macos-safari';
+  }
+  
+  // Detectar Android
+  if (/Android/i.test(userAgent)) {
+    return 'android';
+  }
+  
+  return 'web';
+};
+
+/**
+ * Verifica si la plataforma requereix PWA per Web Push
+ */
+export const requiresPWAForWebPush = (): boolean => {
+  const platform = getPlatformType();
+  return platform === 'ios-iphone' || platform === 'ios-ipad';
+};
+
+/**
+ * Obté configuració de notificació optimitzada per plataforma
+ */
+export const getPlatformNotificationConfig = () => {
+  const platform = getPlatformType();
+  const isDesktop = platform === 'macos-safari' || platform === 'macos-pwa';
+  
+  return {
+    platform,
+    isDesktop,
+    requiresPWA: requiresPWAForWebPush(),
+    supportsActions: isDesktop || platform === 'android',
+    supportsLargeIcon: isDesktop,
+    supportsPersistent: isDesktop,
+    maxTitleLength: isDesktop ? 100 : 50,
+    maxBodyLength: isDesktop ? 300 : 150,
+    recommendedTTL: isDesktop ? 60 * 60 * 24 * 7 : 60 * 60 * 24 * 3, // 7 dies desktop, 3 dies mòbil
+  };
+};
+
+/**
+ * Obté informació del dispositiu per a la BD amb detecció millorada
  */
 export const getDeviceInfo = () => {
   const userAgent = navigator.userAgent;
-  const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+  const platform = getPlatformType();
+  const config = getPlatformNotificationConfig();
   
+  // Mapear platform type a legacy deviceType per compatibilitat
   let deviceType = 'web';
   let os = 'unknown';
   
-  if (/iPhone|iPad|iPod/i.test(userAgent)) {
-    deviceType = 'ios';
-    os = 'iOS';
-  } else if (/Android/i.test(userAgent)) {
-    deviceType = 'android';
-    os = 'Android';
-  } else if (/Mac/i.test(userAgent)) {
-    os = 'macOS';
-  } else if (/Win/i.test(userAgent)) {
-    os = 'Windows';
+  switch (platform) {
+    case 'ios-iphone':
+      deviceType = 'ios';
+      os = 'iOS (iPhone)';
+      break;
+    case 'ios-ipad':
+      deviceType = 'ios';
+      os = 'iPadOS';
+      break;
+    case 'macos-safari':
+    case 'macos-pwa':
+      deviceType = 'macos';
+      os = platform === 'macos-pwa' ? 'macOS (PWA)' : 'macOS (Safari)';
+      break;
+    case 'android':
+      deviceType = 'android';
+      os = 'Android';
+      break;
+    default:
+      deviceType = 'web';
+      os = 'Web';
   }
   
   return {
     userAgent,
     deviceType,
     os,
-    isMobile,
+    platform,
+    isMobile: platform.includes('ios') || platform === 'android',
+    isDesktop: config.isDesktop,
     isPWA: isPWA(),
     isSafari: isSafari(),
-    language: navigator.language
+    requiresPWA: config.requiresPWA,
+    language: navigator.language,
+    notificationConfig: config
   };
 };

@@ -8,7 +8,7 @@ import { ChevronDown, ChevronUp, Bug, Wifi, Bell, Database, Smartphone, RefreshC
 import { useNotificationContext } from '@/contexts/NotificationContext';
 import { useServiceWorkerStatus } from '@/hooks/useServiceWorkerStatus';
 import { useAuth } from '@/hooks/useAuth';
-import { isSafari, isPWA, canUseWebPush, isWebPushSupported, getVapidFingerprint, loadVapidPublicKey } from '@/lib/webPushConfig';
+import { isSafari, isPWA, canUseWebPush, isWebPushSupported, getVapidFingerprint, loadVapidPublicKey, getPlatformType, getPlatformNotificationConfig, isIPad, isMacOS, requiresPWAForWebPush } from '@/lib/webPushConfig';
 import { toast } from 'sonner';
 
 export const NotificationDebugPanel = () => {
@@ -163,7 +163,13 @@ export const NotificationDebugPanel = () => {
                 <Smartphone className="h-4 w-4" />
                 <h4 className="font-semibold">Context del Dispositiu</h4>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
+                <div className="space-y-2">
+                  <div className="text-sm font-medium">Plataforma</div>
+                  <Badge variant="outline" className="text-xs">
+                    {getPlatformType()}
+                  </Badge>
+                </div>
                 <div className="space-y-2">
                   <div className="text-sm font-medium">Safari</div>
                   <Badge variant="outline" className={getStatusColor(isSafari())}>
@@ -175,6 +181,43 @@ export const NotificationDebugPanel = () => {
                   <Badge variant="outline" className={getStatusColor(isPWA())}>
                     {getStatusText(isPWA())}
                   </Badge>
+                </div>
+                <div className="space-y-2">
+                  <div className="text-sm font-medium">iPad</div>
+                  <Badge variant="outline" className={getStatusColor(isIPad())}>
+                    {getStatusText(isIPad())}
+                  </Badge>
+                </div>
+                <div className="space-y-2">
+                  <div className="text-sm font-medium">macOS</div>
+                  <Badge variant="outline" className={getStatusColor(isMacOS())}>
+                    {getStatusText(isMacOS())}
+                  </Badge>
+                </div>
+                <div className="space-y-2">
+                  <div className="text-sm font-medium">Requereix PWA</div>
+                  <Badge variant="outline" className={getStatusColor(requiresPWAForWebPush())}>
+                    {getStatusText(requiresPWAForWebPush())}
+                  </Badge>
+                </div>
+              </div>
+              
+              {/* Configuració de plataforma */}
+              <div className="mt-4">
+                <div className="text-sm font-medium mb-2">Configuració de notificacions</div>
+                <div className="text-xs bg-muted p-3 rounded-lg space-y-1">
+                  {(() => {
+                    const config = getPlatformNotificationConfig();
+                    return (
+                      <>
+                        <div><strong>Desktop:</strong> {config.isDesktop ? 'Sí' : 'No'}</div>
+                        <div><strong>Suporta accions:</strong> {config.supportsActions ? 'Sí' : 'No'}</div>
+                        <div><strong>Títol màx:</strong> {config.maxTitleLength} caràcters</div>
+                        <div><strong>Cos màx:</strong> {config.maxBodyLength} caràcters</div>
+                        <div><strong>TTL recomanat:</strong> {Math.round(config.recommendedTTL / (60 * 60 * 24))} dies</div>
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
             </div>
@@ -198,15 +241,19 @@ export const NotificationDebugPanel = () => {
                         <Badge variant={sub.is_active ? "default" : "secondary"}>
                           {sub.is_active ? "Activa" : "Inactiva"}
                         </Badge>
-                        <span className="text-xs text-muted-foreground">
-                          {sub.device_type}
-                        </span>
+                        <div className="text-xs text-muted-foreground text-right">
+                          <div>{sub.device_type}</div>
+                          {(sub as any).device_os && <div>{(sub as any).device_os}</div>}
+                        </div>
                       </div>
                       <div className="text-xs font-mono bg-background p-2 rounded border">
                         {sub.endpoint.substring(0, 80)}...
                       </div>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        Creat: {new Date(sub.created_at).toLocaleString()}
+                      <div className="text-xs text-muted-foreground mt-1 space-y-1">
+                        <div>Creat: {new Date(sub.created_at).toLocaleString()}</div>
+                        {(sub as any).user_agent && (
+                          <div className="truncate">UA: {(sub as any).user_agent.substring(0, 50)}...</div>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -282,9 +329,39 @@ export const NotificationDebugPanel = () => {
                       <div className="text-sm font-medium">Diagnòstics del servidor</div>
                       <div className="text-xs space-y-1">
                         <div><strong>VAPID Server:</strong> {lastTestResult.diagnostics.serverVapidFingerprint}</div>
+                        <div><strong>VAPID Subject:</strong> {lastTestResult.diagnostics.vapidSubject}</div>
                         <div><strong>Timestamp:</strong> {new Date(lastTestResult.diagnostics.timestamp).toLocaleString()}</div>
                         <div><strong>Keys disponibles:</strong> Public: {lastTestResult.diagnostics.hasVapidKeys.publicKey ? '✅' : '❌'}, Private: {lastTestResult.diagnostics.hasVapidKeys.privateKey ? '✅' : '❌'}</div>
                       </div>
+                      
+                      {/* Mostrar resultats per plataforma */}
+                      {lastTestResult.results && lastTestResult.results.length > 0 && (
+                        <div className="mt-3">
+                          <div className="text-sm font-medium mb-2">Resultats per dispositiu</div>
+                          <div className="space-y-1">
+                            {lastTestResult.results.map((result: any, index: number) => (
+                              <div key={index} className="text-xs p-2 bg-background rounded border">
+                                <div className="flex items-center justify-between">
+                                  <span className="font-medium">{result.platform}</span>
+                                  <Badge variant={result.success ? "default" : "destructive"} className="text-xs">
+                                    {result.success ? '✅' : '❌'}
+                                  </Badge>
+                                </div>
+                                {result.success && (
+                                  <div className="text-muted-foreground mt-1">
+                                    TTL: {result.ttl}s, Payload: {result.payloadLength}b
+                                  </div>
+                                )}
+                                {!result.success && result.error && (
+                                  <div className="text-destructive mt-1">
+                                    Error: {result.error}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

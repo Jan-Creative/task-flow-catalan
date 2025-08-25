@@ -75,21 +75,90 @@ serve(async (req) => {
 
     console.log(`🔍 Trobades ${subscriptions.length} subscripcions per l'usuari`);
 
-    // Preparar payload de notificació optimitzat per Safari
-    const notificationPayload = {
+    // Crear payload base
+    const basePayload = {
       title: title || 'TaskFlow',
       body: body || 'Nova notificació',
       icon: '/favicon.ico',
       badge: '/favicon.ico',
       tag: data?.type || 'taskflow-notification',
       data: data || {},
-      actions: data?.type === 'task_reminder' ? [
-        { action: 'view', title: 'Veure tasca' },
-        { action: 'complete', title: 'Marcar completada' }
-      ] : [{ action: 'view', title: 'Veure' }],
-      requireInteraction: data?.type === 'task_reminder',
-      silent: false,
-      vibrate: [200, 100, 200]
+      silent: false
+    };
+
+    // Funció per crear payload optimitzat per plataforma
+    const createPlatformPayload = (deviceType: string, deviceOS: string) => {
+      const isDesktop = deviceType === 'macos' || deviceOS?.includes('macOS');
+      const isIPad = deviceOS?.includes('iPad');
+      const isIPhone = deviceType === 'ios' && !isIPad;
+      
+      let payload = { ...basePayload };
+      
+      // Optimitzacions per desktop (macOS)
+      if (isDesktop) {
+        payload = {
+          ...payload,
+          requireInteraction: data?.type === 'task_reminder',
+          actions: data?.type === 'task_reminder' ? [
+            { action: 'view', title: 'Veure tasca' },
+            { action: 'complete', title: 'Marcar com a completada' },
+            { action: 'snooze', title: 'Posposa 10 min' }
+          ] : [
+            { action: 'view', title: 'Veure' },
+            { action: 'dismiss', title: 'Descartar' }
+          ],
+          // Títol i cos més llargs per desktop
+          title: (title || 'TaskFlow').substring(0, 100),
+          body: (body || 'Nova notificació').substring(0, 300)
+        };
+      }
+      
+      // Optimitzacions per iPad
+      else if (isIPad) {
+        payload = {
+          ...payload,
+          requireInteraction: data?.type === 'task_reminder',
+          actions: data?.type === 'task_reminder' ? [
+            { action: 'view', title: 'Veure' },
+            { action: 'complete', title: 'Completar' }
+          ] : [{ action: 'view', title: 'Veure' }],
+          // Llargada mitjana per iPad
+          title: (title || 'TaskFlow').substring(0, 70),
+          body: (body || 'Nova notificació').substring(0, 200),
+          vibrate: [200, 100, 200]
+        };
+      }
+      
+      // Optimitzacions per iPhone
+      else if (isIPhone) {
+        payload = {
+          ...payload,
+          requireInteraction: data?.type === 'task_reminder',
+          actions: data?.type === 'task_reminder' ? [
+            { action: 'view', title: 'Veure' },
+            { action: 'complete', title: 'Fet' }
+          ] : [{ action: 'view', title: 'Veure' }],
+          // Títol i cos curts per iPhone
+          title: (title || 'TaskFlow').substring(0, 50),
+          body: (body || 'Nova notificació').substring(0, 150),
+          vibrate: [200, 100, 200]
+        };
+      }
+      
+      // Android i altres
+      else {
+        payload = {
+          ...payload,
+          requireInteraction: data?.type === 'task_reminder',
+          actions: data?.type === 'task_reminder' ? [
+            { action: 'view', title: 'Veure tasca' },
+            { action: 'complete', title: 'Completar' }
+          ] : [{ action: 'view', title: 'Veure' }],
+          vibrate: [200, 100, 200]
+        };
+      }
+      
+      return payload;
     };
 
     // Enviar a totes les subscripcions
@@ -99,6 +168,9 @@ serve(async (req) => {
 
     for (const subscription of subscriptions) {
       try {
+        // Crear payload optimitzat per aquesta plataforma específica
+        const platformPayload = createPlatformPayload(subscription.device_type, subscription.device_os);
+        
         // Normalitzar claus a base64url (eliminar padding i caràcters problemàtics)
         const normalizeKey = (key: string) => {
           return key.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
@@ -113,28 +185,50 @@ serve(async (req) => {
           }
         };
 
-        // Determinar opcions segons tipus d'endpoint
-        const options: any = {
-          TTL: 60 * 60 * 24 * 7, // 1 setmana
-        };
+        // Determinar opcions segons tipus d'endpoint i plataforma
+        const options: any = {};
+        
+        // TTL específic per plataforma
+        const isDesktop = subscription.device_type === 'macos' || subscription.device_os?.includes('macOS');
+        const isIPad = subscription.device_os?.includes('iPad');
+        
+        if (isDesktop) {
+          options.TTL = 60 * 60 * 24 * 7; // 7 dies per desktop
+        } else if (isIPad) {
+          options.TTL = 60 * 60 * 24 * 5; // 5 dies per iPad
+        } else {
+          options.TTL = 60 * 60 * 24 * 3; // 3 dies per mòbil
+        }
 
         // Configuració específica per Apple/Safari
         if (subscription.endpoint.includes('web.push.apple.com')) {
-          // Apple Web Push requires a valid APNS topic for VAPID-based Web Push
-          // According to Apple's Web Push implementation, the topic must be 'web.push'
+          const priority = data?.type === 'task_reminder' ? '10' : '5';
+          
           options.headers = {
-            'apns-priority': '10',
+            'apns-priority': priority,
             'apns-topic': 'web.push',
             'apns-push-type': 'alert'
           };
+          
+          // Headers específics per iPad (pantalla més gran)
+          if (isIPad) {
+            options.headers['apns-expiration'] = Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 5);
+          }
+          
+          // Headers específics per macOS (desktop)
+          if (isDesktop) {
+            options.headers['apns-expiration'] = Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 7);
+            options.headers['apns-collapse-id'] = data?.type || 'taskflow-notification';
+          }
         }
 
-        console.log(`📱 Enviant a ${subscription.device_type}: ${subscription.endpoint.substring(0, 50)}...`);
+        const deviceInfo = `${subscription.device_type} (${subscription.device_os || 'unknown'})`;
+        console.log(`📱 Enviant a ${deviceInfo}: ${subscription.endpoint.substring(0, 50)}...`);
 
         // Enviar notificació amb web-push
         await webpush.sendNotification(
           pushSubscription,
-          JSON.stringify(notificationPayload),
+          JSON.stringify(platformPayload),
           options
         );
 
@@ -148,6 +242,10 @@ serve(async (req) => {
           endpoint: subscription.endpoint.substring(0, 50) + '...',
           success: true,
           deviceType: subscription.device_type,
+          deviceOS: subscription.device_os,
+          platform: `${subscription.device_type} (${subscription.device_os || 'unknown'})`,
+          payloadLength: JSON.stringify(platformPayload).length,
+          ttl: options.TTL,
           vapidSubject: vapidSubject
         });
 
@@ -167,6 +265,8 @@ serve(async (req) => {
             error: error?.message,
             statusCode: status,
             deviceType: subscription.device_type,
+            deviceOS: subscription.device_os,
+            platform: `${subscription.device_type} (${subscription.device_os || 'unknown'})`,
             vapidSubject: vapidSubject
           });
   
