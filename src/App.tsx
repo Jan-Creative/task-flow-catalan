@@ -2,6 +2,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
+import CalendarPage from "./pages/CalendarPage";
 import { LazyTaskDetailPage, LazyFolderDetailPage } from "@/components/LazyComponents";
 import NotFound from "./pages/NotFound";
 import { PomodoroWidget } from "@/components/pomodoro/PomodoroWidget";
@@ -38,6 +39,7 @@ const App = () => {
                 <BackgroundRefresher />
                 <Routes>
                   <Route path="/" element={<Index />} />
+                  <Route path="/calendar" element={<CalendarPage />} />
                   <Route path="/task/:taskId" element={<LazyTaskDetailPage />} />
                   <Route path="/folder/:folderId" element={<LazyFolderDetailPage />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

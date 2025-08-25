@@ -12,6 +12,7 @@ const BottomNavigation = ({ activeTab, onTabChange, onCreateTask }: BottomNaviga
   const tabs = [
     { id: "avui", label: "Avui", icon: Calendar },
     { id: "carpetes", label: "Carpetes", icon: Folder },
+    { id: "calendar", label: "Calendari", icon: Calendar },
     { id: "notificacions", label: "Notificacions", icon: Bell },
     { id: "configuracio", label: "Configuració", icon: Settings },
   ];
