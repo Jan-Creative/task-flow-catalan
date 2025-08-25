@@ -9,9 +9,10 @@ import { useNavigate } from "react-router-dom";
 import { useProperties } from "@/hooks/useProperties";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { SimpleIconPicker } from '@/components/ui/simple-icon-picker';
 import { getIconByName, getDefaultIconForProperty } from '@/lib/iconLibrary';
+import { debugLog } from '@/lib/debugUtils';
 
 interface DatabaseToolbarProps {
   viewMode: "list" | "kanban";
@@ -60,7 +61,7 @@ const DatabaseToolbar = ({
   const [iconTarget, setIconTarget] = useState<{ type: 'property' | 'option'; id: string } | null>(null);
   
   const { properties, getPropertyByName, updatePropertyOption, createPropertyOption, deletePropertyOption, deletePropertyDefinition, updatePropertyDefinition, loading, ensureSystemProperties, fetchProperties } = useProperties();
-  const { toast } = useToast();
+  
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -137,24 +138,23 @@ const DatabaseToolbar = ({
 
   // Icon handling functions
   const handleIconSelect = async (iconName: string) => {
-    console.log('🎯 DatabaseToolbar: handleIconSelect called with:', iconName);
-    console.log('🎯 DatabaseToolbar: iconTarget:', iconTarget);
+    debugLog.debug('DatabaseToolbar', 'handleIconSelect called with:', iconName, 'iconTarget:', iconTarget);
     
     if (!iconTarget) {
-      console.log('🎯 DatabaseToolbar: No iconTarget, returning');
+      
       return;
     }
     
     try {
       if (iconTarget.type === 'property') {
-        console.log('🎯 DatabaseToolbar: Updating property icon');
+        
         await updatePropertyDefinition(iconTarget.id, { icon: iconName });
         toast({
           title: "Icona actualitzada",
           description: "La icona de la propietat s'ha actualitzat correctament.",
         });
       } else {
-        console.log('🎯 DatabaseToolbar: Updating option icon');
+        
         await updatePropertyOption(iconTarget.id, { icon: iconName });
         toast({
           title: "Icona actualitzada",
@@ -163,12 +163,12 @@ const DatabaseToolbar = ({
       }
       
       // Refresh data to show updated icon
-      console.log('🎯 DatabaseToolbar: Refreshing properties');
+      
       await fetchProperties();
-      console.log('🎯 DatabaseToolbar: Icon update completed successfully');
+      
       
     } catch (error) {
-      console.error('🎯 DatabaseToolbar: Icon update error:', error);
+      debugLog.error('DatabaseToolbar: Icon update error:', error);
       toast({
         title: "Error",
         description: "Hi ha hagut un error actualitzant la icona.",

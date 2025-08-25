@@ -2,9 +2,8 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { SettingsSection } from "@/components/settings/SettingsSection";
 import { UserProfileCard } from "@/components/settings/UserProfileCard";
-import { NotificationDisplay } from "@/components/NotificationDisplay";
-import { Bell, Bug, User } from "lucide-react";
 
+import { Bell, User } from "lucide-react";
 import { NotificationDebugPanel } from "@/components/NotificationDebugPanel";
 
 const SettingsPage = () => {
@@ -31,17 +30,9 @@ const SettingsPage = () => {
         title="Notificacions" 
         description="Configura les teves preferències de notificacions"
       >
-        <NotificationDisplay />
-      </SettingsSection>
-
-      {/* Debug Panel - només en desenvolupament o per usuaris avançats */}
-      <SettingsSection 
-        icon={Bug} 
-        title="Debug" 
-        description="Informació tècnica per resoldre problemes"
-      >
         <NotificationDebugPanel />
       </SettingsSection>
+
 
       {/* Appearance */}
       {/* <SettingsSection

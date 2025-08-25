@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Palette, Waves, Sparkles, X, Check, RotateCcw, Shapes, Zap, Binary } from 'lucide-react';
+import { debugLog } from '@/lib/debugUtils';
 
 const backgroundOptions = [
   { value: 'dark-veil', label: 'Dark Veil', icon: Waves },
@@ -23,7 +24,7 @@ interface BackgroundConfigPopoverProps {
 
 export const BackgroundConfigPopover: React.FC<BackgroundConfigPopoverProps> = ({ children }) => {
   const { settings, updateSettings, setBackgroundType } = useBackground();
-  console.log('BackgroundConfigPopover - current settings:', settings);
+  debugLog.debug('BackgroundConfigPopover', 'current settings:', settings);
   const [isOpen, setIsOpen] = useState(false);
   
   const handleReset = () => {
@@ -46,7 +47,7 @@ export const BackgroundConfigPopover: React.FC<BackgroundConfigPopoverProps> = (
           <div className="space-y-2">
             <label className="text-sm font-medium">Tipus de fons</label>
             <Select value={settings.type} onValueChange={(value: BackgroundType) => {
-              console.log('Changing background type to:', value);
+              debugLog.debug('BackgroundConfigPopover', 'Changing background type to:', value);
               setBackgroundType(value);
             }}>
               <SelectTrigger className="w-full">

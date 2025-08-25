@@ -10,8 +10,6 @@ import { BackgroundProvider } from "@/contexts/BackgroundContext";
 import { createOptimizedQueryClient } from "@/lib/optimizedCache";
 import App from "./App.tsx";
 import "./index.css";
-import { Toaster } from "@/components/ui/sonner";
-import { NotificationDisplay } from "./components/NotificationDisplay";
 
 // Create optimized query client
 const queryClient = createOptimizedQueryClient();
@@ -31,8 +29,6 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
               <PomodoroProvider>
                 <PropertyDialogProvider>
                   <App />
-                  <Toaster />
-                  <NotificationDisplay />
                 </PropertyDialogProvider>
               </PomodoroProvider>
             </KeyboardShortcutsProvider>

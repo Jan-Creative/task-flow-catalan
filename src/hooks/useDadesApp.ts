@@ -1,10 +1,10 @@
 import { useMemo, useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useAuth } from "./useAuth";
 import { useProperties } from "./useProperties";
-import { useGestorErrors } from "./useGestorErrors";
+
 import type { 
   Tasca, 
   Carpeta, 
@@ -20,10 +20,15 @@ const CLAU_CACHE_DADES = 'dades-app';
 
 export const useDadesApp = () => {
   const { user } = useAuth();
-  const { toast } = useToast();
+  
   const queryClient = useQueryClient();
   const { setTaskProperty, getPropertyByName } = useProperties();
-  const { handleError } = useGestorErrors();
+  
+  const handleError = useCallback((error: Error) => {
+    toast.error("Error", {
+      description: error.message || "S'ha produït un error inesperat",
+    });
+  }, []);
 
   // Optimized parallel data fetching with React Query
   const { data, isLoading: loading, error } = useQuery({
@@ -178,8 +183,7 @@ export const useDadesApp = () => {
         };
       });
 
-      toast({
-        title: "Tasca creada",
+      toast.success("Tasca creada", {
         description: "La tasca s'ha creat correctament",
       });
 
@@ -197,7 +201,7 @@ export const useDadesApp = () => {
       handleError(error instanceof Error ? error : new Error("No s'ha pogut crear la tasca"));
       throw error;
     }
-  }, [user, dadesOptimitzades?.carpetes, queryClient, toast, setTaskProperty, getPropertyByName, handleError]);
+  }, [user, dadesOptimitzades?.carpetes, queryClient, setTaskProperty, getPropertyByName, handleError]);
 
   // Task update with enhanced optimistic updates
   const actualitzarTasca = useCallback(async (taskId: string, taskData: ActualitzarTascaData) => {
@@ -220,8 +224,7 @@ export const useDadesApp = () => {
 
       if (error) throw error;
 
-      toast({
-        title: "Tasca actualitzada",
+      toast.success("Tasca actualitzada", {
         description: "La tasca s'ha actualitzat correctament",
       });
     } catch (error) {
@@ -264,8 +267,7 @@ export const useDadesApp = () => {
         await setTaskProperty(taskId, statusProperty.id, statusOption.id);
       }
 
-      toast({
-        title: "Tasca actualitzada",
+      toast.success("Tasca actualitzada", {
         description: `Estat canviat a ${status}`,
       });
     } catch (error) {
@@ -294,8 +296,7 @@ export const useDadesApp = () => {
 
       if (error) throw error;
 
-      toast({
-        title: "Tasca eliminada",
+      toast.success("Tasca eliminada", {
         description: "La tasca s'ha eliminat correctament",
       });
     } catch (error) {
@@ -327,8 +328,7 @@ export const useDadesApp = () => {
         };
       });
 
-      toast({
-        title: "Carpeta creada",
+      toast.success("Carpeta creada", {
         description: "La carpeta s'ha creat correctament",
       });
     } catch (error) {
@@ -340,7 +340,7 @@ export const useDadesApp = () => {
   const actualitzarCarpeta = useCallback(async (folderId: string, updates: ActualitzarCarpetaData) => {
     if (!user) throw new Error("User not authenticated");
 
-    console.log("Updating folder:", { folderId, updates });
+    
 
     // Optimistic update
     queryClient.setQueryData([CLAU_CACHE_DADES, user.id], (old: any) => {
@@ -348,7 +348,7 @@ export const useDadesApp = () => {
       const updatedFolders = old.folders.map((folder: Carpeta) => 
         folder.id === folderId ? { ...folder, ...updates } : folder
       );
-      console.log("Optimistic update applied:", updatedFolders);
+      
       return {
         ...old,
         folders: updatedFolders
@@ -364,17 +364,16 @@ export const useDadesApp = () => {
 
       if (error) throw error;
 
-      console.log("Database update successful");
+      
 
       // Force invalidate queries to ensure fresh data
       queryClient.invalidateQueries({ queryKey: [CLAU_CACHE_DADES, user.id] });
 
-      toast({
-        title: "Carpeta actualitzada",
+      toast.success("Carpeta actualitzada", {
         description: "La carpeta s'ha actualitzat correctament",
       });
     } catch (error) {
-      console.error("Database update failed:", error);
+      
       // Revert on error
       queryClient.invalidateQueries({ queryKey: [CLAU_CACHE_DADES, user.id] });
       handleError(error instanceof Error ? error : new Error("No s'ha pogut actualitzar la carpeta"));
@@ -388,10 +387,8 @@ export const useDadesApp = () => {
     // Check if folder has tasks
     const tasksInFolder = dadesOptimitzades?.tasques.filter(task => task.folder_id === folderId) || [];
     if (tasksInFolder.length > 0) {
-      toast({
-        title: "No es pot eliminar",
+      toast.error("No es pot eliminar", {
         description: `La carpeta conté ${tasksInFolder.length} tasques. Mou-les primer a una altra carpeta.`,
-        variant: "destructive",
       });
       return false;
     }
@@ -415,8 +412,7 @@ export const useDadesApp = () => {
 
       if (error) throw error;
 
-      toast({
-        title: "Carpeta eliminada",
+      toast.success("Carpeta eliminada", {
         description: "La carpeta s'ha eliminat correctament",
       });
       return true;

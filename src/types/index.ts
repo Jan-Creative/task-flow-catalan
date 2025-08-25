@@ -108,12 +108,6 @@ export interface DadesOptimitzades {
   tasquesAvui: Tasca[];
 }
 
-// ============= ERROR HANDLING =============
-export interface GestorErrors {
-  error: Error | null;
-  clearError: () => void;
-  handleError: (error: Error) => void;
-}
 
 // ============= FORM DATA TYPES =============
 export interface CrearTascaData extends Omit<Tasca, "id" | "created_at" | "updated_at"> {}

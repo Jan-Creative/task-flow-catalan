@@ -7,10 +7,11 @@ import { GeometricBackground } from './GeometricBackground';
 import { WaveBackground } from './WaveBackground';
 import { NeonBackground } from './NeonBackground';
 import { MatrixBackground } from './MatrixBackground';
+import { debugLog } from '@/lib/debugUtils';
 
 export const BackgroundRenderer: React.FC = () => {
   const { settings } = useBackground();
-  console.log('BackgroundRenderer - settings:', settings);
+  debugLog.debug('BackgroundRenderer', 'settings:', settings);
 
   const renderBackground = () => {
     switch (settings.type) {
