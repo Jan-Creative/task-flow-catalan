@@ -77,11 +77,10 @@ const NotificationsPage = () => {
   };
 
   return (
-    <div className="w-full min-h-screen bg-background p-4 pb-24">
-      <div className="max-w-md mx-auto space-y-4">
-        
-        {/* Top Block - Stats & Create Button */}
-        <Card className="bg-gradient-glass backdrop-blur-glass border-border/30 rounded-[28px] shadow-glass overflow-hidden">
+    <div className="w-full min-h-screen bg-background">
+      {/* Top Block - Stats & Create Button */}
+      <div className="bg-background rounded-b-[28px] px-4 pt-4 pb-6">
+        <div className="max-w-md mx-auto">
           <div className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
@@ -110,134 +109,138 @@ const NotificationsPage = () => {
               </div>
             </div>
           </div>
-        </Card>
+        </div>
+      </div>
 
-        {/* Bottom Block - History/Form */}
-        <Card className="bg-gradient-glass backdrop-blur-glass border-border/30 rounded-[28px] shadow-glass overflow-hidden transition-all duration-300 ease-out">
-          {!showCreateForm ? (
-            /* History Mode */
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-md font-medium text-foreground">Notificacions pendents</h3>
-                <Badge variant="secondary" className="text-xs">
-                  {mockNotifications.length}
-                </Badge>
-              </div>
-              
-              <div className="space-y-3 mb-6">
-                {mockNotifications.map((notification) => (
-                  <div 
-                    key={notification.id}
-                    className="bg-card/40 rounded-xl p-3 border border-border/20 hover:bg-card/60 transition-colors"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-sm text-foreground truncate">
-                          {notification.title}
-                        </h4>
-                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                          {notification.message}
-                        </p>
-                        <div className="flex items-center gap-1 mt-2">
-                          <Clock className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-xs text-muted-foreground">
-                            {formatDate(notification.scheduledAt)}
-                          </span>
+      {/* Bottom Block - History/Form */}
+      <div className="fixed bottom-24 left-0 right-0 bg-secondary rounded-t-[28px] px-4 pt-6 pb-6" style={{ height: 'calc(100vh - 400px)', minHeight: '350px' }}>
+        <div className="max-w-md mx-auto h-full">
+          <div className="h-full overflow-y-auto">
+            {!showCreateForm ? (
+              /* History Mode */
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-md font-medium text-secondary-foreground">Notificacions pendents</h3>
+                  <Badge variant="outline" className="text-xs border-secondary-foreground/20 text-secondary-foreground">
+                    {mockNotifications.length}
+                  </Badge>
+                </div>
+                
+                <div className="space-y-3 mb-6">
+                  {mockNotifications.map((notification) => (
+                    <div 
+                      key={notification.id}
+                      className="bg-background/10 rounded-xl p-3 border border-background/20 hover:bg-background/20 transition-colors"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-sm text-secondary-foreground truncate">
+                            {notification.title}
+                          </h4>
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                            {notification.message}
+                          </p>
+                          <div className="flex items-center gap-1 mt-2">
+                            <Clock className="h-3 w-3 text-muted-foreground" />
+                            <span className="text-xs text-muted-foreground">
+                              {formatDate(notification.scheduledAt)}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          {notification.status === 'pending' ? (
+                            <AlertCircle className="h-4 w-4 text-warning" />
+                          ) : (
+                            <CheckCircle className="h-4 w-4 text-success" />
+                          )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-1">
-                        {notification.status === 'pending' ? (
-                          <AlertCircle className="h-4 w-4 text-warning" />
-                        ) : (
-                          <CheckCircle className="h-4 w-4 text-success" />
-                        )}
-                      </div>
                     </div>
+                  ))}
+                </div>
+                
+                <Button 
+                  onClick={() => setShowCreateForm(true)}
+                  className="w-full bg-primary hover:bg-primary-glow text-primary-foreground rounded-xl h-12 font-medium"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Crear Nova Notificació
+                </Button>
+              </div>
+            ) : (
+              /* Form Mode */
+              <div className="animate-fade-in">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-md font-medium text-secondary-foreground">Nova notificació</h3>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setShowCreateForm(false)}
+                    className="h-8 w-8 p-0 hover:bg-background/10 text-secondary-foreground"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium text-secondary-foreground mb-2 block">
+                      Títol
+                    </label>
+                    <Input
+                      placeholder="Títol de la notificació"
+                      value={formData.title}
+                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                      className="bg-background/10 border-background/20 rounded-xl text-secondary-foreground placeholder:text-muted-foreground"
+                    />
                   </div>
-                ))}
-              </div>
-              
-              <Button 
-                onClick={() => setShowCreateForm(true)}
-                className="w-full bg-primary hover:bg-primary-glow text-primary-foreground rounded-xl h-12 font-medium"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Crear Nova Notificació
-              </Button>
-            </div>
-          ) : (
-            /* Form Mode */
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-md font-medium text-foreground">Nova notificació</h3>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => setShowCreateForm(false)}
-                  className="h-8 w-8 p-0 hover:bg-muted/50"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium text-foreground mb-2 block">
-                    Títol
-                  </label>
-                  <Input
-                    placeholder="Títol de la notificació"
-                    value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    className="bg-input/50 border-border/30 rounded-xl"
-                  />
+                  
+                  <div>
+                    <label className="text-sm font-medium text-secondary-foreground mb-2 block">
+                      Missatge
+                    </label>
+                    <Textarea
+                      placeholder="Escriu el contingut de la notificació..."
+                      value={formData.message}
+                      onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                      className="bg-background/10 border-background/20 rounded-xl min-h-[80px] resize-none text-secondary-foreground placeholder:text-muted-foreground"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium text-secondary-foreground mb-2 block">
+                      <Calendar className="h-4 w-4 inline mr-1" />
+                      Data i hora
+                    </label>
+                    <Input
+                      type="datetime-local"
+                      value={formData.scheduledAt}
+                      onChange={(e) => setFormData({ ...formData, scheduledAt: e.target.value })}
+                      className="bg-background/10 border-background/20 rounded-xl text-secondary-foreground"
+                    />
+                  </div>
                 </div>
                 
-                <div>
-                  <label className="text-sm font-medium text-foreground mb-2 block">
-                    Missatge
-                  </label>
-                  <Textarea
-                    placeholder="Escriu el contingut de la notificació..."
-                    value={formData.message}
-                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    className="bg-input/50 border-border/30 rounded-xl min-h-[80px] resize-none"
-                  />
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium text-foreground mb-2 block">
-                    <Calendar className="h-4 w-4 inline mr-1" />
-                    Data i hora
-                  </label>
-                  <Input
-                    type="datetime-local"
-                    value={formData.scheduledAt}
-                    onChange={(e) => setFormData({ ...formData, scheduledAt: e.target.value })}
-                    className="bg-input/50 border-border/30 rounded-xl"
-                  />
+                <div className="flex gap-3 mt-6">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowCreateForm(false)}
+                    className="flex-1 border-background/20 hover:bg-background/10 rounded-xl text-secondary-foreground"
+                  >
+                    Cancel·lar
+                  </Button>
+                  <Button
+                    onClick={handleCreateNotification}
+                    className="flex-1 bg-primary hover:bg-primary-glow text-primary-foreground rounded-xl"
+                  >
+                    <Send className="h-4 w-4 mr-2" />
+                    Programar
+                  </Button>
                 </div>
               </div>
-              
-              <div className="flex gap-3 mt-6">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowCreateForm(false)}
-                  className="flex-1 bg-card/50 border-border/30 hover:bg-card/70 rounded-xl"
-                >
-                  Cancel·lar
-                </Button>
-                <Button
-                  onClick={handleCreateNotification}
-                  className="flex-1 bg-primary hover:bg-primary-glow text-primary-foreground rounded-xl"
-                >
-                  <Send className="h-4 w-4 mr-2" />
-                  Programar
-                </Button>
-              </div>
-            </div>
-          )}
-        </Card>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
