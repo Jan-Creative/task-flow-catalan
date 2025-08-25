@@ -3,11 +3,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNotificationContext } from "@/contexts/NotificationContext";
-import { Bell, TestTube, Trash2, RefreshCcw, AlertCircle, CheckCircle2 } from "lucide-react";
+import { PurgeSubscriptionsButton } from "@/components/PurgeSubscriptionsButton";
+import { Bell, TestTube, Trash2, RefreshCcw, AlertCircle, CheckCircle2, Smartphone, Monitor, Tablet } from "lucide-react";
 
 export const NotificationDebugPanel = () => {
   const [isTestingNotification, setIsTestingNotification] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+  const [isCleaning, setIsCleaning] = useState(false);
   
   const {
     isSupported,
@@ -21,7 +23,11 @@ export const NotificationDebugPanel = () => {
     initializeNotifications,
     sendTestNotification,
     resetSubscription,
-    refreshData
+    refreshData,
+    cleanupDuplicateSubscriptions,
+    purgeAllSubscriptions,
+    getActiveDevices,
+    getTotalDevices
   } = useNotificationContext();
 
   const handleTestNotification = async () => {
@@ -43,6 +49,17 @@ export const NotificationDebugPanel = () => {
     }
   };
 
+
+  const handleCleanupDuplicates = async () => {
+    setIsCleaning(true);
+    try {
+      await cleanupDuplicateSubscriptions();
+      await refreshData();
+    } finally {
+      setIsCleaning(false);
+    }
+  };
+
   const getStatusColor = () => {
     if (!isSupported) return "destructive";
     if (!canUse) return "secondary";
@@ -60,6 +77,29 @@ export const NotificationDebugPanel = () => {
   };
 
   const notificationsReady = isSupported && canUse && permissionStatus === 'granted' && isSubscribed;
+  const activeDevices = getActiveDevices();
+  const totalDevices = getTotalDevices();
+  const hasMultipleDevices = totalDevices > 1;
+  const hasInactiveDevices = totalDevices > activeDevices.length;
+
+  const getDeviceIcon = (deviceType: string) => {
+    switch (deviceType) {
+      case 'ios':
+        return <Smartphone className="h-4 w-4" />;
+      case 'macos':
+        return <Monitor className="h-4 w-4" />;
+      case 'android':
+        return <Tablet className="h-4 w-4" />;
+      default:
+        return <Bell className="h-4 w-4" />;
+    }
+  };
+
+  const getDeviceName = (deviceInfo: any) => {
+    const platform = deviceInfo?.platform || deviceInfo?.deviceType || 'Desconegut';
+    const os = deviceInfo?.os || '';
+    return `${platform} ${os}`.trim();
+  };
 
   return (
     <Card>
@@ -119,18 +159,48 @@ export const NotificationDebugPanel = () => {
           </div>
         </div>
 
-        {/* Subscripcions */}
-        {subscriptions && subscriptions.length > 0 && (
-          <div className="p-3 bg-muted/50 rounded-lg">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium">Subscripcions actives:</span>
-              <Badge>{subscriptions.length}</Badge>
+        {/* Dispositius */}
+        {totalDevices > 0 && (
+          <div className="space-y-3">
+            <div className="p-3 bg-muted/50 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium">Dispositius registrats:</span>
+                <div className="flex items-center gap-2">
+                  <Badge variant="default">{activeDevices.length} actius</Badge>
+                  <Badge variant="secondary">{totalDevices} total</Badge>
+                </div>
+              </div>
+              
+              {hasMultipleDevices && (
+                <p className="text-xs text-muted-foreground mb-2">
+                  {hasInactiveDevices ? 
+                    "Alguns dispositius estan inactius. Recomano fer una neteja." :
+                    "Múltiples dispositius actius - perfecte per rebre notificacions a tots."
+                  }
+                </p>
+              )}
             </div>
-            {subscriptions.length > 1 && (
-              <p className="text-xs text-muted-foreground">
-                Múltiples subscripcions detectades (es recomana netejar)
-              </p>
-            )}
+
+            {/* Llista de dispositius */}
+            <div className="space-y-2">
+              {activeDevices.map((device, index) => (
+                <div key={device.id} className="flex items-center justify-between p-2 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
+                  <div className="flex items-center gap-2">
+                    {getDeviceIcon(device.device_type)}
+                    <span className="text-sm font-medium">
+                      {getDeviceName(device.device_info)}
+                    </span>
+                  </div>
+                  <Badge variant="default" className="bg-green-600">Actiu</Badge>
+                </div>
+              ))}
+              
+              {hasInactiveDevices && (
+                <p className="text-xs text-muted-foreground">
+                  + {totalDevices - activeDevices.length} dispositius inactius
+                </p>
+              )}
+            </div>
           </div>
         )}
 
@@ -157,12 +227,11 @@ export const NotificationDebugPanel = () => {
             </Button>
           )}
           
-          <div className="flex gap-2">
+          <div className="grid grid-cols-2 gap-2">
             <Button 
               onClick={refreshData}
               variant="outline"
               size="sm"
-              className="flex-1"
             >
               <RefreshCcw className="h-4 w-4 mr-1" />
               Actualitzar
@@ -173,12 +242,42 @@ export const NotificationDebugPanel = () => {
               disabled={isResetting}
               variant="outline"
               size="sm"
-              className="flex-1"
             >
               <Trash2 className="h-4 w-4 mr-1" />
-              {isResetting ? "Netejant..." : "Reset"}
+              {isResetting ? "Reset..." : "Reset"}
             </Button>
           </div>
+
+          {/* Accions avançades */}
+          {totalDevices > 0 && (
+            <div className="space-y-2 pt-2 border-t">
+              <p className="text-xs text-muted-foreground">Gestió avançada:</p>
+              <div className="grid grid-cols-1 gap-2">
+                {hasInactiveDevices && (
+                  <Button 
+                    onClick={handleCleanupDuplicates}
+                    disabled={isCleaning}
+                    variant="outline"
+                    size="sm"
+                    className="text-amber-600 border-amber-200 hover:bg-amber-50"
+                  >
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    {isCleaning ? "Netejant..." : "Netejar inactius"}
+                  </Button>
+                )}
+                
+                <PurgeSubscriptionsButton />
+              </div>
+            </div>
+          )}
+
+          {/* Si no hi ha dispositius, mostrar botó de purga com a opció de troubleshooting */}
+          {totalDevices === 0 && permissionStatus === 'granted' && (
+            <div className="space-y-2 pt-2 border-t">
+              <p className="text-xs text-muted-foreground">Troubleshooting:</p>
+              <PurgeSubscriptionsButton />
+            </div>
+          )}
         </div>
 
         {/* Endpoint info for debugging */}

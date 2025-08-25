@@ -128,13 +128,80 @@ export const useNotifications = () => {
     }
   }, []);
 
+  /**
+   * Carregar subscripcions de l'usuari
+   */
+  const loadSubscriptions = useCallback(async () => {
+    if (!user) {
+      console.log('⚠️ loadSubscriptions: no user');
+      return;
+    }
+
+    try {
+      console.log('🔍 Carregant subscripcions per usuari:', user.id);
+      const { data, error } = await supabase
+        .from('web_push_subscriptions')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('is_active', true);
+
+      if (error) {
+        console.error('❌ Error carregant subscripcions:', error);
+        throw error;
+      }
+      
+      console.log('📋 Subscripcions trobades:', data?.length || 0);
+      setSubscriptions(data || []);
+      
+      if (data && data.length > 0) {
+        setIsSubscribed(true);
+        console.log('✅ Subscripcions actives carregades');
+      } else {
+        console.log('⚠️ No hi ha subscripcions actives');
+      }
+    } catch (error) {
+      console.error('❌ Error carregant subscripcions:', error);
+      setSubscriptions([]);
+    }
+  }, [user]);
+
+  /**
+   * Carregar preferències de l'usuari
+   */
+  const loadPreferences = useCallback(async () => {
+    if (!user) {
+      console.log('⚠️ loadPreferences: no user');
+      return;
+    }
+
+    try {
+      console.log('🔍 Carregant preferències per usuari:', user.id);
+      const { data, error } = await supabase
+        .from('notification_preferences')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error('❌ Error carregant preferències:', error);
+        throw error;
+      }
+      
+      console.log('📋 Preferències trobades:', !!data);
+      setPreferences(data);
+    } catch (error) {
+      console.error('❌ Error carregant preferències:', error);
+      setPreferences(null);
+    }
+  }, [user]);
+
   // Carregar dades quan l'usuari canvia
   useEffect(() => {
     if (user) {
       loadPreferences();
       loadSubscriptions();
     }
-  }, [user]);
+  }, [user, loadPreferences, loadSubscriptions]);
 
   /**
    * Inicialitzar notificacions amb detecció Apple/Safari optimitzada
@@ -230,7 +297,7 @@ export const useNotifications = () => {
       });
       return false;
     }
-  }, [canUse, user, toast]);
+  }, [canUse, user, toast, loadSubscriptions]);
 
   /**
    * Guardar subscripció a la base de dades amb millor control d'errors
@@ -251,19 +318,33 @@ export const useNotifications = () => {
         userId: user.id
       });
 
+      // Create unique device fingerprint to prevent duplicates
+      const deviceFingerprint = `${deviceInfo.deviceType}-${deviceInfo.platform}-${deviceInfo.userAgent.substring(0, 50)}`;
+
+      // First, deactivate any existing subscriptions for this specific device
+      await supabase
+        .from('web_push_subscriptions')
+        .update({ is_active: false })
+        .eq('user_id', user.id)
+        .eq('device_type', deviceInfo.deviceType)
+        .like('device_info->>userAgent', `${deviceInfo.userAgent.substring(0, 50)}%`);
+
+      // Insert new subscription for this device
       const { data, error } = await supabase
         .from('web_push_subscriptions')
-        .upsert({
+        .insert([{
           user_id: user.id,
           endpoint: subscriptionData.endpoint,
-          p256dh_key: subscriptionData.keys.p256dh,
           auth_key: subscriptionData.keys.auth,
-          device_info: deviceInfo,
+          p256dh_key: subscriptionData.keys.p256dh,
           device_type: deviceInfo.deviceType,
+          device_info: {
+            ...deviceInfo,
+            deviceFingerprint,
+            subscriptionDate: new Date().toISOString()
+          },
           is_active: true
-        }, {
-          onConflict: 'user_id,endpoint'
-        })
+        }])
         .select();
 
       if (error) {
@@ -271,7 +352,7 @@ export const useNotifications = () => {
         throw error;
       }
       
-      console.log('✅ Subscripció guardada/actualitzada:', data);
+      console.log('✅ Subscripció guardada amb identificador únic:', deviceFingerprint);
       await loadSubscriptions(); // Recarregar per verificar
       return true;
     } catch (error) {
@@ -283,74 +364,8 @@ export const useNotifications = () => {
       });
       return false;
     }
-  }, [user, toast]);
+  }, [user, toast, loadSubscriptions]);
 
-  /**
-   * Carregar subscripcions de l'usuari
-   */
-  const loadSubscriptions = useCallback(async () => {
-    if (!user) {
-      console.log('⚠️ loadSubscriptions: no user');
-      return;
-    }
-
-    try {
-      console.log('🔍 Carregant subscripcions per usuari:', user.id);
-      const { data, error } = await supabase
-        .from('web_push_subscriptions')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('is_active', true);
-
-      if (error) {
-        console.error('❌ Error carregant subscripcions:', error);
-        throw error;
-      }
-      
-      console.log('📋 Subscripcions trobades:', data?.length || 0);
-      setSubscriptions(data || []);
-      
-      if (data && data.length > 0) {
-        setIsSubscribed(true);
-        console.log('✅ Subscripcions actives carregades');
-      } else {
-        console.log('⚠️ No hi ha subscripcions actives');
-      }
-    } catch (error) {
-      console.error('❌ Error carregant subscripcions:', error);
-      setSubscriptions([]);
-    }
-  }, [user]);
-
-  /**
-   * Carregar preferències de l'usuari
-   */
-  const loadPreferences = useCallback(async () => {
-    if (!user) {
-      console.log('⚠️ loadPreferences: no user');
-      return;
-    }
-
-    try {
-      console.log('🔍 Carregant preferències per usuari:', user.id);
-      const { data, error } = await supabase
-        .from('notification_preferences')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (error) {
-        console.error('❌ Error carregant preferències:', error);
-        throw error;
-      }
-      
-      console.log('📋 Preferències trobades:', !!data);
-      setPreferences(data);
-    } catch (error) {
-      console.error('❌ Error carregant preferències:', error);
-      setPreferences(null);
-    }
-  }, [user]);
 
   /**
    * Actualitzar preferències
@@ -634,10 +649,16 @@ export const useNotifications = () => {
         .update({ is_active: false })
         .eq('user_id', user.id);
 
-      // 2. Reinicialitzar completament
-      await initializeNotifications();
+      // 2. Reset local state first
+      setSubscriptions([]);
+      setIsSubscribed(false);
+      setIsInitialized(false);
+      setSubscription(null);
       
-      // 3. Recarregar dades
+      // 3. Reinicialitzar només si necessari
+      // await initializeNotifications();
+      
+      // 4. Recarregar dades
       await refreshData();
       
       toast({
@@ -653,7 +674,7 @@ export const useNotifications = () => {
       });
       throw error;
     }
-   }, [user, toast, initializeNotifications]);
+   }, [user, toast]);
 
   /**
    * Refrescar dades
@@ -727,6 +748,18 @@ export const useNotifications = () => {
       setIsInitialized(false);
       setSubscription(null);
       
+      // Also unsubscribe from browser subscription
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        const browserSub = await registration.pushManager.getSubscription();
+        if (browserSub) {
+          await browserSub.unsubscribe();
+          console.log('✅ Browser subscription also unsubscribed');
+        }
+      } catch (error) {
+        console.log('⚠️ Could not unsubscribe browser subscription:', error);
+      }
+      
       console.log('✅ Totes les subscripcions purgades');
     } catch (error) {
       console.error('❌ Error purgant subscripcions:', error);
@@ -735,6 +768,15 @@ export const useNotifications = () => {
 
   // Estat efectiu de notificacions
   const notificationsReady = isSupported && canUse && permissionStatus === 'granted' && (isSubscribed || subscription);
+
+  // New utilities for device management
+  const getActiveDevices = useCallback(() => {
+    return subscriptions.filter(sub => sub.is_active);
+  }, [subscriptions]);
+
+  const getTotalDevices = useCallback(() => {
+    return subscriptions.length;
+  }, [subscriptions]);
 
   return {
     // Estats
@@ -759,7 +801,12 @@ export const useNotifications = () => {
     sendTestNotification,
     resetSubscription,
     cleanupDuplicateSubscriptions,
-    purgeAllSubscriptions
+    purgeAllSubscriptions,
+    
+    // Device management utilities
+    getActiveDevices,
+    getTotalDevices,
+    getDeviceInfo
   };
 };
 

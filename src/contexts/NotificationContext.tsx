@@ -27,6 +27,10 @@ interface NotificationContextType {
   runRemindersProcessor: () => Promise<void>;
   sendTestNotification: () => Promise<any>;
   resetSubscription: () => Promise<void>;
+  cleanupDuplicateSubscriptions: () => Promise<void>;
+  purgeAllSubscriptions: () => Promise<void>;
+  getActiveDevices: () => WebPushSubscriptionDB[];
+  getTotalDevices: () => number;
 }
 
 const NotificationContext = createContext<NotificationContextType | null>(null);
@@ -169,6 +173,40 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
           variant: 'destructive'
         });
       }
+    },
+
+    cleanupDuplicateSubscriptions: async () => {
+      try {
+        await notifications.cleanupDuplicateSubscriptions();
+        toast({
+          title: "✅ Èxit",
+          description: "Subscripcions duplicades netejades",
+        });
+      } catch (error) {
+        console.error('Error in cleanupDuplicateSubscriptions:', error);
+        toast({
+          title: "❌ Error",
+          description: "No s'han pogut netejar les subscripcions",
+          variant: 'destructive'
+        });
+      }
+    },
+
+    purgeAllSubscriptions: async () => {
+      try {
+        await notifications.purgeAllSubscriptions();
+        toast({
+          title: "✅ Èxit",
+          description: "Totes les subscripcions han estat eliminades",
+        });
+      } catch (error) {
+        console.error('Error in purgeAllSubscriptions:', error);
+        toast({
+          title: "❌ Error",
+          description: "No s'han pogut eliminar les subscripcions",
+          variant: 'destructive'
+        });
+      }
     }
   };
 
@@ -185,7 +223,11 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     notificationsReady: notifications.isSupported && notifications.canUse && notifications.permissionStatus === 'granted' && (notifications.isSubscribed || !!notifications.subscription),
     
     // Accions amb error handling
-    ...wrappedActions
+    ...wrappedActions,
+    
+    // Device management
+    getActiveDevices: notifications.getActiveDevices,
+    getTotalDevices: notifications.getTotalDevices
   };
 
   return (
