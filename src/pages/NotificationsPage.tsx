@@ -77,15 +77,15 @@ const NotificationsPage = () => {
   };
 
   return (
-    <div className="w-full min-h-screen bg-background">
+    <div className="w-full min-h-screen bg-black">
       {/* Top Block - Stats & Create Button */}
-      <div className="bg-background rounded-b-[28px] px-4 pt-4 pb-6">
+      <div className="bg-secondary rounded-[28px] mx-4 mt-4 mb-6 px-4 pt-4 pb-6">
         <div className="max-w-md mx-auto">
           <div className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <Bell className="h-5 w-5 text-primary" />
-                <h2 className="text-lg font-semibold text-foreground">Notificacions</h2>
+                <h2 className="text-lg font-semibold text-secondary-foreground">Notificacions</h2>
               </div>
               <Button
                 size="sm"
@@ -99,11 +99,11 @@ const NotificationsPage = () => {
             
             {/* Stats */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-card/50 rounded-xl p-3 border border-border/20">
-                <div className="text-2xl font-bold text-foreground">12</div>
+              <div className="bg-background/10 rounded-xl p-3 border border-background/20">
+                <div className="text-2xl font-bold text-secondary-foreground">12</div>
                 <div className="text-xs text-muted-foreground">Enviades</div>
               </div>
-              <div className="bg-card/50 rounded-xl p-3 border border-border/20">
+              <div className="bg-background/10 rounded-xl p-3 border border-background/20">
                 <div className="text-2xl font-bold text-primary">3</div>
                 <div className="text-xs text-muted-foreground">Pendents</div>
               </div>
@@ -113,9 +113,9 @@ const NotificationsPage = () => {
       </div>
 
       {/* Bottom Block - History/Form */}
-      <div className="fixed bottom-24 left-0 right-0 bg-secondary rounded-t-[28px] px-4 pt-6 pb-6" style={{ height: 'calc(100vh - 400px)', minHeight: '350px' }}>
+      <div className="fixed bottom-0 left-0 right-0 bg-secondary rounded-t-[28px] px-4 pt-6 pb-28">
         <div className="max-w-md mx-auto h-full">
-          <div className="h-full overflow-y-auto">
+          <div className="h-full overflow-y-auto" style={{ maxHeight: 'calc(100vh - 280px)' }}>
             {!showCreateForm ? (
               /* History Mode */
               <div>

@@ -17,7 +17,7 @@ const BottomNavigation = ({ activeTab, onTabChange, onCreateTask }: BottomNaviga
   ];
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50">
+    <div className="fixed bottom-6 left-4 right-4 z-50">
       <div className="flex items-center justify-between">
         {/* Main Navigation */}
         <div className="bg-gray-800/90 backdrop-blur-[var(--backdrop-blur-organic)] rounded-[28px] shadow-[var(--shadow-organic)] px-2 py-1.5 flex-1 mr-4">
