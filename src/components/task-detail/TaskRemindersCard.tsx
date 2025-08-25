@@ -305,10 +305,10 @@ export const TaskRemindersCard = ({ taskId, taskTitle }: TaskRemindersCardProps)
             <div className="h-4 bg-muted animate-pulse rounded" />
             <div className="h-4 bg-muted animate-pulse rounded" />
           </div>
-        ) : reminders.length > 0 ? (
+        ) : reminders.filter(reminder => reminder.status === 'pending').length > 0 ? (
           <div className="space-y-2">
             <h4 className="text-sm font-medium">Recordatoris programats</h4>
-            {reminders.map((reminder) => (
+            {reminders.filter(reminder => reminder.status === 'pending').map((reminder) => (
               <div key={reminder.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
