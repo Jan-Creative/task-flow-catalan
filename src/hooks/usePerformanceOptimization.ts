@@ -31,9 +31,11 @@ export const usePerformanceMonitor = () => {
       metricsRef.current.memoryUsage = memory.usedJSHeapSize / 1024 / 1024; // MB
     }
 
-    // Log performance in development
+    // Log performance in development using centralized logger
     if (process.env.NODE_ENV === 'development') {
-      console.log('🚀 Performance Metrics:', metricsRef.current);
+      import('@/lib/debugUtils').then(({ logger }) => {
+        logger.performance('Component Performance Metrics', metricsRef.current);
+      });
     }
   });
 

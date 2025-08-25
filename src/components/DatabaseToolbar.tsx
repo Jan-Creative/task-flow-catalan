@@ -138,7 +138,7 @@ const DatabaseToolbar = ({
 
   // Icon handling functions
   const handleIconSelect = async (iconName: string) => {
-    debugLog.debug('DatabaseToolbar', 'handleIconSelect called with:', iconName, 'iconTarget:', iconTarget);
+    debugLog.debug('DatabaseToolbar', `handleIconSelect called with: ${iconName}, iconTarget: ${iconTarget}`);
     
     if (!iconTarget) {
       

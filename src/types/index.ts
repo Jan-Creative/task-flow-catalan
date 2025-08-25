@@ -1,6 +1,15 @@
 // ============= TIPUS CENTRALITZATS DE L'APLICACIÓ =============
+// This file re-exports types from the new modular type system
 
-// ============= TASK TYPES =============
+// Re-export task types
+export * from './task';
+export * from './common';
+
+// Legacy compatibility - keep these for now to avoid breaking changes
+export type TaskStatus = "pendent" | "en_proces" | "completat" | string;
+export type TaskPriority = "alta" | "mitjana" | "baixa" | "urgent" | string;
+
+// Legacy task interface
 export interface Tasca {
   id: string;
   title: string;
@@ -12,13 +21,6 @@ export interface Tasca {
   created_at: string;
   updated_at: string;
 }
-
-// More flexible types for custom priorities and statuses
-export type TaskStatus = "pendent" | "en_proces" | "completat" | string;
-export type TaskPriority = "alta" | "mitjana" | "baixa" | "urgent" | string;
-
-// Alias for compatibility with existing code
-export interface Task extends Tasca {}
 
 // ============= FOLDER TYPES =============
 export interface Carpeta {

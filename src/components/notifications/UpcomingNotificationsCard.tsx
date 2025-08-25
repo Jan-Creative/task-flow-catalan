@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { useUpcomingNotifications } from "@/hooks/useUpcomingNotifications";
 import { useNotificationContext } from "@/contexts/NotificationContext";
 import { RescheduleNotificationDialog } from "./RescheduleNotificationDialog";
+import { supabase } from "@/integrations/supabase/client";
 
 export const UpcomingNotificationsCard = () => {
   const { data: upcomingNotifications, isLoading, error, refetch } = useUpcomingNotifications();
@@ -45,9 +46,23 @@ export const UpcomingNotificationsCard = () => {
   };
 
   const handleRescheduleConfirm = async (notificationId: string, newDateTime: string) => {
-    // For now, we'll just show a message since this requires updating the notification_reminders table
-    toast.info("Funcionalitat de reprogramació disponible aviat");
-    // TODO: Implement actual rescheduling logic
+    try {
+      const { error } = await supabase
+        .from('notification_reminders')
+        .update({ 
+          scheduled_at: newDateTime,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', notificationId);
+
+      if (error) throw error;
+
+      toast.success("Notificació reprogramada correctament");
+      refetch(); // Refresh the list
+    } catch (error) {
+      console.error('Error rescheduling notification:', error);
+      toast.error("Error reprogramant la notificació");
+    }
   };
 
   const getTimeUntil = (dateString: string) => {

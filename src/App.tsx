@@ -10,6 +10,7 @@ import { BackgroundRefresher } from "@/components/ui/navigation-optimizers";
 import { BackgroundRenderer } from "@/components/backgrounds/BackgroundRenderer";
 import { NotificationDisplay } from "@/components/NotificationDisplay";
 import { NotificationProvider } from "@/contexts/NotificationContext";
+import { PerformanceMonitor } from "@/components/performance/PerformanceMonitor";
 
 const App = () => (
   <div className="w-full min-h-screen overflow-x-hidden">
@@ -31,6 +32,7 @@ const App = () => (
         </BrowserRouter>
         <PomodoroWidget />
         <NotificationDisplay />
+        <PerformanceMonitor />
       </NotificationProvider>
     </TooltipProvider>
   </div>
