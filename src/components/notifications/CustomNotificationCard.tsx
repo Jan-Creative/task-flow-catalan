@@ -57,11 +57,6 @@ export const CustomNotificationCard = () => {
       return;
     }
 
-    if (!notificationsReady) {
-      toast.error("Les notificacions no estan disponibles. Activa-les a la configuració.");
-      return;
-    }
-
     setLoading(true);
     try {
       const scheduledDate = new Date(formData.scheduleTime);
@@ -71,12 +66,9 @@ export const CustomNotificationCard = () => {
       }
 
       await createCustomNotification(formData.title, formData.message, scheduledDate);
-      toast.success("Notificació programada!", {
-        description: `Programada per ${new Date(formData.scheduleTime).toLocaleString()}`
-      });
       clearForm();
     } catch (error) {
-      console.error('Error scheduling notification:', error);
+      console.error('Error programant la notificació:', error);
       toast.error("Error programant la notificació");
     } finally {
       setLoading(false);
@@ -138,7 +130,7 @@ export const CustomNotificationCard = () => {
         <div className="flex gap-2 pt-2">
           <Button 
             onClick={handleSendNow}
-            disabled={loading || !notificationsReady}
+            disabled={loading || !formData.title || !formData.message || !notificationsReady}
             className="flex-1 gap-2"
             size="sm"
           >
@@ -149,7 +141,7 @@ export const CustomNotificationCard = () => {
           <Button 
             onClick={handleSchedule}
             variant="outline"
-            disabled={loading || !notificationsReady}
+            disabled={loading || !formData.title || !formData.message || !formData.scheduleTime}
             className="flex-1 gap-2"
             size="sm"
           >
