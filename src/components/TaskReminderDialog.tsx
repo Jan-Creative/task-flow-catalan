@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useNotificationContext } from "@/contexts/NotificationContext";
+import { AdaptiveNotificationSetup } from "@/components/notifications/AdaptiveNotificationSetup";
 import { format, addMinutes, addHours, addDays } from "date-fns";
 
 interface TaskReminderDialogProps {
@@ -47,7 +48,7 @@ export const TaskReminderDialog = ({ taskId, taskTitle, children }: TaskReminder
   const [reminderMessage, setReminderMessage] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   
-  const { createTaskReminder, isSupported, permissionStatus } = useNotificationContext();
+  const { createTaskReminder, isSupported, permissionStatus, isSubscribed } = useNotificationContext();
 
   const calculateScheduledDate = (quickValue: string): Date => {
     const now = new Date();
@@ -153,12 +154,8 @@ export const TaskReminderDialog = ({ taskId, taskTitle, children }: TaskReminder
           </DialogDescription>
         </DialogHeader>
 
-        {permissionStatus !== 'granted' && (
-          <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-            <p className="text-sm text-yellow-800">
-              ⚠️ Necessites activar les notificacions per rebre recordatoris.
-            </p>
-          </div>
+        {(!isSupported || permissionStatus !== 'granted' || !isSubscribed) && (
+          <AdaptiveNotificationSetup compact />
         )}
 
         <div className="grid gap-4 py-4">
@@ -266,7 +263,7 @@ export const TaskReminderDialog = ({ taskId, taskTitle, children }: TaskReminder
           </Button>
           <Button 
             onClick={handleCreateReminder}
-            disabled={!isFormValid || isCreating || permissionStatus !== 'granted'}
+            disabled={!isFormValid || isCreating || permissionStatus !== 'granted' || !isSubscribed}
           >
             {isCreating ? "Creant..." : "Crear recordatori"}
           </Button>
