@@ -6,8 +6,6 @@ import DatabaseToolbar from "@/components/DatabaseToolbar";
 import { useDadesApp } from "@/hooks/useDadesApp";
 import { useOptimizedPropertyLabels } from "@/hooks/useOptimizedPropertyLabels";
 import { useOptimisticTasks } from "@/hooks/useOptimisticTasks";
-import { PWAInstallPrompt } from "@/components/ui/pwa-install-prompt";
-import { AdaptiveNotificationSetup } from "@/components/notifications/AdaptiveNotificationSetup";
 import { SlidersHorizontal, Loader2 } from "lucide-react";
 
 interface TodayPageProps {
@@ -212,11 +210,6 @@ const TodayPage = React.memo(({ onEditTask, onNavigateToSettings }: TodayPagePro
       <div className="space-y-4">
         <h1 className="text-3xl font-bold text-foreground">Avui</h1>
         
-        {/* Notification Setup */}
-        <div className="space-y-3 max-w-md mx-auto">
-          <PWAInstallPrompt />
-          <AdaptiveNotificationSetup />
-        </div>
         
         {/* Quick stats */}
         <div className="grid grid-cols-3 gap-3">
