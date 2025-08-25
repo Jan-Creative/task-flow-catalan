@@ -72,7 +72,7 @@ export const useNotifications = () => {
   const [subscription, setSubscription] = useState<PushSubscription | null>(null);
   const [supportsDeclarative, setSupportsDeclarative] = useState(false);
 
-  // Verificar compatibilitat al carregar
+  // Verificar compatibilitat al carregar + detecció de subscripcions existents
   useEffect(() => {
     const supported = isWebPushSupported();
     const usable = canUseWebPush();
@@ -86,6 +86,11 @@ export const useNotifications = () => {
       setPermissionStatus(Notification.permission);
     }
     
+    // Verificar si existeix subscripció activa (per detectar estats inconsistents)
+    if (user && supported && usable) {
+      checkExistingSubscription();
+    }
+    
     console.log('🔍 Web Push Support:', { 
       supported, 
       usable, 
@@ -94,7 +99,42 @@ export const useNotifications = () => {
       isPWA: isPWA(),
       swStatus: swStatus
     });
-  }, [swStatus]);
+  }, [swStatus, user]);
+
+  /**
+   * Verificar si hi ha subscripció activa
+   */
+  const checkExistingSubscription = useCallback(async () => {
+    try {
+      if ('serviceWorker' in navigator) {
+        const registration = await navigator.serviceWorker.getRegistration();
+        if (registration) {
+          const existingSubscription = await registration.pushManager.getSubscription();
+          if (existingSubscription) {
+            console.log('🔍 Subscripció Web Push existent detectada');
+            setSubscription(existingSubscription);
+            setIsSubscribed(true);
+            
+            // Forçar permisos com 'granted' si tenim subscripció
+            if (Notification.permission === 'granted') {
+              setPermissionStatus('granted');
+              setIsInitialized(true);
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error verificant subscripció existent:', error);
+    }
+  }, []);
+
+  // Carregar dades quan l'usuari canvia
+  useEffect(() => {
+    if (user) {
+      loadPreferences();
+      loadSubscriptions();
+    }
+  }, [user]);
 
   /**
    * Inicialitzar notificacions amb detecció Apple/Safari optimitzada
@@ -635,6 +675,67 @@ export const useNotifications = () => {
     }
   }, [user, refreshData]);
 
+  /**
+   * Netejar subscripcions duplicades
+   */
+  const cleanupDuplicateSubscriptions = useCallback(async () => {
+    if (!user) return;
+    
+    try {
+      console.log('🧹 Netejant subscripcions duplicades...');
+      
+      // Mantenir només la subscripció més recent
+      const { error } = await supabase
+        .from('web_push_subscriptions')
+        .delete()
+        .eq('user_id', user.id)
+        .not('id', 'in', `(
+          SELECT id FROM web_push_subscriptions 
+          WHERE user_id = '${user.id}' 
+          ORDER BY updated_at DESC 
+          LIMIT 1
+        )`);
+
+      if (error) throw error;
+
+      await loadSubscriptions();
+      console.log('✅ Subscripcions netejades');
+    } catch (error) {
+      console.error('❌ Error netejant subscripcions:', error);
+    }
+  }, [user, loadSubscriptions]);
+
+  /**
+   * Purgar totes les subscripcions i començar de nou
+   */
+  const purgeAllSubscriptions = useCallback(async () => {
+    if (!user) return;
+    
+    try {
+      console.log('🗑️ Purgant totes les subscripcions...');
+      
+      const { error } = await supabase
+        .from('web_push_subscriptions')
+        .delete()
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      // Reset local state
+      setSubscriptions([]);
+      setIsSubscribed(false);
+      setIsInitialized(false);
+      setSubscription(null);
+      
+      console.log('✅ Totes les subscripcions purgades');
+    } catch (error) {
+      console.error('❌ Error purgant subscripcions:', error);
+    }
+  }, [user]);
+
+  // Estat efectiu de notificacions
+  const notificationsReady = isSupported && canUse && permissionStatus === 'granted' && (isSubscribed || subscription);
+
   return {
     // Estats
     isSupported,
@@ -645,6 +746,7 @@ export const useNotifications = () => {
     subscriptions,
     isInitialized,
     subscription,
+    notificationsReady, // Nou estat efectiu
     
     // Accions
     initializeNotifications,
@@ -655,7 +757,9 @@ export const useNotifications = () => {
     refreshData,
     runRemindersProcessor,
     sendTestNotification,
-    resetSubscription
+    resetSubscription,
+    cleanupDuplicateSubscriptions,
+    purgeAllSubscriptions
   };
 };
 

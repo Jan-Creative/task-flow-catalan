@@ -309,7 +309,7 @@ export const getPlatformType = (): 'ios-iphone' | 'ios-ipad' | 'macos-safari' | 
   }
   
   // Detectar macOS real
-  if (isMacOS()) {
+  if (isMacOS() && isSafari()) {
     return isPWAMode ? 'macos-pwa' : 'macos-safari';
   }
   
@@ -326,7 +326,7 @@ export const getPlatformType = (): 'ios-iphone' | 'ios-ipad' | 'macos-safari' | 
  */
 export const requiresPWAForWebPush = (): boolean => {
   const platform = getPlatformType();
-  // macOS Safari (16.4+) suporta Web Push nativement sense PWA
+  // NOMÉS iOS Safari requereix PWA. macOS Safari suporta Web Push nativement
   return platform === 'ios-iphone' || platform === 'ios-ipad';
 };
 

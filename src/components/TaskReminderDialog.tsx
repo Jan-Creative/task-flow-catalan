@@ -49,7 +49,7 @@ export const TaskReminderDialog = ({ taskId, taskTitle, children }: TaskReminder
   const [reminderMessage, setReminderMessage] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   
-  const { createTaskReminder, isSupported, permissionStatus, isSubscribed } = useNotificationContext();
+  const { createTaskReminder, isSupported, permissionStatus, isSubscribed, notificationsReady } = useNotificationContext();
 
   const calculateScheduledDate = (quickValue: string): Date => {
     const now = new Date();
@@ -126,6 +126,9 @@ export const TaskReminderDialog = ({ taskId, taskTitle, children }: TaskReminder
     return null;
   }
 
+  // Estat efectiu: permetre crear recordatoris si tenim permisos O subscripció
+  const canCreateReminders = notificationsReady || (permissionStatus === 'granted' && isSubscribed);
+
   const scheduledDate = getScheduledDate();
   const isFormValid = scheduledDate && scheduledDate > new Date();
 
@@ -155,7 +158,7 @@ export const TaskReminderDialog = ({ taskId, taskTitle, children }: TaskReminder
           </DialogDescription>
         </DialogHeader>
 
-        {(!isSupported || permissionStatus !== 'granted' || !isSubscribed) && (
+        {!canCreateReminders && (
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
@@ -273,7 +276,7 @@ export const TaskReminderDialog = ({ taskId, taskTitle, children }: TaskReminder
           </Button>
           <Button 
             onClick={handleCreateReminder}
-            disabled={!isFormValid || isCreating || permissionStatus !== 'granted' || !isSubscribed}
+            disabled={!isFormValid || isCreating || !canCreateReminders}
           >
             {isCreating ? "Creant..." : "Crear recordatori"}
           </Button>

@@ -15,6 +15,7 @@ interface NotificationContextType {
   subscriptions: WebPushSubscriptionDB[];
   isInitialized: boolean;
   subscription: PushSubscription | null;
+  notificationsReady: boolean;
   
   // Accions
   initializeNotifications: () => Promise<boolean>;
@@ -47,13 +48,13 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
   const { toast } = useToast();
   const notifications = useNotifications();
 
-  // Auto-inicialitzar quan l'usuari es conecta
-  useEffect(() => {
-    if (user && notifications.canUse && !notifications.isInitialized) {
-      console.log('🔄 Auto-inicialitzant notificacions per usuari autenticat');
-      notifications.initializeNotifications();
-    }
-  }, [user, notifications.canUse, notifications.isInitialized]);
+  // Auto-inicialització DESHABILITADA - ara manual
+  // useEffect(() => {
+  //   if (user && notifications.canUse && !notifications.isInitialized) {
+  //     console.log('🔄 Auto-inicialitzant notificacions per usuari autenticat');
+  //     notifications.initializeNotifications();
+  //   }
+  // }, [user, notifications.canUse, notifications.isInitialized]);
 
   // Wrapper functions with error handling
   const wrappedActions = {
@@ -181,6 +182,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     subscriptions: notifications.subscriptions,
     isInitialized: notifications.isInitialized,
     subscription: notifications.subscription,
+    notificationsReady: notifications.isSupported && notifications.canUse && notifications.permissionStatus === 'granted' && (notifications.isSubscribed || !!notifications.subscription),
     
     // Accions amb error handling
     ...wrappedActions

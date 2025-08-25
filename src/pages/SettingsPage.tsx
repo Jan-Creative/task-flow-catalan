@@ -4,7 +4,7 @@ import { SettingsSection } from "@/components/settings/SettingsSection";
 import { UserProfileCard } from "@/components/settings/UserProfileCard";
 
 import { Bell, User } from "lucide-react";
-import { NotificationSetupCard } from "@/components/notifications/NotificationSetupCard";
+import { NotificationDebugPanel } from "@/components/NotificationDebugPanel";
 
 const SettingsPage = () => {
   const { user } = useAuth();
@@ -30,7 +30,7 @@ const SettingsPage = () => {
         title="Notificacions" 
         description="Configura les teves preferències de notificacions"
       >
-        <NotificationSetupCard />
+        <NotificationDebugPanel />
       </SettingsSection>
 
 
