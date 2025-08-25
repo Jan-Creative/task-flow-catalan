@@ -8,9 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/lib/toastUtils";
 import { useNotificationContext } from "@/contexts/NotificationContext";
-import { Bell, Clock, Plus, X, AlertCircle } from "lucide-react";
-import { PWAInstallPrompt } from "@/components/ui/pwa-install-prompt";
-import { ServiceWorkerStatus } from "@/components/ui/service-worker-status";
+import { Bell, Clock, Plus, X, AlertCircle, Settings } from "lucide-react";
 import { format } from "date-fns";
 import { ca } from "date-fns/locale";
 
@@ -52,14 +50,8 @@ export const TaskRemindersCard = ({ taskId, taskTitle }: TaskRemindersCardProps)
     createTaskReminder, 
     cancelReminder, 
     isSupported, 
-    canUse,
     permissionStatus,
-    initializeNotifications,
-    isSubscribed,
-    subscriptions,
-    preferences,
-    runRemindersProcessor,
-    sendTestNotification
+    isSubscribed
   } = useNotificationContext();
   const { toast } = useToast();
   
@@ -159,16 +151,12 @@ export const TaskRemindersCard = ({ taskId, taskTitle }: TaskRemindersCardProps)
     }
 
     if (permissionStatus !== "granted") {
-      try {
-        await initializeNotifications();
-      } catch (error) {
-        toast({
-          title: "Permisos necessaris",
-          description: "Has d'activar els permisos de notificació per crear recordatoris.",
-          variant: "destructive",
-        });
-        return;
-      }
+      toast({
+        title: "Permisos necessaris",
+        description: "Has d'activar els permisos de notificació a la pàgina de configuració.",
+        variant: "destructive",
+      });
+      return;
     }
 
     const scheduledDate = getScheduledDate();
@@ -269,11 +257,14 @@ export const TaskRemindersCard = ({ taskId, taskTitle }: TaskRemindersCardProps)
         <CardContent className="space-y-4">
           <div className="flex items-center gap-2 text-muted-foreground">
             <AlertCircle className="h-4 w-4" />
-            <p className="text-sm">Les notificacions Web Push no estan suportades en aquest navegador.</p>
+            <p className="text-sm">Les notificacions no estan disponibles en aquest navegador.</p>
           </div>
-          <div className="text-xs text-muted-foreground">
-            <p>Navegadors compatibles: Chrome, Edge, Firefox, Safari (amb PWA)</p>
-          </div>
+          <Button variant="outline" size="sm" asChild>
+            <a href="/?tab=configuracio" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              Configurar notificacions
+            </a>
+          </Button>
         </CardContent>
       </Card>
     );
@@ -291,39 +282,21 @@ export const TaskRemindersCard = ({ taskId, taskTitle }: TaskRemindersCardProps)
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {(permissionStatus !== "granted" || !canUse) && (
+        {(permissionStatus !== "granted" || !isSubscribed) && (
           <div className="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg">
             <div className="flex items-center gap-2 text-amber-800 dark:text-amber-200">
               <AlertCircle className="h-4 w-4" />
               <p className="text-sm">
-                {!canUse 
-                  ? "📱 Safari/iOS requereix instal·lar l'app com PWA per utilitzar notificacions push."
-                  : permissionStatus !== "granted"
-                  ? "🔐 Cal activar els permisos de notificació per crear recordatoris."
-                  : "⚠️ Sistema de notificacions no disponible."
-                }
+                Cal configurar les notificacions per crear recordatoris.
               </p>
             </div>
-            {canUse && permissionStatus !== "granted" && (
-              <Button 
-                onClick={initializeNotifications}
-                size="sm" 
-                className="mt-2"
-              >
-                Activar notificacions
-              </Button>
-            )}
-            {!canUse && (
-              <div className="mt-2 text-xs text-amber-700 dark:text-amber-300">
-                <p>Per Safari: Busca el botó "Compartir" → "Afegir a la pantalla d'inici"</p>
-              </div>
-            )}
+            <Button variant="outline" size="sm" className="mt-2" asChild>
+              <a href="/?tab=configuracio" className="flex items-center gap-2">
+                <Settings className="h-4 w-4" />
+                Configurar notificacions
+              </a>
+            </Button>
           </div>
-        )}
-
-        {/* PWA Install Prompt per Safari/iOS */}
-        {!canUse && (
-          <PWAInstallPrompt onInstallComplete={() => window.location.reload()} />
         )}
 
         {/* Llista de recordatoris existents */}
@@ -368,68 +341,13 @@ export const TaskRemindersCard = ({ taskId, taskTitle }: TaskRemindersCardProps)
           <p className="text-sm text-muted-foreground">No hi ha recordatoris programats.</p>
         )}
 
-        {/* Estat del sistema de notificacions */}
-        {permissionStatus === "granted" && (
-          <div className="space-y-3 p-3 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-green-800 dark:text-green-200">
-                <div className="w-2 h-2 bg-green-500 rounded-full" />
-                <span className="text-sm font-medium">Sistema actiu</span>
-              </div>
-              <ServiceWorkerStatus />
-            </div>
-            
-            <div className="grid grid-cols-1 gap-2 text-xs text-green-700 dark:text-green-300">
-              <div className="flex justify-between">
-                <span>Subscripció:</span>
-                <span>{isSubscribed ? '✓ Registrada' : '✗ No registrada'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Dispositius:</span>
-                <span>{subscriptions?.length || 0} actius</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Preferències:</span>
-                <span>{preferences?.enabled ? '✓ Habilitades' : '✗ Deshabilitades'}</span>
-              </div>
-            </div>
-
-            <div className="flex gap-2">
-              <Button
-                onClick={initializeNotifications}
-                size="sm"
-                variant="outline"
-                className="flex-1 text-xs"
-              >
-                Reinicia permisos
-              </Button>
-              <Button
-                onClick={runRemindersProcessor}
-                size="sm"
-                variant="outline"
-                className="flex-1 text-xs"
-              >
-                Executa processador
-              </Button>
-            </div>
-            
-            <Button
-              onClick={sendTestNotification}
-              size="sm"
-              variant="outline"
-              className="w-full text-xs"
-            >
-              🧪 Prova ràpida
-            </Button>
-          </div>
-        )}
 
         {/* Botó per crear nou recordatori */}
         {!showCreateForm && (
           <Button
             onClick={() => setShowCreateForm(true)}
             className="w-full"
-            disabled={permissionStatus !== "granted" || !canUse}
+            disabled={permissionStatus !== "granted" || !isSubscribed}
           >
             <Plus className="h-4 w-4 mr-2" />
             Crear recordatori

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bell, Smartphone, Monitor, Tablet, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Bell, Smartphone, Monitor, Tablet, AlertCircle, CheckCircle2, Loader2, Trash2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,14 +9,16 @@ import { getPlatformType, isSafari, isPWA, requiresPWAForWebPush } from "@/lib/w
 
 export const NotificationSetupCard = () => {
   const [showInstructions, setShowInstructions] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isInitializing, setIsInitializing] = useState(false);
   
   const {
     isSupported,
     permissionStatus,
     isSubscribed,
     isInitialized,
-    initializeNotifications
+    initializeNotifications,
+    subscriptions,
+    resetSubscription
   } = useNotificationContext();
 
   const platform = getPlatformType();
@@ -108,10 +110,13 @@ export const NotificationSetupCard = () => {
       return;
     }
 
+    setIsInitializing(true);
     try {
       await initializeNotifications();
     } catch (error) {
       console.error('Error initializing notifications:', error);
+    } finally {
+      setIsInitializing(false);
     }
   };
 
@@ -134,7 +139,7 @@ export const NotificationSetupCard = () => {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-3">
           <div className="flex items-center gap-2">
             <Badge variant="secondary" className="bg-green-100 text-green-800">
               Funcionant
@@ -143,6 +148,23 @@ export const NotificationSetupCard = () => {
               Ja pots crear recordatoris de tasques
             </span>
           </div>
+          
+          {(subscriptions && subscriptions.length > 1) && (
+            <div className="flex items-center justify-between p-3 bg-amber-50 border border-amber-200 rounded-lg">
+              <div className="text-sm text-amber-800">
+                {subscriptions.length} subscripcions actives detectades
+              </div>
+              <Button 
+                onClick={resetSubscription}
+                variant="outline"
+                size="sm"
+                className="text-amber-700 border-amber-300"
+              >
+                <Trash2 className="h-3 w-3 mr-1" />
+                Netejar
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     );
@@ -246,26 +268,23 @@ export const NotificationSetupCard = () => {
               </ul>
             </div>
             
-            <div className="flex gap-2">
-              <Button 
-                onClick={handleSetupClick}
-                className="flex-1"
-                disabled={permissionStatus === 'denied' as NotificationPermission}
-              >
-                <Bell className="h-4 w-4 mr-2" />
-                {needsPWA && !pwaInstalled ? 'Veure instruccions' : 'Activar notificacions'}
-              </Button>
-              
-              {(platform === 'ios-iphone' || platform === 'ios-ipad') && !pwaInstalled && (
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setShowInstructions(!showInstructions)}
-                >
-                  Ajuda
-                </Button>
+            <Button 
+              onClick={handleSetupClick}
+              className="w-full"
+              disabled={permissionStatus === 'denied' as NotificationPermission || isInitializing}
+            >
+              {isInitializing ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Configurant...
+                </>
+              ) : (
+                <>
+                  <Bell className="h-4 w-4 mr-2" />
+                  {needsPWA && !pwaInstalled ? 'Veure instruccions' : 'Activar notificacions'}
+                </>
               )}
-            </div>
+            </Button>
           </div>
         )}
       </CardContent>

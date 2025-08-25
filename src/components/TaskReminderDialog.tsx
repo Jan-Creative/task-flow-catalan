@@ -21,8 +21,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useNotificationContext } from "@/contexts/NotificationContext";
-import { AdaptiveNotificationSetup } from "@/components/notifications/AdaptiveNotificationSetup";
 import { format, addMinutes, addHours, addDays } from "date-fns";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 interface TaskReminderDialogProps {
   taskId: string;
@@ -155,7 +156,16 @@ export const TaskReminderDialog = ({ taskId, taskTitle, children }: TaskReminder
         </DialogHeader>
 
         {(!isSupported || permissionStatus !== 'granted' || !isSubscribed) && (
-          <AdaptiveNotificationSetup compact />
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Per crear recordatoris necessites activar les notificacions a la pàgina de{" "}
+              <a href="/?tab=configuracio" className="underline font-medium">
+                Configuració
+              </a>
+              .
+            </AlertDescription>
+          </Alert>
         )}
 
         <div className="grid gap-4 py-4">
