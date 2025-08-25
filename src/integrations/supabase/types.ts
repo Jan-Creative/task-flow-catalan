@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      block_notifications: {
+        Row: {
+          block_id: string
+          created_at: string
+          id: string
+          message: string
+          time: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          block_id: string
+          created_at?: string
+          id?: string
+          message: string
+          time: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          block_id?: string
+          created_at?: string
+          id?: string
+          message?: string
+          time?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       folders: {
         Row: {
           color: string | null
@@ -44,6 +74,36 @@ export type Database = {
           name?: string
           updated_at?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      notification_blocks: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -127,6 +187,7 @@ export type Database = {
       }
       notification_reminders: {
         Row: {
+          block_id: string | null
           created_at: string
           id: string
           message: string
@@ -141,6 +202,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          block_id?: string | null
           created_at?: string
           id?: string
           message: string
@@ -155,6 +217,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          block_id?: string | null
           created_at?: string
           id?: string
           message?: string
@@ -168,7 +231,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "notification_reminders_block_id_fkey"
+            columns: ["block_id"]
+            isOneToOne: false
+            referencedRelation: "notification_blocks"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notification_subscriptions: {
         Row: {

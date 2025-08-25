@@ -3,46 +3,24 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Package, Edit2, Trash2 } from "lucide-react";
+import { Plus, Package, Edit2, Trash2, Loader2 } from "lucide-react";
 import { NotificationBlockModal } from "./NotificationBlockModal";
-
-interface NotificationBlock {
-  id: string;
-  name: string;
-  description: string;
-  isActive: boolean;
-  notifications: Array<{
-    id: string;
-    title: string;
-    message: string;
-    time: string;
-  }>;
-}
+import { useNotificationBlocks } from "@/hooks/useNotificationBlocks";
 
 export const NotificationBlocksCard = () => {
-  const [blocks, setBlocks] = useState<NotificationBlock[]>([
-    {
-      id: "1",
-      name: "Dia intens",
-      description: "Motivació per dies de molt treball",
-      isActive: true,
-      notifications: [
-        { id: "1", title: "Bon dia!", message: "Comença el dia amb energia", time: "10:00" },
-        { id: "2", title: "Descans", message: "Fes una pausa i respira", time: "17:30" },
-        { id: "3", title: "Final del dia", message: "Has treballat dur avui!", time: "20:30" }
-      ]
-    },
-    {
-      id: "2", 
-      name: "Rutina matinal",
-      description: "Recordatoris per començar bé el dia",
-      isActive: false,
-      notifications: [
-        { id: "4", title: "Exercici", message: "Temps d'activitat física", time: "07:00" },
-        { id: "5", title: "Esmorzar", message: "No oblidis esmorzar sa", time: "08:30" }
-      ]
-    }
-  ]);
+  const { 
+    blocks, 
+    isLoading, 
+    error,
+    createBlock,
+    updateBlock,
+    deleteBlock,
+    toggleBlock,
+    isCreating,
+    isUpdating,
+    isDeleting,
+    isToggling
+  } = useNotificationBlocks();
 
   const [modalState, setModalState] = useState<{
     isOpen: boolean;
@@ -54,11 +32,10 @@ export const NotificationBlocksCard = () => {
   });
 
   const handleToggleBlock = (blockId: string) => {
-    setBlocks(prev => prev.map(block => 
-      block.id === blockId 
-        ? { ...block, isActive: !block.isActive }
-        : block
-    ));
+    const block = blocks.find(b => b.id === blockId);
+    if (block) {
+      toggleBlock({ blockId, isActive: !block.is_active });
+    }
   };
 
   const handleCreateBlock = () => {
@@ -77,30 +54,52 @@ export const NotificationBlocksCard = () => {
   };
 
   const handleDeleteBlock = (blockId: string) => {
-    setBlocks(prev => prev.filter(block => block.id !== blockId));
+    if (window.confirm('Estàs segur que vols eliminar aquest bloc?')) {
+      deleteBlock(blockId);
+    }
   };
 
-  const handleSaveBlock = (blockData: Omit<NotificationBlock, 'id'>) => {
+  const handleSaveBlock = (blockData: any) => {
+    // Convert the modal data format to our hook format
+    const formattedData = {
+      name: blockData.name,
+      description: blockData.description,
+      is_active: blockData.isActive,
+      notifications: blockData.notifications
+    };
+
     if (modalState.mode === 'create') {
-      const newBlock: NotificationBlock = {
-        id: Date.now().toString(),
-        ...blockData
-      };
-      setBlocks(prev => [...prev, newBlock]);
+      createBlock(formattedData);
     } else if (modalState.mode === 'edit' && modalState.blockId) {
-      setBlocks(prev => prev.map(block => 
-        block.id === modalState.blockId 
-          ? { ...block, ...blockData }
-          : block
-      ));
+      updateBlock({ blockId: modalState.blockId, blockData: formattedData });
     }
     
     setModalState({ isOpen: false, mode: 'create' });
   };
 
+  // Convert block data format for the modal
   const editingBlock = modalState.blockId 
-    ? blocks.find(block => block.id === modalState.blockId)
+    ? (() => {
+        const block = blocks.find(b => b.id === modalState.blockId);
+        return block ? {
+          ...block,
+          isActive: block.is_active
+        } : null;
+      })()
     : null;
+
+  if (error) {
+    return (
+      <Card className="animate-fade-in h-full" style={{ animationDelay: '0.2s' }}>
+        <CardContent className="p-4 pt-6">
+          <div className="text-center py-8 text-destructive">
+            <Package className="h-8 w-8 mx-auto mb-2 opacity-50" />
+            <p className="text-sm">Error al carregar els blocs</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <>
@@ -150,9 +149,10 @@ export const NotificationBlocksCard = () => {
                     </div>
                     
                     <Switch
-                      checked={block.isActive}
+                      checked={block.is_active}
                       onCheckedChange={() => handleToggleBlock(block.id)}
                       className="ml-2"
+                      disabled={isToggling}
                     />
                   </div>
                   
