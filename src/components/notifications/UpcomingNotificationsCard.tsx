@@ -1,76 +1,61 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Calendar, X, Edit3 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Clock, Calendar, X, Edit3, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 import { ca } from "date-fns/locale";
 import { toast } from "sonner";
-
-interface UpcomingNotification {
-  id: string;
-  title: string;
-  message: string;
-  scheduledAt: Date;
-  source: 'custom' | 'block';
-  blockName?: string;
-  blockId?: string;
-}
+import { useUpcomingNotifications } from "@/hooks/useUpcomingNotifications";
+import { useNotificationContext } from "@/contexts/NotificationContext";
+import { RescheduleNotificationDialog } from "./RescheduleNotificationDialog";
 
 export const UpcomingNotificationsCard = () => {
-  const [upcomingNotifications, setUpcomingNotifications] = useState<UpcomingNotification[]>([
-    {
-      id: "1",
-      title: "Descans",
-      message: "Fes una pausa i respira",
-      scheduledAt: new Date(Date.now() + 3 * 60 * 60 * 1000), // en 3 hores
-      source: 'block',
-      blockName: 'Dia intens',
-      blockId: 'block-1'
-    },
-    {
-      id: "2",
-      title: "Final del dia",
-      message: "Has treballat dur avui!",
-      scheduledAt: new Date(Date.now() + 8 * 60 * 60 * 1000), // en 8 hores
-      source: 'block',
-      blockName: 'Dia intens',
-      blockId: 'block-1'
-    },
-    {
-      id: "3",
-      title: "Recordatori personalitzat",
-      message: "Revisar informe trimestral",
-      scheduledAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // demà
-      source: 'custom'
-    },
-    {
-      id: "4",
-      title: "Exercici matinal",
-      message: "Temps d'activitat física",
-      scheduledAt: new Date(Date.now() + 36 * 60 * 60 * 1000), // demà matí
-      source: 'block',
-      blockName: 'Rutina matinal',
-      blockId: 'block-2'
+  const { data: upcomingNotifications, isLoading, error, refetch } = useUpcomingNotifications();
+  const { cancelReminder } = useNotificationContext();
+  const [rescheduleDialog, setRescheduleDialog] = useState<{
+    open: boolean;
+    notification?: any;
+  }>({ open: false });
+  const [loadingActions, setLoadingActions] = useState<Record<string, boolean>>({});
+
+  const handleCancelNotification = async (notificationId: string) => {
+    setLoadingActions(prev => ({ ...prev, [notificationId]: true }));
+    try {
+      await cancelReminder(notificationId);
+      await refetch(); // Refresh the list
+    } catch (error) {
+      console.error('Error cancelling notification:', error);
+    } finally {
+      setLoadingActions(prev => ({ ...prev, [notificationId]: false }));
     }
-  ]);
-
-  const handleCancelNotification = (notificationId: string) => {
-    setUpcomingNotifications(prev => 
-      prev.filter(notification => notification.id !== notificationId)
-    );
-    toast.success("Notificació cancel·lada");
   };
 
-  const handleReschedule = (notificationId: string) => {
-    // Aquí es podria obrir un modal per reprogramar
+  const handleReschedule = (notification: any) => {
+    setRescheduleDialog({
+      open: true,
+      notification: {
+        id: notification.id,
+        title: notification.title,
+        message: notification.message,
+        scheduled_at: notification.scheduled_at
+      }
+    });
+  };
+
+  const handleRescheduleConfirm = async (notificationId: string, newDateTime: string) => {
+    // For now, we'll just show a message since this requires updating the notification_reminders table
     toast.info("Funcionalitat de reprogramació disponible aviat");
+    // TODO: Implement actual rescheduling logic
   };
 
-  const getTimeUntil = (date: Date) => {
+  const getTimeUntil = (dateString: string) => {
     const now = new Date();
+    const date = new Date(dateString);
     const diffInMinutes = Math.floor((date.getTime() - now.getTime()) / (1000 * 60));
     
+    if (diffInMinutes < 1) return "Ara mateix";
     if (diffInMinutes < 60) return `En ${diffInMinutes}min`;
     
     const diffInHours = Math.floor(diffInMinutes / 60);
@@ -82,9 +67,16 @@ export const UpcomingNotificationsCard = () => {
     return `En ${diffInDays} dies`;
   };
 
-  const sortedNotifications = upcomingNotifications.sort(
-    (a, b) => a.scheduledAt.getTime() - b.scheduledAt.getTime()
-  );
+  // Real-time countdown update
+  const [, setCurrentTime] = useState(new Date());
+  
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000); // Update every minute
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <Card className="animate-fade-in h-full" style={{ animationDelay: '0.4s' }}>
@@ -97,68 +89,106 @@ export const UpcomingNotificationsCard = () => {
       
       <CardContent className="p-4 pt-0">
         <div className="space-y-3 max-h-80 overflow-y-auto">
-          {sortedNotifications.length === 0 ? (
+          {isLoading ? (
+            Array.from({ length: 3 }, (_, i) => (
+              <div key={i} className="p-3 bg-secondary/20 rounded-lg border border-border/30">
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-3 w-1/2" />
+                  </div>
+                  <div className="flex gap-1">
+                    <Skeleton className="h-6 w-6" />
+                    <Skeleton className="h-6 w-6" />
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <Skeleton className="h-5 w-16 rounded-full" />
+                  <Skeleton className="h-3 w-12" />
+                </div>
+              </div>
+            ))
+          ) : error ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <AlertCircle className="h-8 w-8 mx-auto mb-2" />
+              <p>Error carregant notificacions</p>
+            </div>
+          ) : !upcomingNotifications?.length ? (
             <div className="text-center py-8 text-muted-foreground">
               <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
               <p className="text-sm">No tens notificacions programades</p>
             </div>
           ) : (
-            sortedNotifications.map(notification => (
-              <div
-                key={notification.id}
-                className="p-3 bg-secondary/20 rounded-lg border border-border/30 hover:bg-secondary/30 transition-colors group"
-              >
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h4 className="font-medium text-sm truncate">{notification.title}</h4>
-                      <Clock className="h-3 w-3 text-blue-500 flex-shrink-0" />
+            upcomingNotifications.map(notification => {
+              const isCustom = notification.notification_type === 'custom' || !notification.task_id;
+              const isLoading = loadingActions[notification.id];
+
+              return (
+                <div
+                  key={notification.id}
+                  className="p-3 bg-secondary/20 rounded-lg border border-border/30 hover:bg-secondary/30 transition-colors group"
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="font-medium text-sm truncate">{notification.title}</h4>
+                        <Clock className="h-3 w-3 text-blue-500 flex-shrink-0" />
+                      </div>
+                      <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
+                        {notification.message}
+                      </p>
                     </div>
-                    <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
-                      {notification.message}
-                    </p>
-                  </div>
-                  
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button
-                      onClick={() => handleReschedule(notification.id)}
-                      size="sm"
-                      variant="ghost"
-                      className="h-6 w-6 p-0"
-                    >
-                      <Edit3 className="h-3 w-3" />
-                    </Button>
-                    <Button
-                      onClick={() => handleCancelNotification(notification.id)}
-                      size="sm"
-                      variant="ghost"
-                      className="h-6 w-6 p-0 text-destructive hover:text-destructive"
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <Badge 
-                    variant={notification.source === 'block' ? 'default' : 'secondary'}
-                    className="text-xs"
-                  >
-                    {notification.source === 'block' ? notification.blockName : 'Personal'}
-                  </Badge>
-                  
-                  <div className="text-xs text-muted-foreground">
-                    <div>{getTimeUntil(notification.scheduledAt)}</div>
-                    <div className="text-xs opacity-75">
-                      {format(notification.scheduledAt, 'HH:mm', { locale: ca })}
+                    
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button
+                        onClick={() => handleReschedule(notification)}
+                        size="sm"
+                        variant="ghost"
+                        className="h-6 w-6 p-0"
+                        disabled={isLoading}
+                      >
+                        <Edit3 className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        onClick={() => handleCancelNotification(notification.id)}
+                        size="sm"
+                        variant="ghost"
+                        className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                        disabled={isLoading}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
                     </div>
                   </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <Badge 
+                      variant={isCustom ? 'secondary' : 'default'}
+                      className="text-xs"
+                    >
+                      {isCustom ? 'Personal' : 'Recordatori'}
+                    </Badge>
+                    
+                    <div className="text-xs text-muted-foreground text-right">
+                      <div>{getTimeUntil(notification.scheduled_at)}</div>
+                      <div className="text-xs opacity-75">
+                        {format(new Date(notification.scheduled_at), 'HH:mm', { locale: ca })}
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </CardContent>
+      
+      <RescheduleNotificationDialog
+        open={rescheduleDialog.open}
+        onOpenChange={(open) => setRescheduleDialog({ open, notification: open ? rescheduleDialog.notification : undefined })}
+        notification={rescheduleDialog.notification}
+        onReschedule={handleRescheduleConfirm}
+      />
     </Card>
   );
 };
