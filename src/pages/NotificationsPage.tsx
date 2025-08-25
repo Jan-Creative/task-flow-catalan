@@ -79,7 +79,7 @@ const NotificationsPage = () => {
   return (
     <div className="w-full min-h-screen bg-black">
       {/* Top Block - Stats & Create Button */}
-      <div className="bg-secondary rounded-[28px] mx-4 mt-4 mb-6 px-4 pt-4 pb-6">
+      <div className="bg-secondary rounded-b-[28px] px-4 pt-12 pb-6 mb-2">
         <div className="max-w-md mx-auto">
           <div className="p-6">
             <div className="flex items-center justify-between mb-4">
