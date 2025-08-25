@@ -4,14 +4,17 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown, ChevronUp, Bug, Wifi, Bell, Database, Smartphone } from 'lucide-react';
+import { ChevronDown, ChevronUp, Bug, Wifi, Bell, Database, Smartphone, RefreshCw, Zap } from 'lucide-react';
 import { useNotificationContext } from '@/contexts/NotificationContext';
 import { useServiceWorkerStatus } from '@/hooks/useServiceWorkerStatus';
 import { useAuth } from '@/hooks/useAuth';
-import { isSafari, isPWA, canUseWebPush, isWebPushSupported, getVapidFingerprint } from '@/lib/webPushConfig';
+import { isSafari, isPWA, canUseWebPush, isWebPushSupported, getVapidFingerprint, loadVapidPublicKey } from '@/lib/webPushConfig';
+import { toast } from 'sonner';
 
 export const NotificationDebugPanel = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isReloading, setIsReloading] = useState(false);
+  const [lastTestResult, setLastTestResult] = useState<any>(null);
   const { user } = useAuth();
   const { status: swStatus, isReady: swReady } = useServiceWorkerStatus();
   const {
@@ -24,8 +27,40 @@ export const NotificationDebugPanel = () => {
     isInitialized,
     subscription,
     initializeNotifications,
-    sendTestNotification
+    sendTestNotification,
+    refreshData
   } = useNotificationContext();
+
+  const handleReloadVapid = async () => {
+    setIsReloading(true);
+    try {
+      await loadVapidPublicKey();
+      toast.success('VAPID key recarregada correctament');
+    } catch (error) {
+      toast.error('Error recarregant VAPID key');
+      console.error('Error reloading VAPID:', error);
+    } finally {
+      setIsReloading(false);
+    }
+  };
+
+  const handleTestWithDiagnostics = async () => {
+    try {
+      const result = await sendTestNotification();
+      if (result && typeof result === 'object') {
+        setLastTestResult(result);
+        // The toast is already shown by sendTestNotification
+      }
+    } catch (error) {
+      console.error('Test error:', error);
+      setLastTestResult({
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        sent: 0,
+        total: 0
+      });
+    }
+  };
 
   const getStatusColor = (status: boolean | string) => {
     if (typeof status === 'boolean') {
@@ -222,6 +257,39 @@ export const NotificationDebugPanel = () => {
               </div>
             </div>
 
+            {/* Últim resultat de test */}
+            {lastTestResult && (
+              <div className="space-y-3">
+                <h4 className="font-semibold">Últim test de notificació</h4>
+                <div className="p-3 bg-muted rounded-lg">
+                  <div className="grid grid-cols-2 gap-4 mb-3">
+                    <div className="space-y-1">
+                      <div className="text-sm font-medium">Resultat</div>
+                      <Badge variant={lastTestResult.success ? "default" : "destructive"}>
+                        {lastTestResult.success ? 'Èxit' : 'Error'}
+                      </Badge>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="text-sm font-medium">Enviats</div>
+                      <Badge variant="outline">
+                        {lastTestResult.sent}/{lastTestResult.total}
+                      </Badge>
+                    </div>
+                  </div>
+                  {lastTestResult.diagnostics && (
+                    <div className="space-y-2">
+                      <div className="text-sm font-medium">Diagnòstics del servidor</div>
+                      <div className="text-xs space-y-1">
+                        <div><strong>VAPID Server:</strong> {lastTestResult.diagnostics.serverVapidFingerprint}</div>
+                        <div><strong>Timestamp:</strong> {new Date(lastTestResult.diagnostics.timestamp).toLocaleString()}</div>
+                        <div><strong>Keys disponibles:</strong> Public: {lastTestResult.diagnostics.hasVapidKeys.publicKey ? '✅' : '❌'}, Private: {lastTestResult.diagnostics.hasVapidKeys.privateKey ? '✅' : '❌'}</div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Accions de debug */}
             <div className="flex flex-wrap gap-2 pt-4 border-t">
               <Button 
@@ -230,15 +298,35 @@ export const NotificationDebugPanel = () => {
                 size="sm"
                 disabled={!canUse || !user}
               >
+                <RefreshCw className="h-4 w-4 mr-1" />
                 Reinicialitzar
               </Button>
               <Button 
-                onClick={sendTestNotification} 
+                onClick={handleReloadVapid} 
+                variant="outline" 
+                size="sm"
+                disabled={isReloading}
+              >
+                <RefreshCw className={`h-4 w-4 mr-1 ${isReloading ? 'animate-spin' : ''}`} />
+                Recarregar VAPID
+              </Button>
+              <Button 
+                onClick={handleTestWithDiagnostics} 
                 variant="outline" 
                 size="sm"
                 disabled={!isInitialized || permissionStatus !== 'granted'}
               >
-                Enviar prova
+                <Zap className="h-4 w-4 mr-1" />
+                Test amb diagnòstics
+              </Button>
+              <Button 
+                onClick={refreshData} 
+                variant="outline" 
+                size="sm"
+                disabled={!user}
+              >
+                <Database className="h-4 w-4 mr-1" />
+                Actualitzar dades
               </Button>
             </div>
           </CardContent>

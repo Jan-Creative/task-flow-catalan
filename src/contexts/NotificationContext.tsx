@@ -24,7 +24,7 @@ interface NotificationContextType {
   cancelReminder: (reminderId: string) => Promise<void>;
   refreshData: () => Promise<void>;
   runRemindersProcessor: () => Promise<void>;
-  sendTestNotification: () => Promise<void>;
+  sendTestNotification: () => Promise<any>;
 }
 
 const NotificationContext = createContext<NotificationContextType | null>(null);

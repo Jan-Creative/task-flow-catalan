@@ -194,13 +194,24 @@ serve(async (req) => {
 
     console.log(`📊 Resum final: ${sentCount} enviades, ${failedCount} fallides de ${subscriptions.length} total`);
 
+    // Add server VAPID fingerprint for debugging
+    const serverVapidFingerprint = vapidPublicKey ? vapidPublicKey.substring(0, 8) : 'unknown';
+    
     return new Response(JSON.stringify({
       success: sentCount > 0,
       message: `Notificacions Web Push: ${sentCount}/${subscriptions.length} enviades`,
       sent: sentCount,
       failed: failedCount,
       total: subscriptions.length,
-      results
+      results,
+      diagnostics: {
+        serverVapidFingerprint,
+        timestamp: new Date().toISOString(),
+        hasVapidKeys: {
+          publicKey: !!vapidPublicKey,
+          privateKey: !!vapidPrivateKey
+        }
+      }
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
@@ -211,7 +222,15 @@ serve(async (req) => {
       success: false, 
       error: error.message,
       sent: 0,
-      failed: 1
+      failed: 1,
+      diagnostics: {
+        serverVapidFingerprint: 'error',
+        timestamp: new Date().toISOString(),
+        hasVapidKeys: {
+          publicKey: !!Deno.env.get('VAPID_PUBLIC_KEY'),
+          privateKey: !!Deno.env.get('VAPID_PRIVATE_KEY')
+        }
+      }
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

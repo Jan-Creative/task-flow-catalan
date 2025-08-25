@@ -496,7 +496,7 @@ export const useNotifications = () => {
         description: "Has d'estar autenticat per enviar notificacions",
         variant: 'destructive'
       });
-      return;
+      return null;
     }
 
     try {
@@ -541,7 +541,7 @@ export const useNotifications = () => {
             variant: 'destructive'
           });
         }
-        return;
+        return data; // Return data even if test failed for diagnostics
       }
       
       const sentCount = data?.sent || 0;
@@ -559,6 +559,8 @@ export const useNotifications = () => {
           variant: 'destructive'
         });
       }
+      
+      return data; // Return response data for diagnostics
     } catch (error) {
       console.error('❌ Error enviant prova:', error);
       toast({
@@ -566,6 +568,7 @@ export const useNotifications = () => {
         description: "No s'ha pogut enviar la notificació de prova",
         variant: 'destructive'
       });
+      throw error; // Re-throw to allow debug panel to handle it
     }
   }, [user, toast, subscriptions, loadSubscriptions]);
 
