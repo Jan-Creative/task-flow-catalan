@@ -28,6 +28,7 @@ export const NotificationDebugPanel = () => {
     subscription,
     initializeNotifications,
     sendTestNotification,
+    resetSubscription,
     refreshData
   } = useNotificationContext();
 
@@ -327,6 +328,14 @@ export const NotificationDebugPanel = () => {
               >
                 <Database className="h-4 w-4 mr-1" />
                 Actualitzar dades
+              </Button>
+              <Button 
+                onClick={resetSubscription} 
+                variant="destructive" 
+                size="sm"
+                disabled={!user}
+              >
+                🔄 Reinicialitzar
               </Button>
             </div>
           </CardContent>

@@ -25,6 +25,7 @@ interface NotificationContextType {
   refreshData: () => Promise<void>;
   runRemindersProcessor: () => Promise<void>;
   sendTestNotification: () => Promise<any>;
+  resetSubscription: () => Promise<void>;
 }
 
 const NotificationContext = createContext<NotificationContextType | null>(null);
@@ -145,12 +146,25 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
 
     sendTestNotification: async () => {
       try {
-        await notifications.sendTestNotification();
+        return await notifications.sendTestNotification();
       } catch (error) {
         console.error('Error in sendTestNotification:', error);
         toast({
           title: "❌ Error",
           description: "No s'ha pogut enviar la notificació de prova",
+          variant: 'destructive'
+        });
+      }
+    },
+
+    resetSubscription: async () => {
+      try {
+        await notifications.resetSubscription();
+      } catch (error) {
+        console.error('Error in resetSubscription:', error);
+        toast({
+          title: "❌ Error",
+          description: "No s'ha pogut reinicialitzar les subscripcions",
           variant: 'destructive'
         });
       }

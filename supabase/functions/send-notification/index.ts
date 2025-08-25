@@ -29,12 +29,16 @@ serve(async (req) => {
     // Configurar VAPID amb variables d'entorn
     const vapidPublicKey = Deno.env.get('VAPID_PUBLIC_KEY');
     const vapidPrivateKey = Deno.env.get('VAPID_PRIVATE_KEY');
-    const vapidSubject = Deno.env.get('VAPID_SUBJECT') || 'mailto:hello@taskflow.app';
+    const rawVapidSubject = Deno.env.get('VAPID_SUBJECT') || 'mailto:hello@taskflow.app';
+    
+    // Sanititzar VAPID_SUBJECT: eliminar espais i angle brackets que causen BadJwtToken
+    const vapidSubject = rawVapidSubject.trim().replace(/[<>\s]/g, '');
 
     console.log('🔑 Verificant VAPID keys...', {
       hasPublicKey: !!vapidPublicKey,
       hasPrivateKey: !!vapidPrivateKey,
-      subject: vapidSubject
+      rawSubject: rawVapidSubject,
+      sanitizedSubject: vapidSubject
     });
 
     if (!vapidPublicKey || !vapidPrivateKey) {
@@ -95,12 +99,17 @@ serve(async (req) => {
 
     for (const subscription of subscriptions) {
       try {
+        // Normalitzar claus a base64url (eliminar padding i caràcters problemàtics)
+        const normalizeKey = (key: string) => {
+          return key.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+        };
+        
         // Reconstruir objecte de subscripció per web-push
         const pushSubscription = {
           endpoint: subscription.endpoint,
           keys: {
-            p256dh: subscription.p256dh_key,
-            auth: subscription.auth_key
+            p256dh: normalizeKey(subscription.p256dh_key),
+            auth: normalizeKey(subscription.auth_key)
           }
         };
 
@@ -138,7 +147,8 @@ serve(async (req) => {
         results.push({
           endpoint: subscription.endpoint.substring(0, 50) + '...',
           success: true,
-          deviceType: subscription.device_type
+          deviceType: subscription.device_type,
+          vapidSubject: vapidSubject
         });
 
         } catch (error: any) {
@@ -156,7 +166,8 @@ serve(async (req) => {
             success: false,
             error: error?.message,
             statusCode: status,
-            deviceType: subscription.device_type
+            deviceType: subscription.device_type,
+            vapidSubject: vapidSubject
           });
   
           // Si l'endpoint ha expirat o és invàlid, desactivar subscripció
@@ -206,6 +217,8 @@ serve(async (req) => {
       results,
       diagnostics: {
         serverVapidFingerprint,
+        vapidSubject: vapidSubject,
+        rawVapidSubject: rawVapidSubject,
         timestamp: new Date().toISOString(),
         hasVapidKeys: {
           publicKey: !!vapidPublicKey,

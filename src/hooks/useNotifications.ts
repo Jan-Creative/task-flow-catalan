@@ -573,6 +573,49 @@ export const useNotifications = () => {
   }, [user, toast, subscriptions, loadSubscriptions]);
 
   /**
+   * Reinicialitzar subscripcions completament
+   */
+  const resetSubscription = useCallback(async (): Promise<void> => {
+    if (!user?.id) {
+      toast({
+        title: "❌ Error",
+        description: "Has d'estar autenticat per reinicialitzar les subscripcions",
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    try {
+      console.log('🔄 Reinicialitzant subscripcions...');
+      
+      // 1. Desactivar totes les subscripcions existents
+      await supabase
+        .from('web_push_subscriptions')
+        .update({ is_active: false })
+        .eq('user_id', user.id);
+
+      // 2. Reinicialitzar completament
+      await initializeNotifications();
+      
+      // 3. Recarregar dades
+      await refreshData();
+      
+      toast({
+        title: "✅ Subscripcions reinicialitzades",
+        description: "Les subscripcions s'han reinicialitzat correctament",
+      });
+    } catch (error: any) {
+      console.error('❌ Error reinicialitzant subscripcions:', error);
+      toast({
+        title: "❌ Error",
+        description: "Error reinicialitzant les subscripcions",
+        variant: 'destructive'
+      });
+      throw error;
+    }
+   }, [user, toast, initializeNotifications]);
+
+  /**
    * Refrescar dades
    */
   const refreshData = useCallback(async () => {
@@ -582,7 +625,8 @@ export const useNotifications = () => {
         loadSubscriptions()
       ]);
     }
-  }, [user]);
+  }, [user, loadPreferences, loadSubscriptions]);
+
 
   // Carregar dades quan l'usuari canvia
   useEffect(() => {
@@ -610,7 +654,8 @@ export const useNotifications = () => {
     cancelReminder,
     refreshData,
     runRemindersProcessor,
-    sendTestNotification
+    sendTestNotification,
+    resetSubscription
   };
 };
 
