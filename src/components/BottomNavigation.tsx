@@ -1,4 +1,4 @@
-import { Calendar, Folder, Settings, Plus } from "lucide-react";
+import { Calendar, Folder, Settings, Plus, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -12,6 +12,7 @@ const BottomNavigation = ({ activeTab, onTabChange, onCreateTask }: BottomNaviga
   const tabs = [
     { id: "avui", label: "Avui", icon: Calendar },
     { id: "carpetes", label: "Carpetes", icon: Folder },
+    { id: "notificacions", label: "Notificacions", icon: Bell },
     { id: "configuracio", label: "Configuració", icon: Settings },
   ];
 

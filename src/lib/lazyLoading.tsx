@@ -7,6 +7,7 @@ import React from 'react';
 export const TodayPageLazy = lazy(() => import('@/pages/TodayPage'));
 export const FoldersPageLazy = lazy(() => import('@/pages/FoldersPage'));
 export const SettingsPageLazy = lazy(() => import('@/pages/SettingsPage'));
+export const NotificationsPageLazy = lazy(() => import('@/pages/NotificationsPage'));
 export const TaskDetailPageLazy = lazy(() => import('@/pages/TaskDetailPage'));
 export const FolderDetailPageLazy = lazy(() => import('@/pages/FolderDetailPage'));
 

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import BottomNavigation from "@/components/BottomNavigation";
-import { LazyPage, TodayPageLazy, FoldersPageLazy, SettingsPageLazy, CreateTaskModalLazy } from "@/lib/lazyLoading";
+import { LazyPage, TodayPageLazy, FoldersPageLazy, SettingsPageLazy, NotificationsPageLazy, CreateTaskModalLazy } from "@/lib/lazyLoading";
 import AuthPage from "@/pages/AuthPage";
 import { useDadesApp } from "@/hooks/useDadesApp";
 import { useTaskOperations } from "@/hooks/useTaskOperations";
@@ -103,6 +103,12 @@ const Index = () => {
       <TabPage tabId="carpetes" activeTab={activeTab}>
         <LazyPage pageName="Carpetes">
           <FoldersPageLazy />
+        </LazyPage>
+      </TabPage>
+      
+      <TabPage tabId="notificacions" activeTab={activeTab}>
+        <LazyPage pageName="Notificacions">
+          <NotificationsPageLazy />
         </LazyPage>
       </TabPage>
       
