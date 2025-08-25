@@ -14,7 +14,6 @@ import {
   CheckCircle,
   AlertCircle
 } from "lucide-react";
-import { useNotificationContext } from "@/contexts/NotificationContext";
 import { toast } from "sonner";
 
 const NotificationsPage = () => {
@@ -25,7 +24,8 @@ const NotificationsPage = () => {
     scheduledAt: ""
   });
 
-  const { createCustomNotification } = useNotificationContext();
+  // Temporarily comment out the context usage to test if this is the issue
+  // const { createCustomNotification } = useNotificationContext();
 
   const handleCreateNotification = async () => {
     if (!formData.title || !formData.message || !formData.scheduledAt) {
@@ -34,11 +34,12 @@ const NotificationsPage = () => {
     }
 
     try {
-      await createCustomNotification(
-        formData.title,
-        formData.message,
-        new Date(formData.scheduledAt)
-      );
+      // Temporarily disabled for testing
+      // await createCustomNotification(
+      //   formData.title,
+      //   formData.message,
+      //   new Date(formData.scheduledAt)
+      // );
       
       setFormData({ title: "", message: "", scheduledAt: "" });
       setShowCreateForm(false);
