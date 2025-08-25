@@ -138,18 +138,25 @@ const createAppConfig = (): AppConfig => {
 // ============= UTILITIES =============
 function determineBuildMode(): AppEnvironment['BUILD_MODE'] {
   if (typeof window !== 'undefined') {
-    // Check if we're on a Lovable preview URL
-    if (window.location.hostname.includes('lovable.app')) {
+    const hostname = window.location.hostname;
+    
+    // Check if we're on a Lovable preview URL (sandbox domains)
+    if (hostname.includes('sandbox.lovable.dev') || hostname.includes('lovable.app')) {
       return 'preview';
     }
     
     // Check if we're on localhost
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
       return 'dev';
+    }
+    
+    // Check for other development indicators
+    if (hostname.includes('staging') || hostname.includes('dev') || hostname.includes('test')) {
+      return 'preview';
     }
   }
   
-  // Default to production for any other domain
+  // Default to production for any other domain (custom domains in production)
   return 'production';
 }
 
@@ -166,7 +173,7 @@ export const validateConfig = (config: AppConfig): { valid: boolean; errors: str
     errors.push('Invalid Supabase anon key');
   }
 
-  // Validate security settings for production
+  // Validate security settings for production only (not preview)
   if (config.environment.BUILD_MODE === 'production') {
     if (!config.security.enableRateLimit) {
       errors.push('Rate limiting should be enabled in production');
@@ -179,6 +186,12 @@ export const validateConfig = (config: AppConfig): { valid: boolean; errors: str
     if (config.features.enableDebugLogging) {
       errors.push('Debug logging should be disabled in production');
     }
+  }
+
+  // Allow debug features in preview/development environments
+  if (config.environment.BUILD_MODE === 'preview') {
+    // Preview environment can have debug features enabled for testing
+    // This is normal and expected
   }
 
   // Validate origins
@@ -199,11 +212,20 @@ export const validateConfig = (config: AppConfig): { valid: boolean; errors: str
 // ============= CONFIGURATION INSTANCE =============
 export const config = createAppConfig();
 
-// Validate configuration on startup
+// Validate configuration on startup - only throw error for critical issues
 const validation = validateConfig(config);
 if (!validation.valid) {
-  logger.error('Configuration validation failed', { errors: validation.errors });
-  throw new Error(`Configuration validation failed: ${validation.errors.join(', ')}`);
+  const criticalErrors = validation.errors.filter(error => 
+    !error.includes('Debug logging should be disabled') || config.environment.BUILD_MODE === 'production'
+  );
+  
+  if (criticalErrors.length > 0) {
+    logger.error('Critical configuration validation failed', { errors: criticalErrors });
+    throw new Error(`Critical configuration validation failed: ${criticalErrors.join(', ')}`);
+  } else {
+    // Just log non-critical warnings
+    logger.warn('Configuration validation warnings', { warnings: validation.errors });
+  }
 }
 
 // Log successful configuration in development

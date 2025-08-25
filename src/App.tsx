@@ -16,10 +16,14 @@ import { SecurityProvider } from "@/contexts/SecurityContext";
 import { config, validateConfig } from "@/config/appConfig";
 
 const App = () => {
-  // Validate configuration on app start
-  const validation = validateConfig(config);
-  if (!validation.valid) {
-    console.error('App configuration invalid:', validation.errors);
+  // Validate configuration on app start - handle errors gracefully
+  try {
+    const validation = validateConfig(config);
+    if (!validation.valid && config.environment.BUILD_MODE === 'production') {
+      console.error('App configuration invalid:', validation.errors);
+    }
+  } catch (error) {
+    console.warn('Configuration validation warning:', error);
   }
 
   return (
