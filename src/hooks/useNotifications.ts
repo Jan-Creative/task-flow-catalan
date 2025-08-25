@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/lib/toastUtils';
 import { useAuth } from '@/hooks/useAuth';
 import {
   isWebPushSupported,

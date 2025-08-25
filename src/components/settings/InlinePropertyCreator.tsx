@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ColorPicker } from "./ColorPicker";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/lib/toastUtils";
 import { SettingsItem } from "./SettingsItem";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
@@ -24,6 +24,7 @@ interface InlinePropertyCreatorProps {
 
 export const InlinePropertyCreator = ({ onCreateProperty }: InlinePropertyCreatorProps) => {
   const { toast } = useToast();
+  
   const [isExpanded, setIsExpanded] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [propertyName, setPropertyName] = useState("");

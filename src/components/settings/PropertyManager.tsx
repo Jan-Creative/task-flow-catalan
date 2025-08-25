@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useProperties } from "@/hooks/useProperties";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/lib/toastUtils";
 import { SettingsItem } from "./SettingsItem";
 import { InlinePropertyCreator } from "./InlinePropertyCreator";
 import { EditPropertyDialog } from "./EditPropertyDialog";
@@ -15,6 +15,7 @@ import { getPriorityIconComponent } from "@/utils/priorityHelpers";
 export const PropertyManager = () => {
   const { properties, loading } = useProperties();
   const { toast } = useToast();
+  
   const [expandedProperty, setExpandedProperty] = useState<string | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState<any>(null);

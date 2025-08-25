@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { useProperties } from "@/hooks/useProperties";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { toast } from "sonner";
+import { toast } from "@/lib/toastUtils";
 import { SimpleIconPicker } from '@/components/ui/simple-icon-picker';
 import { getIconByName, getDefaultIconForProperty } from '@/lib/iconLibrary';
 import { debugLog } from '@/lib/debugUtils';

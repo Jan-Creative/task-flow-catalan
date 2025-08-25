@@ -10,7 +10,7 @@ import { usePerformanceMonitor, useCacheOptimization, useMemoryCleanup } from "@
 import { Button } from "@/components/ui/button";
 import { LogOut, User } from "lucide-react";
 import { useShortcut } from "@/hooks/useKeyboardShortcuts";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { KeepAlivePages, TabPage } from "@/components/ui/keep-alive-pages";
 
 const Index = () => {
@@ -23,7 +23,7 @@ const Index = () => {
   const [editingTask, setEditingTask] = useState(null);
   const { folders } = useDadesApp();
   const { handleCreateTask, handleEditTask: handleEditTaskOp } = useTaskOperations();
-  const { toast } = useToast();
+  
   
   // Performance optimizations - simplified to avoid conflicts
   const performanceMetrics = usePerformanceMonitor();

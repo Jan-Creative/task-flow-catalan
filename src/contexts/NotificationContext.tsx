@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect } from 'react';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/lib/toastUtils';
 import type { NotificationPreferences, WebPushSubscriptionDB } from '@/hooks/useNotifications';
 
 // Context Type

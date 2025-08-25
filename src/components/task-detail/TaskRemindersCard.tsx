@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/lib/toastUtils";
 import { useNotificationContext } from "@/contexts/NotificationContext";
 import { Bell, Clock, Plus, X, AlertCircle } from "lucide-react";
 import { PWAInstallPrompt } from "@/components/ui/pwa-install-prompt";
@@ -62,6 +62,7 @@ export const TaskRemindersCard = ({ taskId, taskTitle }: TaskRemindersCardProps)
     sendTestNotification
   } = useNotificationContext();
   const { toast } = useToast();
+  
 
   // Carregar recordatoris existents
   const loadReminders = async () => {

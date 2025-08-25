@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/lib/toastUtils';
 import type { Subtask } from '@/types';
 
 export const useTaskSubtasks = (taskId: string) => {

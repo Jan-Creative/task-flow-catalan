@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/lib/toastUtils";
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
+  const { toast } = useToast();
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
+  
 
   useEffect(() => {
     // Set up auth state listener
