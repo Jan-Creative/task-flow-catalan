@@ -132,7 +132,7 @@ const MonthView = ({ currentDate }: { currentDate: Date }) => {
       {/* Days of Week Header */}
       <div className="grid grid-cols-7 gap-3">
         {daysOfWeek.map((day) => (
-          <div key={day} className="text-center text-sm font-bold text-muted-foreground py-3 tracking-wider">
+          <div key={day} className="text-center text-sm font-bold text-white py-3 tracking-wider">
             {day}
           </div>
         ))}
@@ -150,24 +150,24 @@ const MonthView = ({ currentDate }: { currentDate: Date }) => {
               key={index}
               className={cn(
                 "relative aspect-square p-3 rounded-2xl transition-all duration-300 cursor-pointer group overflow-hidden",
-                "border-2 hover:shadow-lg hover:shadow-black/20",
-                isCurrentMonth
-                  ? "bg-muted/20 hover:bg-muted/40 border-border/20 hover:border-border/40 hover:scale-[1.02]"
-                  : cn(
-                      "bg-gradient-to-br from-muted/5 to-muted/10 border-border/10 hover:border-border/20",
-                      "bg-[linear-gradient(45deg,transparent_25%,hsl(var(--border))_25%,hsl(var(--border))_50%,transparent_50%,transparent_75%,hsl(var(--border))_75%)] bg-[length:8px_8px] opacity-30"
-                    ),
-                isToday && "bg-gradient-to-br from-primary/20 to-primary/10 border-primary/50 shadow-lg shadow-primary/20 ring-2 ring-primary/30"
+        "hover:shadow-lg hover:shadow-black/10",
+        isCurrentMonth
+          ? "bg-gray-800/60 hover:bg-gray-700/70 transition-all duration-200"
+          : cn(
+              "bg-gray-900/80 hover:bg-gray-800/60 transition-all duration-200",
+              "bg-[linear-gradient(45deg,transparent_25%,rgba(0,0,0,0.3)_25%,rgba(0,0,0,0.3)_50%,transparent_50%,transparent_75%,rgba(0,0,0,0.3)_75%)] bg-[length:6px_6px]"
+            ),
+        isToday && "bg-primary/20 hover:bg-primary/25 shadow-lg shadow-primary/10"
               )}
             >
               <div className="flex flex-col h-full">
                 <span className={cn(
                   "text-sm font-bold mb-2 tracking-tight",
                   isToday 
-                    ? "text-primary" 
+                    ? "text-white" 
                     : isCurrentMonth 
-                      ? "text-foreground" 
-                      : "text-muted-foreground/40"
+                      ? "text-white" 
+                      : "text-white/50"
                 )}>
                   {day.getDate()}
                 </span>

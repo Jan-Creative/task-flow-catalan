@@ -31,22 +31,22 @@ const CalendarPage = () => {
           
           {/* Desktop XL Layout - Grid Complex (1440px+) */}
           <div className="hidden 2xl:grid 2xl:grid-cols-6 gap-6 min-h-[600px] auto-rows-fr">
-            {/* Calendar Main Card */}
-            <div className="col-span-4 row-span-3 animate-fade-in" style={{animationDelay: '0.1s'}}>
-              <div className="h-full min-h-[500px]">
-                <CalendarMainCard 
-                  currentDate={currentDate} 
-                  onDateChange={setCurrentDate}
-                />
-              </div>
-            </div>
-
-            {/* View Switcher Card */}
+            {/* Left Column Cards */}
             <div className="col-span-2 row-span-1 animate-fade-in" style={{animationDelay: '0.2s'}}>
               <div className="h-full min-h-[200px]">
                 <ViewSwitcherCard 
                   currentView={currentView}
                   onViewChange={setCurrentView}
+                />
+              </div>
+            </div>
+
+            {/* Calendar Main Card - Right */}
+            <div className="col-span-4 row-span-3 animate-fade-in" style={{animationDelay: '0.1s'}}>
+              <div className="h-full min-h-[500px]">
+                <CalendarMainCard 
+                  currentDate={currentDate} 
+                  onDateChange={setCurrentDate}
                 />
               </div>
             </div>
@@ -79,19 +79,19 @@ const CalendarPage = () => {
           {/* Desktop Layout - Grid simplificat (1024px-1440px) */}
           <div className="hidden xl:grid 2xl:hidden xl:grid-cols-4 gap-6 auto-rows-fr">
             {/* Fila superior */}
-            <div className="col-span-3 animate-fade-in" style={{animationDelay: '0.1s'}}>
-              <div className="h-full min-h-[500px]">
-                <CalendarMainCard 
-                  currentDate={currentDate} 
-                  onDateChange={setCurrentDate}
-                />
-              </div>
-            </div>
             <div className="col-span-1 animate-fade-in" style={{animationDelay: '0.2s'}}>
               <div className="h-full min-h-[500px]">
                 <ViewSwitcherCard 
                   currentView={currentView}
                   onViewChange={setCurrentView}
+                />
+              </div>
+            </div>
+            <div className="col-span-3 animate-fade-in" style={{animationDelay: '0.1s'}}>
+              <div className="h-full min-h-[500px]">
+                <CalendarMainCard 
+                  currentDate={currentDate} 
+                  onDateChange={setCurrentDate}
                 />
               </div>
             </div>
