@@ -3,9 +3,9 @@ import { Calendar as CalendarIcon } from "lucide-react";
 import { FloatingBackgroundButton } from "@/components/backgrounds/FloatingBackgroundButton";
 import CalendarMainCard from "@/components/calendar/CalendarMainCard";
 import ViewSwitcherCard from "@/components/calendar/ViewSwitcherCard";
-import MiniCalendarCard from "@/components/calendar/MiniCalendarCard";
-import CalendarStatsCard from "@/components/calendar/CalendarStatsCard";
-import CalendarFiltersCard from "@/components/calendar/CalendarFiltersCard";
+import EnhancedMiniCalendarCard from "@/components/calendar/EnhancedMiniCalendarCard";
+import CategoriesCard from "@/components/calendar/CategoriesCard";
+import TasksCalendarCard from "@/components/calendar/TasksCalendarCard";
 import "@/styles/background-effects.css";
 
 type CalendarView = "month" | "week" | "day" | "agenda";
@@ -45,34 +45,34 @@ const CalendarPage = () => {
               />
             </div>
 
-            {/* MiniCalendar Card - 35% */}
+            {/* Enhanced MiniCalendar Card - 35% */}
             <div className="animate-fade-in overflow-hidden" style={{
               animationDelay: '0.3s', 
               height: '35%',
               minHeight: '280px'
             }}>
-              <MiniCalendarCard 
+              <EnhancedMiniCalendarCard 
                 currentDate={currentDate}
                 onDateSelect={setCurrentDate}
               />
             </div>
 
-            {/* Stats Card - 25% */}
+            {/* Categories Card - 25% */}
             <div className="animate-fade-in overflow-y-auto" style={{
               animationDelay: '0.4s', 
               height: '25%',
               minHeight: '180px'
             }}>
-              <CalendarStatsCard />
+              <CategoriesCard />
             </div>
 
-            {/* Filters Card - 20% */}
+            {/* Tasks Calendar Card - 20% */}
             <div className="animate-fade-in overflow-y-auto" style={{
               animationDelay: '0.5s', 
               height: '20%',
               minHeight: '160px'
             }}>
-              <CalendarFiltersCard />
+              <TasksCalendarCard />
             </div>
           </div>
 
@@ -101,16 +101,16 @@ const CalendarPage = () => {
               />
             </div>
             <div className="animate-fade-in" style={{animationDelay: '0.3s'}}>
-              <MiniCalendarCard 
+              <EnhancedMiniCalendarCard 
                 currentDate={currentDate}
                 onDateSelect={setCurrentDate}
               />
             </div>
             <div className="animate-fade-in" style={{animationDelay: '0.4s'}}>
-              <CalendarStatsCard />
+              <CategoriesCard />
             </div>
             <div className="animate-fade-in" style={{animationDelay: '0.5s'}}>
-              <CalendarFiltersCard />
+              <TasksCalendarCard />
             </div>
           </div>
         </div>
