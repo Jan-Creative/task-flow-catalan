@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { FloatingBackgroundButton } from "@/components/backgrounds/FloatingBackgroundButton";
 import CalendarMainCard from "@/components/calendar/CalendarMainCard";
-import ViewSwitcherCard from "@/components/calendar/ViewSwitcherCard";
+
 import EnhancedMiniCalendarCard from "@/components/calendar/EnhancedMiniCalendarCard";
 import CategoriesCard from "@/components/calendar/CategoriesCard";
 import TasksCalendarCard from "@/components/calendar/TasksCalendarCard";
@@ -31,25 +31,13 @@ const CalendarPage = () => {
         {/* Desktop & Tablet Layout - 2 Columns (lg+) */}
         <div className="hidden lg:grid lg:grid-cols-12 h-full gap-3 p-3">
           
-          {/* Left Column - Side Cards Stack */}
+          {/* Left Column - Side Cards Stack with Intelligent Layout */}
           <div className="col-span-4 xl:col-span-3 flex flex-col gap-3 h-full">
-            {/* ViewSwitcher Card - 20% */}
-            <div className="animate-fade-in overflow-hidden" style={{
+            
+            {/* Enhanced MiniCalendar Card - Fixed optimal height */}
+            <div className="animate-fade-in flex-shrink-0" style={{
               animationDelay: '0.2s', 
-              height: '20%',
-              minHeight: '120px'
-            }}>
-              <ViewSwitcherCard 
-                currentView={currentView}
-                onViewChange={setCurrentView}
-              />
-            </div>
-
-            {/* Enhanced MiniCalendar Card - 35% */}
-            <div className="animate-fade-in overflow-hidden" style={{
-              animationDelay: '0.3s', 
-              height: '35%',
-              minHeight: '280px'
+              height: '300px'
             }}>
               <EnhancedMiniCalendarCard 
                 currentDate={currentDate}
@@ -57,20 +45,17 @@ const CalendarPage = () => {
               />
             </div>
 
-            {/* Categories Card - 25% */}
-            <div className="animate-fade-in overflow-y-auto" style={{
-              animationDelay: '0.4s', 
-              height: '25%',
-              minHeight: '180px'
+            {/* Categories Card - Flexible, grows to use available space */}
+            <div className="animate-fade-in flex-grow overflow-y-auto min-h-0" style={{
+              animationDelay: '0.3s'
             }}>
               <CategoriesCard />
             </div>
 
-            {/* Tasks Calendar Card - 20% */}
-            <div className="animate-fade-in overflow-y-auto" style={{
-              animationDelay: '0.5s', 
-              height: '20%',
-              minHeight: '160px'
+            {/* Tasks Calendar Card - Fixed minimum height for 4-5 tasks */}
+            <div className="animate-fade-in flex-shrink-0 overflow-y-auto" style={{
+              animationDelay: '0.4s', 
+              height: '200px'
             }}>
               <TasksCalendarCard />
             </div>
@@ -95,21 +80,15 @@ const CalendarPage = () => {
               />
             </div>
             <div className="animate-fade-in" style={{animationDelay: '0.2s'}}>
-              <ViewSwitcherCard 
-                currentView={currentView}
-                onViewChange={setCurrentView}
-              />
-            </div>
-            <div className="animate-fade-in" style={{animationDelay: '0.3s'}}>
               <EnhancedMiniCalendarCard 
                 currentDate={currentDate}
                 onDateSelect={setCurrentDate}
               />
             </div>
-            <div className="animate-fade-in" style={{animationDelay: '0.4s'}}>
+            <div className="animate-fade-in" style={{animationDelay: '0.3s'}}>
               <CategoriesCard />
             </div>
-            <div className="animate-fade-in" style={{animationDelay: '0.5s'}}>
+            <div className="animate-fade-in" style={{animationDelay: '0.4s'}}>
               <TasksCalendarCard />
             </div>
           </div>
