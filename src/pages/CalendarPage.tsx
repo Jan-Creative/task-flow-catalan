@@ -26,15 +26,19 @@ const CalendarPage = () => {
       </div>
 
       {/* Full Screen Layout - 2 Columns */}
-      <div className="relative z-20 flex-1 overflow-hidden">
+      <div className="relative z-20 flex-1 overflow-hidden" style={{ height: 'calc(100vh - 134px)' }}>
         
         {/* Desktop & Tablet Layout - 2 Columns (lg+) */}
         <div className="hidden lg:grid lg:grid-cols-12 h-full gap-3 p-3">
           
           {/* Left Column - Side Cards Stack */}
-          <div className="col-span-4 xl:col-span-3 flex flex-col gap-3">
-            {/* ViewSwitcher Card - 25% */}
-            <div className="flex-1 min-h-0 animate-fade-in" style={{animationDelay: '0.2s', maxHeight: '25%'}}>
+          <div className="col-span-4 xl:col-span-3 flex flex-col gap-3 h-full">
+            {/* ViewSwitcher Card - 20% */}
+            <div className="animate-fade-in overflow-hidden" style={{
+              animationDelay: '0.2s', 
+              height: '20%',
+              minHeight: '120px'
+            }}>
               <ViewSwitcherCard 
                 currentView={currentView}
                 onViewChange={setCurrentView}
@@ -42,26 +46,38 @@ const CalendarPage = () => {
             </div>
 
             {/* MiniCalendar Card - 35% */}
-            <div className="flex-1 min-h-0 animate-fade-in" style={{animationDelay: '0.3s', maxHeight: '35%'}}>
+            <div className="animate-fade-in overflow-hidden" style={{
+              animationDelay: '0.3s', 
+              height: '35%',
+              minHeight: '280px'
+            }}>
               <MiniCalendarCard 
                 currentDate={currentDate}
                 onDateSelect={setCurrentDate}
               />
             </div>
 
-            {/* Stats Card - 20% */}
-            <div className="flex-1 min-h-0 animate-fade-in" style={{animationDelay: '0.4s', maxHeight: '20%'}}>
+            {/* Stats Card - 25% */}
+            <div className="animate-fade-in overflow-y-auto" style={{
+              animationDelay: '0.4s', 
+              height: '25%',
+              minHeight: '180px'
+            }}>
               <CalendarStatsCard />
             </div>
 
             {/* Filters Card - 20% */}
-            <div className="flex-1 min-h-0 animate-fade-in" style={{animationDelay: '0.5s', maxHeight: '20%'}}>
+            <div className="animate-fade-in overflow-y-auto" style={{
+              animationDelay: '0.5s', 
+              height: '20%',
+              minHeight: '160px'
+            }}>
               <CalendarFiltersCard />
             </div>
           </div>
 
           {/* Right Column - Main Calendar */}
-          <div className="col-span-8 xl:col-span-9 animate-fade-in" style={{animationDelay: '0.1s'}}>
+          <div className="col-span-8 xl:col-span-9 animate-fade-in h-full pb-4" style={{animationDelay: '0.1s'}}>
             <CalendarMainCard 
               currentDate={currentDate} 
               onDateChange={setCurrentDate}
