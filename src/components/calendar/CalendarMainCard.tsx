@@ -30,7 +30,7 @@ const CalendarMainCard = ({ currentDate, onDateChange }: CalendarMainCardProps) 
   };
 
   return (
-    <Card className="h-full bg-gradient-to-br from-background/10 to-background/5 backdrop-blur-xl border-border/10 shadow-2xl shadow-black/20">
+    <Card className="h-full bg-gray-950/95 backdrop-blur-xl shadow-2xl shadow-black/30">
       <CardContent className="p-8 h-full flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -39,12 +39,12 @@ const CalendarMainCard = ({ currentDate, onDateChange }: CalendarMainCardProps) 
               variant="ghost"
               size="sm"
               onClick={() => navigateMonth("prev")}
-              className="h-12 w-12 rounded-2xl bg-muted/20 hover:bg-muted/40 border border-border/10 hover:border-border/30 transition-all duration-300 hover:scale-105 shadow-lg"
+              className="h-12 w-12 rounded-2xl bg-gray-800/50 hover:bg-gray-700/70 transition-all duration-300 hover:scale-105 shadow-md shadow-black/20"
             >
-              <ChevronLeft className="h-5 w-5 text-foreground/80" />
+              <ChevronLeft className="h-5 w-5 text-white" />
             </Button>
             
-            <h2 className="text-2xl font-bold text-foreground min-w-[200px] text-center tracking-tight">
+            <h2 className="text-2xl font-bold text-white min-w-[200px] text-center tracking-tight">
               {getCurrentMonthYear()}
             </h2>
             
@@ -52,17 +52,17 @@ const CalendarMainCard = ({ currentDate, onDateChange }: CalendarMainCardProps) 
               variant="ghost"
               size="sm"
               onClick={() => navigateMonth("next")}
-              className="h-12 w-12 rounded-2xl bg-muted/20 hover:bg-muted/40 border border-border/10 hover:border-border/30 transition-all duration-300 hover:scale-105 shadow-lg"
+              className="h-12 w-12 rounded-2xl bg-gray-800/50 hover:bg-gray-700/70 transition-all duration-300 hover:scale-105 shadow-md shadow-black/20"
             >
-              <ChevronRight className="h-5 w-5 text-foreground/80" />
+              <ChevronRight className="h-5 w-5 text-white" />
             </Button>
           </div>
 
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             onClick={() => onDateChange(new Date())}
-            className="rounded-2xl bg-primary/10 backdrop-blur-sm border-primary/20 hover:bg-primary/20 hover:border-primary/40 transition-all duration-300 text-primary hover:text-primary font-medium px-6 py-3 shadow-lg"
+            className="rounded-2xl bg-gray-800/40 hover:bg-gray-700/60 backdrop-blur-sm transition-all duration-300 text-white hover:text-white font-medium px-6 py-3 shadow-md shadow-black/20"
           >
             <Calendar className="h-4 w-4 mr-2" />
             Avui
@@ -152,12 +152,12 @@ const MonthView = ({ currentDate }: { currentDate: Date }) => {
                 "relative aspect-square p-3 rounded-2xl transition-all duration-300 cursor-pointer group overflow-hidden",
         "hover:shadow-lg hover:shadow-black/10",
         isCurrentMonth
-          ? "bg-gray-800/60 hover:bg-gray-700/70 transition-all duration-200"
+          ? "bg-gray-800/90 hover:bg-gray-700/95 transition-all duration-200"
           : cn(
-              "bg-gray-900/80 hover:bg-gray-800/60 transition-all duration-200",
-              "bg-[linear-gradient(45deg,transparent_25%,rgba(0,0,0,0.3)_25%,rgba(0,0,0,0.3)_50%,transparent_50%,transparent_75%,rgba(0,0,0,0.3)_75%)] bg-[length:6px_6px]"
+              "bg-gray-900/95 hover:bg-gray-800/90 transition-all duration-200",
+              "bg-[linear-gradient(45deg,transparent_25%,rgba(0,0,0,0.4)_25%,rgba(0,0,0,0.4)_50%,transparent_50%,transparent_75%,rgba(0,0,0,0.4)_75%)] bg-[length:6px_6px]"
             ),
-        isToday && "bg-primary/20 hover:bg-primary/25 shadow-lg shadow-primary/10"
+        isToday && "bg-primary/15 hover:bg-primary/20 shadow-lg shadow-primary/5"
               )}
             >
               <div className="flex flex-col h-full">
