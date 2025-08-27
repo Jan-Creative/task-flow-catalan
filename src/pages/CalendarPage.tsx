@@ -26,27 +26,27 @@ const CalendarPage = () => {
         />
       ),
       priority: 'high',
-      minHeight: 280,
-      maxHeight: 350,
-      preferredHeight: 320,
+      minHeight: 220,
+      maxHeight: 280,
+      preferredHeight: 250,
       canCollapse: false
     },
     {
       id: 'categories',
       component: <CategoriesCard />,
       priority: 'low',
-      minHeight: 200,
-      maxHeight: 500,
-      preferredHeight: 350,
+      minHeight: 160,
+      maxHeight: 400,
+      preferredHeight: 280,
       canCollapse: true
     },
     {
       id: 'tasks',
       component: <TasksCalendarCard />,
       priority: 'medium',
-      minHeight: 180,
-      maxHeight: 300,
-      preferredHeight: 250,
+      minHeight: 140,
+      maxHeight: 240,
+      preferredHeight: 190,
       canCollapse: false
     }
   ];
@@ -62,19 +62,19 @@ const CalendarPage = () => {
         </div>
       </div>
 
-      {/* Full Screen Layout - 2 Columns */}
-      <div className="relative z-20 flex-1 overflow-hidden" style={{ height: 'calc(100vh - 134px)' }}>
+      {/* Layout amb marges globals */}
+      <div className="relative z-20 flex-1 overflow-hidden p-6" style={{ height: 'calc(100vh - 134px)' }}>
         
-        {/* Desktop & Tablet Layout - 2 Columns (lg+) */}
-        <div className="hidden lg:grid lg:grid-cols-12 h-full gap-3 p-3">
+        {/* Desktop & Tablet Layout - Grid compacte */}
+        <div className="hidden lg:grid lg:grid-cols-10 h-full gap-4">
           
-          {/* Left Column - Intelligent Adaptive Sidebar */}
-          <div className="col-span-4 xl:col-span-3 h-full">
+          {/* Left Column - Barra lateral més petita */}
+          <div className="col-span-3 xl:col-span-2 h-full">
             <AdaptiveSidebarContainer cards={sidebarCards} />
           </div>
 
-          {/* Right Column - Main Calendar */}
-          <div className="col-span-8 xl:col-span-9 animate-fade-in h-full pb-4" style={{animationDelay: '0.1s'}}>
+          {/* Right Column - Calendari principal més prominent */}
+          <div className="col-span-7 xl:col-span-8 animate-fade-in h-full" style={{animationDelay: '0.1s'}}>
             <CalendarMainCard 
               currentDate={currentDate} 
               onDateChange={setCurrentDate}
@@ -82,16 +82,18 @@ const CalendarPage = () => {
           </div>
         </div>
 
-        {/* Mobile Layout - Adaptive Stack */}
+        {/* Mobile Layout - Amb marges */}
         <div className="lg:hidden h-full">
-          <div className="p-4 h-full">
-            <div className="mb-4">
+          <div className="h-full space-y-4">
+            <div className="h-2/3">
               <CalendarMainCard 
                 currentDate={currentDate} 
                 onDateChange={setCurrentDate}
               />
             </div>
-            <AdaptiveSidebarContainer cards={sidebarCards} />
+            <div className="h-1/3">
+              <AdaptiveSidebarContainer cards={sidebarCards} />
+            </div>
           </div>
         </div>
       </div>

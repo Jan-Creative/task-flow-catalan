@@ -40,11 +40,11 @@ const CategoriesCard = () => {
 
   return (
     <Card className="h-full bg-background/40 backdrop-blur-md border-border/20 shadow-xl">
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-2 px-3 pt-3">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-lg">Categories</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-base">Categories</CardTitle>
+            <CardDescription className="text-xs">
               {enabledCount} actives · {totalEvents} esdeveniments
             </CardDescription>
           </div>
@@ -57,14 +57,14 @@ const CategoriesCard = () => {
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="space-y-3 overflow-y-auto">
+      <CardContent className="space-y-2 overflow-y-auto px-3 pb-3">
         {categories.map((category, index) => {
           const Icon = category.icon;
           return (
             <div
               key={category.id}
               className={cn(
-                "flex items-center justify-between p-3 rounded-xl transition-all duration-300 animate-fade-in",
+                "flex items-center justify-between p-2 rounded-lg transition-all duration-300 animate-fade-in",
                 "border border-transparent hover:border-border/30",
                 category.enabled
                   ? "bg-background/20 hover:bg-background/30"
@@ -74,7 +74,7 @@ const CategoriesCard = () => {
             >
               <div className="flex items-center gap-3 flex-1">
                 <div
-                  className="p-2 rounded-lg backdrop-blur-sm"
+                  className="p-1.5 rounded-md backdrop-blur-sm"
                   style={{
                     backgroundColor: `${category.color}15`,
                     borderColor: `${category.color}30`,
@@ -82,7 +82,7 @@ const CategoriesCard = () => {
                   }}
                 >
                   <Icon
-                    className="h-4 w-4"
+                    className="h-3.5 w-3.5"
                     style={{ color: category.color }}
                   />
                 </div>
@@ -117,9 +117,9 @@ const CategoriesCard = () => {
         })}
         
         {/* Quick stats */}
-        <div className="mt-4 p-3 rounded-xl bg-primary/5 border border-primary/20">
-          <div className="flex justify-between items-center text-sm">
-            <span className="text-muted-foreground">Total esdeveniments visibles:</span>
+        <div className="mt-3 p-2 rounded-lg bg-primary/5 border border-primary/20">
+          <div className="flex justify-between items-center text-xs">
+            <span className="text-muted-foreground">Total visibles:</span>
             <span className="font-semibold text-primary">{totalEvents}</span>
           </div>
         </div>

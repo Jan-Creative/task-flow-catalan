@@ -52,11 +52,11 @@ const EnhancedMiniCalendarCard = ({ currentDate, onDateSelect }: EnhancedMiniCal
 
   return (
     <Card className="h-full bg-gray-950/95 backdrop-blur-xl border-gray-800/50 shadow-2xl">
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-2 px-3 pt-3">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-lg text-white">Navegació Ràpida</CardTitle>
-            <CardDescription className="text-gray-400">
+            <CardTitle className="text-base text-white">Navegació</CardTitle>
+            <CardDescription className="text-xs text-gray-400">
               {displayDate.toLocaleDateString('ca-ES', { month: 'long', year: 'numeric' })}
             </CardDescription>
           </div>
@@ -80,11 +80,11 @@ const EnhancedMiniCalendarCard = ({ currentDate, onDateSelect }: EnhancedMiniCal
           </div>
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-7 gap-1">
+      <CardContent className="px-3 pb-3">
+        <div className="grid grid-cols-7 gap-0.5">
           {/* Days of week header */}
           {daysOfWeek.map((day, i) => (
-            <div key={i} className="text-center text-xs font-semibold text-gray-500 py-2">
+            <div key={i} className="text-center text-xs font-semibold text-gray-500 py-1">
               {day}
             </div>
           ))}
@@ -101,8 +101,8 @@ const EnhancedMiniCalendarCard = ({ currentDate, onDateSelect }: EnhancedMiniCal
                 key={i}
                 onClick={() => handleDateClick(day)}
                 className={cn(
-                  "relative aspect-square flex items-center justify-center rounded-lg text-xs cursor-pointer transition-all duration-300",
-                  "hover:scale-110 hover:bg-white/10",
+                  "relative aspect-square flex items-center justify-center rounded-md text-xs cursor-pointer transition-all duration-300",
+                  "hover:scale-105 hover:bg-white/10",
                   isCurrentMonth
                     ? isToday
                       ? "bg-primary text-primary-foreground font-bold shadow-lg ring-2 ring-primary/30"

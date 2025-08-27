@@ -24,15 +24,16 @@ export const useAdaptiveSidebar = (cards: SidebarCard[]) => {
   const [isTablet, setIsTablet] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
-  // Calculate available height
+  // Calculate available height with global margins
   const calculateAvailableHeight = useCallback(() => {
     const windowHeight = window.innerHeight;
     const headerHeight = 72; // Header + padding
     const bottomNavHeight = 70; // Bottom navigation space
-    const containerPadding = 24; // Gap and padding
-    const available = windowHeight - headerHeight - bottomNavHeight - containerPadding;
+    const globalMargins = 48; // Global padding (24px * 2)
+    const containerPadding = 16; // Internal gaps
+    const available = windowHeight - headerHeight - bottomNavHeight - globalMargins - containerPadding;
     
-    setAvailableHeight(Math.max(400, available)); // Minimum 400px
+    setAvailableHeight(Math.max(350, available)); // Minimum més compacte
   }, []);
 
   // Detect screen size
