@@ -1,0 +1,278 @@
+import { useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+
+interface DayViewProps {
+  currentDate: Date;
+  onDateChange: (date: Date) => void;
+}
+
+interface Event {
+  id: string;
+  title: string;
+  description?: string;
+  start: string;
+  end: string;
+  color: string;
+  location?: string;
+}
+
+const DayView = ({ currentDate, onDateChange }: DayViewProps) => {
+  const hours = Array.from({ length: 15 }, (_, i) => i + 8); // 8:00 to 22:00
+  const today = new Date();
+  const isToday = currentDate.toDateString() === today.toDateString();
+  
+  const navigateDay = (direction: "prev" | "next") => {
+    const newDate = new Date(currentDate);
+    if (direction === "prev") {
+      newDate.setDate(currentDate.getDate() - 1);
+    } else {
+      newDate.setDate(currentDate.getDate() + 1);
+    }
+    onDateChange(newDate);
+  };
+
+  const formatDate = (date: Date) => {
+    const daysOfWeek = ["Diumenge", "Dilluns", "Dimarts", "Dimecres", "Dijous", "Divendres", "Dissabte"];
+    const months = [
+      "Gener", "Febrer", "Març", "Abril", "Maig", "Juny",
+      "Juliol", "Agost", "Setembre", "Octubre", "Novembre", "Desembre"
+    ];
+    
+    return `${daysOfWeek[date.getDay()]}, ${date.getDate()} de ${months[date.getMonth()]}`;
+  };
+
+  // Mock events for the selected day
+  const getMockEvents = (): Event[] => {
+    if (!isToday && currentDate.getDay() === 1) { // Monday
+      return [
+        {
+          id: "1",
+          title: "Reunió d'equip",
+          description: "Revisió del sprint actual i planificació",
+          start: "09:00",
+          end: "10:30",
+          color: "bg-primary",
+          location: "Sala de conferències A"
+        },
+        {
+          id: "2",
+          title: "Revisió de codi",
+          start: "11:00",
+          end: "12:00",
+          color: "bg-success",
+          location: "Online"
+        },
+        {
+          id: "3",
+          title: "Sessió de mentoring",
+          description: "Mentoring amb desenvolupadors junior",
+          start: "14:00",
+          end: "15:30",
+          color: "bg-warning"
+        },
+        {
+          id: "4",
+          title: "Demo del producte",
+          start: "16:30",
+          end: "17:30",
+          color: "bg-secondary",
+          location: "Auditori principal"
+        }
+      ];
+    }
+    
+    if (isToday) {
+      return [
+        {
+          id: "5",
+          title: "Standup diari",
+          start: "09:30",
+          end: "10:00",
+          color: "bg-primary"
+        },
+        {
+          id: "6",
+          title: "Desenvolupament de funcionalitats",
+          description: "Implementació del nou calendari",
+          start: "10:00",
+          end: "12:00",
+          color: "bg-success"
+        },
+        {
+          id: "7",
+          title: "Pausa per dinar",
+          start: "13:00",
+          end: "14:00",
+          color: "bg-muted"
+        }
+      ];
+    }
+    
+    return [];
+  };
+
+  const events = getMockEvents();
+
+  const getEventPosition = (start: string, end: string) => {
+    const startHour = parseInt(start.split(':')[0]);
+    const startMinutes = parseInt(start.split(':')[1]);
+    const endHour = parseInt(end.split(':')[0]);
+    const endMinutes = parseInt(end.split(':')[1]);
+    
+    const startPosition = ((startHour - 8) * 60 + startMinutes) / 60; // Hours from 8:00
+    const duration = ((endHour - startHour) * 60 + (endMinutes - startMinutes)) / 60;
+    
+    return {
+      top: `${startPosition * 6}rem`, // 6rem per hour for more space
+      height: `${Math.max(duration * 6, 1.5)}rem` // Minimum height
+    };
+  };
+
+  const getCurrentTimePosition = () => {
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinutes = now.getMinutes();
+    
+    if (currentHour < 8 || currentHour > 22) return null;
+    
+    const position = ((currentHour - 8) * 60 + currentMinutes) / 60;
+    return `${position * 6}rem`;
+  };
+
+  const currentTimePosition = isToday ? getCurrentTimePosition() : null;
+
+  return (
+    <div className="flex flex-col h-full">
+      {/* Day Header */}
+      <div className="flex items-center justify-between mb-4 bg-card/50 backdrop-blur-sm rounded-lg p-3">
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigateDay("prev")}
+            className="h-8 w-8 rounded-lg hover:bg-secondary"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          
+          <div className="text-center">
+            <h2 className={cn(
+              "text-lg font-bold tracking-tight",
+              isToday && "text-primary"
+            )}>
+              {formatDate(currentDate)}
+            </h2>
+            {isToday && (
+              <span className="text-xs text-primary font-medium">Avui</span>
+            )}
+          </div>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigateDay("next")}
+            className="h-8 w-8 rounded-lg hover:bg-secondary"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+        
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => onDateChange(new Date())}
+          className="text-sm text-muted-foreground hover:text-foreground"
+        >
+          Anar a avui
+        </Button>
+      </div>
+
+      {/* Timeline */}
+      <div className="flex-1 overflow-auto">
+        <div className="flex">
+          {/* Time column */}
+          <div className="w-20 flex-shrink-0">
+            {hours.map((hour) => (
+              <div
+                key={hour}
+                className="h-24 px-3 py-2 text-sm text-muted-foreground border-t border-border/30 flex items-start"
+              >
+                {hour.toString().padStart(2, '0')}:00
+              </div>
+            ))}
+          </div>
+
+          {/* Events column */}
+          <div className="flex-1 relative bg-card/30 rounded-lg">
+            {/* Hour slots */}
+            {hours.map((hour) => (
+              <div
+                key={hour}
+                className="h-24 border-t border-border/20 hover:bg-accent/10 transition-colors cursor-pointer relative"
+              >
+                {/* Half-hour line */}
+                <div className="absolute top-12 left-0 right-0 h-px bg-border/10" />
+              </div>
+            ))}
+            
+            {/* Current time indicator */}
+            {currentTimePosition && (
+              <div
+                className="absolute left-0 right-0 z-20 flex items-center"
+                style={{ top: currentTimePosition }}
+              >
+                <div className="w-3 h-3 bg-primary rounded-full border-2 border-white shadow-md" />
+                <div className="flex-1 h-0.5 bg-primary/60" />
+              </div>
+            )}
+            
+            {/* Events */}
+            {events.map((event) => {
+              const position = getEventPosition(event.start, event.end);
+              
+              return (
+                <div
+                  key={event.id}
+                  className={cn(
+                    "absolute left-2 right-2 rounded-lg p-3 transition-all duration-200 hover:scale-[1.02] cursor-pointer shadow-md border border-white/20",
+                    event.color,
+                    "text-white overflow-hidden"
+                  )}
+                  style={position}
+                >
+                  <div className="font-semibold text-sm mb-1">{event.title}</div>
+                  <div className="text-white/90 text-xs mb-1">
+                    {event.start} - {event.end}
+                  </div>
+                  {event.description && (
+                    <div className="text-white/80 text-xs mb-1">{event.description}</div>
+                  )}
+                  {event.location && (
+                    <div className="text-white/70 text-xs">{event.location}</div>
+                  )}
+                  
+                  {/* Gradient overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-50 rounded-lg" />
+                </div>
+              );
+            })}
+            
+            {/* Empty state */}
+            {events.length === 0 && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-center text-muted-foreground">
+                  <div className="text-sm font-medium mb-1">No hi ha esdeveniments</div>
+                  <div className="text-xs">Fes clic per afegir un nou esdeveniment</div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default DayView;

@@ -3,13 +3,18 @@ import { ChevronLeft, ChevronRight, Calendar, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import CalendarViewSelector, { CalendarView } from "./CalendarViewSelector";
+import WeekView from "./WeekView";
+import DayView from "./DayView";
 
 interface CalendarMainCardProps {
   currentDate: Date;
   onDateChange: (date: Date) => void;
+  currentView: CalendarView;
+  onViewChange: (view: CalendarView) => void;
 }
 
-const CalendarMainCard = ({ currentDate, onDateChange }: CalendarMainCardProps) => {
+const CalendarMainCard = ({ currentDate, onDateChange, currentView, onViewChange }: CalendarMainCardProps) => {
   const navigateMonth = (direction: "prev" | "next") => {
     const newDate = new Date(currentDate);
     if (direction === "prev") {
@@ -58,20 +63,34 @@ const CalendarMainCard = ({ currentDate, onDateChange }: CalendarMainCardProps) 
             </Button>
           </div>
 
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onDateChange(new Date())}
-            className="rounded-xl bg-accent hover:bg-accent-hover backdrop-blur-sm transition-all duration-300 text-foreground hover:text-primary font-medium px-4 py-2 text-sm shadow-[var(--shadow-organic)]"
-          >
-            <Calendar className="h-3 w-3 mr-1" />
-            Avui
-          </Button>
+          <div className="flex items-center gap-3">
+            <CalendarViewSelector 
+              currentView={currentView}
+              onViewChange={onViewChange}
+            />
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onDateChange(new Date())}
+              className="rounded-xl bg-accent hover:bg-accent-hover backdrop-blur-sm transition-all duration-300 text-foreground hover:text-primary font-medium px-4 py-2 text-sm shadow-[var(--shadow-organic)]"
+            >
+              <Calendar className="h-3 w-3 mr-1" />
+              Avui
+            </Button>
+          </div>
         </div>
 
-        {/* Calendar Grid */}
-        <div className="flex-1 flex flex-col">
-          <MonthView currentDate={currentDate} />
+        {/* Calendar Content */}
+        <div className="flex-1 flex flex-col min-h-0">
+          {currentView === "month" && <MonthView currentDate={currentDate} />}
+          {currentView === "week" && <WeekView currentDate={currentDate} />}
+          {currentView === "day" && (
+            <DayView 
+              currentDate={currentDate} 
+              onDateChange={onDateChange}
+            />
+          )}
         </div>
       </CardContent>
     </Card>

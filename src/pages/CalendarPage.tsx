@@ -5,9 +5,8 @@ import CalendarMainCard from "@/components/calendar/CalendarMainCard";
 import MiniCalendarSidebar from "@/components/calendar/MiniCalendarSidebar";
 import CategoriesSidebar from "@/components/calendar/CategoriesSidebar";
 import TasksSidebar from "@/components/calendar/TasksSidebar";
+import CalendarViewSelector, { CalendarView } from "@/components/calendar/CalendarViewSelector";
 import "@/styles/background-effects.css";
-
-type CalendarView = "month" | "week" | "day" | "agenda";
 
 const CalendarPage = () => {
   const [currentView, setCurrentView] = useState<CalendarView>("month");
@@ -47,6 +46,8 @@ const CalendarPage = () => {
             <CalendarMainCard 
               currentDate={currentDate} 
               onDateChange={setCurrentDate}
+              currentView={currentView}
+              onViewChange={setCurrentView}
             />
           </div>
         </div>
@@ -57,6 +58,8 @@ const CalendarPage = () => {
             <CalendarMainCard 
               currentDate={currentDate} 
               onDateChange={setCurrentDate}
+              currentView={currentView}
+              onViewChange={setCurrentView}
             />
           </div>
           <div className="flex-1 min-h-0 space-y-4">
