@@ -49,8 +49,12 @@ All colors MUST be HSL.
     --warning: 48 96% 53%;
     --warning-foreground: 0 0% 8%;
 
-    /* Borders i inputs coherents */
+    /* Sistema de borders jerarquitzat per calendari */
     --border: 0 0% 18% / 0.4;
+    --border-subtle: 0 0% 25% / 0.25;    /* Línies de temps subtils */
+    --border-medium: 0 0% 30% / 0.4;     /* Separadors importants */
+    --border-calendar: 0 0% 18% / 0.6;   /* Contenidors principals */
+    --border-strong: 0 0% 15% / 0.8;     /* Estructura principal */
     --input: 0 0% 8% / 0.9;
     --ring: 180 100% 25%;
 

@@ -232,11 +232,11 @@ const MonthView = ({ currentDate }: { currentDate: Date }) => {
               key={index}
               className={cn(
                 "relative p-2 rounded-xl transition-all duration-300 cursor-pointer group overflow-hidden flex flex-col",
-                "border-2 hover:shadow-[var(--shadow-organic)] hover:border-black/70",
+                "border hover:shadow-[var(--shadow-organic)] hover:border-[hsl(var(--border-strong))]",
                 isCurrentMonth
-                  ? "bg-card hover:bg-secondary-hover transition-all duration-200 border-black/60"
+                  ? "bg-card hover:bg-secondary-hover transition-all duration-200 border-[hsl(var(--border-calendar))]"
                   : cn(
-                      "bg-muted hover:bg-accent transition-all duration-200 opacity-60 border-black/40",
+                      "bg-muted hover:bg-accent transition-all duration-200 opacity-60 border-[hsl(var(--border-subtle))]",
                       "bg-[linear-gradient(45deg,transparent_25%,rgba(0,0,0,0.2)_25%,rgba(0,0,0,0.2)_50%,transparent_50%,transparent_75%,rgba(0,0,0,0.2)_75%)] bg-[length:6px_6px]"
                     ),
                 isToday && "bg-primary-muted hover:bg-primary/20 shadow-[var(--glow-primary)] border-primary/60 hover:border-primary/90"

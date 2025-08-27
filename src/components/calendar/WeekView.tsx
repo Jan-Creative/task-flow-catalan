@@ -116,8 +116,8 @@ const WeekView = ({ currentDate }: WeekViewProps) => {
             <div
               key={index}
               className={cn(
-                "bg-card p-3 text-center transition-colors rounded-lg border-2 border-black",
-                isToday && "bg-primary/10 border-primary"
+                "bg-card p-3 text-center transition-colors rounded-lg border border-[hsl(var(--border-calendar))]",
+                isToday && "bg-primary/10 border-primary border"
               )}
             >
               <div className="text-xs font-medium text-muted-foreground mb-1">
@@ -140,11 +140,11 @@ const WeekView = ({ currentDate }: WeekViewProps) => {
       <div className="flex-1 overflow-auto">
         <div className="grid grid-cols-8 gap-2">
           {/* Time column */}
-          <div className="bg-card rounded-lg border-2 border-black">
+          <div className="bg-card rounded-lg border border-[hsl(var(--border-calendar))]">
             {hours.map((hour) => (
               <div
                 key={hour}
-                className="h-16 px-3 py-2 text-xs text-muted-foreground border-t-2 border-black flex items-start first:border-t-0"
+                className="h-16 px-3 py-2 text-xs text-muted-foreground border-t border-[hsl(var(--border-subtle))] flex items-start first:border-t-0"
               >
                 {hour.toString().padStart(2, '0')}:00
               </div>
@@ -156,12 +156,12 @@ const WeekView = ({ currentDate }: WeekViewProps) => {
             const events = generateMockEvents(dayIndex);
             
             return (
-              <div key={dayIndex} className="bg-card relative rounded-lg border-2 border-black">
+              <div key={dayIndex} className="bg-card relative rounded-lg border border-[hsl(var(--border-calendar))]">
                 {/* Hour slots */}
                 {hours.map((hour) => (
                   <div
                     key={hour}
-                    className="h-16 border-t-2 border-black hover:bg-accent/20 transition-colors cursor-pointer first:border-t-0"
+                    className="h-16 border-t border-[hsl(var(--border-subtle))] hover:bg-accent/20 transition-colors cursor-pointer first:border-t-0"
                   />
                 ))}
                 
@@ -173,7 +173,7 @@ const WeekView = ({ currentDate }: WeekViewProps) => {
                     <div
                       key={event.id}
                       className={cn(
-                        "absolute left-1 right-1 rounded-xl p-2 text-xs font-medium transition-all duration-200 hover:scale-105 cursor-pointer shadow-lg border-2 border-black",
+                        "absolute left-1 right-1 rounded-xl p-2 text-xs font-medium transition-all duration-200 hover:scale-105 cursor-pointer shadow-lg border border-[hsl(var(--border-medium))] hover:border-[hsl(var(--border-strong))]",
                         event.color,
                         "text-white overflow-hidden"
                       )}
