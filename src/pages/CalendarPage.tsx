@@ -15,44 +15,11 @@ const CalendarPage = () => {
   const [currentView, setCurrentView] = useState<CalendarView>("month");
   const [currentDate, setCurrentDate] = useState(new Date());
 
-  // Define sidebar cards with intelligent configuration
-  const sidebarCards: SidebarCard[] = [
-    {
-      id: 'mini-calendar',
-      component: (
-        <EnhancedMiniCalendarCard 
-          currentDate={currentDate}
-          onDateSelect={setCurrentDate}
-        />
-      ),
-      priority: 'high',
-      minHeight: 220,
-      maxHeight: 280,
-      preferredHeight: 250,
-      canCollapse: false
-    },
-    {
-      id: 'categories',
-      component: <CategoriesCard />,
-      priority: 'low',
-      minHeight: 160,
-      maxHeight: 400,
-      preferredHeight: 280,
-      canCollapse: true
-    },
-    {
-      id: 'tasks',
-      component: <TasksCalendarCard />,
-      priority: 'medium',
-      minHeight: 140,
-      maxHeight: 240,
-      preferredHeight: 190,
-      canCollapse: false
-    }
-  ];
+  // Temporarily empty cards array to validate layout structure
+  const sidebarCards: SidebarCard[] = [];
 
   return (
-    <div className="relative w-full h-screen bg-transparent text-foreground overflow-hidden flex flex-col">
+    <div className="min-h-screen bg-transparent text-foreground flex flex-col">
       
       {/* Header amb glassmorphism */}
       <div className="sticky top-0 z-30 bg-background/70 backdrop-blur-md border-b border-border/30">
@@ -62,19 +29,19 @@ const CalendarPage = () => {
         </div>
       </div>
 
-      {/* Layout amb marges globals */}
-      <div className="relative z-20 flex-1 overflow-hidden p-6" style={{ height: 'calc(100vh - 134px)' }}>
+      {/* Main content with global margins and proper spacing */}
+      <div className="flex-1 min-h-0 overflow-auto px-6 md:px-8 xl:px-10 py-6 md:py-8 pb-[calc(env(safe-area-inset-bottom)+96px)] lg:pb-28">
         
-        {/* Desktop & Tablet Layout - Grid compacte */}
-        <div className="hidden lg:grid lg:grid-cols-10 h-full gap-4">
+        {/* Desktop & Tablet Layout - New compact grid */}
+        <div className="hidden lg:grid lg:grid-cols-12 gap-6 h-full">
           
-          {/* Left Column - Barra lateral més petita */}
-          <div className="col-span-3 xl:col-span-2 h-full">
+          {/* Left Column - Compact sidebar */}
+          <div className="col-span-3 xl:col-span-2 max-w-[360px] min-h-0">
             <AdaptiveSidebarContainer cards={sidebarCards} />
           </div>
 
-          {/* Right Column - Calendari principal més prominent */}
-          <div className="col-span-7 xl:col-span-8 animate-fade-in h-full" style={{animationDelay: '0.1s'}}>
+          {/* Right Column - Main calendar with proper proportions */}
+          <div className="col-span-9 xl:col-span-10 min-h-0 animate-fade-in" style={{animationDelay: '0.1s'}}>
             <CalendarMainCard 
               currentDate={currentDate} 
               onDateChange={setCurrentDate}
@@ -82,18 +49,16 @@ const CalendarPage = () => {
           </div>
         </div>
 
-        {/* Mobile Layout - Amb marges */}
-        <div className="lg:hidden h-full">
-          <div className="h-full space-y-4">
-            <div className="h-2/3">
-              <CalendarMainCard 
-                currentDate={currentDate} 
-                onDateChange={setCurrentDate}
-              />
-            </div>
-            <div className="h-1/3">
-              <AdaptiveSidebarContainer cards={sidebarCards} />
-            </div>
+        {/* Mobile Layout - Stack with proper spacing */}
+        <div className="lg:hidden h-full flex flex-col gap-6">
+          <div className="flex-[2] min-h-0">
+            <CalendarMainCard 
+              currentDate={currentDate} 
+              onDateChange={setCurrentDate}
+            />
+          </div>
+          <div className="flex-1 min-h-0">
+            <AdaptiveSidebarContainer cards={sidebarCards} />
           </div>
         </div>
       </div>

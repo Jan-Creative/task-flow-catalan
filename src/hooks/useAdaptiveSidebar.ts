@@ -18,23 +18,26 @@ export interface AdaptiveDimensions {
   };
 }
 
-export const useAdaptiveSidebar = (cards: SidebarCard[]) => {
+export const useAdaptiveSidebar = (cards: SidebarCard[], containerRef?: React.RefObject<HTMLDivElement>) => {
   const [dimensions, setDimensions] = useState<AdaptiveDimensions>({});
   const [availableHeight, setAvailableHeight] = useState(0);
   const [isTablet, setIsTablet] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
-  // Calculate available height with global margins
+  // Calculate available height based on container
   const calculateAvailableHeight = useCallback(() => {
-    const windowHeight = window.innerHeight;
-    const headerHeight = 72; // Header + padding
-    const bottomNavHeight = 70; // Bottom navigation space
-    const globalMargins = 48; // Global padding (24px * 2)
-    const containerPadding = 16; // Internal gaps
-    const available = windowHeight - headerHeight - bottomNavHeight - globalMargins - containerPadding;
-    
-    setAvailableHeight(Math.max(350, available)); // Minimum més compacte
-  }, []);
+    if (containerRef?.current) {
+      const containerHeight = containerRef.current.clientHeight;
+      setAvailableHeight(Math.max(200, containerHeight - 16)); // Container padding
+    } else {
+      // Fallback to window calculation
+      const windowHeight = window.innerHeight;
+      const headerHeight = 72;
+      const globalPadding = 96; // py-6 md:py-8 + pb-28/pb-calc
+      const available = windowHeight - headerHeight - globalPadding;
+      setAvailableHeight(Math.max(300, available));
+    }
+  }, [containerRef]);
 
   // Detect screen size
   const updateScreenSize = useCallback(() => {
@@ -110,7 +113,7 @@ export const useAdaptiveSidebar = (cards: SidebarCard[]) => {
     setDimensions(newDimensions);
   }, [availableHeight, cards, isMobile, isTablet]);
 
-  // Resize observer
+  // Resize observer for container-based height calculation
   useEffect(() => {
     calculateAvailableHeight();
     updateScreenSize();
@@ -120,9 +123,25 @@ export const useAdaptiveSidebar = (cards: SidebarCard[]) => {
       updateScreenSize();
     };
 
+    let resizeObserver: ResizeObserver | null = null;
+    
+    // Use ResizeObserver for container if available
+    if (containerRef?.current) {
+      resizeObserver = new ResizeObserver(() => {
+        calculateAvailableHeight();
+      });
+      resizeObserver.observe(containerRef.current);
+    }
+
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [calculateAvailableHeight, updateScreenSize]);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
+    };
+  }, [calculateAvailableHeight, updateScreenSize, containerRef]);
 
   // Recalculate when dependencies change
   useEffect(() => {

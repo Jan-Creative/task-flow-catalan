@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { cn } from '@/lib/utils';
 import { useAdaptiveSidebar, SidebarCard } from '@/hooks/useAdaptiveSidebar';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,12 +14,30 @@ const AdaptiveSidebarContainer: React.FC<AdaptiveSidebarContainerProps> = ({
   cards,
   className
 }) => {
-  const { dimensions, isMobile } = useAdaptiveSidebar(cards);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { dimensions, isMobile } = useAdaptiveSidebar(cards, containerRef);
+
+  // Handle empty cards gracefully
+  if (cards.length === 0) {
+    return (
+      <div 
+        ref={containerRef}
+        className={cn("min-h-0 h-full overflow-auto flex flex-col gap-4 bg-background/20 backdrop-blur-sm rounded-lg border border-border/20", className)}
+      >
+        <div className="p-4 text-center text-muted-foreground text-sm">
+          Barra lateral en construcció...
+        </div>
+      </div>
+    );
+  }
 
   if (isMobile) {
     // Mobile: Stack all cards vertically with scroll
     return (
-      <div className={cn("flex flex-col gap-4 h-full overflow-y-auto", className)}>
+      <div 
+        ref={containerRef}
+        className={cn("min-h-0 h-full overflow-auto flex flex-col gap-4", className)}
+      >
         {cards.map((card, index) => (
           <div
             key={card.id}
@@ -37,7 +55,10 @@ const AdaptiveSidebarContainer: React.FC<AdaptiveSidebarContainerProps> = ({
   }
 
   return (
-    <div className={cn("flex flex-col gap-3 h-full", className)}>
+    <div 
+      ref={containerRef}
+      className={cn("min-h-0 h-full overflow-auto flex flex-col gap-4", className)}
+    >
       {cards.map((card, index) => {
         const cardDimensions = dimensions[card.id];
         
