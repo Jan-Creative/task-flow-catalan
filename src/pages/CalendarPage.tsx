@@ -2,11 +2,9 @@ import { useState } from "react";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { FloatingBackgroundButton } from "@/components/backgrounds/FloatingBackgroundButton";
 import CalendarMainCard from "@/components/calendar/CalendarMainCard";
-import EnhancedMiniCalendarCard from "@/components/calendar/EnhancedMiniCalendarCard";
-import CategoriesCard from "@/components/calendar/CategoriesCard";
-import TasksCalendarCard from "@/components/calendar/TasksCalendarCard";
-import AdaptiveSidebarContainer from "@/components/calendar/AdaptiveSidebarContainer";
-import { SidebarCard } from "@/hooks/useAdaptiveSidebar";
+import MiniCalendarSidebar from "@/components/calendar/MiniCalendarSidebar";
+import CategoriesSidebar from "@/components/calendar/CategoriesSidebar";
+import TasksSidebar from "@/components/calendar/TasksSidebar";
 import "@/styles/background-effects.css";
 
 type CalendarView = "month" | "week" | "day" | "agenda";
@@ -14,36 +12,6 @@ type CalendarView = "month" | "week" | "day" | "agenda";
 const CalendarPage = () => {
   const [currentView, setCurrentView] = useState<CalendarView>("month");
   const [currentDate, setCurrentDate] = useState(new Date());
-
-  const sidebarCards: SidebarCard[] = [
-    {
-      id: 'mini-calendar',
-      component: <EnhancedMiniCalendarCard currentDate={currentDate} />,
-      priority: 'high' as const,
-      minHeight: 200,
-      preferredHeight: 220,
-      maxHeight: 240,
-      canCollapse: false
-    },
-    {
-      id: 'categories',
-      component: <CategoriesCard />,
-      priority: 'medium' as const,
-      minHeight: 140,
-      preferredHeight: 180,
-      maxHeight: 200,
-      canCollapse: true
-    },
-    {
-      id: 'upcoming-tasks',
-      component: <TasksCalendarCard />,
-      priority: 'low' as const,
-      minHeight: 120,
-      preferredHeight: 160,
-      maxHeight: 180,
-      canCollapse: true
-    }
-  ];
 
   return (
     <div className="min-h-screen bg-transparent text-foreground flex flex-col">
@@ -59,15 +27,22 @@ const CalendarPage = () => {
       {/* Main content with global margins and proper spacing */}
       <div className="flex-1 min-h-0 overflow-auto px-6 md:px-8 xl:px-10 pt-6 md:pt-8 pb-[calc(1.5rem+96px)] lg:pb-8">
         
-        {/* Desktop & Tablet Layout - New compact grid */}
+        {/* Desktop & Tablet Layout - Fixed sidebar layout */}
         <div className="hidden lg:grid lg:grid-cols-12 gap-6 h-[calc(100vh-8rem)] lg:h-[calc(100vh-10rem)]">
           
-          {/* Left Column - Compact sidebar */}
-          <div className="col-span-3 xl:col-span-2 max-w-[360px] min-h-0">
-            <AdaptiveSidebarContainer cards={sidebarCards} />
+          {/* Left Column - Fixed sidebar with optimized cards */}
+          <div className="col-span-3 xl:col-span-2 max-w-[360px] min-h-0 flex flex-col gap-4">
+            <MiniCalendarSidebar 
+              currentDate={currentDate} 
+              onDateSelect={setCurrentDate}
+            />
+            <CategoriesSidebar />
+            <div className="flex-1 min-h-[180px]">
+              <TasksSidebar />
+            </div>
           </div>
 
-          {/* Right Column - Main calendar with proper proportions */}
+          {/* Right Column - Main calendar */}
           <div className="col-span-9 xl:col-span-10 h-full animate-fade-in" style={{animationDelay: '0.1s'}}>
             <CalendarMainCard 
               currentDate={currentDate} 
@@ -84,8 +59,13 @@ const CalendarPage = () => {
               onDateChange={setCurrentDate}
             />
           </div>
-          <div className="flex-1 min-h-0">
-            <AdaptiveSidebarContainer cards={sidebarCards} />
+          <div className="flex-1 min-h-0 space-y-4">
+            <MiniCalendarSidebar 
+              currentDate={currentDate} 
+              onDateSelect={setCurrentDate}
+            />
+            <CategoriesSidebar />
+            <TasksSidebar />
           </div>
         </div>
       </div>
