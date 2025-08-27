@@ -150,14 +150,14 @@ const MonthView = ({ currentDate }: { currentDate: Date }) => {
               key={index}
               className={cn(
                 "relative p-2 rounded-xl transition-all duration-300 cursor-pointer group overflow-hidden flex flex-col",
-                "border hover:shadow-[var(--shadow-organic)] hover:border-black/60",
+                "border-2 hover:shadow-[var(--shadow-organic)] hover:border-black/70",
                 isCurrentMonth
-                  ? "bg-card-secondary hover:bg-secondary-hover transition-all duration-200 border-black/50"
+                  ? "bg-card-secondary hover:bg-secondary-hover transition-all duration-200 border-black/60"
                   : cn(
-                      "bg-muted hover:bg-accent transition-all duration-200 opacity-60 border-black/30",
+                      "bg-muted hover:bg-accent transition-all duration-200 opacity-60 border-black/40",
                       "bg-[linear-gradient(45deg,transparent_25%,rgba(0,0,0,0.2)_25%,rgba(0,0,0,0.2)_50%,transparent_50%,transparent_75%,rgba(0,0,0,0.2)_75%)] bg-[length:6px_6px]"
                     ),
-                isToday && "bg-primary-muted hover:bg-primary/20 shadow-[var(--glow-primary)] border-primary/50 hover:border-primary/80"
+                isToday && "bg-primary-muted hover:bg-primary/20 shadow-[var(--glow-primary)] border-primary/60 hover:border-primary/90"
               )}
             >
               <div className="flex flex-col h-full">
