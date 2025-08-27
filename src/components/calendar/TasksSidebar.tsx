@@ -130,10 +130,10 @@ const TasksSidebar = () => {
   const completedTasks = tasks.filter(task => task.completed);
 
   return (
-    <Card className="flex flex-col min-h-[180px]">
+    <Card className="flex flex-col min-h-[180px] bg-card shadow-[var(--shadow-card)]">
       <CardHeader className="pb-3">
-        <CardTitle className="text-sm font-medium flex items-center gap-2">
-          <Clock className="h-4 w-4" />
+        <CardTitle className="text-sm font-medium flex items-center gap-2 text-foreground">
+          <Clock className="h-4 w-4 text-primary" />
           Checklist Tasques
           <Badge variant="secondary" className="ml-auto text-xs">
             {pendingTasks.length}
@@ -155,13 +155,13 @@ const TasksSidebar = () => {
                   return (
                     <div
                       key={task.id}
-                      className="flex items-start gap-3 p-2 rounded-lg hover:bg-accent/50 transition-colors group"
+                      className="flex items-start gap-3 p-2 rounded-lg hover:bg-accent-hover transition-colors group shadow-sm hover:shadow-[var(--shadow-organic)]"
                     >
                       {/* Checkbox per marcar com a completada */}
                       <Checkbox
                         checked={task.completed}
                         onCheckedChange={() => toggleTaskCompletion(task.id)}
-                        className="mt-0.5 flex-shrink-0"
+                        className="mt-0.5 flex-shrink-0 hover:shadow-[var(--glow-accent)]"
                       />
                       
                       {/* Contingut de la tasca (clickable per navegació) */}
@@ -221,7 +221,7 @@ const TasksSidebar = () => {
                 {completedTasks.map((task) => (
                   <div
                     key={task.id}
-                    className="flex items-start gap-3 p-2 rounded-lg hover:bg-accent/50 transition-colors group opacity-60"
+                    className="flex items-start gap-3 p-2 rounded-lg hover:bg-accent-hover transition-colors group opacity-60"
                   >
                     {/* Checkbox marcat */}
                     <Checkbox

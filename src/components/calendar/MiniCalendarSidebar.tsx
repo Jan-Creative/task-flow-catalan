@@ -51,10 +51,10 @@ const MiniCalendarSidebar = ({ currentDate, onDateSelect }: MiniCalendarSidebarP
   };
 
   return (
-    <Card className="h-[280px] flex flex-col">
+    <Card className="h-[280px] flex flex-col bg-card shadow-[var(--shadow-card)]">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-medium">
+          <CardTitle className="text-sm font-medium text-foreground">
             {displayDate.toLocaleDateString('ca-ES', { month: 'long', year: 'numeric' })}
           </CardTitle>
           <div className="flex gap-1">
@@ -62,7 +62,7 @@ const MiniCalendarSidebar = ({ currentDate, onDateSelect }: MiniCalendarSidebarP
               variant="ghost"
               size="sm"
               onClick={() => navigateMonth('prev')}
-              className="h-6 w-6 p-0"
+              className="h-6 w-6 p-0 hover:bg-accent transition-colors"
             >
               <ChevronLeft className="h-3 w-3" />
             </Button>
@@ -70,7 +70,7 @@ const MiniCalendarSidebar = ({ currentDate, onDateSelect }: MiniCalendarSidebarP
               variant="ghost"
               size="sm"
               onClick={() => navigateMonth('next')}
-              className="h-6 w-6 p-0"
+              className="h-6 w-6 p-0 hover:bg-accent transition-colors"
             >
               <ChevronRight className="h-3 w-3" />
             </Button>
@@ -101,15 +101,15 @@ const MiniCalendarSidebar = ({ currentDate, onDateSelect }: MiniCalendarSidebarP
                 key={index}
                 onClick={() => handleDateClick(day)}
                 className={cn(
-                  "relative h-8 text-xs rounded-md transition-all duration-200 hover:bg-accent",
+                  "relative h-8 text-xs rounded-md transition-all duration-200 hover:bg-accent-hover hover:shadow-[var(--glow-accent)]",
                   isCurrentMonth ? "text-foreground" : "text-muted-foreground",
-                  isToday && "bg-primary text-primary-foreground font-medium",
+                  isToday && "bg-primary text-primary-foreground font-medium shadow-[var(--glow-primary)]",
                   isSelected && !isToday && "bg-accent text-accent-foreground font-medium"
                 )}
               >
                 <span className="relative z-10">{day.getDate()}</span>
                 {dayHasEvents && !isToday && (
-                  <div className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-primary rounded-full" />
+                  <div className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-primary rounded-full shadow-[var(--glow-accent)]" />
                 )}
               </button>
             );

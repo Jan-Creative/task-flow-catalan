@@ -30,7 +30,7 @@ const CalendarMainCard = ({ currentDate, onDateChange }: CalendarMainCardProps) 
   };
 
   return (
-    <Card className="h-full bg-gray-950/95 backdrop-blur-xl shadow-2xl shadow-black/30 flex flex-col">
+    <Card className="h-full bg-card backdrop-blur-xl shadow-[var(--shadow-elevated)] flex flex-col">
       <CardContent className="p-4 h-full flex flex-col flex-1">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -39,12 +39,12 @@ const CalendarMainCard = ({ currentDate, onDateChange }: CalendarMainCardProps) 
               variant="ghost"
               size="sm"
               onClick={() => navigateMonth("prev")}
-              className="h-8 w-8 rounded-xl bg-gray-800/50 hover:bg-gray-700/70 transition-all duration-300 shadow-md shadow-black/20"
+              className="h-8 w-8 rounded-xl bg-secondary hover:bg-secondary-hover transition-all duration-300 shadow-[var(--shadow-organic)]"
             >
-              <ChevronLeft className="h-4 w-4 text-white" />
+              <ChevronLeft className="h-4 w-4" />
             </Button>
             
-            <h2 className="text-lg font-bold text-white min-w-[160px] text-center tracking-tight">
+            <h2 className="text-lg font-bold text-foreground min-w-[160px] text-center tracking-tight">
               {getCurrentMonthYear()}
             </h2>
             
@@ -52,9 +52,9 @@ const CalendarMainCard = ({ currentDate, onDateChange }: CalendarMainCardProps) 
               variant="ghost"
               size="sm"
               onClick={() => navigateMonth("next")}
-              className="h-8 w-8 rounded-xl bg-gray-800/50 hover:bg-gray-700/70 transition-all duration-300 shadow-md shadow-black/20"
+              className="h-8 w-8 rounded-xl bg-secondary hover:bg-secondary-hover transition-all duration-300 shadow-[var(--shadow-organic)]"
             >
-              <ChevronRight className="h-4 w-4 text-white" />
+              <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
 
@@ -62,7 +62,7 @@ const CalendarMainCard = ({ currentDate, onDateChange }: CalendarMainCardProps) 
             variant="ghost"
             size="sm"
             onClick={() => onDateChange(new Date())}
-            className="rounded-xl bg-gray-800/40 hover:bg-gray-700/60 backdrop-blur-sm transition-all duration-300 text-white hover:text-white font-medium px-4 py-2 text-sm shadow-md shadow-black/20"
+            className="rounded-xl bg-accent hover:bg-accent-hover backdrop-blur-sm transition-all duration-300 text-foreground hover:text-primary font-medium px-4 py-2 text-sm shadow-[var(--shadow-organic)]"
           >
             <Calendar className="h-3 w-3 mr-1" />
             Avui
@@ -83,18 +83,18 @@ const generateMockEvents = (day: Date) => {
   const events = [];
   const dayNum = day.getDate();
   
-  // Add some variety to events based on day
+  // Add some variety to events based on day using design system colors
   if (dayNum % 7 === 0) {
-    events.push({ type: 'meeting', color: 'bg-blue-500', label: 'Reunió' });
+    events.push({ type: 'meeting', color: 'bg-primary', label: 'Reunió' });
   }
   if (dayNum % 5 === 0) {
-    events.push({ type: 'task', color: 'bg-green-500', label: 'Tasca' });
+    events.push({ type: 'task', color: 'bg-success', label: 'Tasca' });
   }
   if (dayNum % 11 === 0) {
-    events.push({ type: 'event', color: 'bg-purple-500', label: 'Esdeveniment' });
+    events.push({ type: 'event', color: 'bg-secondary', label: 'Esdeveniment' });
   }
   if (dayNum % 13 === 0) {
-    events.push({ type: 'reminder', color: 'bg-orange-500', label: 'Recordatori' });
+    events.push({ type: 'reminder', color: 'bg-warning', label: 'Recordatori' });
   }
   
   return events.slice(0, 3); // Max 3 events per day
@@ -132,7 +132,7 @@ const MonthView = ({ currentDate }: { currentDate: Date }) => {
       {/* Days of Week Header */}
       <div className="grid grid-cols-7 gap-1.5">
         {daysOfWeek.map((day) => (
-          <div key={day} className="text-center text-xs font-bold text-white py-2 tracking-wider">
+          <div key={day} className="text-center text-xs font-bold text-foreground py-2 tracking-wider">
             {day}
           </div>
         ))}
@@ -150,24 +150,24 @@ const MonthView = ({ currentDate }: { currentDate: Date }) => {
               key={index}
               className={cn(
                 "relative p-2 rounded-xl transition-all duration-300 cursor-pointer group overflow-hidden flex flex-col",
-        "hover:shadow-lg hover:shadow-black/10",
-        isCurrentMonth
-          ? "bg-gray-800/90 hover:bg-gray-700/95 transition-all duration-200"
-          : cn(
-              "bg-gray-900/95 hover:bg-gray-800/90 transition-all duration-200",
-              "bg-[linear-gradient(45deg,transparent_25%,rgba(0,0,0,0.4)_25%,rgba(0,0,0,0.4)_50%,transparent_50%,transparent_75%,rgba(0,0,0,0.4)_75%)] bg-[length:6px_6px]"
-            ),
-        isToday && "bg-primary/15 hover:bg-primary/20 shadow-lg shadow-primary/5"
+                "hover:shadow-[var(--shadow-organic)]",
+                isCurrentMonth
+                  ? "bg-card-secondary hover:bg-secondary-hover transition-all duration-200"
+                  : cn(
+                      "bg-muted hover:bg-accent transition-all duration-200 opacity-60",
+                      "bg-[linear-gradient(45deg,transparent_25%,rgba(0,0,0,0.2)_25%,rgba(0,0,0,0.2)_50%,transparent_50%,transparent_75%,rgba(0,0,0,0.2)_75%)] bg-[length:6px_6px]"
+                    ),
+                isToday && "bg-primary-muted hover:bg-primary/20 shadow-[var(--glow-primary)] border border-primary/30"
               )}
             >
               <div className="flex flex-col h-full">
                 <span className={cn(
                   "text-sm font-bold mb-2 tracking-tight",
                   isToday 
-                    ? "text-white" 
+                    ? "text-primary-foreground" 
                     : isCurrentMonth 
-                      ? "text-white" 
-                      : "text-white/50"
+                      ? "text-foreground" 
+                      : "text-muted-foreground"
                 )}>
                   {day.getDate()}
                 </span>
@@ -196,7 +196,7 @@ const MonthView = ({ currentDate }: { currentDate: Date }) => {
                 </div>
                 
                 {/* Hover overlay effect */}
-                <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl" />
+                <div className="absolute inset-0 bg-[var(--gradient-glass)] opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl" />
               </div>
             </div>
           );
