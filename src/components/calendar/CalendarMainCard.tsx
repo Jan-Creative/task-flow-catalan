@@ -15,13 +15,33 @@ interface CalendarMainCardProps {
 }
 
 const CalendarMainCard = ({ currentDate, onDateChange, currentView, onViewChange }: CalendarMainCardProps) => {
-  const navigateMonth = (direction: "prev" | "next") => {
+  const navigate = (direction: "prev" | "next") => {
     const newDate = new Date(currentDate);
-    if (direction === "prev") {
-      newDate.setMonth(currentDate.getMonth() - 1);
-    } else {
-      newDate.setMonth(currentDate.getMonth() + 1);
+    
+    switch (currentView) {
+      case "month":
+        if (direction === "prev") {
+          newDate.setMonth(currentDate.getMonth() - 1);
+        } else {
+          newDate.setMonth(currentDate.getMonth() + 1);
+        }
+        break;
+      case "week":
+        if (direction === "prev") {
+          newDate.setDate(currentDate.getDate() - 7);
+        } else {
+          newDate.setDate(currentDate.getDate() + 7);
+        }
+        break;
+      case "day":
+        if (direction === "prev") {
+          newDate.setDate(currentDate.getDate() - 1);
+        } else {
+          newDate.setDate(currentDate.getDate() + 1);
+        }
+        break;
     }
+    
     onDateChange(newDate);
   };
 
@@ -30,8 +50,46 @@ const CalendarMainCard = ({ currentDate, onDateChange, currentView, onViewChange
     "Juliol", "Agost", "Setembre", "Octubre", "Novembre", "Desembre"
   ];
 
-  const getCurrentMonthYear = () => {
-    return `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+  const dayNames = [
+    "Diumenge", "Dilluns", "Dimarts", "Dimecres", "Dijous", "Divendres", "Dissabte"
+  ];
+
+  const getHeaderLabel = () => {
+    switch (currentView) {
+      case "month":
+        return `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+      
+      case "week": {
+        // Get week start (Monday) and end (Sunday)
+        const startOfWeek = new Date(currentDate);
+        const day = startOfWeek.getDay();
+        const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1);
+        startOfWeek.setDate(diff);
+        
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
+        
+        const startDay = startOfWeek.getDate();
+        const endDay = endOfWeek.getDate();
+        const startMonth = monthNames[startOfWeek.getMonth()];
+        const endMonth = monthNames[endOfWeek.getMonth()];
+        const year = startOfWeek.getFullYear();
+        
+        if (startOfWeek.getMonth() === endOfWeek.getMonth()) {
+          return `${startDay}–${endDay} ${startMonth} ${year}`;
+        } else {
+          return `${startDay} ${startMonth} – ${endDay} ${endMonth} ${year}`;
+        }
+      }
+      
+      case "day": {
+        const dayName = dayNames[currentDate.getDay()];
+        const day = currentDate.getDate();
+        const month = monthNames[currentDate.getMonth()];
+        const year = currentDate.getFullYear();
+        return `${dayName}, ${day} ${month} ${year}`;
+      }
+    }
   };
 
   return (
@@ -43,20 +101,20 @@ const CalendarMainCard = ({ currentDate, onDateChange, currentView, onViewChange
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => navigateMonth("prev")}
+              onClick={() => navigate("prev")}
               className="h-8 w-8 rounded-xl bg-secondary hover:bg-secondary-hover transition-all duration-300 shadow-[var(--shadow-organic)]"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
             
-            <h2 className="text-lg font-bold text-foreground min-w-[160px] text-center tracking-tight">
-              {getCurrentMonthYear()}
+            <h2 className="text-lg font-bold text-foreground min-w-[200px] text-center tracking-tight">
+              {getHeaderLabel()}
             </h2>
             
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => navigateMonth("next")}
+              onClick={() => navigate("next")}
               className="h-8 w-8 rounded-xl bg-secondary hover:bg-secondary-hover transition-all duration-300 shadow-[var(--shadow-organic)]"
             >
               <ChevronRight className="h-4 w-4" />
@@ -128,12 +186,17 @@ const MonthView = ({ currentDate }: { currentDate: Date }) => {
     const month = currentDate.getMonth();
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
+    
+    // Calculate start of week (Monday) for the first day of the month
     const startDate = new Date(firstDay);
-    startDate.setDate(startDate.getDate() - firstDay.getDay() + 1);
+    const dayOfWeek = firstDay.getDay();
+    const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Monday = 0 offset
+    startDate.setDate(firstDay.getDate() - daysToSubtract);
     
     const days = [];
     const currentDay = new Date(startDate);
     
+    // Generate 6 weeks (42 days) to ensure complete month view
     for (let i = 0; i < 42; i++) {
       days.push(new Date(currentDay));
       currentDay.setDate(currentDay.getDate() + 1);
