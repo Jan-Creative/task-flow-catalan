@@ -15,8 +15,35 @@ const CalendarPage = () => {
   const [currentView, setCurrentView] = useState<CalendarView>("month");
   const [currentDate, setCurrentDate] = useState(new Date());
 
-  // Temporarily empty cards array to validate layout structure
-  const sidebarCards: SidebarCard[] = [];
+  const sidebarCards: SidebarCard[] = [
+    {
+      id: 'mini-calendar',
+      component: <EnhancedMiniCalendarCard currentDate={currentDate} />,
+      priority: 'high' as const,
+      minHeight: 180,
+      preferredHeight: 200,
+      maxHeight: 220,
+      canCollapse: false
+    },
+    {
+      id: 'categories',
+      component: <CategoriesCard />,
+      priority: 'medium' as const,
+      minHeight: 120,
+      preferredHeight: 160,
+      maxHeight: 240,
+      canCollapse: true
+    },
+    {
+      id: 'upcoming-tasks',
+      component: <TasksCalendarCard />,
+      priority: 'low' as const,
+      minHeight: 100,
+      preferredHeight: 140,
+      maxHeight: 180,
+      canCollapse: true
+    }
+  ];
 
   return (
     <div className="min-h-screen bg-transparent text-foreground flex flex-col">

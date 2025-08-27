@@ -31,20 +31,20 @@ const CalendarMainCard = ({ currentDate, onDateChange }: CalendarMainCardProps) 
 
   return (
     <Card className="h-full bg-gray-950/95 backdrop-blur-xl shadow-2xl shadow-black/30">
-      <CardContent className="p-8 h-full flex flex-col">
+      <CardContent className="p-4 h-full flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => navigateMonth("prev")}
-              className="h-12 w-12 rounded-2xl bg-gray-800/50 hover:bg-gray-700/70 transition-all duration-300 hover:scale-105 shadow-md shadow-black/20"
+              className="h-8 w-8 rounded-xl bg-gray-800/50 hover:bg-gray-700/70 transition-all duration-300 shadow-md shadow-black/20"
             >
-              <ChevronLeft className="h-5 w-5 text-white" />
+              <ChevronLeft className="h-4 w-4 text-white" />
             </Button>
             
-            <h2 className="text-2xl font-bold text-white min-w-[200px] text-center tracking-tight">
+            <h2 className="text-lg font-bold text-white min-w-[160px] text-center tracking-tight">
               {getCurrentMonthYear()}
             </h2>
             
@@ -52,9 +52,9 @@ const CalendarMainCard = ({ currentDate, onDateChange }: CalendarMainCardProps) 
               variant="ghost"
               size="sm"
               onClick={() => navigateMonth("next")}
-              className="h-12 w-12 rounded-2xl bg-gray-800/50 hover:bg-gray-700/70 transition-all duration-300 hover:scale-105 shadow-md shadow-black/20"
+              className="h-8 w-8 rounded-xl bg-gray-800/50 hover:bg-gray-700/70 transition-all duration-300 shadow-md shadow-black/20"
             >
-              <ChevronRight className="h-5 w-5 text-white" />
+              <ChevronRight className="h-4 w-4 text-white" />
             </Button>
           </div>
 
@@ -62,9 +62,9 @@ const CalendarMainCard = ({ currentDate, onDateChange }: CalendarMainCardProps) 
             variant="ghost"
             size="sm"
             onClick={() => onDateChange(new Date())}
-            className="rounded-2xl bg-gray-800/40 hover:bg-gray-700/60 backdrop-blur-sm transition-all duration-300 text-white hover:text-white font-medium px-6 py-3 shadow-md shadow-black/20"
+            className="rounded-xl bg-gray-800/40 hover:bg-gray-700/60 backdrop-blur-sm transition-all duration-300 text-white hover:text-white font-medium px-4 py-2 text-sm shadow-md shadow-black/20"
           >
-            <Calendar className="h-4 w-4 mr-2" />
+            <Calendar className="h-3 w-3 mr-1" />
             Avui
           </Button>
         </div>
@@ -128,18 +128,18 @@ const MonthView = ({ currentDate }: { currentDate: Date }) => {
   const currentMonth = currentDate.getMonth();
 
   return (
-    <div className="space-y-6 h-full">
+    <div className="space-y-3 h-full">
       {/* Days of Week Header */}
-      <div className="grid grid-cols-7 gap-3">
+      <div className="grid grid-cols-7 gap-1.5">
         {daysOfWeek.map((day) => (
-          <div key={day} className="text-center text-sm font-bold text-white py-3 tracking-wider">
+          <div key={day} className="text-center text-xs font-bold text-white py-2 tracking-wider">
             {day}
           </div>
         ))}
       </div>
 
       {/* Calendar Grid */}
-      <div className="grid grid-cols-7 gap-3 flex-1">
+      <div className="grid grid-cols-7 gap-1.5 flex-1">
         {days.map((day, index) => {
           const isToday = day.toDateString() === today.toDateString();
           const isCurrentMonth = day.getMonth() === currentMonth;
@@ -149,7 +149,7 @@ const MonthView = ({ currentDate }: { currentDate: Date }) => {
             <div
               key={index}
               className={cn(
-                "relative aspect-square p-3 rounded-2xl transition-all duration-300 cursor-pointer group overflow-hidden",
+                "relative h-14 p-2 rounded-xl transition-all duration-300 cursor-pointer group overflow-hidden",
         "hover:shadow-lg hover:shadow-black/10",
         isCurrentMonth
           ? "bg-gray-800/90 hover:bg-gray-700/95 transition-all duration-200"

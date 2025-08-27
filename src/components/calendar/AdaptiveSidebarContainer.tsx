@@ -22,7 +22,7 @@ const AdaptiveSidebarContainer: React.FC<AdaptiveSidebarContainerProps> = ({
     return (
       <div 
         ref={containerRef}
-        className={cn("min-h-0 h-full overflow-auto flex flex-col gap-4 bg-background/20 backdrop-blur-sm rounded-lg border border-border/20", className)}
+        className={cn("min-h-0 h-full overflow-auto flex flex-col gap-2 bg-background/20 backdrop-blur-sm rounded-lg border border-border/20", className)}
       >
         <div className="p-4 text-center text-muted-foreground text-sm">
           Barra lateral en construcció...
@@ -36,7 +36,7 @@ const AdaptiveSidebarContainer: React.FC<AdaptiveSidebarContainerProps> = ({
     return (
       <div 
         ref={containerRef}
-        className={cn("min-h-0 h-full overflow-auto flex flex-col gap-4", className)}
+        className={cn("min-h-0 h-full overflow-auto flex flex-col gap-2", className)}
       >
         {cards.map((card, index) => (
           <div
@@ -57,7 +57,7 @@ const AdaptiveSidebarContainer: React.FC<AdaptiveSidebarContainerProps> = ({
   return (
     <div 
       ref={containerRef}
-      className={cn("min-h-0 h-full overflow-auto flex flex-col gap-4", className)}
+      className={cn("min-h-0 h-full overflow-auto flex flex-col gap-2", className)}
     >
       {cards.map((card, index) => {
         const cardDimensions = dimensions[card.id];

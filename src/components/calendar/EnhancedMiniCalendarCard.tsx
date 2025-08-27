@@ -52,12 +52,12 @@ const EnhancedMiniCalendarCard = ({ currentDate, onDateSelect }: EnhancedMiniCal
 
   return (
     <Card className="h-full bg-gray-950/95 backdrop-blur-xl border-gray-800/50 shadow-2xl">
-      <CardHeader className="pb-2 px-3 pt-3">
+      <CardHeader className="pb-1 px-3 pt-3">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-base text-white">Navegació</CardTitle>
+            <CardTitle className="text-sm text-white">Navegació</CardTitle>
             <CardDescription className="text-xs text-gray-400">
-              {displayDate.toLocaleDateString('ca-ES', { month: 'long', year: 'numeric' })}
+              {displayDate.toLocaleDateString('ca-ES', { month: 'short', year: 'numeric' })}
             </CardDescription>
           </div>
           <div className="flex gap-1">
@@ -81,7 +81,7 @@ const EnhancedMiniCalendarCard = ({ currentDate, onDateSelect }: EnhancedMiniCal
         </div>
       </CardHeader>
       <CardContent className="px-3 pb-3">
-        <div className="grid grid-cols-7 gap-0.5">
+        <div className="grid grid-cols-7 gap-1">
           {/* Days of week header */}
           {daysOfWeek.map((day, i) => (
             <div key={i} className="text-center text-xs font-semibold text-gray-500 py-1">

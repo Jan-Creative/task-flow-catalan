@@ -40,10 +40,10 @@ const CategoriesCard = () => {
 
   return (
     <Card className="h-full bg-background/40 backdrop-blur-md border-border/20 shadow-xl">
-      <CardHeader className="pb-2 px-3 pt-3">
+      <CardHeader className="pb-1 px-3 pt-3">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-base">Categories</CardTitle>
+            <CardTitle className="text-sm">Categories</CardTitle>
             <CardDescription className="text-xs">
               {enabledCount} actives · {totalEvents} esdeveniments
             </CardDescription>
@@ -57,14 +57,14 @@ const CategoriesCard = () => {
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="space-y-2 overflow-y-auto px-3 pb-3">
+      <CardContent className="space-y-1.5 overflow-y-auto px-3 pb-3">
         {categories.map((category, index) => {
           const Icon = category.icon;
           return (
             <div
               key={category.id}
               className={cn(
-                "flex items-center justify-between p-2 rounded-lg transition-all duration-300 animate-fade-in",
+                "flex items-center justify-between p-1.5 rounded-lg transition-all duration-300 animate-fade-in",
                 "border border-transparent hover:border-border/30",
                 category.enabled
                   ? "bg-background/20 hover:bg-background/30"

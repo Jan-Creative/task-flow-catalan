@@ -50,7 +50,7 @@ export const useAdaptiveSidebar = (cards: SidebarCard[], containerRef?: React.Re
   const distributeSpace = useCallback(() => {
     if (availableHeight === 0 || cards.length === 0) return;
 
-    const totalGaps = (cards.length - 1) * 12; // 12px gap between cards
+    const totalGaps = (cards.length - 1) * 8; // 8px gap between cards
     const usableHeight = availableHeight - totalGaps;
     
     // Sort cards by priority
