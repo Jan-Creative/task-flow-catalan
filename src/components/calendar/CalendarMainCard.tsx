@@ -139,7 +139,7 @@ const MonthView = ({ currentDate }: { currentDate: Date }) => {
       </div>
 
       {/* Calendar Grid */}
-      <div className="grid grid-cols-7 gap-1.5 flex-1 content-start">
+      <div className="grid grid-cols-7 grid-rows-6 gap-1.5 flex-1">
         {days.map((day, index) => {
           const isToday = day.toDateString() === today.toDateString();
           const isCurrentMonth = day.getMonth() === currentMonth;
@@ -149,7 +149,7 @@ const MonthView = ({ currentDate }: { currentDate: Date }) => {
             <div
               key={index}
               className={cn(
-                "relative h-18 p-2 rounded-xl transition-all duration-300 cursor-pointer group overflow-hidden",
+                "relative p-2 rounded-xl transition-all duration-300 cursor-pointer group overflow-hidden flex flex-col",
         "hover:shadow-lg hover:shadow-black/10",
         isCurrentMonth
           ? "bg-gray-800/90 hover:bg-gray-700/95 transition-all duration-200"
