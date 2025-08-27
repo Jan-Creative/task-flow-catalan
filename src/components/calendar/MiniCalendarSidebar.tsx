@@ -43,9 +43,11 @@ const MiniCalendarSidebar = ({ currentDate, onDateSelect }: MiniCalendarSidebarP
   const today = new Date();
   const currentMonth = displayDate.getMonth();
 
-  // Mock function per esdeveniments
+  // Funció fixa per esdeveniments (evita parpadeig amb Math.random)
   const hasEvents = (date: Date) => {
-    return Math.random() > 0.7; // 30% de probabilitat
+    const day = date.getDate();
+    // Dates fixes amb esdeveniments (no canviaran amb cada render)
+    return [3, 7, 12, 15, 18, 23, 28].includes(day);
   };
 
   return (
