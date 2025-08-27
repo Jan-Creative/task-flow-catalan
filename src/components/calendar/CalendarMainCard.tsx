@@ -139,7 +139,7 @@ const MonthView = ({ currentDate }: { currentDate: Date }) => {
       </div>
 
       {/* Calendar Grid */}
-      <div className="grid grid-cols-7 grid-rows-6 gap-1.5 flex-1">
+      <div className="grid grid-cols-7 grid-rows-6 gap-1 flex-1 bg-background/20 rounded-lg p-1">
         {days.map((day, index) => {
           const isToday = day.toDateString() === today.toDateString();
           const isCurrentMonth = day.getMonth() === currentMonth;
@@ -150,14 +150,14 @@ const MonthView = ({ currentDate }: { currentDate: Date }) => {
               key={index}
               className={cn(
                 "relative p-2 rounded-xl transition-all duration-300 cursor-pointer group overflow-hidden flex flex-col",
-                "hover:shadow-[var(--shadow-organic)]",
+                "border hover:shadow-[var(--shadow-organic)] hover:border-border/80",
                 isCurrentMonth
-                  ? "bg-card-secondary hover:bg-secondary-hover transition-all duration-200"
+                  ? "bg-card-secondary hover:bg-secondary-hover transition-all duration-200 border-border/40"
                   : cn(
-                      "bg-muted hover:bg-accent transition-all duration-200 opacity-60",
+                      "bg-muted hover:bg-accent transition-all duration-200 opacity-60 border-border/20",
                       "bg-[linear-gradient(45deg,transparent_25%,rgba(0,0,0,0.2)_25%,rgba(0,0,0,0.2)_50%,transparent_50%,transparent_75%,rgba(0,0,0,0.2)_75%)] bg-[length:6px_6px]"
                     ),
-                isToday && "bg-primary-muted hover:bg-primary/20 shadow-[var(--glow-primary)] border border-primary/30"
+                isToday && "bg-primary-muted hover:bg-primary/20 shadow-[var(--glow-primary)] border-primary/50 hover:border-primary/80"
               )}
             >
               <div className="flex flex-col h-full">

@@ -89,7 +89,7 @@ const MiniCalendarSidebar = ({ currentDate, onDateSelect }: MiniCalendarSidebarP
         </div>
 
         {/* Calendari */}
-        <div className="grid grid-cols-7 gap-1 flex-1">
+        <div className="grid grid-cols-7 gap-0.5 flex-1 bg-background/20 rounded-md p-1">
           {days.slice(0, 35).map((day, index) => {
             const isToday = day.toDateString() === today.toDateString();
             const isCurrentMonth = day.getMonth() === currentMonth;
@@ -101,10 +101,12 @@ const MiniCalendarSidebar = ({ currentDate, onDateSelect }: MiniCalendarSidebarP
                 key={index}
                 onClick={() => handleDateClick(day)}
                 className={cn(
-                  "relative h-8 text-xs rounded-md transition-all duration-200 hover:bg-accent-hover hover:shadow-[var(--glow-accent)]",
-                  isCurrentMonth ? "text-foreground" : "text-muted-foreground",
-                  isToday && "bg-primary text-primary-foreground font-medium shadow-[var(--glow-primary)]",
-                  isSelected && !isToday && "bg-accent text-accent-foreground font-medium"
+                  "relative h-8 text-xs rounded-md transition-all duration-200 border hover:bg-accent-hover hover:shadow-[var(--glow-accent)] hover:border-border/80",
+                  isCurrentMonth 
+                    ? "text-foreground border-border/30" 
+                    : "text-muted-foreground border-border/15",
+                  isToday && "bg-primary text-primary-foreground font-medium shadow-[var(--glow-primary)] border-primary/50",
+                  isSelected && !isToday && "bg-accent text-accent-foreground font-medium border-accent/60"
                 )}
               >
                 <span className="relative z-10">{day.getDate()}</span>
