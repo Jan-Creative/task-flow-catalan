@@ -139,7 +139,7 @@ const MonthView = ({ currentDate }: { currentDate: Date }) => {
       </div>
 
       {/* Calendar Grid */}
-      <div className="grid grid-cols-7 grid-rows-6 gap-1 flex-1 bg-background/20 rounded-lg p-1">
+      <div className="grid grid-cols-7 grid-rows-6 gap-1 flex-1 rounded-lg p-1">
         {days.map((day, index) => {
           const isToday = day.toDateString() === today.toDateString();
           const isCurrentMonth = day.getMonth() === currentMonth;

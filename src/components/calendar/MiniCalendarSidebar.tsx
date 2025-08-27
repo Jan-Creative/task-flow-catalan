@@ -89,7 +89,7 @@ const MiniCalendarSidebar = ({ currentDate, onDateSelect }: MiniCalendarSidebarP
         </div>
 
         {/* Calendari */}
-        <div className="grid grid-cols-7 gap-0.5 flex-1 bg-background/20 rounded-md p-1">
+        <div className="grid grid-cols-7 gap-0.5 flex-1 rounded-md p-1">
           {days.slice(0, 35).map((day, index) => {
             const isToday = day.toDateString() === today.toDateString();
             const isCurrentMonth = day.getMonth() === currentMonth;
