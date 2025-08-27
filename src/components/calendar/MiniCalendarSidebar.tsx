@@ -101,7 +101,7 @@ const MiniCalendarSidebar = ({ currentDate, onDateSelect }: MiniCalendarSidebarP
                 key={index}
                 onClick={() => handleDateClick(day)}
                 className={cn(
-                  "relative h-8 text-xs rounded-md transition-all duration-200 border-2 hover:bg-accent-hover hover:shadow-[var(--glow-accent)] hover:border-black/70",
+                  "relative h-8 text-xs rounded-md transition-all duration-200 border-2 hover:bg-accent-hover hover:shadow-[var(--glow-accent)] hover:border-black/70 bg-card",
                   isCurrentMonth 
                     ? "text-foreground border-black/50" 
                     : "text-muted-foreground border-black/35",
