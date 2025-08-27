@@ -146,13 +146,13 @@ const DayView = ({ currentDate, onDateChange }: DayViewProps) => {
   return (
     <div className="flex flex-col h-full">
       {/* Day Header */}
-      <div className="flex items-center justify-between mb-4 bg-card/50 backdrop-blur-sm rounded-lg p-3">
+      <div className="flex items-center justify-between mb-4 bg-card/50 backdrop-blur-sm rounded-xl p-4 border-2 border-black">
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => navigateDay("prev")}
-            className="h-8 w-8 rounded-lg hover:bg-secondary"
+            className="h-8 w-8 rounded-xl hover:bg-secondary border-2 border-black"
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -173,7 +173,7 @@ const DayView = ({ currentDate, onDateChange }: DayViewProps) => {
             variant="ghost"
             size="sm"
             onClick={() => navigateDay("next")}
-            className="h-8 w-8 rounded-lg hover:bg-secondary"
+            className="h-8 w-8 rounded-xl hover:bg-secondary border-2 border-black"
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
@@ -193,11 +193,11 @@ const DayView = ({ currentDate, onDateChange }: DayViewProps) => {
       <div className="flex-1 overflow-auto">
         <div className="flex">
           {/* Time column */}
-          <div className="w-20 flex-shrink-0">
+          <div className="w-20 flex-shrink-0 bg-card rounded-lg border-2 border-black mr-2">
             {hours.map((hour) => (
               <div
                 key={hour}
-                className="h-24 px-3 py-2 text-sm text-muted-foreground border-t border-border/30 flex items-start"
+                className="h-24 px-3 py-2 text-sm text-muted-foreground border-t-2 border-black flex items-start first:border-t-0"
               >
                 {hour.toString().padStart(2, '0')}:00
               </div>
@@ -205,15 +205,15 @@ const DayView = ({ currentDate, onDateChange }: DayViewProps) => {
           </div>
 
           {/* Events column */}
-          <div className="flex-1 relative bg-card/30 rounded-lg">
+          <div className="flex-1 relative bg-card/30 rounded-xl border-2 border-black">
             {/* Hour slots */}
             {hours.map((hour) => (
               <div
                 key={hour}
-                className="h-24 border-t border-border/20 hover:bg-accent/10 transition-colors cursor-pointer relative"
+                className="h-24 border-t-2 border-black hover:bg-accent/10 transition-colors cursor-pointer relative first:border-t-0"
               >
                 {/* Half-hour line */}
-                <div className="absolute top-12 left-0 right-0 h-px bg-border/10" />
+                <div className="absolute top-12 left-0 right-0 h-px bg-black/30" />
               </div>
             ))}
             
@@ -236,7 +236,7 @@ const DayView = ({ currentDate, onDateChange }: DayViewProps) => {
                 <div
                   key={event.id}
                   className={cn(
-                    "absolute left-2 right-2 rounded-lg p-3 transition-all duration-200 hover:scale-[1.02] cursor-pointer shadow-md border border-white/20",
+                    "absolute left-2 right-2 rounded-xl p-3 transition-all duration-200 hover:scale-[1.02] cursor-pointer shadow-lg border-2 border-black",
                     event.color,
                     "text-white overflow-hidden"
                   )}
@@ -254,7 +254,7 @@ const DayView = ({ currentDate, onDateChange }: DayViewProps) => {
                   )}
                   
                   {/* Gradient overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-50 rounded-lg" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-50 rounded-xl" />
                 </div>
               );
             })}

@@ -104,9 +104,9 @@ const WeekView = ({ currentDate }: WeekViewProps) => {
   return (
     <div className="flex flex-col h-full">
       {/* Week Days Header */}
-      <div className="grid grid-cols-8 gap-px bg-border rounded-t-lg overflow-hidden">
+      <div className="grid grid-cols-8 gap-2 mb-3">
         {/* Empty cell for time column */}
-        <div className="bg-card p-3"></div>
+        <div className="bg-card p-3 rounded-lg"></div>
         
         {/* Day headers */}
         {weekDays.map((day, index) => {
@@ -116,8 +116,8 @@ const WeekView = ({ currentDate }: WeekViewProps) => {
             <div
               key={index}
               className={cn(
-                "bg-card p-3 text-center transition-colors",
-                isToday && "bg-primary/10 border-b-2 border-primary"
+                "bg-card p-3 text-center transition-colors rounded-lg border-2 border-black",
+                isToday && "bg-primary/10 border-primary"
               )}
             >
               <div className="text-xs font-medium text-muted-foreground mb-1">
@@ -138,13 +138,13 @@ const WeekView = ({ currentDate }: WeekViewProps) => {
 
       {/* Timeline and Events */}
       <div className="flex-1 overflow-auto">
-        <div className="grid grid-cols-8 gap-px bg-border">
+        <div className="grid grid-cols-8 gap-2">
           {/* Time column */}
-          <div className="bg-card">
+          <div className="bg-card rounded-lg border-2 border-black">
             {hours.map((hour) => (
               <div
                 key={hour}
-                className="h-16 px-3 py-2 text-xs text-muted-foreground border-t border-border/50 flex items-start"
+                className="h-16 px-3 py-2 text-xs text-muted-foreground border-t-2 border-black flex items-start first:border-t-0"
               >
                 {hour.toString().padStart(2, '0')}:00
               </div>
@@ -156,12 +156,12 @@ const WeekView = ({ currentDate }: WeekViewProps) => {
             const events = generateMockEvents(dayIndex);
             
             return (
-              <div key={dayIndex} className="bg-card relative">
+              <div key={dayIndex} className="bg-card relative rounded-lg border-2 border-black">
                 {/* Hour slots */}
                 {hours.map((hour) => (
                   <div
                     key={hour}
-                    className="h-16 border-t border-border/30 hover:bg-accent/20 transition-colors cursor-pointer"
+                    className="h-16 border-t-2 border-black hover:bg-accent/20 transition-colors cursor-pointer first:border-t-0"
                   />
                 ))}
                 
@@ -173,7 +173,7 @@ const WeekView = ({ currentDate }: WeekViewProps) => {
                     <div
                       key={event.id}
                       className={cn(
-                        "absolute left-1 right-1 rounded-md p-2 text-xs font-medium transition-all duration-200 hover:scale-105 cursor-pointer shadow-sm",
+                        "absolute left-1 right-1 rounded-xl p-2 text-xs font-medium transition-all duration-200 hover:scale-105 cursor-pointer shadow-lg border-2 border-black",
                         event.color,
                         "text-white overflow-hidden"
                       )}
@@ -185,7 +185,7 @@ const WeekView = ({ currentDate }: WeekViewProps) => {
                       </div>
                       
                       {/* Gradient overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-50 rounded-md" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-50 rounded-xl" />
                     </div>
                   );
                 })}
