@@ -30,8 +30,8 @@ const CalendarMainCard = ({ currentDate, onDateChange }: CalendarMainCardProps) 
   };
 
   return (
-    <Card className="h-full bg-gray-950/95 backdrop-blur-xl shadow-2xl shadow-black/30">
-      <CardContent className="p-4 h-full flex flex-col">
+    <Card className="h-full bg-gray-950/95 backdrop-blur-xl shadow-2xl shadow-black/30 flex flex-col">
+      <CardContent className="p-4 h-full flex flex-col flex-1">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
@@ -70,7 +70,7 @@ const CalendarMainCard = ({ currentDate, onDateChange }: CalendarMainCardProps) 
         </div>
 
         {/* Calendar Grid */}
-        <div className="flex-1">
+        <div className="flex-1 flex flex-col">
           <MonthView currentDate={currentDate} />
         </div>
       </CardContent>
@@ -128,7 +128,7 @@ const MonthView = ({ currentDate }: { currentDate: Date }) => {
   const currentMonth = currentDate.getMonth();
 
   return (
-    <div className="space-y-3 h-full">
+    <div className="flex flex-col h-full space-y-3">
       {/* Days of Week Header */}
       <div className="grid grid-cols-7 gap-1.5">
         {daysOfWeek.map((day) => (
@@ -139,7 +139,7 @@ const MonthView = ({ currentDate }: { currentDate: Date }) => {
       </div>
 
       {/* Calendar Grid */}
-      <div className="grid grid-cols-7 gap-1.5 flex-1">
+      <div className="grid grid-cols-7 gap-1.5 flex-1 content-start">
         {days.map((day, index) => {
           const isToday = day.toDateString() === today.toDateString();
           const isCurrentMonth = day.getMonth() === currentMonth;

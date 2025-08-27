@@ -60,7 +60,7 @@ const CalendarPage = () => {
       <div className="flex-1 min-h-0 overflow-auto px-6 md:px-8 xl:px-10 pt-6 md:pt-8 pb-[calc(1.5rem+96px)] lg:pb-8">
         
         {/* Desktop & Tablet Layout - New compact grid */}
-        <div className="hidden lg:grid lg:grid-cols-12 gap-6 h-full">
+        <div className="hidden lg:grid lg:grid-cols-12 gap-6 h-[calc(100vh-8rem)] lg:h-[calc(100vh-10rem)]">
           
           {/* Left Column - Compact sidebar */}
           <div className="col-span-3 xl:col-span-2 max-w-[360px] min-h-0">
@@ -68,7 +68,7 @@ const CalendarPage = () => {
           </div>
 
           {/* Right Column - Main calendar with proper proportions */}
-          <div className="col-span-9 xl:col-span-10 min-h-0 animate-fade-in" style={{animationDelay: '0.1s'}}>
+          <div className="col-span-9 xl:col-span-10 h-full animate-fade-in" style={{animationDelay: '0.1s'}}>
             <CalendarMainCard 
               currentDate={currentDate} 
               onDateChange={setCurrentDate}
