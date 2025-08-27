@@ -33,7 +33,7 @@ const CalendarMainCard = ({ currentDate, onDateChange }: CalendarMainCardProps) 
     <Card className="h-full bg-gray-950/95 backdrop-blur-xl shadow-2xl shadow-black/30">
       <CardContent className="p-4 h-full flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
@@ -149,7 +149,7 @@ const MonthView = ({ currentDate }: { currentDate: Date }) => {
             <div
               key={index}
               className={cn(
-                "relative h-14 p-2 rounded-xl transition-all duration-300 cursor-pointer group overflow-hidden",
+                "relative h-18 p-2 rounded-xl transition-all duration-300 cursor-pointer group overflow-hidden",
         "hover:shadow-lg hover:shadow-black/10",
         isCurrentMonth
           ? "bg-gray-800/90 hover:bg-gray-700/95 transition-all duration-200"

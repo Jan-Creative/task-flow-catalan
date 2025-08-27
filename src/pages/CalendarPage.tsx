@@ -20,26 +20,26 @@ const CalendarPage = () => {
       id: 'mini-calendar',
       component: <EnhancedMiniCalendarCard currentDate={currentDate} />,
       priority: 'high' as const,
-      minHeight: 180,
-      preferredHeight: 200,
-      maxHeight: 220,
+      minHeight: 200,
+      preferredHeight: 220,
+      maxHeight: 240,
       canCollapse: false
     },
     {
       id: 'categories',
       component: <CategoriesCard />,
       priority: 'medium' as const,
-      minHeight: 120,
-      preferredHeight: 160,
-      maxHeight: 240,
+      minHeight: 140,
+      preferredHeight: 180,
+      maxHeight: 200,
       canCollapse: true
     },
     {
       id: 'upcoming-tasks',
       component: <TasksCalendarCard />,
       priority: 'low' as const,
-      minHeight: 100,
-      preferredHeight: 140,
+      minHeight: 120,
+      preferredHeight: 160,
       maxHeight: 180,
       canCollapse: true
     }
@@ -57,7 +57,7 @@ const CalendarPage = () => {
       </div>
 
       {/* Main content with global margins and proper spacing */}
-      <div className="flex-1 min-h-0 overflow-auto px-6 md:px-8 xl:px-10 py-6 md:py-8 pb-[calc(env(safe-area-inset-bottom)+96px)] lg:pb-28">
+      <div className="flex-1 min-h-0 overflow-auto px-6 md:px-8 xl:px-10 pt-6 md:pt-8 pb-[calc(1.5rem+96px)] lg:pb-8">
         
         {/* Desktop & Tablet Layout - New compact grid */}
         <div className="hidden lg:grid lg:grid-cols-12 gap-6 h-full">
