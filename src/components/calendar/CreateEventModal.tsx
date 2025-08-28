@@ -154,7 +154,7 @@ export const CreateEventPopover = ({
                   placeholder="Títol de l'esdeveniment"
                   value={formData.title}
                   onChange={(e) => updateFormData("title", e.target.value)}
-                  className="text-base font-medium border-0 bg-secondary/50 backdrop-blur-sm placeholder:text-muted-foreground/70 focus:bg-secondary/70 transition-colors"
+                  className="text-base font-medium border border-primary/30 bg-[hsl(var(--input-primary))] backdrop-blur-sm placeholder:text-muted-foreground/80 focus:bg-[hsl(var(--input-focus))] focus:border-primary/50 hover:bg-[hsl(var(--input-hover))] transition-all duration-200 focus:ring-1 focus:ring-primary/20"
                   required
                 />
               </div>
@@ -162,14 +162,14 @@ export const CreateEventPopover = ({
               {/* Date and Time */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <Label className="text-xs font-medium text-foreground">Data i hora</Label>
+                  <Label className="text-xs font-medium text-foreground/90">Data i hora</Label>
                   <div className="flex items-center space-x-1.5">
                     <Switch
                       checked={formData.isAllDay}
                       onCheckedChange={(checked) => updateFormData("isAllDay", checked)}
-                      className="scale-75"
+                      className="scale-75 data-[state=checked]:bg-primary"
                     />
-                    <Label className="text-xs text-muted-foreground">Tot el dia</Label>
+                    <Label className="text-xs text-muted-foreground/80">Tot el dia</Label>
                   </div>
                 </div>
 
@@ -180,8 +180,8 @@ export const CreateEventPopover = ({
                       <Button
                         variant="outline"
                         className={cn(
-                          "justify-start text-left font-normal bg-secondary/50 border-0 hover:bg-secondary/70",
-                          !formData.startDate && "text-muted-foreground"
+                          "justify-start text-left font-normal bg-[hsl(var(--input-secondary))] border border-border/30 hover:bg-[hsl(var(--input-hover))] hover:border-primary/30 transition-all duration-200",
+                          !formData.startDate && "text-muted-foreground/80"
                         )}
                       >
                         <Calendar className="mr-2 h-4 w-4" />
@@ -207,7 +207,7 @@ export const CreateEventPopover = ({
                       type="time"
                       value={startTime}
                       onChange={(e) => setStartTime(e.target.value)}
-                      className="bg-secondary/50 border-0 focus:bg-secondary/70"
+                      className="bg-[hsl(var(--input-secondary))] border border-border/30 focus:bg-[hsl(var(--input-focus))] focus:border-primary/40 transition-all duration-200"
                     />
                   )}
                 </div>
@@ -219,8 +219,8 @@ export const CreateEventPopover = ({
                       <Button
                         variant="outline"
                         className={cn(
-                          "justify-start text-left font-normal bg-secondary/50 border-0 hover:bg-secondary/70",
-                          !formData.endDate && "text-muted-foreground"
+                          "justify-start text-left font-normal bg-[hsl(var(--input-secondary))] border border-border/30 hover:bg-[hsl(var(--input-hover))] hover:border-primary/30 transition-all duration-200",
+                          !formData.endDate && "text-muted-foreground/80"
                         )}
                       >
                         <Calendar className="mr-2 h-4 w-4" />
@@ -246,7 +246,7 @@ export const CreateEventPopover = ({
                       type="time"
                       value={endTime}
                       onChange={(e) => setEndTime(e.target.value)}
-                      className="bg-secondary/50 border-0 focus:bg-secondary/70"
+                      className="bg-[hsl(var(--input-secondary))] border border-border/30 focus:bg-[hsl(var(--input-focus))] focus:border-primary/40 transition-all duration-200"
                     />
                   )}
                 </div>
@@ -255,12 +255,12 @@ export const CreateEventPopover = ({
               {/* Location and Options - Compact layout */}
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
-                  <Label className="text-xs font-medium text-foreground">Ubicació</Label>
+                  <Label className="text-xs font-medium text-foreground/90">Ubicació</Label>
                   <Select
                     value={formData.locationType}
                     onValueChange={(value: "physical" | "virtual") => updateFormData("locationType", value)}
                   >
-                    <SelectTrigger className="bg-secondary/50 border-0 focus:bg-secondary/70 h-8 text-xs">
+                    <SelectTrigger className="bg-[hsl(var(--input-compact))] border border-border/20 focus:bg-[hsl(var(--input-focus))] focus:border-primary/30 h-8 text-xs transition-all duration-200">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-popover/95 backdrop-blur-md border-0">
@@ -281,13 +281,13 @@ export const CreateEventPopover = ({
                 </div>
 
                 <div className="space-y-1">
-                  <Label className="text-xs font-medium text-foreground">Recordatori</Label>
+                  <Label className="text-xs font-medium text-foreground/90">Recordatori</Label>
                   <Select
                     value={formData.reminder}
                     onValueChange={(value) => updateFormData("reminder", value)}
                   >
-                    <SelectTrigger className="bg-secondary/50 border-0 focus:bg-secondary/70 h-8 text-xs">
-                      <Bell className="mr-1 h-3 w-3" />
+                    <SelectTrigger className="bg-[hsl(var(--input-compact))] border border-border/20 focus:bg-[hsl(var(--input-focus))] focus:border-primary/30 h-8 text-xs transition-all duration-200">
+                      <Bell className="mr-1 h-3 w-3 text-primary/70" />
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-popover/95 backdrop-blur-md border-0">
@@ -308,7 +308,7 @@ export const CreateEventPopover = ({
                   placeholder={formData.locationType === "physical" ? "Afegeix ubicació" : "Enllaç de videotrucada"}
                   value={formData.location}
                   onChange={(e) => updateFormData("location", e.target.value)}
-                  className="bg-secondary/50 border-0 focus:bg-secondary/70 h-8 text-sm"
+                  className="bg-[hsl(var(--input-secondary))] border border-border/30 focus:bg-[hsl(var(--input-focus))] focus:border-primary/40 h-8 text-sm placeholder:text-muted-foreground/80 transition-all duration-200"
                 />
               </div>
 
@@ -318,7 +318,7 @@ export const CreateEventPopover = ({
                   placeholder="Descripció (opcional)..."
                   value={formData.description}
                   onChange={(e) => updateFormData("description", e.target.value)}
-                  className="min-h-[60px] bg-secondary/50 border-0 focus:bg-secondary/70 resize-none text-sm"
+                  className="min-h-[60px] bg-[hsl(var(--input-secondary))] border border-border/30 focus:bg-[hsl(var(--input-focus))] focus:border-primary/40 resize-none text-sm placeholder:text-muted-foreground/80 transition-all duration-200"
                 />
               </div>
 
@@ -328,14 +328,14 @@ export const CreateEventPopover = ({
                   type="button"
                   variant="outline"
                   onClick={() => setOpen(false)}
-                  className="flex-1 bg-secondary/50 border-0 hover:bg-secondary/70 h-8 text-sm"
+                  className="flex-1 bg-[hsl(var(--input-compact))] border border-border/30 hover:bg-[hsl(var(--input-hover))] hover:border-border/50 h-8 text-sm transition-all duration-200"
                 >
                   Cancel·lar
                 </Button>
                 <Button
                   type="submit"
                   disabled={!formData.title.trim()}
-                  className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground h-8 text-sm"
+                  className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground h-8 text-sm shadow-sm shadow-primary/20 disabled:opacity-50 disabled:shadow-none transition-all duration-200"
                 >
                   Crear
                 </Button>
