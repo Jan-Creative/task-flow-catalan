@@ -7,6 +7,7 @@ import { DraggableEvent } from "./DraggableEvent";
 import { MagneticDropZone } from './MagneticDropZone';
 import { DragGridOverlay } from './DropZone';
 import { CalendarEvent, EventDragCallbacks } from "@/types/calendar";
+import { isDragAndDropEnabled } from "@/config/appConfig";
 
 interface DayViewProps {
   currentDate: Date;
@@ -126,20 +127,31 @@ const DayView = ({ currentDate, onDateChange, onCreateEvent, onEditEvent, dragCa
           <div className="flex-1 relative bg-card/30 rounded-xl border border-[hsl(var(--border-calendar))]">
             {/* Hour slots with integrated magnetic zones */}
             {hours.map((hour) => (
-              <MagneticDropZone
-                key={hour}
-                timeSlot={currentDate}
-                hour={hour}
-                isWeekView={false}
-                cellWidth={0}
-                cellHeight={64}
-                onMagneticHover={setMagneticDropZone}
-                className="h-16 border-t border-[hsl(var(--border-medium))] hover:bg-accent/10 transition-colors cursor-pointer relative first:border-t-0"
-                onDoubleClick={() => handleTimeSlotDoubleClick(hour)}
-              >
-                {/* Hour indicator */}
-                <div className="absolute top-8 left-0 right-0 h-px bg-[hsl(var(--border-subtle))] opacity-30" />
-              </MagneticDropZone>
+              isDragAndDropEnabled() ? (
+                <MagneticDropZone
+                  key={hour}
+                  timeSlot={currentDate}
+                  hour={hour}
+                  isWeekView={false}
+                  cellWidth={0}
+                  cellHeight={64}
+                  onMagneticHover={setMagneticDropZone}
+                  className="h-16 border-t border-[hsl(var(--border-medium))] hover:bg-accent/10 transition-colors cursor-pointer relative first:border-t-0"
+                  onDoubleClick={() => handleTimeSlotDoubleClick(hour)}
+                >
+                  {/* Hour indicator */}
+                  <div className="absolute top-8 left-0 right-0 h-px bg-[hsl(var(--border-subtle))] opacity-30" />
+                </MagneticDropZone>
+              ) : (
+                <div
+                  key={hour}
+                  className="h-16 border-t border-[hsl(var(--border-medium))] hover:bg-accent/10 transition-colors cursor-pointer relative first:border-t-0"
+                  onDoubleClick={() => handleTimeSlotDoubleClick(hour)}
+                >
+                  {/* Hour indicator */}
+                  <div className="absolute top-8 left-0 right-0 h-px bg-[hsl(var(--border-subtle))] opacity-30" />
+                </div>
+              )
             ))}
             
             {/* Current time indicator */}
@@ -164,6 +176,7 @@ const DayView = ({ currentDate, onDateChange, onCreateEvent, onEditEvent, dragCa
                   position={{ ...position, left: '0.5rem', right: '0.5rem' }}
                   viewType="day"
                   gridInfo={gridInfo}
+                  disabled={!isDragAndDropEnabled()}
                   onDragStart={() => setIsDragging(true)}
                   onDragStop={(draggedEvent, dropZone) => {
                     setIsDragging(false);
@@ -193,7 +206,8 @@ const DayView = ({ currentDate, onDateChange, onCreateEvent, onEditEvent, dragCa
           </div>
         </div>
 
-        {/* Drag Grid Overlay */}
+      {/* Drag Grid Overlay */}
+      {isDragAndDropEnabled() && (
         <DragGridOverlay
           isVisible={isDragging}
           viewType="day"
@@ -204,6 +218,7 @@ const DayView = ({ currentDate, onDateChange, onCreateEvent, onEditEvent, dragCa
             rows: 15
           }}
         />
+      )}
 
         {/* Magnetic Drop Zone Preview */}
         {magneticDropZone && (

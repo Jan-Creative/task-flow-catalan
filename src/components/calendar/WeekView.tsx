@@ -5,6 +5,7 @@ import { DraggableEvent } from "./DraggableEvent";
 import { MagneticDropZone } from './MagneticDropZone';
 import { DragGridOverlay } from './DropZone';
 import { CalendarEvent, EventDragCallbacks } from "@/types/calendar";
+import { isDragAndDropEnabled } from "@/config/appConfig";
 
 interface WeekViewProps {
   currentDate: Date;
@@ -153,18 +154,26 @@ const WeekView = ({ currentDate, onCreateEvent, onEditEvent, dragCallbacks }: We
               <div key={dayIndex} className="bg-card relative rounded-lg border border-[hsl(var(--border-calendar))]">
                 {/* Hour slots with integrated magnetic zones */}
                 {hours.map((hour) => (
-                  <MagneticDropZone
-                    key={`${dayIndex}-${hour}`}
-                    timeSlot={day}
-                    hour={hour}
-                    dayIndex={dayIndex}
-                    isWeekView={true}
-                    cellWidth={gridInfo.cellWidth}
-                    cellHeight={gridInfo.cellHeight}
-                    onMagneticHover={setMagneticDropZone}
-                    className="h-16 border-t border-[hsl(var(--border-subtle))] hover:bg-accent/10 transition-colors cursor-pointer first:border-t-0"
-                    onDoubleClick={() => handleTimeSlotDoubleClick(day, hour)}
-                  />
+                  isDragAndDropEnabled() ? (
+                    <MagneticDropZone
+                      key={`${dayIndex}-${hour}`}
+                      timeSlot={day}
+                      hour={hour}
+                      dayIndex={dayIndex}
+                      isWeekView={true}
+                      cellWidth={gridInfo.cellWidth}
+                      cellHeight={gridInfo.cellHeight}
+                      onMagneticHover={setMagneticDropZone}
+                      className="h-16 border-t border-[hsl(var(--border-subtle))] hover:bg-accent/10 transition-colors cursor-pointer first:border-t-0"
+                      onDoubleClick={() => handleTimeSlotDoubleClick(day, hour)}
+                    />
+                  ) : (
+                    <div
+                      key={`${dayIndex}-${hour}`}
+                      className="h-16 border-t border-[hsl(var(--border-subtle))] hover:bg-accent/10 transition-colors cursor-pointer first:border-t-0"
+                      onDoubleClick={() => handleTimeSlotDoubleClick(day, hour)}
+                    />
+                  )
                 ))}
 
                 {/* Draggable Events */}
@@ -178,6 +187,7 @@ const WeekView = ({ currentDate, onCreateEvent, onEditEvent, dragCallbacks }: We
                       position={{ ...position, left: '0.25rem', right: '0.25rem' }}
                       viewType="week"
                       gridInfo={gridInfo}
+                      disabled={!isDragAndDropEnabled()}
                       onDragStart={() => setIsDragging(true)}
                       onDragStop={(draggedEvent, dropZone) => {
                         setIsDragging(false);
@@ -201,16 +211,18 @@ const WeekView = ({ currentDate, onCreateEvent, onEditEvent, dragCallbacks }: We
       </div>
 
       {/* Drag Grid Overlay */}
-      <DragGridOverlay
-        isVisible={isDragging}
-        viewType="week"
-        gridInfo={{
-          cellWidth: gridInfo.cellWidth,
-          cellHeight: gridInfo.cellHeight,
-          columns: 7,
-          rows: 15
-        }}
-      />
+      {isDragAndDropEnabled() && (
+        <DragGridOverlay
+          isVisible={isDragging}
+          viewType="week"
+          gridInfo={{
+            cellWidth: gridInfo.cellWidth,
+            cellHeight: gridInfo.cellHeight,
+            columns: 7,
+            rows: 15
+          }}
+        />
+      )}
 
       {/* Magnetic Drop Zone Preview */}
       {magneticDropZone && (

@@ -21,6 +21,7 @@ export interface FeatureFlags {
   enableErrorReporting: boolean;
   enableNotifications: boolean;
   enableExperimentalFeatures: boolean;
+  enableDragAndDrop: boolean;
 }
 
 export interface SecuritySettings {
@@ -81,7 +82,8 @@ const createFeatureFlags = (env: AppEnvironment): FeatureFlags => ({
   enableDebugLogging: env.NODE_ENV !== 'production',
   enableErrorReporting: env.BUILD_MODE === 'production',
   enableNotifications: true,
-  enableExperimentalFeatures: env.NODE_ENV === 'development'
+  enableExperimentalFeatures: env.NODE_ENV === 'development',
+  enableDragAndDrop: false // Disabled during development
 });
 
 const createSecuritySettings = (env: AppEnvironment): SecuritySettings => ({
@@ -249,6 +251,9 @@ export const getSecurityConfig = () => config.security;
 export const getFeatureFlags = () => config.features;
 export const getUIConfig = () => config.ui;
 export const getPerformanceConfig = () => config.performance;
+
+// Drag and drop accessor
+export const isDragAndDropEnabled = () => config.features.enableDragAndDrop;
 
 // ============= RUNTIME CONFIGURATION UPDATES =============
 export const updateFeatureFlag = (flag: keyof FeatureFlags, enabled: boolean): void => {

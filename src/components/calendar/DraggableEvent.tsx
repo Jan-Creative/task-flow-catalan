@@ -164,11 +164,11 @@ export const DraggableEvent = ({
       <div
         ref={nodeRef}
         className={cn(
-          "absolute rounded-xl p-3 cursor-move select-none shadow-lg border border-[hsl(var(--border-medium))] overflow-hidden",
+          "absolute rounded-xl p-3 select-none shadow-lg border border-[hsl(var(--border-medium))] overflow-hidden",
           event.color,
           "text-white",
           isDragging && "scale-105 shadow-2xl z-50",
-          disabled && "cursor-not-allowed opacity-50",
+          disabled ? "cursor-pointer opacity-75" : "cursor-move",
           isEventSelected(event.id) && "ring-2 ring-primary ring-offset-2 ring-offset-background",
           // Remove transitions during drag to prevent stuttering
           !isDragging && "transition-all duration-200 hover:scale-[1.02] hover:shadow-xl hover:border-[hsl(var(--border-strong))]"
