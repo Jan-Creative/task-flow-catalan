@@ -73,12 +73,12 @@ const DayView = ({ currentDate, onDateChange, onCreateEvent, dragCallbacks }: Da
   };
   
   // Grid information for drag calculations
-  const gridInfo = {
+  const gridInfo = useMemo(() => ({
     cellWidth: 0, // Day view doesn't use horizontal movement
     cellHeight: 96, // 6rem = 96px per hour
     columns: 1,
     startHour: 8
-  };
+  }), []);
 
   const getCurrentTimePosition = () => {
     const now = new Date();

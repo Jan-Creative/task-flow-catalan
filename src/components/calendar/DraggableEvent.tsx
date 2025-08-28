@@ -30,8 +30,8 @@ export const DraggableEvent = ({
   gridInfo
 }: DraggableEventProps) => {
   const [isDragging, setIsDragging] = useState(false);
-  const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 });
   const nodeRef = useRef<HTMLDivElement>(null);
+  const dragThrottleRef = useRef<number>();
   
   const calculateDropZone = useCallback((x: number, y: number): DropZoneInfo => {
     if (!gridInfo) {
@@ -110,14 +110,24 @@ export const DraggableEvent = ({
   }, [event, onDragStart]);
   
   const handleDrag = useCallback((e: ReactDraggableEvent, data: DraggableData) => {
-    setDragPosition({ x: data.x, y: data.y });
-    onDrag?.(event, data.x, data.y);
+    // Throttle drag events for better performance
+    if (dragThrottleRef.current) {
+      cancelAnimationFrame(dragThrottleRef.current);
+    }
+    
+    dragThrottleRef.current = requestAnimationFrame(() => {
+      onDrag?.(event, data.x, data.y);
+    });
   }, [event, onDrag]);
   
   const handleDragStop = useCallback((e: ReactDraggableEvent, data: DraggableData) => {
     console.log('🎯 Drag stop:', event.title, { x: data.x, y: data.y });
     setIsDragging(false);
-    setDragPosition({ x: 0, y: 0 });
+    
+    // Clear any pending throttled drag calls
+    if (dragThrottleRef.current) {
+      cancelAnimationFrame(dragThrottleRef.current);
+    }
     
     const dropZone = calculateDropZone(data.x, data.y);
     onDragStop?.(event, dropZone);
@@ -137,7 +147,8 @@ export const DraggableEvent = ({
       onStart={handleDragStart}
       onDrag={handleDrag}
       onStop={handleDragStop}
-      position={isDragging ? dragPosition : { x: 0, y: 0 }}
+      defaultPosition={{ x: 0, y: 0 }}
+      enableUserSelectHack={false}
       scale={1}
     >
       <div

@@ -76,12 +76,12 @@ const WeekView = ({ currentDate, onCreateEvent, dragCallbacks }: WeekViewProps) 
   };
   
   // Grid information for drag calculations
-  const gridInfo = {
-    cellWidth: 0, // Will be calculated based on container
+  const gridInfo = useMemo(() => ({
+    cellWidth: 180, // Approximate column width in pixels
     cellHeight: 64, // 4rem = 64px per hour
     columns: 7,
     startHour: 8
-  };
+  }), []);
 
   const handleTimeSlotDoubleClick = (day: Date, event: React.MouseEvent) => {
     if (onCreateEvent) {

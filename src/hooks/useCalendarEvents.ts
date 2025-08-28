@@ -69,7 +69,22 @@ const generateMockEvents = (date: Date): CalendarEvent[] => {
 };
 
 export const useCalendarEvents = (constraints: Partial<CalendarConstraints> = {}) => {
-  const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [events, setEvents] = useState<CalendarEvent[]>(() => {
+    // Initialize with mock events for the current week
+    const now = new Date();
+    const startOfWeek = new Date(now);
+    const day = startOfWeek.getDay();
+    const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1);
+    startOfWeek.setDate(diff);
+    
+    const weekEvents: CalendarEvent[] = [];
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(startOfWeek);
+      date.setDate(startOfWeek.getDate() + i);
+      weekEvents.push(...generateMockEvents(date));
+    }
+    return weekEvents;
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
@@ -77,19 +92,20 @@ export const useCalendarEvents = (constraints: Partial<CalendarConstraints> = {}
   
   // Get events for a specific date or date range
   const getEventsForDate = useCallback((date: Date): CalendarEvent[] => {
-    // For now, return mock events - later this would fetch from database
-    return generateMockEvents(date);
-  }, []);
+    return events.filter(event => 
+      event.startDateTime.toDateString() === date.toDateString()
+    );
+  }, [events]);
   
   const getEventsForWeek = useCallback((startDate: Date): CalendarEvent[] => {
-    const weekEvents: CalendarEvent[] = [];
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(startDate);
-      date.setDate(startDate.getDate() + i);
-      weekEvents.push(...getEventsForDate(date));
-    }
-    return weekEvents;
-  }, [getEventsForDate]);
+    const endDate = new Date(startDate);
+    endDate.setDate(startDate.getDate() + 6);
+    
+    return events.filter(event => {
+      const eventDate = event.startDateTime;
+      return eventDate >= startDate && eventDate <= endDate;
+    });
+  }, [events]);
   
   const getEventsForMonth = useCallback((date: Date): CalendarEvent[] => {
     const year = date.getFullYear();
@@ -97,13 +113,11 @@ export const useCalendarEvents = (constraints: Partial<CalendarConstraints> = {}
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     
-    const monthEvents: CalendarEvent[] = [];
-    for (let d = firstDay.getDate(); d <= lastDay.getDate(); d++) {
-      const currentDate = new Date(year, month, d);
-      monthEvents.push(...getEventsForDate(currentDate));
-    }
-    return monthEvents;
-  }, [getEventsForDate]);
+    return events.filter(event => {
+      const eventDate = event.startDateTime;
+      return eventDate >= firstDay && eventDate <= lastDay;
+    });
+  }, [events]);
   
   // Validate if a time slot is valid for dropping
   const isValidTimeSlot = useCallback((date: Date, hour: number, minute: number): boolean => {
