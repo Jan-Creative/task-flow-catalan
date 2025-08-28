@@ -2,6 +2,8 @@ import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { useCalendarEvents } from "@/hooks/useCalendarEvents";
 import { DraggableEvent } from "./DraggableEvent";
+import { MagneticDropZone } from './MagneticDropZone';
+import { DragGridOverlay } from './DropZone';
 import { CalendarEvent, EventDragCallbacks } from "@/types/calendar";
 
 interface WeekViewProps {
@@ -21,6 +23,8 @@ interface Event {
 const WeekView = ({ currentDate, onCreateEvent, dragCallbacks }: WeekViewProps) => {
   const hours = Array.from({ length: 15 }, (_, i) => i + 8); // 8:00 to 22:00
   const daysOfWeek = ["Dilluns", "Dimarts", "Dimecres", "Dijous", "Divendres", "Dissabte", "Diumenge"];
+  const [isDragging, setIsDragging] = useState(false);
+  const [magneticDropZone, setMagneticDropZone] = useState<any>(null);
   
   // Get the start of the week (Monday)
   const getWeekDays = () => {
@@ -163,6 +167,27 @@ const WeekView = ({ currentDate, onCreateEvent, dragCallbacks }: WeekViewProps) 
                   />
                 ))}
                 
+                {/* Magnetic Drop Zones */}
+                {hours.map((hour) => (
+                  <MagneticDropZone
+                    key={`${dayIndex}-${hour}`}
+                    timeSlot={day}
+                    hour={hour}
+                    dayIndex={dayIndex}
+                    isWeekView={true}
+                    cellWidth={gridInfo.cellWidth}
+                    cellHeight={gridInfo.cellHeight}
+                    onMagneticHover={setMagneticDropZone}
+                    className="absolute"
+                    style={{
+                      top: `${(hour - 8) * 4}rem`,
+                      height: '4rem',
+                      left: '0.25rem',
+                      right: '0.25rem'
+                    }}
+                  />
+                ))}
+
                 {/* Draggable Events */}
                 {dayEvents.map((event) => {
                   const position = getEventPosition(event);
@@ -174,7 +199,10 @@ const WeekView = ({ currentDate, onCreateEvent, dragCallbacks }: WeekViewProps) 
                       position={{ ...position, left: '0.25rem', right: '0.25rem' }}
                       viewType="week"
                       gridInfo={gridInfo}
+                      onDragStart={() => setIsDragging(true)}
                       onDragStop={(draggedEvent, dropZone) => {
+                        setIsDragging(false);
+                        setMagneticDropZone(null);
                         if (dropZone.isValid && dropZone.date) {
                           // Calculate new end time maintaining duration
                           const duration = draggedEvent.endDateTime.getTime() - draggedEvent.startDateTime.getTime();
@@ -191,6 +219,27 @@ const WeekView = ({ currentDate, onCreateEvent, dragCallbacks }: WeekViewProps) 
           })}
         </div>
       </div>
+
+      {/* Drag Grid Overlay */}
+      <DragGridOverlay
+        isVisible={isDragging}
+        viewType="week"
+        gridInfo={{
+          cellWidth: gridInfo.cellWidth,
+          cellHeight: gridInfo.cellHeight,
+          columns: 7,
+          rows: 15
+        }}
+      />
+
+      {/* Magnetic Drop Zone Preview */}
+      {magneticDropZone && (
+        <div className="fixed top-4 right-4 z-50 bg-primary/90 text-primary-foreground px-3 py-2 rounded-lg shadow-lg backdrop-blur-sm">
+          <div className="text-sm font-medium">
+            🧲 {magneticDropZone.time} - {magneticDropZone.date.toLocaleDateString('ca-ES', { weekday: 'short', day: 'numeric' })}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

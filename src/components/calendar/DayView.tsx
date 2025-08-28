@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useCalendarEvents } from "@/hooks/useCalendarEvents";
 import { DraggableEvent } from "./DraggableEvent";
+import { MagneticDropZone } from './MagneticDropZone';
+import { DragGridOverlay } from './DropZone';
 import { CalendarEvent, EventDragCallbacks } from "@/types/calendar";
 
 interface DayViewProps {
@@ -27,6 +29,8 @@ const DayView = ({ currentDate, onDateChange, onCreateEvent, dragCallbacks }: Da
   const hours = Array.from({ length: 15 }, (_, i) => i + 8); // 8:00 to 22:00
   const today = new Date();
   const isToday = currentDate.toDateString() === today.toDateString();
+  const [isDragging, setIsDragging] = useState(false);
+  const [magneticDropZone, setMagneticDropZone] = useState<any>(null);
   
   // Calendar events hook
   const { getEventsForDate, callbacks: defaultCallbacks } = useCalendarEvents();
@@ -171,13 +175,24 @@ const DayView = ({ currentDate, onDateChange, onCreateEvent, dragCallbacks }: Da
 
           {/* Events column */}
           <div className="flex-1 relative bg-card/30 rounded-xl border border-[hsl(var(--border-calendar))]">
-            {/* Hour slots */}
+            {/* Hour slots with Magnetic Drop Zones */}
             {hours.map((hour) => (
               <div
                 key={hour}
                 className="h-24 border-t border-[hsl(var(--border-medium))] hover:bg-accent/10 transition-colors cursor-pointer relative first:border-t-0"
                 onDoubleClick={handleTimeSlotDoubleClick}
               >
+                {/* Magnetic Drop Zone */}
+                <MagneticDropZone
+                  timeSlot={currentDate}
+                  hour={hour}
+                  isWeekView={false}
+                  cellWidth={0}
+                  cellHeight={96}
+                  onMagneticHover={setMagneticDropZone}
+                  className="absolute inset-0"
+                />
+                
                 {/* Half-hour line */}
                 <div className="absolute top-12 left-0 right-0 h-px bg-[hsl(var(--border-subtle))] opacity-30" />
               </div>
@@ -205,7 +220,10 @@ const DayView = ({ currentDate, onDateChange, onCreateEvent, dragCallbacks }: Da
                   position={{ ...position, left: '0.5rem', right: '0.5rem' }}
                   viewType="day"
                   gridInfo={gridInfo}
+                  onDragStart={() => setIsDragging(true)}
                   onDragStop={(draggedEvent, dropZone) => {
+                    setIsDragging(false);
+                    setMagneticDropZone(null);
                     if (dropZone.isValid && dropZone.date) {
                       // Calculate new end time maintaining duration
                       const duration = draggedEvent.endDateTime.getTime() - draggedEvent.startDateTime.getTime();
@@ -229,6 +247,27 @@ const DayView = ({ currentDate, onDateChange, onCreateEvent, dragCallbacks }: Da
             )}
           </div>
         </div>
+
+        {/* Drag Grid Overlay */}
+        <DragGridOverlay
+          isVisible={isDragging}
+          viewType="day"
+          gridInfo={{
+            cellWidth: gridInfo.cellWidth,
+            cellHeight: gridInfo.cellHeight,
+            columns: 1,
+            rows: 15
+          }}
+        />
+
+        {/* Magnetic Drop Zone Preview */}
+        {magneticDropZone && (
+          <div className="fixed top-4 right-4 z-50 bg-primary/90 text-primary-foreground px-3 py-2 rounded-lg shadow-lg backdrop-blur-sm">
+            <div className="text-sm font-medium">
+              🧲 {magneticDropZone.time}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

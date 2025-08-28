@@ -106,11 +106,13 @@ export const DraggableEvent = ({
   const handleDragStart = useCallback((e: ReactDraggableEvent, data: DraggableData) => {
     console.log('🎯 Drag start:', event.title);
     setIsDragging(true);
+    // Add global dragging class for magnetic zones
+    document.body.classList.add('calendar-dragging');
     onDragStart?.(event);
   }, [event, onDragStart]);
   
   const handleDrag = useCallback((e: ReactDraggableEvent, data: DraggableData) => {
-    // Throttle drag events for better performance
+    // Reduced throttling for smoother movement
     if (dragThrottleRef.current) {
       cancelAnimationFrame(dragThrottleRef.current);
     }
@@ -123,6 +125,9 @@ export const DraggableEvent = ({
   const handleDragStop = useCallback((e: ReactDraggableEvent, data: DraggableData) => {
     console.log('🎯 Drag stop:', event.title, { x: data.x, y: data.y });
     setIsDragging(false);
+    
+    // Remove global dragging class
+    document.body.classList.remove('calendar-dragging');
     
     // Clear any pending throttled drag calls
     if (dragThrottleRef.current) {
@@ -140,6 +145,17 @@ export const DraggableEvent = ({
   const duration = event.endDateTime.getTime() - event.startDateTime.getTime();
   const durationHours = duration / (1000 * 60 * 60);
   
+  // Calculate bounds for dragging
+  const bounds = gridInfo ? {
+    left: -50,
+    top: -20,
+    right: (gridInfo.columns * gridInfo.cellWidth) - 50,
+    bottom: (14 * gridInfo.cellHeight) - 20 // 8AM to 10PM = 14 hours
+  } : undefined;
+
+  // Grid snap settings
+  const gridSettings: [number, number] | undefined = gridInfo ? [gridInfo.cellWidth, gridInfo.cellHeight / 4] : undefined; // Snap every 15 minutes
+
   return (
     <Draggable
       nodeRef={nodeRef}
@@ -149,6 +165,8 @@ export const DraggableEvent = ({
       onStop={handleDragStop}
       defaultPosition={{ x: 0, y: 0 }}
       enableUserSelectHack={false}
+      bounds={bounds}
+      grid={gridSettings}
       scale={1}
     >
       <div
