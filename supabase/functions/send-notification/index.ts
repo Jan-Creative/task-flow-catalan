@@ -79,8 +79,8 @@ serve(async (req) => {
     const basePayload = {
       title: title || 'TaskFlow',
       body: body || 'Nova notificació',
-      icon: '/favicon.ico',
-      badge: '/favicon.ico',
+      icon: data?.icon || '/icon-192x192.png',
+      badge: data?.badge || '/icon-192x192.png',
       tag: data?.type || 'taskflow-notification',
       data: data || {},
       silent: false
