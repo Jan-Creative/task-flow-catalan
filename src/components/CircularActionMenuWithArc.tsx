@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Plus, Calendar, Bell, Folder } from "lucide-react";
+import { Plus, Calendar, Bell, Folder, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -9,6 +9,7 @@ interface CircularActionMenuProps {
   onCreateNotification?: () => void;
   onCreateFolder?: () => void;
   isMobile: boolean;
+  onToggleMode?: () => void; // Callback to switch back to sphere mode
 }
 
 interface MenuOption {
@@ -24,20 +25,35 @@ const CircularActionMenuWithArc = ({
   onCreateEvent, 
   onCreateNotification, 
   onCreateFolder,
-  isMobile 
+  isMobile,
+  onToggleMode
 }: CircularActionMenuProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [clickCount, setClickCount] = useState(0);
+  const [arcAnimationProgress, setArcAnimationProgress] = useState(0);
   const timeoutRef = useRef<NodeJS.Timeout>();
   const fabRef = useRef<HTMLButtonElement>(null);
 
-  // Debug: confirm arc version is mounted and track expansion state
+  // Debug: confirm arc version is mounted
   useEffect(() => {
     console.info("🟢 Using CircularActionMenuWithArc (ARC MODE)");
   }, []);
 
+  // Animate arc drawing when expanded
   useEffect(() => {
-    console.info("🔄 Arc menu expanded:", isExpanded);
+    if (isExpanded) {
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += 0.1;
+        setArcAnimationProgress(progress);
+        if (progress >= 1) {
+          clearInterval(interval);
+        }
+      }, 30);
+      return () => clearInterval(interval);
+    } else {
+      setArcAnimationProgress(0);
+    }
   }, [isExpanded]);
 
   const menuOptions: MenuOption[] = [
@@ -68,7 +84,15 @@ const CircularActionMenuWithArc = ({
       icon: Folder,
       action: onCreateFolder || (() => console.log("Create folder")),
       color: "bg-emerald-500"
-    }
+    },
+    // Add toggle option if available
+    ...(onToggleMode ? [{
+      id: "toggle",
+      label: "Mode Esfèric",
+      icon: RotateCcw,
+      action: onToggleMode,
+      color: "bg-secondary"
+    }] : [])
   ];
 
   const handleButtonClick = () => {
@@ -199,21 +223,25 @@ const CircularActionMenuWithArc = ({
     return { x, y };
   };
 
-  // Generate SVG arc path
+  // Generate arc path for SVG with animation progress
   const generateArcPath = () => {
     const { radius, startAngle, endAngle } = getOptimalPositioning();
     
-    const startRad = startAngle * (Math.PI / 180);
-    const endRad = endAngle * (Math.PI / 180);
+    // Calculate the animated end angle
+    const totalArc = endAngle - startAngle;
+    const animatedEndAngle = startAngle + (totalArc * arcAnimationProgress);
     
-    const x1 = Math.cos(startRad) * radius;
-    const y1 = Math.sin(startRad) * radius;
-    const x2 = Math.cos(endRad) * radius;
-    const y2 = Math.sin(endRad) * radius;
+    const startAngleRad = (startAngle * Math.PI) / 180;
+    const endAngleRad = (animatedEndAngle * Math.PI) / 180;
     
-    const largeArcFlag = endAngle - startAngle > 180 ? 1 : 0;
+    const startX = Math.cos(startAngleRad) * radius;
+    const startY = Math.sin(startAngleRad) * radius;
+    const endX = Math.cos(endAngleRad) * radius;
+    const endY = Math.sin(endAngleRad) * radius;
     
-    return `M ${x1} ${y1} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`;
+    const largeArcFlag = animatedEndAngle - startAngle <= 180 ? "0" : "1";
+    
+    return `M ${startX} ${startY} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${endX} ${endY}`;
   };
 
   const buttonSize = isMobile ? 56 : 60;
@@ -258,12 +286,14 @@ const CircularActionMenuWithArc = ({
         {/* Arc SVG and Menu Options */}
         {isExpanded && (
           <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] px-2 py-0.5 rounded-full bg-primary text-primary-foreground shadow-[var(--shadow-floating)] animate-fade-in" style={{animationDelay:'50ms'}}>
-              ARC MODE
+            {/* Mode Badge */}
+            <div className="absolute -top-8 left-1/2 -translate-x-1/2 text-[10px] px-3 py-1 rounded-full bg-primary/20 text-primary border border-primary/30 backdrop-blur-sm animate-fade-in z-10" style={{animationDelay:'50ms'}}>
+              ⚡ ARC MODE
             </div>
-            {/* Arc Visual */}
+            
+            {/* Dramatic Arc Visual */}
             <svg 
-              className="absolute inset-0 w-full h-full animate-scale-in"
+              className="absolute inset-0 w-full h-full"
               style={{
                 left: '50%',
                 top: '50%',
@@ -274,77 +304,96 @@ const CircularActionMenuWithArc = ({
               viewBox="-200 -200 400 400"
             >
               <defs>
+                {/* Enhanced Gradient with Neon Effect */}
                 <linearGradient id="arcGradient" x1="0%" y1="0%" x2="100%" y2="0%">
                   <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="1" />
-                  <stop offset="50%" stopColor="hsl(var(--primary))" stopOpacity="0.9" />
-                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.8" />
+                  <stop offset="30%" stopColor="hsl(220 100% 60%)" stopOpacity="1" />
+                  <stop offset="70%" stopColor="hsl(260 100% 70%)" stopOpacity="1" />
+                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="1" />
                 </linearGradient>
-                <filter id="glow">
-                  <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-                  <feMerge> 
+                
+                {/* Intense Glow Filter */}
+                <filter id="intensiveGlow" x="-50%" y="-50%" width="200%" height="200%">
+                  <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+                  <feGaussianBlur stdDeviation="16" result="bigBlur"/>
+                  <feMerge>
+                    <feMergeNode in="bigBlur"/>
                     <feMergeNode in="coloredBlur"/>
                     <feMergeNode in="SourceGraphic"/>
                   </feMerge>
                 </filter>
+                
+                {/* Traveling Light Animation */}
+                <linearGradient id="travelingLight" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="transparent" stopOpacity="0">
+                    <animate attributeName="stop-opacity" values="0;1;0" dur="2s" repeatCount="indefinite"/>
+                  </stop>
+                  <stop offset="50%" stopColor="hsl(60 100% 80%)" stopOpacity="0.8">
+                    <animate attributeName="stop-opacity" values="0;1;0" dur="2s" repeatCount="indefinite" begin="0.5s"/>
+                  </stop>
+                  <stop offset="100%" stopColor="transparent" stopOpacity="0">
+                    <animate attributeName="stop-opacity" values="0;1;0" dur="2s" repeatCount="indefinite" begin="1s"/>
+                  </stop>
+                </linearGradient>
               </defs>
               
-              {/* Main arc path */}
+              {/* Main Dramatic Arc Path */}
               <path
                 d={generateArcPath()}
                 stroke="url(#arcGradient)"
-                strokeWidth="8"
+                strokeWidth="16"
                 fill="none"
                 strokeLinecap="round"
-                filter="url(#glow)"
-                className="animate-fade-in"
-                style={{ animationDelay: '100ms', animationFillMode: 'both' }}
+                filter="url(#intensiveGlow)"
+                className="drop-shadow-2xl"
+                style={{
+                  opacity: arcAnimationProgress
+                }}
               />
               
-              {/* Arc nodes (where buttons will be positioned) */}
-              {menuOptions.map((_, index) => {
-                const position = getOptionPosition(index);
-                return (
-                  <circle
-                    key={index}
-                    cx={position.x}
-                    cy={position.y}
-                    r="6"
-                    fill="hsl(var(--primary))"
-                    className="animate-scale-in"
-                    style={{ 
-                      animationDelay: `${200 + index * 50}ms`, 
-                      animationFillMode: 'both' 
-                    }}
-                  />
-                );
-              })}
+              {/* Traveling Light Effect */}
+              <path
+                d={generateArcPath()}
+                stroke="url(#travelingLight)"
+                strokeWidth="4"
+                fill="none"
+                strokeLinecap="round"
+                style={{
+                  opacity: arcAnimationProgress > 0.8 ? 1 : 0
+                }}
+              />
             </svg>
 
-            {/* Menu option buttons positioned on the arc */}
+            {/* Arc-Integrated Action Buttons */}
             {menuOptions.map((option, index) => {
               const position = getOptionPosition(index);
               const Icon = option.icon;
+              const isVisible = arcAnimationProgress > (index / menuOptions.length) * 0.8;
               
               return (
                 <Button
                   key={option.id}
                   onClick={() => handleOptionClick(option)}
                   className={cn(
-                    "absolute rounded-full p-0 shadow-[var(--shadow-floating)] hover:scale-110 active:scale-95 transition-all duration-200 pointer-events-auto",
+                    "absolute rounded-full p-0 transition-all duration-300 pointer-events-auto border-2 border-white/30",
                     option.color,
-                    "animate-scale-in border-2 border-white/20"
+                    "shadow-[0_0_20px_rgba(0,0,0,0.3)] hover:shadow-[0_0_30px_rgba(255,255,255,0.5)]",
+                    "hover:scale-125 active:scale-95",
+                    "backdrop-blur-sm"
                   )}
                   style={{
-                    width: `${buttonSize}px`,
-                    height: `${buttonSize}px`,
-                    left: `calc(50% + ${position.x}px - ${buttonSize/2}px)`,
-                    top: `calc(50% + ${position.y}px - ${buttonSize/2}px)`,
-                    animationDelay: `${300 + index * 80}ms`,
-                    animationFillMode: "both"
+                    width: `${isMobile ? 44 : 48}px`,
+                    height: `${isMobile ? 44 : 48}px`,
+                    left: `calc(50% + ${position.x}px - ${(isMobile ? 44 : 48)/2}px)`,
+                    top: `calc(50% + ${position.y}px - ${(isMobile ? 44 : 48)/2}px)`,
+                    opacity: isVisible ? 1 : 0,
+                    transform: isVisible ? 'scale(1)' : 'scale(0.3)',
+                    transition: `all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) ${index * 150 + 500}ms`,
+                    filter: 'drop-shadow(0 0 12px rgba(255,255,255,0.3))'
                   }}
                   aria-label={option.label}
                 >
-                  <Icon className={cn("text-white", isMobile ? "h-6 w-6" : "h-7 w-7")} />
+                  <Icon className={cn("text-white drop-shadow-sm", isMobile ? "h-5 w-5" : "h-6 w-6")} />
                 </Button>
               );
             })}

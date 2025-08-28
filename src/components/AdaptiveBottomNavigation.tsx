@@ -4,6 +4,8 @@ import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import CircularActionMenuWithArc from "./CircularActionMenuWithArc";
+import CircularActionMenu from "./CircularActionMenu";
+import { useCircularMenuMode } from "@/hooks/useCircularMenuMode";
 
 interface AdaptiveBottomNavigationProps {
   activeTab: string;
@@ -15,6 +17,7 @@ const AdaptiveBottomNavigation = ({ activeTab, onTabChange, onCreateTask }: Adap
   const [isCompacted, setIsCompacted] = useState(false);
   const [showTransition, setShowTransition] = useState(false);
   const isMobile = useIsMobile();
+  const { mode, isArcMode, toggleMode } = useCircularMenuMode("arc"); // Start with arc mode
 
   const tabs = [
     { id: "avui", label: "Avui", icon: Calendar },
@@ -107,10 +110,18 @@ const AdaptiveBottomNavigation = ({ activeTab, onTabChange, onCreateTask }: Adap
         </div>
 
         {/* Circular Action Menu */}
-        <CircularActionMenuWithArc
-          onCreateTask={onCreateTask}
-          isMobile={isMobile}
-        />
+        {isArcMode ? (
+          <CircularActionMenuWithArc
+            onCreateTask={onCreateTask}
+            isMobile={isMobile}
+            onToggleMode={toggleMode}
+          />
+        ) : (
+          <CircularActionMenu
+            onCreateTask={onCreateTask}
+            isMobile={isMobile}
+          />
+        )}
       </div>
     </div>
   );
