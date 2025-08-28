@@ -109,9 +109,9 @@ const CircularActionMenu = ({
 
   // Calculate positions for circular layout
   const getOptionPosition = (index: number) => {
-    const radius = isMobile ? 70 : 80;
-    const startAngle = 45; // Start from top-right
-    const totalAngle = 180; // Half circle
+    const radius = isMobile ? 120 : 140;
+    const startAngle = 70; // Start from top-right  
+    const totalAngle = 240; // Expanded arc for better distribution
     const angleStep = totalAngle / (menuOptions.length - 1);
     const angle = (startAngle + (index * angleStep)) * (Math.PI / 180);
     
@@ -124,8 +124,8 @@ const CircularActionMenu = ({
     };
   };
 
-  const buttonSize = isMobile ? 44 : 48;
-  const mainButtonSize = isMobile ? 52 : 56;
+  const buttonSize = isMobile ? 56 : 60;
+  const mainButtonSize = isMobile ? 64 : 68;
 
   return (
     <>
@@ -170,7 +170,7 @@ const CircularActionMenu = ({
                   }}
                   aria-label={option.label}
                 >
-                  <Icon className="h-5 w-5 text-white" />
+                  <Icon className={cn("text-white", isMobile ? "h-6 w-6" : "h-7 w-7")} />
                 </Button>
               );
             })}
