@@ -1,14 +1,15 @@
-import React from "react";
+import React, { useState } from "react";
 import { CalendarPlus, ChevronLeft, ChevronRight, Calendar, CalendarDays, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { CalendarView } from "./CalendarViewSelector";
+import { CreateEventModal } from "./CreateEventModal";
 
 interface CalendarControlBarProps {
   className?: string;
-  onCreateEvent?: () => void;
+  onCreateEvent?: (eventData: any) => void;
   currentDate: Date;
   onDateChange: (date: Date) => void;
   currentView: CalendarView;
@@ -23,6 +24,7 @@ const CalendarControlBar: React.FC<CalendarControlBarProps> = ({
   currentView,
   onViewChange
 }) => {
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const monthNames = [
     "Gener", "Febrer", "Març", "Abril", "Maig", "Juny",
     "Juliol", "Agost", "Setembre", "Octubre", "Novembre", "Desembre"
@@ -178,7 +180,7 @@ const CalendarControlBar: React.FC<CalendarControlBarProps> = ({
         </Select>
 
         <Button
-          onClick={onCreateEvent}
+          onClick={() => setIsCreateModalOpen(true)}
           className="bg-primary/90 hover:bg-primary text-primary-foreground shadow-sm transition-all duration-200 hover:shadow-md rounded-xl"
           size="sm"
         >
@@ -186,6 +188,16 @@ const CalendarControlBar: React.FC<CalendarControlBarProps> = ({
           Nou esdeveniment
         </Button>
       </div>
+
+      <CreateEventModal
+        open={isCreateModalOpen}
+        onOpenChange={setIsCreateModalOpen}
+        defaultDate={currentDate}
+        onCreateEvent={(eventData) => {
+          onCreateEvent?.(eventData);
+          setIsCreateModalOpen(false);
+        }}
+      />
     </Card>
   );
 };
