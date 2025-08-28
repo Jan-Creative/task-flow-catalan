@@ -147,25 +147,8 @@ const Index = () => {
   // Show main app if authenticated
   return (
     <div className="w-full min-h-screen bg-background overflow-x-hidden relative">
-      {/* User info header */}
-      <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
-        <div className="bg-card/80 backdrop-blur-glass border border-border/50 rounded-xl px-3 py-2 shadow-glass">
-          <div className="flex items-center gap-2">
-            <User className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium text-foreground">
-              {user.user_metadata?.full_name || user.email}
-            </span>
-          </div>
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={signOut}
-          className="bg-card/80 backdrop-blur-glass border-border/50 hover:bg-destructive/10"
-        >
-          <LogOut className="h-4 w-4" />
-        </Button>
-      </div>
+      {/* Reserved space for future quick-action bar */}
+      {/* Future: New event, New task, Reminders, etc. */}
 
       <KeepAlivePages activeTab={activeTab}>
         {renderKeepAlivePages()}
