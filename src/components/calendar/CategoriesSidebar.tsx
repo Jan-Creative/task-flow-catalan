@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Calendar, Users, Briefcase, Heart, Star, Settings, Plus, ArrowLeft, X, Edit2, Trash2, Copy } from "lucide-react";
+import * as Icons from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +24,29 @@ interface Category {
 
 const CategoriesSidebar = () => {
   const { toast } = useToast();
+  
+  // Robust icon resolution function
+  const resolveIcon = (iconName: string) => {
+    console.log(`🔍 Resolving icon: "${iconName}"`);
+    
+    // Method 1: Try lucide-react direct import
+    const directIcon = (Icons as any)[iconName];
+    if (directIcon && typeof directIcon === 'function') {
+      console.log(`✅ Found direct icon: ${iconName}`);
+      return directIcon;
+    }
+    
+    // Method 2: Try icon library
+    const libraryIcon = getIconByName(iconName);
+    if (libraryIcon?.icon) {
+      console.log(`✅ Found library icon: ${iconName}`);
+      return libraryIcon.icon;
+    }
+    
+    // Method 3: Fallback to Heart
+    console.log(`⚠️ Using fallback icon for: ${iconName}`);
+    return Heart;
+  };
   
   const [categories, setCategories] = useState<Category[]>([
     { id: '1', name: 'Personal', color: 'hsl(var(--primary))', iconName: 'Heart', count: 8, enabled: true },
@@ -103,6 +127,12 @@ const CategoriesSidebar = () => {
   };
 
   const handleIconChange = (categoryId: string, newIconName: string) => {
+    console.log(`🔄 Changing icon for category ${categoryId} to: ${newIconName}`);
+    
+    // Test icon resolution before updating
+    const resolvedIcon = resolveIcon(newIconName);
+    console.log(`🧪 Resolved icon component:`, resolvedIcon.name || 'unnamed');
+    
     setCategories(prev => 
       prev.map(cat => 
         cat.id === categoryId 
@@ -194,7 +224,8 @@ const CategoriesSidebar = () => {
                   
                   <div className="space-y-2 max-h-60 overflow-y-auto">
                     {categories.map((category) => {
-                      const IconComponent = (getIconByName(category.iconName)?.icon) || Heart;
+                      const IconComponent = resolveIcon(category.iconName);
+                      console.log(`🎨 Rendering category "${category.name}" with icon: ${category.iconName} -> ${IconComponent.name || 'unnamed'}`);
                        return (
                          <div key={category.id} className="group flex items-center gap-3 p-2 rounded-lg hover:bg-[#2a2a2a] transition-colors">
                            {/* Icon with color - clickable to open customization popover */}
@@ -430,7 +461,7 @@ const CategoriesSidebar = () => {
         <ScrollArea className="h-full">
           <div className="space-y-2 px-6 pb-3">
             {categories.map((category) => {
-            const IconComponent = (getIconByName(category.iconName)?.icon) || Heart;
+            const IconComponent = resolveIcon(category.iconName);
             return (
               <div key={category.id} className="flex items-center justify-between group hover:bg-accent/50 rounded-lg p-1 transition-colors">
                  <div className="flex items-center gap-2 flex-1 min-w-0">
