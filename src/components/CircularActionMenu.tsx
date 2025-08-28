@@ -29,7 +29,7 @@ const CircularActionMenu = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const [clickCount, setClickCount] = useState(0);
   const timeoutRef = useRef<NodeJS.Timeout>();
-  const menuRef = useRef<HTMLDivElement>(null);
+  const fabRef = useRef<HTMLButtonElement>(null);
 
   const menuOptions: MenuOption[] = [
     {
@@ -88,10 +88,8 @@ const CircularActionMenu = ({
     setIsExpanded(false);
   };
 
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      setIsExpanded(false);
-    }
+  const handleBackdropClick = () => {
+    setIsExpanded(false);
   };
 
   useEffect(() => {
@@ -107,21 +105,20 @@ const CircularActionMenu = ({
     }
   }, [isExpanded]);
 
-  // Calculate positions for circular layout
+  // Calculate positions with FAB as center origin
   const getOptionPosition = (index: number) => {
-    const radius = isMobile ? 120 : 140;
-    const startAngle = 70; // Start from top-right  
-    const totalAngle = 240; // Expanded arc for better distribution
+    const radius = isMobile ? 100 : 120;
+    // Start from top-left quadrant for visibility
+    const startAngle = 135; // Top-left
+    const endAngle = 225; // Bottom-left
+    const totalAngle = endAngle - startAngle;
     const angleStep = totalAngle / (menuOptions.length - 1);
     const angle = (startAngle + (index * angleStep)) * (Math.PI / 180);
     
     const x = Math.cos(angle) * radius;
     const y = Math.sin(angle) * radius;
     
-    return {
-      x: -Math.abs(x), // Always negative to go left
-      y: -Math.abs(y)  // Always negative to go up
-    };
+    return { x, y };
   };
 
   const buttonSize = isMobile ? 56 : 60;
@@ -129,7 +126,7 @@ const CircularActionMenu = ({
 
   return (
     <>
-      {/* Backdrop */}
+      {/* Full-screen backdrop when expanded */}
       {isExpanded && (
         <div 
           className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm"
@@ -137,17 +134,35 @@ const CircularActionMenu = ({
         />
       )}
 
-      {/* Menu Container - Fixed positioning when expanded */}
-      <div 
-        ref={menuRef}
-        className={cn(
-          "z-50",
-          isExpanded ? "fixed bottom-[90px] right-4" : "relative"
-        )}
-      >
-        {/* Circular Menu Options */}
+      {/* Main FAB Container - Always positioned relative to its normal flow */}
+      <div className="relative z-50">
+        {/* Main FAB Button */}
+        <Button
+          ref={fabRef}
+          onClick={handleButtonClick}
+          size="lg"
+          className={cn(
+            "bg-gradient-primary hover:scale-110 active:scale-95 transition-all duration-200 ease-out rounded-full shadow-[var(--shadow-floating)] hover:shadow-glow flex-shrink-0 p-0",
+            isExpanded && "scale-105 shadow-glow"
+          )}
+          style={{
+            height: `${mainButtonSize}px`,
+            width: `${mainButtonSize}px`
+          }}
+          aria-label="Accions ràpides"
+        >
+          <Plus 
+            className={cn(
+              "transition-transform duration-200 text-white",
+              isMobile ? "h-5 w-5" : "h-6 w-6",
+              isExpanded && "rotate-45"
+            )} 
+          />
+        </Button>
+
+        {/* Circular Menu Options - Positioned relative to FAB center */}
         {isExpanded && (
-          <div className="absolute bottom-0 right-0 pointer-events-none">
+          <div className="absolute inset-0 pointer-events-none">
             {menuOptions.map((option, index) => {
               const position = getOptionPosition(index);
               const Icon = option.icon;
@@ -164,8 +179,10 @@ const CircularActionMenu = ({
                   style={{
                     width: `${buttonSize}px`,
                     height: `${buttonSize}px`,
-                    transform: `translate(${position.x}px, ${position.y}px)`,
-                    animationDelay: `${index * 50}ms`,
+                    // Position relative to FAB center
+                    left: `calc(50% + ${position.x}px - ${buttonSize/2}px)`,
+                    top: `calc(50% + ${position.y}px - ${buttonSize/2}px)`,
+                    animationDelay: `${index * 80}ms`,
                     animationFillMode: "both"
                   }}
                   aria-label={option.label}
@@ -176,29 +193,6 @@ const CircularActionMenu = ({
             })}
           </div>
         )}
-
-        {/* Main FAB Button */}
-        <Button
-          onClick={handleButtonClick}
-          size="lg"
-          className={cn(
-            "bg-gradient-primary hover:scale-110 active:scale-95 transition-all duration-200 ease-out rounded-full shadow-[var(--shadow-floating)] hover:shadow-glow flex-shrink-0 p-0",
-            isExpanded && "scale-105 shadow-glow"
-          )}
-          style={{
-            height: `${mainButtonSize}px`,
-            width: `${mainButtonSize}px`
-          }}
-          aria-label="Accions ràpides"
-        >
-          <Plus 
-            className={cn(
-              "transition-transform duration-200",
-              isMobile ? "h-5 w-5" : "h-6 w-6",
-              isExpanded && "rotate-45"
-            )} 
-          />
-        </Button>
       </div>
     </>
   );
