@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 
 interface WeekViewProps {
   currentDate: Date;
+  onCreateEvent?: (eventData: { date: Date; time?: string; position?: { x: number; y: number } }) => void;
 }
 
 interface Event {
@@ -13,7 +14,7 @@ interface Event {
   color: string;
 }
 
-const WeekView = ({ currentDate }: WeekViewProps) => {
+const WeekView = ({ currentDate, onCreateEvent }: WeekViewProps) => {
   const hours = Array.from({ length: 15 }, (_, i) => i + 8); // 8:00 to 22:00
   const daysOfWeek = ["Dilluns", "Dimarts", "Dimecres", "Dijous", "Divendres", "Dissabte", "Diumenge"];
   
@@ -101,6 +102,21 @@ const WeekView = ({ currentDate }: WeekViewProps) => {
     };
   };
 
+  const handleTimeSlotDoubleClick = (day: Date, event: React.MouseEvent) => {
+    if (onCreateEvent) {
+      const rect = event.currentTarget.getBoundingClientRect();
+      const relativeY = event.clientY - rect.top;
+      const hourDecimal = (relativeY / 64) + 8; // 64px = 4rem per hour, starting from 8am
+      const hour = Math.floor(hourDecimal);
+      const minute = Math.round((hourDecimal - hour) * 60 / 15) * 15; // Round to 15-minute intervals
+      
+      const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+      const position = { x: event.clientX, y: event.clientY };
+      
+      onCreateEvent({ date: day, time: timeString, position });
+    }
+  };
+
   return (
     <div className="flex flex-col h-full">
       {/* Week Days Header */}
@@ -162,6 +178,7 @@ const WeekView = ({ currentDate }: WeekViewProps) => {
                   <div
                     key={hour}
                     className="h-16 border-t border-[hsl(var(--border-subtle))] hover:bg-accent/20 transition-colors cursor-pointer first:border-t-0"
+                    onDoubleClick={(e) => handleTimeSlotDoubleClick(day, e)}
                   />
                 ))}
                 

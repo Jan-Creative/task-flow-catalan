@@ -7,15 +7,33 @@ import CategoriesSidebar from "@/components/calendar/CategoriesSidebar";
 import TasksSidebar from "@/components/calendar/TasksSidebar";
 import CalendarViewSelector, { CalendarView } from "@/components/calendar/CalendarViewSelector";
 import CalendarControlBar from "@/components/calendar/CalendarControlBar";
+import { CreateEventPopover } from "@/components/calendar/CreateEventModal";
 import "@/styles/background-effects.css";
 
 const CalendarPage = () => {
   const [currentView, setCurrentView] = useState<CalendarView>("month");
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [quickEventData, setQuickEventData] = useState<{ 
+    date: Date; 
+    time?: string; 
+    position?: { x: number; y: number };
+    isOpen: boolean;
+  } | null>(null);
 
-  const handleCreateEvent = () => {
+  const handleCreateEvent = (eventData?: any) => {
     // TODO: Implementar creació d'esdeveniments
-    console.log("Crear nou esdeveniment");
+    console.log("Crear nou esdeveniment", eventData);
+  };
+
+  const handleQuickCreateEvent = (eventData: { date: Date; time?: string; position?: { x: number; y: number } }) => {
+    setQuickEventData({
+      ...eventData,
+      isOpen: true
+    });
+  };
+
+  const handleQuickEventClose = () => {
+    setQuickEventData(null);
   };
 
   return (
@@ -53,12 +71,13 @@ const CalendarPage = () => {
               />
             </div>
             <div className="flex-1 min-h-0 animate-fade-in" style={{animationDelay: '0.1s'}}>
-              <CalendarMainCard 
-                currentDate={currentDate} 
-                onDateChange={setCurrentDate}
-                currentView={currentView}
-                onViewChange={setCurrentView}
-              />
+            <CalendarMainCard 
+              currentDate={currentDate}
+              onDateChange={setCurrentDate}
+              currentView={currentView}
+              onViewChange={setCurrentView}
+              onCreateEvent={handleQuickCreateEvent}
+            />
             </div>
           </div>
         </div>
@@ -82,6 +101,7 @@ const CalendarPage = () => {
               onDateChange={setCurrentDate}
               currentView={currentView}
               onViewChange={setCurrentView}
+              onCreateEvent={handleQuickCreateEvent}
             />
           </div>
           <div className="flex-1 min-h-0 space-y-3">
@@ -97,6 +117,32 @@ const CalendarPage = () => {
 
       {/* Floating Background Configuration Button */}
       <FloatingBackgroundButton />
+      
+      {quickEventData && (
+        <div 
+          className="fixed z-50"
+          style={{
+            left: quickEventData.position?.x || '50%',
+            top: quickEventData.position?.y || '50%',
+            transform: quickEventData.position ? 'translate(-50%, -50%)' : 'translate(-50%, -50%)'
+          }}
+        >
+          <CreateEventPopover
+            defaultDate={quickEventData.date}
+            defaultTime={quickEventData.time}
+            onCreateEvent={(data) => {
+              handleCreateEvent(data);
+              handleQuickEventClose();
+            }}
+            open={quickEventData.isOpen}
+            onOpenChange={(open) => {
+              if (!open) handleQuickEventClose();
+            }}
+          >
+            <div /> {/* Invisible trigger */}
+          </CreateEventPopover>
+        </div>
+      )}
     </div>
   );
 };

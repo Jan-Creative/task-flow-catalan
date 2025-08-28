@@ -12,9 +12,10 @@ interface CalendarMainCardProps {
   onDateChange: (date: Date) => void;
   currentView: CalendarView;
   onViewChange: (view: CalendarView) => void;
+  onCreateEvent?: (eventData: { date: Date; time?: string; position?: { x: number; y: number } }) => void;
 }
 
-const CalendarMainCard = ({ currentDate, onDateChange, currentView, onViewChange }: CalendarMainCardProps) => {
+const CalendarMainCard = ({ currentDate, onDateChange, currentView, onViewChange, onCreateEvent }: CalendarMainCardProps) => {
   const navigate = (direction: "prev" | "next") => {
     const newDate = new Date(currentDate);
     
@@ -97,12 +98,13 @@ const CalendarMainCard = ({ currentDate, onDateChange, currentView, onViewChange
       <CardContent className="p-4 h-full flex flex-col flex-1">
         {/* Calendar Content - Centralized */}
         <div className="flex-1 flex flex-col min-h-0">
-          {currentView === "month" && <MonthView currentDate={currentDate} />}
-          {currentView === "week" && <WeekView currentDate={currentDate} />}
+          {currentView === "month" && <MonthView currentDate={currentDate} onCreateEvent={onCreateEvent} />}
+          {currentView === "week" && <WeekView currentDate={currentDate} onCreateEvent={onCreateEvent} />}
           {currentView === "day" && (
             <DayView 
               currentDate={currentDate} 
               onDateChange={onDateChange}
+              onCreateEvent={onCreateEvent}
             />
           )}
         </div>
@@ -134,7 +136,7 @@ const generateMockEvents = (day: Date) => {
 };
 
 // Month View Component
-const MonthView = ({ currentDate }: { currentDate: Date }) => {
+const MonthView = ({ currentDate, onCreateEvent }: { currentDate: Date; onCreateEvent?: (eventData: { date: Date; time?: string; position?: { x: number; y: number } }) => void }) => {
   const daysOfWeek = ["Dl", "Dm", "Dc", "Dj", "Dv", "Ds", "Dg"];
   
   const getDaysInMonth = () => {
@@ -164,6 +166,17 @@ const MonthView = ({ currentDate }: { currentDate: Date }) => {
   const days = getDaysInMonth();
   const today = new Date();
   const currentMonth = currentDate.getMonth();
+
+  const handleDayDoubleClick = (day: Date, event: React.MouseEvent) => {
+    if (onCreateEvent) {
+      const rect = event.currentTarget.getBoundingClientRect();
+      const position = {
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2
+      };
+      onCreateEvent({ date: day, position });
+    }
+  };
 
   return (
     <div className="flex flex-col h-full space-y-3">
@@ -197,6 +210,7 @@ const MonthView = ({ currentDate }: { currentDate: Date }) => {
                     ),
                 isToday && "bg-primary-muted hover:bg-primary/20 shadow-[var(--glow-primary)] border-primary/60 hover:border-primary/90"
               )}
+              onDoubleClick={(e) => handleDayDoubleClick(day, e)}
             >
               <div className="flex flex-col h-full">
                 <span className={cn(

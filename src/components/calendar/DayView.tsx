@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 interface DayViewProps {
   currentDate: Date;
   onDateChange: (date: Date) => void;
+  onCreateEvent?: (eventData: { date: Date; time?: string; position?: { x: number; y: number } }) => void;
 }
 
 interface Event {
@@ -18,7 +19,7 @@ interface Event {
   location?: string;
 }
 
-const DayView = ({ currentDate, onDateChange }: DayViewProps) => {
+const DayView = ({ currentDate, onDateChange, onCreateEvent }: DayViewProps) => {
   const hours = Array.from({ length: 15 }, (_, i) => i + 8); // 8:00 to 22:00
   const today = new Date();
   const isToday = currentDate.toDateString() === today.toDateString();
@@ -141,6 +142,21 @@ const DayView = ({ currentDate, onDateChange }: DayViewProps) => {
     return `${position * 6}rem`;
   };
 
+  const handleTimeSlotDoubleClick = (event: React.MouseEvent) => {
+    if (onCreateEvent) {
+      const rect = event.currentTarget.getBoundingClientRect();
+      const relativeY = event.clientY - rect.top;
+      const hourDecimal = (relativeY / 96) + 8; // 96px = 6rem per hour (h-24 = 6rem), starting from 8am
+      const hour = Math.floor(hourDecimal);
+      const minute = Math.round((hourDecimal - hour) * 60 / 15) * 15; // Round to 15-minute intervals
+      
+      const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+      const position = { x: event.clientX, y: event.clientY };
+      
+      onCreateEvent({ date: currentDate, time: timeString, position });
+    }
+  };
+
   const currentTimePosition = isToday ? getCurrentTimePosition() : null;
 
   return (
@@ -211,6 +227,7 @@ const DayView = ({ currentDate, onDateChange }: DayViewProps) => {
               <div
                 key={hour}
                 className="h-24 border-t border-[hsl(var(--border-medium))] hover:bg-accent/10 transition-colors cursor-pointer relative first:border-t-0"
+                onDoubleClick={handleTimeSlotDoubleClick}
               >
                 {/* Half-hour line */}
                 <div className="absolute top-12 left-0 right-0 h-px bg-[hsl(var(--border-subtle))] opacity-30" />

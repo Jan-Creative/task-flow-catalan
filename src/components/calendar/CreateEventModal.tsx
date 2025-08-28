@@ -25,7 +25,10 @@ import { cn } from "@/lib/utils";
 interface CreateEventPopoverProps {
   children: React.ReactNode;
   defaultDate?: Date;
+  defaultTime?: string;
   onCreateEvent?: (eventData: EventFormData) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 interface EventFormData {
@@ -45,9 +48,13 @@ interface EventFormData {
 export const CreateEventPopover = ({
   children,
   defaultDate = new Date(),
+  defaultTime,
   onCreateEvent,
+  open: controlledOpen,
+  onOpenChange,
 }: CreateEventPopoverProps) => {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
   const [formData, setFormData] = useState<EventFormData>({
     title: "",
     description: "",
@@ -64,8 +71,15 @@ export const CreateEventPopover = ({
 
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
-  const [startTime, setStartTime] = useState("09:00");
-  const [endTime, setEndTime] = useState("10:00");
+  const [startTime, setStartTime] = useState(defaultTime || "09:00");
+  const [endTime, setEndTime] = useState(defaultTime ? getEndTime(defaultTime) : "10:00");
+
+  // Helper function to calculate end time (1 hour later)
+  function getEndTime(startTime: string): string {
+    const [hours, minutes] = startTime.split(':').map(Number);
+    const endHour = hours + 1;
+    return `${endHour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,7 +104,11 @@ export const CreateEventPopover = ({
     }
 
     onCreateEvent?.(formData);
-    setOpen(false);
+    if (onOpenChange) {
+      onOpenChange(false);
+    } else {
+      setInternalOpen(false);
+    }
     resetForm();
   };
 
@@ -108,8 +126,8 @@ export const CreateEventPopover = ({
       repeat: "never",
       guests: "",
     });
-    setStartTime("09:00");
-    setEndTime("10:00");
+    setStartTime(defaultTime || "09:00");
+    setEndTime(defaultTime ? getEndTime(defaultTime) : "10:00");
   };
 
   const updateFormData = (field: keyof EventFormData, value: any) => {
@@ -117,7 +135,7 @@ export const CreateEventPopover = ({
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={onOpenChange || setInternalOpen}>
       <PopoverTrigger asChild>
         {children}
       </PopoverTrigger>
@@ -140,7 +158,13 @@ export const CreateEventPopover = ({
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setOpen(false)}
+                onClick={() => {
+                  if (onOpenChange) {
+                    onOpenChange(false);
+                  } else {
+                    setInternalOpen(false);
+                  }
+                }}
                 className="h-7 w-7 text-muted-foreground hover:text-foreground"
               >
                 <X className="h-3.5 w-3.5" />
@@ -327,7 +351,13 @@ export const CreateEventPopover = ({
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setOpen(false)}
+                  onClick={() => {
+                    if (onOpenChange) {
+                      onOpenChange(false);
+                    } else {
+                      setInternalOpen(false);
+                    }
+                  }}
                   className="flex-1 bg-[hsl(var(--input-compact))] border-0 hover:bg-[hsl(var(--input-hover))] h-8 text-sm transition-all duration-200"
                 >
                   Cancel·lar
