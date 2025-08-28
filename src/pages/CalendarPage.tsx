@@ -45,6 +45,10 @@ const CalendarPage = () => {
             <div className="h-16 flex items-center mb-2">
               <CalendarControlBar 
                 onCreateEvent={handleCreateEvent}
+                currentDate={currentDate}
+                onDateChange={setCurrentDate}
+                currentView={currentView}
+                onViewChange={setCurrentView}
                 className="w-full"
               />
             </div>
@@ -65,6 +69,10 @@ const CalendarPage = () => {
           <div className="h-12 flex items-center">
             <CalendarControlBar 
               onCreateEvent={handleCreateEvent}
+              currentDate={currentDate}
+              onDateChange={setCurrentDate}
+              currentView={currentView}
+              onViewChange={setCurrentView}
               className="w-full"
             />
           </div>

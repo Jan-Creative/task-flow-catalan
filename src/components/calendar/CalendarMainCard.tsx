@@ -95,51 +95,7 @@ const CalendarMainCard = ({ currentDate, onDateChange, currentView, onViewChange
   return (
     <Card className="h-full bg-card backdrop-blur-xl shadow-[var(--shadow-elevated)] flex flex-col">
       <CardContent className="p-4 h-full flex flex-col flex-1">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate("prev")}
-              className="h-8 w-8 rounded-xl bg-secondary hover:bg-secondary-hover transition-all duration-300 shadow-[var(--shadow-organic)]"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            
-            <h2 className="text-lg font-bold text-foreground min-w-[200px] text-center tracking-tight">
-              {getHeaderLabel()}
-            </h2>
-            
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate("next")}
-              className="h-8 w-8 rounded-xl bg-secondary hover:bg-secondary-hover transition-all duration-300 shadow-[var(--shadow-organic)]"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <CalendarViewSelector 
-              currentView={currentView}
-              onViewChange={onViewChange}
-            />
-            
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onDateChange(new Date())}
-              className="rounded-xl bg-accent hover:bg-accent-hover backdrop-blur-sm transition-all duration-300 text-foreground hover:text-primary font-medium px-4 py-2 text-sm shadow-[var(--shadow-organic)]"
-            >
-              <Calendar className="h-3 w-3 mr-1" />
-              Avui
-            </Button>
-          </div>
-        </div>
-
-        {/* Calendar Content */}
+        {/* Calendar Content - Centralized */}
         <div className="flex-1 flex flex-col min-h-0">
           {currentView === "month" && <MonthView currentDate={currentDate} />}
           {currentView === "week" && <WeekView currentDate={currentDate} />}
