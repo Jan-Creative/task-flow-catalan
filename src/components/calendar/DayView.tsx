@@ -106,9 +106,9 @@ const DayView = ({ currentDate, onDateChange, onCreateEvent, onEditEvent, dragCa
   const currentTimePosition = isToday ? getCurrentTimePosition() : null;
 
   return (
-    <div className="h-full">
-      {/* Timeline with fixed height and internal scroll */}
-      <div className="h-[400px] overflow-auto">
+    <div className="h-full flex flex-col">
+      {/* Timeline with flexible height and internal scroll */}
+      <div className="flex-1 overflow-auto min-h-0">
         <div className="flex">
           {/* Time column */}
           <div className="w-20 flex-shrink-0 bg-card rounded-lg border border-[hsl(var(--border-calendar))] mr-2">
