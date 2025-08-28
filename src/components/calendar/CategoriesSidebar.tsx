@@ -260,24 +260,16 @@ const CategoriesSidebar = () => {
                                <div className="space-y-3">
                                  <h4 className="text-sm font-medium text-white">Personalitzar categoria</h4>
                                  
-                                 {/* Color picker */}
-                                 <div>
-                                   <label className="text-xs text-[#b8b8b8] mb-2 block">Color</label>
-                                   <div className="flex items-center gap-2">
-                                     <input
-                                       type="color"
-                                       value={category.color.includes('hsl') ? '#3b82f6' : category.color}
-                                       onChange={(e) => handleColorChange(category.id, e.target.value)}
-                                       className="w-8 h-8 rounded border-none cursor-pointer"
-                                     />
-                                     <div 
-                                       className="w-8 h-8 rounded border border-[#444] flex items-center justify-center"
-                                       style={{ backgroundColor: category.color.includes('hsl') ? '#3b82f6' : category.color }}
-                                     >
-                                       <IconComponent className="h-4 w-4 text-white" />
-                                     </div>
-                                   </div>
-                                 </div>
+                                  {/* Color picker */}
+                                  <div>
+                                    <label className="text-xs text-[#b8b8b8] mb-2 block">Color</label>
+                                    <input
+                                      type="color"
+                                      value={category.color.includes('hsl') ? '#3b82f6' : category.color}
+                                      onChange={(e) => handleColorChange(category.id, e.target.value)}
+                                      className="w-8 h-8 rounded border-none cursor-pointer"
+                                    />
+                                  </div>
                                  
                                  {/* Icon selection */}
                                  <div>
@@ -286,11 +278,10 @@ const CategoriesSidebar = () => {
                                      variant="outline"
                                      size="sm"
                                      className="w-full justify-start bg-[#333] border-[#444] text-[#b8b8b8] hover:bg-[#353535]"
-                                     onClick={() => {
-                                       setEditingCategoryId(category.id);
-                                       setIsIconPickerOpen(true);
-                                       setIconEditPopoverId(null);
-                                     }}
+                                      onClick={() => {
+                                        setEditingCategoryId(category.id);
+                                        setIsIconPickerOpen(true);
+                                      }}
                                    >
                                      <IconComponent className="h-4 w-4 mr-2" style={{ color: category.color.includes('hsl') ? '#3b82f6' : category.color }} />
                                      Canviar icona
@@ -456,6 +447,7 @@ const CategoriesSidebar = () => {
               setNewCategory(prev => ({ ...prev, icon: iconName }));
             }
             setIsIconPickerOpen(false);
+            setIconEditPopoverId(null);
           }}
           selectedIcon={editingCategoryId ? 
             categories.find(cat => cat.id === editingCategoryId)?.icon?.name || 'Heart' : 
