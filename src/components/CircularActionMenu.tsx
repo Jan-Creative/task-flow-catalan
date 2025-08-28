@@ -109,8 +109,8 @@ const CircularActionMenu = ({
 
   // Calculate positions for circular layout
   const getOptionPosition = (index: number) => {
-    const radius = isMobile ? 85 : 95;
-    const startAngle = 90; // Start from top
+    const radius = isMobile ? 70 : 80;
+    const startAngle = 45; // Start from top-right
     const totalAngle = 180; // Half circle
     const angleStep = totalAngle / (menuOptions.length - 1);
     const angle = (startAngle + (index * angleStep)) * (Math.PI / 180);
@@ -119,8 +119,8 @@ const CircularActionMenu = ({
     const y = Math.sin(angle) * radius;
     
     return {
-      x: -x, // Negative to go left
-      y: -y  // Negative to go up
+      x: -Math.abs(x), // Always negative to go left
+      y: -Math.abs(y)  // Always negative to go up
     };
   };
 
@@ -137,14 +137,17 @@ const CircularActionMenu = ({
         />
       )}
 
-      {/* Menu Container */}
+      {/* Menu Container - Fixed positioning when expanded */}
       <div 
         ref={menuRef}
-        className="relative z-50"
+        className={cn(
+          "z-50",
+          isExpanded ? "fixed bottom-[90px] right-4" : "relative"
+        )}
       >
         {/* Circular Menu Options */}
         {isExpanded && (
-          <div className="absolute bottom-0 right-0">
+          <div className="absolute bottom-0 right-0 pointer-events-none">
             {menuOptions.map((option, index) => {
               const position = getOptionPosition(index);
               const Icon = option.icon;
@@ -154,7 +157,7 @@ const CircularActionMenu = ({
                   key={option.id}
                   onClick={() => handleOptionClick(option)}
                   className={cn(
-                    "absolute rounded-full p-0 shadow-[var(--shadow-floating)] hover:scale-110 active:scale-95 transition-all duration-200",
+                    "absolute rounded-full p-0 shadow-[var(--shadow-floating)] hover:scale-110 active:scale-95 transition-all duration-200 pointer-events-auto",
                     option.color,
                     "animate-scale-in"
                   )}
