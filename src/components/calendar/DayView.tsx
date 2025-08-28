@@ -72,15 +72,15 @@ const DayView = ({ currentDate, onDateChange, onCreateEvent, onEditEvent, dragCa
     const duration = ((endHour - startHour) * 60 + (endMinutes - startMinutes)) / 60;
     
     return {
-      top: `${startPosition * 6}rem`, // 6rem per hour for more space
-      height: `${Math.max(duration * 6, 1.5)}rem` // Minimum height
+      top: `${startPosition * 4}rem`, // 4rem per hour (h-16)
+      height: `${Math.max(duration * 4, 1)}rem` // Minimum height
     };
   };
   
   // Grid information for drag calculations - simplified for hour-only slots
   const gridInfo = useMemo(() => ({
     cellWidth: 0, // Day view doesn't use horizontal movement
-    cellHeight: 96, // 6rem = 96px per hour
+    cellHeight: 64, // 4rem = 64px per hour (h-16)
     columns: 1,
     startHour: 8
   }), []);
@@ -93,7 +93,7 @@ const DayView = ({ currentDate, onDateChange, onCreateEvent, onEditEvent, dragCa
     if (currentHour < 8 || currentHour > 22) return null;
     
     const position = ((currentHour - 8) * 60 + currentMinutes) / 60;
-    return `${position * 6}rem`;
+    return `${position * 4}rem`;
   };
 
   const handleTimeSlotDoubleClick = (hour: number) => {
@@ -106,60 +106,16 @@ const DayView = ({ currentDate, onDateChange, onCreateEvent, onEditEvent, dragCa
   const currentTimePosition = isToday ? getCurrentTimePosition() : null;
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Day Header */}
-      <div className="flex items-center justify-between mb-4 bg-card/50 backdrop-blur-sm rounded-xl p-4 border border-[hsl(var(--border-calendar))]">
-        <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigateDay("prev")}
-            className="h-8 w-8 rounded-xl hover:bg-secondary border border-[hsl(var(--border-medium))]"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          
-          <div className="text-center">
-            <h2 className={cn(
-              "text-lg font-bold tracking-tight",
-              isToday && "text-primary"
-            )}>
-              {formatDate(currentDate)}
-            </h2>
-            {isToday && (
-              <span className="text-xs text-primary font-medium">Avui</span>
-            )}
-          </div>
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigateDay("next")}
-            className="h-8 w-8 rounded-xl hover:bg-secondary border border-[hsl(var(--border-medium))]"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-        
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onDateChange(new Date())}
-          className="text-sm text-muted-foreground hover:text-foreground"
-        >
-          Anar a avui
-        </Button>
-      </div>
-
-      {/* Timeline */}
-      <div className="flex-1 overflow-auto">
+    <div className="h-full">
+      {/* Timeline with fixed height and internal scroll */}
+      <div className="h-[400px] overflow-auto">
         <div className="flex">
           {/* Time column */}
           <div className="w-20 flex-shrink-0 bg-card rounded-lg border border-[hsl(var(--border-calendar))] mr-2">
             {hours.map((hour) => (
               <div
                 key={hour}
-                className="h-24 px-3 py-2 text-sm text-muted-foreground border-t border-[hsl(var(--border-subtle))] flex items-start first:border-t-0"
+                className="h-16 px-3 py-2 text-sm text-muted-foreground border-t border-[hsl(var(--border-subtle))] flex items-start first:border-t-0"
               >
                 {hour.toString().padStart(2, '0')}:00
               </div>
@@ -176,13 +132,13 @@ const DayView = ({ currentDate, onDateChange, onCreateEvent, onEditEvent, dragCa
                 hour={hour}
                 isWeekView={false}
                 cellWidth={0}
-                cellHeight={96}
+                cellHeight={64}
                 onMagneticHover={setMagneticDropZone}
-                className="h-24 border-t border-[hsl(var(--border-medium))] hover:bg-accent/10 transition-colors cursor-pointer relative first:border-t-0"
+                className="h-16 border-t border-[hsl(var(--border-medium))] hover:bg-accent/10 transition-colors cursor-pointer relative first:border-t-0"
                 onDoubleClick={() => handleTimeSlotDoubleClick(hour)}
               >
                 {/* Hour indicator */}
-                <div className="absolute top-12 left-0 right-0 h-px bg-[hsl(var(--border-subtle))] opacity-30" />
+                <div className="absolute top-8 left-0 right-0 h-px bg-[hsl(var(--border-subtle))] opacity-30" />
               </MagneticDropZone>
             ))}
             
