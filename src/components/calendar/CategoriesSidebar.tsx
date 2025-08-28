@@ -63,6 +63,7 @@ const CategoriesSidebar = () => {
   const [currentView, setCurrentView] = useState<'main' | 'nova_categoria'>('main');
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
   const [isIconPickerOpen, setIsIconPickerOpen] = useState(false);
+  const [iconEditPopoverId, setIconEditPopoverId] = useState<string | null>(null);
   const [newCategory, setNewCategory] = useState({
     name: '',
     color: 'hsl(var(--primary))',
@@ -181,6 +182,7 @@ const CategoriesSidebar = () => {
     setCurrentView('main');
     setEditingCategoryId(null);
     setIsIconPickerOpen(false);
+    setIconEditPopoverId(null);
     setNewCategory({ name: '', color: 'hsl(var(--primary))', icon: 'Heart' });
   };
 
@@ -232,27 +234,71 @@ const CategoriesSidebar = () => {
                     {categories.map((category) => {
                       const IconComponent = category.icon;
                        return (
-                         <div key={category.id} className="group flex items-center gap-2 p-2 rounded-lg hover:bg-[#2a2a2a] transition-colors">
-                           {/* Color indicator */}
-                           <input
-                             type="color"
-                             value={category.color.includes('hsl') ? '#3b82f6' : category.color}
-                             onChange={(e) => handleColorChange(category.id, e.target.value)}
-                             className="w-4 h-4 rounded border-none cursor-pointer"
-                           />
-                           
-                           {/* Icon */}
-                           <Button
-                             variant="ghost"
-                             size="sm"
-                             className="h-6 w-6 p-0 hover:bg-[#353535]"
-                             onClick={() => {
-                               setEditingCategoryId(category.id);
-                               setIsIconPickerOpen(true);
-                             }}
+                         <div key={category.id} className="group flex items-center gap-3 p-2 rounded-lg hover:bg-[#2a2a2a] transition-colors">
+                           {/* Icon with color - clickable to open customization popover */}
+                           <Popover 
+                             open={iconEditPopoverId === category.id} 
+                             onOpenChange={(open) => setIconEditPopoverId(open ? category.id : null)}
                            >
-                             <IconComponent className="h-3 w-3 text-[#b8b8b8]" />
-                           </Button>
+                             <PopoverTrigger asChild>
+                               <Button
+                                 variant="ghost"
+                                 size="sm"
+                                 className="h-6 w-6 p-0 hover:bg-[#353535] transition-colors"
+                               >
+                                 <IconComponent 
+                                   className="h-4 w-4" 
+                                   style={{ color: category.color.includes('hsl') ? '#3b82f6' : category.color }}
+                                 />
+                               </Button>
+                             </PopoverTrigger>
+                             <PopoverContent 
+                               className="w-64 p-3 bg-[#1f1f1f] border-[#333] text-white"
+                               align="start"
+                               sideOffset={8}
+                             >
+                               <div className="space-y-3">
+                                 <h4 className="text-sm font-medium text-white">Personalitzar categoria</h4>
+                                 
+                                 {/* Color picker */}
+                                 <div>
+                                   <label className="text-xs text-[#b8b8b8] mb-2 block">Color</label>
+                                   <div className="flex items-center gap-2">
+                                     <input
+                                       type="color"
+                                       value={category.color.includes('hsl') ? '#3b82f6' : category.color}
+                                       onChange={(e) => handleColorChange(category.id, e.target.value)}
+                                       className="w-8 h-8 rounded border-none cursor-pointer"
+                                     />
+                                     <div 
+                                       className="w-8 h-8 rounded border border-[#444] flex items-center justify-center"
+                                       style={{ backgroundColor: category.color.includes('hsl') ? '#3b82f6' : category.color }}
+                                     >
+                                       <IconComponent className="h-4 w-4 text-white" />
+                                     </div>
+                                   </div>
+                                 </div>
+                                 
+                                 {/* Icon selection */}
+                                 <div>
+                                   <label className="text-xs text-[#b8b8b8] mb-2 block">Icona</label>
+                                   <Button
+                                     variant="outline"
+                                     size="sm"
+                                     className="w-full justify-start bg-[#333] border-[#444] text-[#b8b8b8] hover:bg-[#353535]"
+                                     onClick={() => {
+                                       setEditingCategoryId(category.id);
+                                       setIsIconPickerOpen(true);
+                                       setIconEditPopoverId(null);
+                                     }}
+                                   >
+                                     <IconComponent className="h-4 w-4 mr-2" style={{ color: category.color.includes('hsl') ? '#3b82f6' : category.color }} />
+                                     Canviar icona
+                                   </Button>
+                                 </div>
+                               </div>
+                             </PopoverContent>
+                           </Popover>
                            
                            {/* Name */}
                            {editingCategoryId === category.id ? (
@@ -426,17 +472,16 @@ const CategoriesSidebar = () => {
             const IconComponent = category.icon;
             return (
               <div key={category.id} className="flex items-center justify-between group hover:bg-accent/50 rounded-lg p-1 transition-colors">
-                <div className="flex items-center gap-2 flex-1 min-w-0">
-                  <div 
-                    className="h-2 w-2 rounded-full flex-shrink-0 shadow-sm"
-                    style={{ backgroundColor: category.color }}
-                  />
-                  <IconComponent className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                  <span className="text-sm text-foreground truncate">{category.name}</span>
-                  <Badge variant="outline" className="text-xs ml-auto border-muted">
-                    {category.count}
-                  </Badge>
-                </div>
+                 <div className="flex items-center gap-2 flex-1 min-w-0">
+                   <IconComponent 
+                     className="h-4 w-4 flex-shrink-0" 
+                     style={{ color: category.color.includes('hsl') ? '#3b82f6' : category.color }}
+                   />
+                   <span className="text-sm text-foreground truncate">{category.name}</span>
+                   <Badge variant="outline" className="text-xs ml-auto border-muted">
+                     {category.count}
+                   </Badge>
+                 </div>
                 <Switch
                   checked={category.enabled}
                   onCheckedChange={() => toggleCategory(category.id)}
