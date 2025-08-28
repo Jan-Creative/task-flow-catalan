@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import CircularActionMenu from "./CircularActionMenu";
+import CircularActionMenuWithArc from "./CircularActionMenuWithArc";
 
 interface AdaptiveBottomNavigationProps {
   activeTab: string;
@@ -107,7 +107,7 @@ const AdaptiveBottomNavigation = ({ activeTab, onTabChange, onCreateTask }: Adap
         </div>
 
         {/* Circular Action Menu */}
-        <CircularActionMenu
+        <CircularActionMenuWithArc
           onCreateTask={onCreateTask}
           isMobile={isMobile}
         />
