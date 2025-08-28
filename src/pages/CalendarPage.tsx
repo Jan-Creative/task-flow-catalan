@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { FloatingBackgroundButton } from "@/components/backgrounds/FloatingBackgroundButton";
 import CalendarMainCard from "@/components/calendar/CalendarMainCard";
@@ -8,9 +8,14 @@ import TasksSidebar from "@/components/calendar/TasksSidebar";
 import CalendarViewSelector, { CalendarView } from "@/components/calendar/CalendarViewSelector";
 import CalendarControlBar from "@/components/calendar/CalendarControlBar";
 import { CreateEventPopover } from "@/components/calendar/CreateEventModal";
+import { EventModal } from "@/components/calendar/EventModal";
+import { CalendarSelectionProvider, useCalendarSelection } from "@/contexts/CalendarSelectionContext";
+import { useKeyboardShortcuts } from "@/contexts/KeyboardShortcutsContext";
+import { useEvents } from "@/hooks/useEvents";
+import { CalendarEvent } from "@/types/calendar";
 import "@/styles/background-effects.css";
 
-const CalendarPage = () => {
+const CalendarPageContent = () => {
   const [currentView, setCurrentView] = useState<CalendarView>("month");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [quickEventData, setQuickEventData] = useState<{ 
@@ -19,6 +24,14 @@ const CalendarPage = () => {
     position?: { x: number; y: number };
     isOpen: boolean;
   } | null>(null);
+  const [editEventData, setEditEventData] = useState<{
+    event: CalendarEvent;
+    isOpen: boolean;
+  } | null>(null);
+
+  const { selectedEvent, clearSelection } = useCalendarSelection();
+  const { registerShortcut } = useKeyboardShortcuts();
+  const { deleteEvent } = useEvents();
 
   const handleCreateEvent = (eventData?: any) => {
     // TODO: Implementar creació d'esdeveniments
@@ -35,6 +48,53 @@ const CalendarPage = () => {
   const handleQuickEventClose = () => {
     setQuickEventData(null);
   };
+
+  const handleEditEvent = (event: CalendarEvent) => {
+    setEditEventData({
+      event,
+      isOpen: true
+    });
+  };
+
+  const handleEditEventClose = () => {
+    setEditEventData(null);
+  };
+
+  const handleDeleteSelectedEvent = async () => {
+    if (selectedEvent) {
+      try {
+        await deleteEvent(selectedEvent.id);
+        clearSelection();
+      } catch (error) {
+        console.error('Error deleting event:', error);
+      }
+    }
+  };
+
+  // Register keyboard shortcuts
+  useEffect(() => {
+    registerShortcut({
+      id: 'delete-selected-event',
+      name: 'Eliminar esdeveniment seleccionat',
+      description: 'Elimina l\'esdeveniment actualment seleccionat',
+      keys: ['Delete'],
+      action: handleDeleteSelectedEvent,
+      category: 'actions'
+    });
+  }, [registerShortcut, selectedEvent]);
+
+  // Handle clicking outside to clear selection
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Element;
+      if (!target.closest('[data-calendar-event]') && !target.closest('[data-calendar-day]')) {
+        clearSelection();
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [clearSelection]);
 
   return (
     <div className="min-h-screen bg-transparent text-foreground">
@@ -77,6 +137,7 @@ const CalendarPage = () => {
               currentView={currentView}
               onViewChange={setCurrentView}
               onCreateEvent={handleQuickCreateEvent}
+              onEditEvent={handleEditEvent}
             />
             </div>
           </div>
@@ -102,6 +163,7 @@ const CalendarPage = () => {
               currentView={currentView}
               onViewChange={setCurrentView}
               onCreateEvent={handleQuickCreateEvent}
+              onEditEvent={handleEditEvent}
             />
           </div>
           <div className="flex-1 min-h-0 space-y-4">
@@ -142,9 +204,32 @@ const CalendarPage = () => {
           />
         </div>
       )}
+
+      {editEventData && (
+        <EventModal
+          editingEvent={editEventData.event}
+          isEditing={true}
+          open={editEventData.isOpen}
+          onOpenChange={(open) => {
+            if (!open) handleEditEventClose();
+          }}
+          useHiddenTrigger={true}
+          onDelete={() => {
+            clearSelection();
+            handleEditEventClose();
+          }}
+        />
+      )}
     </div>
   );
 };
 
+const CalendarPage = () => {
+  return (
+    <CalendarSelectionProvider>
+      <CalendarPageContent />
+    </CalendarSelectionProvider>
+  );
+};
 
 export default CalendarPage;

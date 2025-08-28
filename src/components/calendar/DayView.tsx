@@ -12,6 +12,7 @@ interface DayViewProps {
   currentDate: Date;
   onDateChange: (date: Date) => void;
   onCreateEvent?: (eventData: { date: Date; time?: string; position?: { x: number; y: number } }) => void;
+  onEditEvent?: (event: CalendarEvent) => void;
   dragCallbacks?: EventDragCallbacks;
 }
 
@@ -25,7 +26,7 @@ interface Event {
   location?: string;
 }
 
-const DayView = ({ currentDate, onDateChange, onCreateEvent, dragCallbacks }: DayViewProps) => {
+const DayView = ({ currentDate, onDateChange, onCreateEvent, onEditEvent, dragCallbacks }: DayViewProps) => {
   const hours = Array.from({ length: 15 }, (_, i) => i + 8); // 8:00 to 22:00
   const today = new Date();
   const isToday = currentDate.toDateString() === today.toDateString();
@@ -219,6 +220,7 @@ const DayView = ({ currentDate, onDateChange, onCreateEvent, dragCallbacks }: Da
                       eventCallbacks.onEventMove(draggedEvent.id, dropZone.date, newEndDateTime);
                     }
                   }}
+                  onDoubleClick={onEditEvent}
                 />
               );
             })}

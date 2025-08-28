@@ -9,6 +9,7 @@ import { CalendarEvent, EventDragCallbacks } from "@/types/calendar";
 interface WeekViewProps {
   currentDate: Date;
   onCreateEvent?: (eventData: { date: Date; time?: string; position?: { x: number; y: number } }) => void;
+  onEditEvent?: (event: CalendarEvent) => void;
   dragCallbacks?: EventDragCallbacks;
 }
 
@@ -20,7 +21,7 @@ interface Event {
   color: string;
 }
 
-const WeekView = ({ currentDate, onCreateEvent, dragCallbacks }: WeekViewProps) => {
+const WeekView = ({ currentDate, onCreateEvent, onEditEvent, dragCallbacks }: WeekViewProps) => {
   const hours = Array.from({ length: 15 }, (_, i) => i + 8); // 8:00 to 22:00
   const daysOfWeek = ["Dilluns", "Dimarts", "Dimecres", "Dijous", "Divendres", "Dissabte", "Diumenge"];
   const [isDragging, setIsDragging] = useState(false);
@@ -189,6 +190,7 @@ const WeekView = ({ currentDate, onCreateEvent, dragCallbacks }: WeekViewProps) 
                           eventCallbacks.onEventMove(draggedEvent.id, dropZone.date, newEndDateTime);
                         }
                       }}
+                      onDoubleClick={onEditEvent}
                     />
                   );
                 })}

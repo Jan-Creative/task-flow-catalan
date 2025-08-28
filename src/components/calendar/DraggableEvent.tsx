@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import Draggable, { DraggableData, DraggableEvent as ReactDraggableEvent } from 'react-draggable';
 import { CalendarEvent, EventPosition, DropZoneInfo } from '@/types/calendar';
 import { cn } from '@/lib/utils';
+import { useCalendarSelection } from '@/contexts/CalendarSelectionContext';
 
 interface DraggableEventProps {
   event: CalendarEvent;
@@ -9,6 +10,8 @@ interface DraggableEventProps {
   onDragStart?: (event: CalendarEvent) => void;
   onDragStop?: (event: CalendarEvent, dropZone: DropZoneInfo) => void;
   onDrag?: (event: CalendarEvent, x: number, y: number) => void;
+  onDoubleClick?: (event: CalendarEvent) => void;
+  onClick?: (event: CalendarEvent) => void;
   disabled?: boolean;
   viewType: 'day' | 'week' | 'month';
   gridInfo?: {
@@ -25,12 +28,15 @@ export const DraggableEvent = ({
   onDragStart,
   onDragStop,
   onDrag,
+  onDoubleClick,
+  onClick,
   disabled = false,
   viewType,
   gridInfo
 }: DraggableEventProps) => {
   const [isDragging, setIsDragging] = useState(false);
   const nodeRef = useRef<HTMLDivElement>(null);
+  const { isEventSelected, setSelectedEvent } = useCalendarSelection();
   
   const calculateDropZone = useCallback((x: number, y: number): DropZoneInfo => {
     if (!gridInfo) {
@@ -109,6 +115,17 @@ export const DraggableEvent = ({
     const dropZone = calculateDropZone(data.x, data.y);
     onDragStop?.(event, dropZone);
   }, [event, onDragStop, calculateDropZone]);
+
+  const handleClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedEvent(event);
+    onClick?.(event);
+  }, [event, setSelectedEvent, onClick]);
+
+  const handleDoubleClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    onDoubleClick?.(event);
+  }, [event, onDoubleClick]);
   
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString('ca-ES', { hour: '2-digit', minute: '2-digit' });
@@ -152,15 +169,18 @@ export const DraggableEvent = ({
           "text-white",
           isDragging && "scale-105 shadow-2xl z-50",
           disabled && "cursor-not-allowed opacity-50",
+          isEventSelected(event.id) && "ring-2 ring-primary ring-offset-2 ring-offset-background",
           // Remove transitions during drag to prevent stuttering
           !isDragging && "transition-all duration-200 hover:scale-[1.02] hover:shadow-xl hover:border-[hsl(var(--border-strong))]"
         )}
         style={{
           ...position,
-          zIndex: isDragging ? 1000 : 10,
+          zIndex: isDragging ? 1000 : isEventSelected(event.id) ? 20 : 10,
           // Disable transitions during drag
           transition: isDragging ? 'none' : undefined
         }}
+        onClick={handleClick}
+        onDoubleClick={handleDoubleClick}
       >
         {/* Event Content */}
         <div className="relative z-10">

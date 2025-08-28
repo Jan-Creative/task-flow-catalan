@@ -7,6 +7,7 @@ import CalendarViewSelector, { CalendarView } from "./CalendarViewSelector";
 import WeekView from "./WeekView";
 import DayView from "./DayView";
 import { useCalendarEvents } from "@/hooks/useCalendarEvents";
+import { CalendarEvent } from "@/types/calendar";
 
 interface CalendarMainCardProps {
   currentDate: Date;
@@ -14,9 +15,10 @@ interface CalendarMainCardProps {
   currentView: CalendarView;
   onViewChange: (view: CalendarView) => void;
   onCreateEvent?: (eventData: { date: Date; time?: string; position?: { x: number; y: number } }) => void;
+  onEditEvent?: (event: CalendarEvent) => void;
 }
 
-const CalendarMainCard = ({ currentDate, onDateChange, currentView, onViewChange, onCreateEvent }: CalendarMainCardProps) => {
+const CalendarMainCard = ({ currentDate, onDateChange, currentView, onViewChange, onCreateEvent, onEditEvent }: CalendarMainCardProps) => {
   // Get drag and drop callbacks
   const { callbacks: dragCallbacks } = useCalendarEvents();
   const navigate = (direction: "prev" | "next") => {
@@ -101,11 +103,12 @@ const CalendarMainCard = ({ currentDate, onDateChange, currentView, onViewChange
       <CardContent className="p-4 h-full flex flex-col flex-1">
         {/* Calendar Content - Centralized */}
         <div className="flex-1 flex flex-col min-h-0">
-          {currentView === "month" && <MonthView currentDate={currentDate} onCreateEvent={onCreateEvent} />}
+          {currentView === "month" && <MonthView currentDate={currentDate} onCreateEvent={onCreateEvent} onEditEvent={onEditEvent} />}
           {currentView === "week" && (
             <WeekView 
               currentDate={currentDate} 
               onCreateEvent={onCreateEvent}
+              onEditEvent={onEditEvent}
               dragCallbacks={dragCallbacks}
             />
           )}
@@ -114,6 +117,7 @@ const CalendarMainCard = ({ currentDate, onDateChange, currentView, onViewChange
               currentDate={currentDate} 
               onDateChange={onDateChange}
               onCreateEvent={onCreateEvent}
+              onEditEvent={onEditEvent}
               dragCallbacks={dragCallbacks}
             />
           )}
@@ -124,7 +128,11 @@ const CalendarMainCard = ({ currentDate, onDateChange, currentView, onViewChange
 };
 
 // Month View Component
-const MonthView = ({ currentDate, onCreateEvent }: { currentDate: Date; onCreateEvent?: (eventData: { date: Date; time?: string; position?: { x: number; y: number } }) => void }) => {
+const MonthView = ({ currentDate, onCreateEvent, onEditEvent }: { 
+  currentDate: Date; 
+  onCreateEvent?: (eventData: { date: Date; time?: string; position?: { x: number; y: number } }) => void;
+  onEditEvent?: (event: CalendarEvent) => void;
+}) => {
   const daysOfWeek = ["Dl", "Dm", "Dc", "Dj", "Dv", "Ds", "Dg"];
   const { getEventsForDate } = useCalendarEvents();
   
