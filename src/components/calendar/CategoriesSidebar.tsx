@@ -181,7 +181,7 @@ const CategoriesSidebar = () => {
   const resetConfigState = () => {
     setCurrentView('main');
     setEditingCategoryId(null);
-    setIsIconPickerOpen(false);
+    // Don't close icon picker from here - let it manage its own state
     setIconEditPopoverId(null);
     setNewCategory({ name: '', color: 'hsl(var(--primary))', icon: 'Heart' });
   };
@@ -200,7 +200,9 @@ const CategoriesSidebar = () => {
           </Badge>
           <Popover open={isConfigOpen} onOpenChange={(open) => {
             setIsConfigOpen(open);
-            if (!open) resetConfigState();
+            if (!open && !isIconPickerOpen) {
+              resetConfigState();
+            }
           }}>
             <PopoverTrigger asChild>
               <Button 
@@ -278,10 +280,11 @@ const CategoriesSidebar = () => {
                                      variant="outline"
                                      size="sm"
                                      className="w-full justify-start bg-[#333] border-[#444] text-[#b8b8b8] hover:bg-[#353535]"
-                                      onClick={() => {
-                                        setEditingCategoryId(category.id);
-                                        setIsIconPickerOpen(true);
-                                      }}
+                                       onClick={() => {
+                                         setEditingCategoryId(category.id);
+                                         setIconEditPopoverId(null);
+                                         setTimeout(() => setIsIconPickerOpen(true), 100);
+                                       }}
                                    >
                                      <IconComponent className="h-4 w-4 mr-2" style={{ color: category.color.includes('hsl') ? '#3b82f6' : category.color }} />
                                      Canviar icona
@@ -439,7 +442,13 @@ const CategoriesSidebar = () => {
         
         <SimpleIconPicker
           open={isIconPickerOpen}
-          onOpenChange={setIsIconPickerOpen}
+          onOpenChange={(open) => {
+            setIsIconPickerOpen(open);
+            if (!open) {
+              setIconEditPopoverId(null);
+              setEditingCategoryId(null);
+            }
+          }}
           onIconSelect={(iconName) => {
             if (editingCategoryId) {
               handleIconChange(editingCategoryId, iconName);
