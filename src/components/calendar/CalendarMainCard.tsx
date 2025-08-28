@@ -123,31 +123,10 @@ const CalendarMainCard = ({ currentDate, onDateChange, currentView, onViewChange
   );
 };
 
-// Generate mock events for demonstration
-const generateMockEvents = (day: Date) => {
-  const events = [];
-  const dayNum = day.getDate();
-  
-  // Add some variety to events based on day using design system colors
-  if (dayNum % 7 === 0) {
-    events.push({ type: 'meeting', color: 'bg-primary', label: 'Reunió' });
-  }
-  if (dayNum % 5 === 0) {
-    events.push({ type: 'task', color: 'bg-success', label: 'Tasca' });
-  }
-  if (dayNum % 11 === 0) {
-    events.push({ type: 'event', color: 'bg-secondary', label: 'Esdeveniment' });
-  }
-  if (dayNum % 13 === 0) {
-    events.push({ type: 'reminder', color: 'bg-warning', label: 'Recordatori' });
-  }
-  
-  return events.slice(0, 3); // Max 3 events per day
-};
-
 // Month View Component
 const MonthView = ({ currentDate, onCreateEvent }: { currentDate: Date; onCreateEvent?: (eventData: { date: Date; time?: string; position?: { x: number; y: number } }) => void }) => {
   const daysOfWeek = ["Dl", "Dm", "Dc", "Dj", "Dv", "Ds", "Dg"];
+  const { getEventsForDate } = useCalendarEvents();
   
   const getDaysInMonth = () => {
     const year = currentDate.getFullYear();
@@ -204,7 +183,8 @@ const MonthView = ({ currentDate, onCreateEvent }: { currentDate: Date; onCreate
         {days.map((day, index) => {
           const isToday = day.toDateString() === today.toDateString();
           const isCurrentMonth = day.getMonth() === currentMonth;
-          const events = isCurrentMonth ? generateMockEvents(day) : [];
+          const dayEvents = isCurrentMonth ? getEventsForDate(day) : [];
+          const events = dayEvents.slice(0, 3); // Max 3 events visible
           
           return (
             <div
@@ -238,21 +218,21 @@ const MonthView = ({ currentDate, onCreateEvent }: { currentDate: Date; onCreate
                 <div className="flex-1 space-y-1.5">
                   {events.map((event, eventIndex) => (
                     <div
-                      key={eventIndex}
+                      key={event.id}
                       className={cn(
-                        "h-2 rounded-full transition-all duration-200 group-hover:scale-105",
-                        event.color,
-                        "shadow-sm relative overflow-hidden"
+                        "h-2 rounded-full transition-all duration-200 group-hover:scale-105 shadow-sm relative overflow-hidden",
+                        event.color ? `bg-[${event.color}]` : "bg-primary"
                       )}
+                      title={event.title}
                     >
                       <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-50" />
                     </div>
                   ))}
                   
                   {/* Event count indicator for more than 3 events */}
-                  {events.length === 3 && isCurrentMonth && (
+                  {dayEvents.length > 3 && isCurrentMonth && (
                     <div className="text-xs text-muted-foreground/70 font-medium pt-1">
-                      +2 més
+                      +{dayEvents.length - 3} més
                     </div>
                   )}
                 </div>

@@ -2,6 +2,7 @@ import { useCallback, useMemo } from 'react';
 import { CalendarEvent, EventDragCallbacks, CalendarConstraints } from '@/types/calendar';
 import { ID } from '@/types/common';
 import { useEvents } from './useEvents';
+import { isSameDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 
 const DEFAULT_CONSTRAINTS: CalendarConstraints = {
   minHour: 8,
@@ -10,72 +11,11 @@ const DEFAULT_CONSTRAINTS: CalendarConstraints = {
   allowWeekends: true
 };
 
-// Mock events generator
-const generateMockEvents = (date: Date): CalendarEvent[] => {
-  const events: CalendarEvent[] = [];
-  const dayIndex = date.getDay();
-  
-  // Monday events
-  if (dayIndex === 1) {
-    events.push({
-      id: "1",
-      title: "Reunió d'equip",
-      description: "Revisió del sprint actual",
-      startDateTime: new Date(date.getFullYear(), date.getMonth(), date.getDate(), 9, 0),
-      endDateTime: new Date(date.getFullYear(), date.getMonth(), date.getDate(), 10, 30),
-      color: "bg-primary",
-      location: "Sala A"
-    });
-    events.push({
-      id: "2",
-      title: "Revisió de projecte",
-      startDateTime: new Date(date.getFullYear(), date.getMonth(), date.getDate(), 14, 0),
-      endDateTime: new Date(date.getFullYear(), date.getMonth(), date.getDate(), 15, 0),
-      color: "bg-success"
-    });
-  }
-  
-  // Wednesday events
-  if (dayIndex === 3) {
-    events.push({
-      id: "3",
-      title: "Presentació client",
-      startDateTime: new Date(date.getFullYear(), date.getMonth(), date.getDate(), 11, 0),
-      endDateTime: new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12, 30),
-      color: "bg-warning",
-      location: "Online"
-    });
-  }
-  
-  // Friday events
-  if (dayIndex === 5) {
-    events.push({
-      id: "4",
-      title: "Sessió de brainstorming",
-      startDateTime: new Date(date.getFullYear(), date.getMonth(), date.getDate(), 10, 0),
-      endDateTime: new Date(date.getFullYear(), date.getMonth(), date.getDate(), 11, 0),
-      color: "bg-secondary"
-    });
-    events.push({
-      id: "5",
-      title: "Retrospectiva setmanal",
-      startDateTime: new Date(date.getFullYear(), date.getMonth(), date.getDate(), 16, 0),
-      endDateTime: new Date(date.getFullYear(), date.getMonth(), date.getDate(), 17, 0),
-      color: "bg-primary"
-    });
-  }
-  
-  return events;
-};
-
 export const useCalendarEvents = (constraints: Partial<CalendarConstraints> = {}) => {
   const { 
     events, 
     isLoading, 
     error: eventsError, 
-    getEventsForDate: getEventsForDateFromHook,
-    getEventsForWeek: getEventsForWeekFromHook,
-    getEventsForMonth: getEventsForMonthFromHook,
     moveEvent: moveEventFromHook,
     updateEvent: updateEventFromHook,
     createEvent: createEventFromHook
@@ -83,47 +23,32 @@ export const useCalendarEvents = (constraints: Partial<CalendarConstraints> = {}
   
   const fullConstraints = { ...DEFAULT_CONSTRAINTS, ...constraints };
   
-  // Get events for specific date (use hook data or fallback to mock)
+  // Get events for specific date
   const getEventsForDate = useCallback((date: Date): CalendarEvent[] => {
-    if (events.length > 0) {
-      return getEventsForDateFromHook(date);
-    }
-    // Fallback to mock data for development
-    return generateMockEvents(date);
-  }, [events, getEventsForDateFromHook]);
+    return events.filter(event => 
+      isSameDay(event.startDateTime, date)
+    );
+  }, [events]);
 
   // Get events for a week starting from startDate
   const getEventsForWeek = useCallback((startDate: Date): CalendarEvent[] => {
-    if (events.length > 0) {
-      return getEventsForWeekFromHook(startDate);
-    }
-    // Fallback to mock data for development
-    const mockEvents: CalendarEvent[] = [];
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(startDate);
-      date.setDate(startDate.getDate() + i);
-      mockEvents.push(...generateMockEvents(date));
-    }
-    return mockEvents;
-  }, [events, getEventsForWeekFromHook]);
+    const weekStart = startOfWeek(startDate, { weekStartsOn: 1 }); // Monday start
+    const weekEnd = endOfWeek(startDate, { weekStartsOn: 1 });
+    
+    return events.filter(event => 
+      isWithinInterval(event.startDateTime, { start: weekStart, end: weekEnd })
+    );
+  }, [events]);
 
   // Get events for a specific month
   const getEventsForMonth = useCallback((date: Date): CalendarEvent[] => {
-    if (events.length > 0) {
-      return getEventsForMonthFromHook(date);
-    }
-    // Fallback to mock data for development
-    const mockEvents: CalendarEvent[] = [];
-    const year = date.getFullYear();
-    const month = date.getMonth();
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
+    const monthStart = startOfMonth(date);
+    const monthEnd = endOfMonth(date);
     
-    for (let d = new Date(firstDay); d <= lastDay; d.setDate(d.getDate() + 1)) {
-      mockEvents.push(...generateMockEvents(new Date(d)));
-    }
-    return mockEvents;
-  }, [events, getEventsForMonthFromHook]);
+    return events.filter(event => 
+      isWithinInterval(event.startDateTime, { start: monthStart, end: monthEnd })
+    );
+  }, [events]);
   
   // Validate if a time slot is valid for dropping
   const isValidTimeSlot = useCallback((date: Date, hour: number, minute: number): boolean => {
