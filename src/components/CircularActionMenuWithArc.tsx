@@ -306,18 +306,21 @@ const CircularActionMenuWithArc = ({
               <defs>
                 {/* Enhanced Gradient with Neon Effect */}
                 <linearGradient id="arcGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="1" />
-                  <stop offset="30%" stopColor="hsl(220 100% 60%)" stopOpacity="1" />
-                  <stop offset="70%" stopColor="hsl(260 100% 70%)" stopOpacity="1" />
-                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="1" />
+                  <stop offset="0%" stopColor="hsl(280 100% 70%)" stopOpacity="1" />
+                  <stop offset="25%" stopColor="hsl(260 100% 60%)" stopOpacity="1" />
+                  <stop offset="50%" stopColor="hsl(220 100% 65%)" stopOpacity="1" />
+                  <stop offset="75%" stopColor="hsl(200 100% 70%)" stopOpacity="1" />
+                  <stop offset="100%" stopColor="hsl(180 100% 60%)" stopOpacity="1" />
                 </linearGradient>
                 
-                {/* Intense Glow Filter */}
-                <filter id="intensiveGlow" x="-50%" y="-50%" width="200%" height="200%">
-                  <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
-                  <feGaussianBlur stdDeviation="16" result="bigBlur"/>
+                {/* Ultra Intense Glow Filter */}
+                <filter id="intensiveGlow" x="-100%" y="-100%" width="300%" height="300%">
+                  <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
+                  <feGaussianBlur stdDeviation="12" result="mediumBlur"/>
+                  <feGaussianBlur stdDeviation="24" result="bigBlur"/>
                   <feMerge>
                     <feMergeNode in="bigBlur"/>
+                    <feMergeNode in="mediumBlur"/>
                     <feMergeNode in="coloredBlur"/>
                     <feMergeNode in="SourceGraphic"/>
                   </feMerge>
@@ -326,22 +329,29 @@ const CircularActionMenuWithArc = ({
                 {/* Traveling Light Animation */}
                 <linearGradient id="travelingLight" x1="0%" y1="0%" x2="100%" y2="0%">
                   <stop offset="0%" stopColor="transparent" stopOpacity="0">
-                    <animate attributeName="stop-opacity" values="0;1;0" dur="2s" repeatCount="indefinite"/>
+                    <animate attributeName="stop-opacity" values="0;1;0" dur="1.5s" repeatCount="indefinite"/>
                   </stop>
-                  <stop offset="50%" stopColor="hsl(60 100% 80%)" stopOpacity="0.8">
-                    <animate attributeName="stop-opacity" values="0;1;0" dur="2s" repeatCount="indefinite" begin="0.5s"/>
+                  <stop offset="50%" stopColor="hsl(60 100% 90%)" stopOpacity="1">
+                    <animate attributeName="stop-opacity" values="0;1;0" dur="1.5s" repeatCount="indefinite" begin="0.3s"/>
                   </stop>
                   <stop offset="100%" stopColor="transparent" stopOpacity="0">
-                    <animate attributeName="stop-opacity" values="0;1;0" dur="2s" repeatCount="indefinite" begin="1s"/>
+                    <animate attributeName="stop-opacity" values="0;1;0" dur="1.5s" repeatCount="indefinite" begin="0.6s"/>
                   </stop>
                 </linearGradient>
+                
+                {/* Pulse Effect */}
+                <filter id="pulse" x="-50%" y="-50%" width="200%" height="200%">
+                  <feGaussianBlur stdDeviation="3" result="pulse">
+                    <animate attributeName="stdDeviation" values="3;8;3" dur="2s" repeatCount="indefinite"/>
+                  </feGaussianBlur>
+                </filter>
               </defs>
               
               {/* Main Dramatic Arc Path */}
               <path
                 d={generateArcPath()}
                 stroke="url(#arcGradient)"
-                strokeWidth="16"
+                strokeWidth="20"
                 fill="none"
                 strokeLinecap="round"
                 filter="url(#intensiveGlow)"
@@ -355,9 +365,10 @@ const CircularActionMenuWithArc = ({
               <path
                 d={generateArcPath()}
                 stroke="url(#travelingLight)"
-                strokeWidth="4"
+                strokeWidth="8"
                 fill="none"
                 strokeLinecap="round"
+                filter="url(#pulse)"
                 style={{
                   opacity: arcAnimationProgress > 0.8 ? 1 : 0
                 }}
