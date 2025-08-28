@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { SimpleIconPicker } from "@/components/ui/simple-icon-picker";
+import { getIconByName } from "@/lib/iconLibrary";
 import { useToast } from "@/lib/toastUtils";
 
 interface Category {
@@ -130,40 +131,41 @@ const CategoriesSidebar = () => {
   };
 
   const handleIconChange = (categoryId: string, newIconName: string) => {
-    // Map icon names to actual icon components (simplified)
-    const iconMap: { [key: string]: any } = {
-      'Heart': Heart,
-      'Briefcase': Briefcase,
-      'Users': Users,
-      'Star': Star,
-      'Calendar': Calendar
-    };
+    // Use the icon library to get the correct icon component
+    const iconDefinition = getIconByName(newIconName);
+    
+    if (!iconDefinition) {
+      console.warn(`Icon "${newIconName}" not found in library, using fallback`);
+      return;
+    }
     
     setCategories(prev => 
       prev.map(cat => 
         cat.id === categoryId 
-          ? { ...cat, icon: iconMap[newIconName] || Heart }
+          ? { ...cat, icon: iconDefinition.icon }
           : cat
       )
     );
+    
+    console.log(`✅ Updated category ${categoryId} with icon: ${newIconName}`);
   };
 
   const handleCreateCategory = () => {
     if (!newCategory.name.trim()) return;
     
-    const iconMap: { [key: string]: any } = {
-      'Heart': Heart,
-      'Briefcase': Briefcase,
-      'Users': Users,
-      'Star': Star,
-      'Calendar': Calendar
-    };
+    // Use the icon library to get the correct icon component
+    const iconDefinition = getIconByName(newCategory.icon);
+    
+    if (!iconDefinition) {
+      console.warn(`Icon "${newCategory.icon}" not found in library, using fallback`);
+      return;
+    }
 
     const categoryToCreate = {
       id: Date.now().toString(),
       name: newCategory.name,
       color: newCategory.color,
-      icon: iconMap[newCategory.icon] || Heart,
+      icon: iconDefinition.icon,
       count: 0,
       enabled: true
     };
@@ -176,6 +178,8 @@ const CategoriesSidebar = () => {
       title: "Categoria creada",
       description: `La categoria "${categoryToCreate.name}" s'ha creat correctament.`,
     });
+    
+    console.log(`✅ Created new category with icon: ${newCategory.icon}`);
   };
 
   const resetConfigState = () => {
