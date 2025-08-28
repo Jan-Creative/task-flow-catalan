@@ -39,8 +39,8 @@ const CalendarPage = () => {
   return (
     <div className="min-h-screen bg-transparent text-foreground">
       
-      {/* Main content optimized for full screen usage */}
-      <div className="h-screen overflow-auto px-4 md:px-6 xl:px-8 pt-4 md:pt-6 pb-[calc(1rem+96px)] lg:pb-6">
+      {/* Main content optimized for full screen usage - Fixed layout without page scroll */}
+      <div className="h-screen overflow-hidden px-4 md:px-6 xl:px-8 pt-4 md:pt-6 pb-[calc(1rem+96px)] lg:pb-6">
         
         {/* Desktop & Tablet Layout - Full screen optimized */}
         <div className="hidden lg:grid lg:grid-cols-12 gap-4 h-[calc(100vh-3rem)]">

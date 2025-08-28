@@ -98,9 +98,9 @@ const CalendarMainCard = ({ currentDate, onDateChange, currentView, onViewChange
 
   return (
     <Card className="h-full bg-card backdrop-blur-xl shadow-[var(--shadow-elevated)] flex flex-col">
-      <CardContent className="p-4 h-full flex flex-col flex-1">
-        {/* Calendar Content - Centralized */}
-        <div className="flex-1 flex flex-col min-h-0">
+      <CardContent className="p-4 h-full flex flex-col flex-1 overflow-hidden">
+        {/* Calendar Content - Scrollable area */}
+        <div className="flex-1 flex flex-col min-h-0 overflow-auto">
           {currentView === "month" && <MonthView currentDate={currentDate} onCreateEvent={onCreateEvent} />}
           {currentView === "week" && (
             <WeekView 
@@ -168,9 +168,9 @@ const MonthView = ({ currentDate, onCreateEvent }: { currentDate: Date; onCreate
   };
 
   return (
-    <div className="flex flex-col h-full space-y-3">
-      {/* Days of Week Header */}
-      <div className="grid grid-cols-7 gap-1.5">
+    <div className="flex flex-col space-y-3 min-h-full">
+      {/* Days of Week Header - Fixed */}
+      <div className="grid grid-cols-7 gap-1.5 flex-shrink-0">
         {daysOfWeek.map((day) => (
           <div key={day} className="text-center text-xs font-bold text-foreground py-2 tracking-wider">
             {day}
@@ -178,8 +178,8 @@ const MonthView = ({ currentDate, onCreateEvent }: { currentDate: Date; onCreate
         ))}
       </div>
 
-      {/* Calendar Grid */}
-      <div className="grid grid-cols-7 grid-rows-6 gap-1 flex-1 rounded-lg p-1">
+      {/* Calendar Grid - Scrollable if needed */}
+      <div className="grid grid-cols-7 grid-rows-6 gap-1 min-h-[600px] rounded-lg p-1">
         {days.map((day, index) => {
           const isToday = day.toDateString() === today.toDateString();
           const isCurrentMonth = day.getMonth() === currentMonth;
