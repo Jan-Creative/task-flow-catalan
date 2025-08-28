@@ -104,7 +104,7 @@ const CalendarPage = () => {
               onCreateEvent={handleQuickCreateEvent}
             />
           </div>
-          <div className="flex-1 min-h-0 space-y-3">
+          <div className="flex-1 min-h-0 space-y-4">
             <MiniCalendarSidebar 
               currentDate={currentDate} 
               onDateSelect={setCurrentDate}

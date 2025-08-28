@@ -101,17 +101,17 @@ const MiniCalendarSidebar = ({ currentDate, onDateSelect }: MiniCalendarSidebarP
                 key={index}
                 onClick={() => handleDateClick(day)}
                 className={cn(
-                  "relative h-8 text-xs rounded-md transition-all duration-200 border-2 hover:bg-accent-hover hover:shadow-[var(--glow-accent)] hover:border-black/70 bg-card",
+                  "relative h-8 text-xs rounded-md transition-all duration-200 hover:bg-accent/80 hover:shadow-sm",
                   isCurrentMonth 
-                    ? "text-foreground border-black/50" 
-                    : "text-muted-foreground border-black/35",
-                  isToday && "bg-primary text-primary-foreground font-medium shadow-[var(--glow-primary)] border-primary/60",
-                  isSelected && !isToday && "bg-accent text-accent-foreground font-medium border-accent/70"
+                    ? "text-foreground hover:text-accent-foreground" 
+                    : "text-muted-foreground hover:text-foreground",
+                  isToday && "bg-primary text-primary-foreground font-medium shadow-md",
+                  isSelected && !isToday && "bg-accent text-accent-foreground font-medium shadow-sm"
                 )}
               >
                 <span className="relative z-10">{day.getDate()}</span>
                 {dayHasEvents && !isToday && (
-                  <div className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-primary rounded-full shadow-[var(--glow-accent)]" />
+                  <div className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 bg-primary rounded-full opacity-80" />
                 )}
               </button>
             );

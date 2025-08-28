@@ -130,7 +130,7 @@ const TasksSidebar = () => {
   const completedTasks = tasks.filter(task => task.completed);
 
   return (
-    <Card className="flex flex-col min-h-[180px] bg-card shadow-[var(--shadow-card)]">
+    <Card className="flex flex-col h-[320px] bg-card shadow-[var(--shadow-card)]">
       <CardHeader className="pb-3">
         <CardTitle className="text-sm font-medium flex items-center gap-2 text-foreground">
           <Clock className="h-4 w-4 text-primary" />

@@ -63,7 +63,7 @@ const CategoriesSidebar = () => {
   const totalVisibleEvents = activeCategories.reduce((sum, cat) => sum + cat.count, 0);
 
   return (
-    <Card className="h-[220px] flex flex-col bg-card shadow-[var(--shadow-card)]">
+    <Card className="h-[240px] flex flex-col bg-card shadow-[var(--shadow-card)]">
       <CardHeader className="pb-3">
         <CardTitle className="text-sm font-medium flex items-center gap-2 text-foreground">
           <Calendar className="h-4 w-4 text-primary" />
