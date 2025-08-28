@@ -231,84 +231,71 @@ const CategoriesSidebar = () => {
                   <div className="space-y-2 max-h-60 overflow-y-auto">
                     {categories.map((category) => {
                       const IconComponent = category.icon;
-                      return (
-                        <div key={category.id} className="flex items-center gap-2 p-2 rounded-lg hover:bg-[#2a2a2a] transition-colors">
-                          {/* Color indicator */}
-                          <input
-                            type="color"
-                            value={category.color.includes('hsl') ? '#3b82f6' : category.color}
-                            onChange={(e) => handleColorChange(category.id, e.target.value)}
-                            className="w-4 h-4 rounded border-none cursor-pointer"
-                          />
-                          
-                          {/* Icon */}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 w-6 p-0 hover:bg-[#353535]"
-                            onClick={() => {
-                              setEditingCategoryId(category.id);
-                              setIsIconPickerOpen(true);
-                            }}
-                          >
-                            <IconComponent className="h-3 w-3 text-[#b8b8b8]" />
-                          </Button>
-                          
-                          {/* Name */}
-                          {editingCategoryId === category.id ? (
-                            <Input
-                              value={category.name}
-                              onChange={(e) => handleEditCategoryName(category.id, e.target.value)}
-                              onBlur={() => setEditingCategoryId(null)}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') setEditingCategoryId(null);
-                                if (e.key === 'Escape') setEditingCategoryId(null);
-                              }}
-                              className="flex-1 h-6 text-xs bg-[#333] border-[#444] text-white"
-                              autoFocus
-                            />
-                          ) : (
-                            <span 
-                              className="flex-1 text-xs text-[#b8b8b8] cursor-pointer"
-                              onClick={() => setEditingCategoryId(category.id)}
-                            >
-                              {category.name}
-                            </span>
-                          )}
-                          
-                          {/* Count badge */}
-                          <Badge variant="outline" className="text-xs border-[#444] text-[#b8b8b8]">
-                            {category.count}
-                          </Badge>
-                          
-                          {/* Actions */}
-                          <div className="flex gap-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 w-6 p-0 hover:bg-[#353535]"
-                              onClick={() => setEditingCategoryId(category.id)}
-                            >
-                              <Edit2 className="h-3 w-3 text-[#b8b8b8]" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 w-6 p-0 hover:bg-[#353535]"
-                              onClick={() => handleDuplicateCategory(category.id)}
-                            >
-                              <Copy className="h-3 w-3 text-[#b8b8b8]" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 w-6 p-0 hover:bg-[#353535]"
-                              onClick={() => handleDeleteCategory(category.id)}
-                            >
-                              <Trash2 className="h-3 w-3 text-red-400" />
-                            </Button>
-                          </div>
-                        </div>
+                       return (
+                         <div key={category.id} className="group flex items-center gap-2 p-2 rounded-lg hover:bg-[#2a2a2a] transition-colors">
+                           {/* Color indicator */}
+                           <input
+                             type="color"
+                             value={category.color.includes('hsl') ? '#3b82f6' : category.color}
+                             onChange={(e) => handleColorChange(category.id, e.target.value)}
+                             className="w-4 h-4 rounded border-none cursor-pointer"
+                           />
+                           
+                           {/* Icon */}
+                           <Button
+                             variant="ghost"
+                             size="sm"
+                             className="h-6 w-6 p-0 hover:bg-[#353535]"
+                             onClick={() => {
+                               setEditingCategoryId(category.id);
+                               setIsIconPickerOpen(true);
+                             }}
+                           >
+                             <IconComponent className="h-3 w-3 text-[#b8b8b8]" />
+                           </Button>
+                           
+                           {/* Name */}
+                           {editingCategoryId === category.id ? (
+                             <Input
+                               value={category.name}
+                               onChange={(e) => handleEditCategoryName(category.id, e.target.value)}
+                               onBlur={() => setEditingCategoryId(null)}
+                               onKeyDown={(e) => {
+                                 if (e.key === 'Enter') setEditingCategoryId(null);
+                                 if (e.key === 'Escape') setEditingCategoryId(null);
+                               }}
+                               className="flex-1 h-6 text-xs bg-[#333] border-[#444] text-white"
+                               autoFocus
+                             />
+                           ) : (
+                             <span 
+                               className="flex-1 text-xs text-[#b8b8b8] cursor-pointer"
+                               onClick={() => setEditingCategoryId(category.id)}
+                             >
+                               {category.name}
+                             </span>
+                           )}
+                           
+                           {/* Actions */}
+                           <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                             <Button
+                               variant="ghost"
+                               size="sm"
+                               className="h-6 w-6 p-0 hover:bg-[#353535]"
+                               onClick={() => setEditingCategoryId(category.id)}
+                             >
+                               <Edit2 className="h-3 w-3 text-[#b8b8b8]" />
+                             </Button>
+                             <Button
+                               variant="ghost"
+                               size="sm"
+                               className="h-6 w-6 p-0 hover:bg-[#353535]"
+                               onClick={() => handleDeleteCategory(category.id)}
+                             >
+                               <Trash2 className="h-3 w-3 text-red-400" />
+                             </Button>
+                           </div>
+                         </div>
                       );
                     })}
                   </div>
