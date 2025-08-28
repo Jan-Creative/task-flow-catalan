@@ -31,6 +31,15 @@ const CircularActionMenuWithArc = ({
   const timeoutRef = useRef<NodeJS.Timeout>();
   const fabRef = useRef<HTMLButtonElement>(null);
 
+  // Debug: confirm arc version is mounted and track expansion state
+  useEffect(() => {
+    console.info("🟢 Using CircularActionMenuWithArc (ARC MODE)");
+  }, []);
+
+  useEffect(() => {
+    console.info("🔄 Arc menu expanded:", isExpanded);
+  }, [isExpanded]);
+
   const menuOptions: MenuOption[] = [
     {
       id: "task",
@@ -249,6 +258,9 @@ const CircularActionMenuWithArc = ({
         {/* Arc SVG and Menu Options */}
         {isExpanded && (
           <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] px-2 py-0.5 rounded-full bg-primary text-primary-foreground shadow-[var(--shadow-floating)] animate-fade-in" style={{animationDelay:'50ms'}}>
+              ARC MODE
+            </div>
             {/* Arc Visual */}
             <svg 
               className="absolute inset-0 w-full h-full animate-scale-in"
@@ -263,9 +275,9 @@ const CircularActionMenuWithArc = ({
             >
               <defs>
                 <linearGradient id="arcGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.8" />
-                  <stop offset="50%" stopColor="hsl(var(--primary))" stopOpacity="0.6" />
-                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.4" />
+                  <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="1" />
+                  <stop offset="50%" stopColor="hsl(var(--primary))" stopOpacity="0.9" />
+                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.8" />
                 </linearGradient>
                 <filter id="glow">
                   <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
@@ -280,7 +292,7 @@ const CircularActionMenuWithArc = ({
               <path
                 d={generateArcPath()}
                 stroke="url(#arcGradient)"
-                strokeWidth="3"
+                strokeWidth="8"
                 fill="none"
                 strokeLinecap="round"
                 filter="url(#glow)"
@@ -296,7 +308,7 @@ const CircularActionMenuWithArc = ({
                     key={index}
                     cx={position.x}
                     cy={position.y}
-                    r="4"
+                    r="6"
                     fill="hsl(var(--primary))"
                     className="animate-scale-in"
                     style={{ 
