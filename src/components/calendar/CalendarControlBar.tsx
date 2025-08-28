@@ -16,7 +16,7 @@ const CalendarControlBar: React.FC<CalendarControlBarProps> = ({
   return (
     <Card 
       className={cn(
-        "bg-secondary/80 backdrop-blur-glass border-border/50 shadow-glass",
+        "bg-secondary backdrop-blur-glass border-0 shadow-glass",
         "px-4 py-3 flex items-center justify-end gap-3",
         "animate-fade-in",
         className
