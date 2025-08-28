@@ -214,4 +214,13 @@ All colors MUST be HSL.
   .task-detail-grid {
     contain: layout style paint;
   }
+
+  /* Scrollbar utilities */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 }

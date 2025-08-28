@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import BottomNavigation from "@/components/BottomNavigation";
+import AdaptiveBottomNavigation from "@/components/AdaptiveBottomNavigation";
 import { LazyPage, TodayPageLazy, FoldersPageLazy, SettingsPageLazy, NotificationsPageLazy, CreateTaskModalLazy } from "@/lib/lazyLoading";
 import CalendarPage from "@/pages/CalendarPage";
 import AuthPage from "@/pages/AuthPage";
@@ -154,7 +154,7 @@ const Index = () => {
         {renderKeepAlivePages()}
       </KeepAlivePages>
       
-      <BottomNavigation
+      <AdaptiveBottomNavigation
         activeTab={activeTab}
         onTabChange={handleTabChange}
         onCreateTask={() => setShowCreateDialog(true)}
