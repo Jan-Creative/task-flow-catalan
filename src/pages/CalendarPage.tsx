@@ -6,11 +6,17 @@ import MiniCalendarSidebar from "@/components/calendar/MiniCalendarSidebar";
 import CategoriesSidebar from "@/components/calendar/CategoriesSidebar";
 import TasksSidebar from "@/components/calendar/TasksSidebar";
 import CalendarViewSelector, { CalendarView } from "@/components/calendar/CalendarViewSelector";
+import CalendarControlBar from "@/components/calendar/CalendarControlBar";
 import "@/styles/background-effects.css";
 
 const CalendarPage = () => {
   const [currentView, setCurrentView] = useState<CalendarView>("month");
   const [currentDate, setCurrentDate] = useState(new Date());
+
+  const handleCreateEvent = () => {
+    // TODO: Implementar creació d'esdeveniments
+    console.log("Crear nou esdeveniment");
+  };
 
   return (
     <div className="min-h-screen bg-transparent text-foreground">
@@ -33,11 +39,14 @@ const CalendarPage = () => {
             </div>
           </div>
 
-          {/* Right Column - Main calendar with reserved top space */}
+          {/* Right Column - Main calendar with control bar */}
           <div className="col-span-9 xl:col-span-10 h-full flex flex-col">
-            {/* Reserved space for future controls */}
-            <div className="h-16 flex items-center justify-end mb-2">
-              {/* Future: filters, view options, actions */}
+            {/* Control bar with quick actions */}
+            <div className="h-16 flex items-center mb-2">
+              <CalendarControlBar 
+                onCreateEvent={handleCreateEvent}
+                className="w-full"
+              />
             </div>
             <div className="flex-1 min-h-0 animate-fade-in" style={{animationDelay: '0.1s'}}>
               <CalendarMainCard 
@@ -52,9 +61,12 @@ const CalendarPage = () => {
 
         {/* Mobile Layout - Optimized for full screen */}
         <div className="lg:hidden h-[calc(100vh-2rem)] flex flex-col gap-4">
-          {/* Reserved space for future controls */}
-          <div className="h-12 flex items-center justify-end">
-            {/* Future: mobile filters, options */}
+          {/* Control bar for mobile */}
+          <div className="h-12 flex items-center">
+            <CalendarControlBar 
+              onCreateEvent={handleCreateEvent}
+              className="w-full"
+            />
           </div>
           <div className="flex-[3] min-h-0">
             <CalendarMainCard 
