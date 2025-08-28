@@ -1,12 +1,16 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useCalendarEvents } from "@/hooks/useCalendarEvents";
+import { DraggableEvent } from "./DraggableEvent";
+import { CalendarEvent, EventDragCallbacks } from "@/types/calendar";
 
 interface DayViewProps {
   currentDate: Date;
   onDateChange: (date: Date) => void;
   onCreateEvent?: (eventData: { date: Date; time?: string; position?: { x: number; y: number } }) => void;
+  dragCallbacks?: EventDragCallbacks;
 }
 
 interface Event {
@@ -19,10 +23,14 @@ interface Event {
   location?: string;
 }
 
-const DayView = ({ currentDate, onDateChange, onCreateEvent }: DayViewProps) => {
+const DayView = ({ currentDate, onDateChange, onCreateEvent, dragCallbacks }: DayViewProps) => {
   const hours = Array.from({ length: 15 }, (_, i) => i + 8); // 8:00 to 22:00
   const today = new Date();
   const isToday = currentDate.toDateString() === today.toDateString();
+  
+  // Calendar events hook
+  const { getEventsForDate, callbacks: defaultCallbacks } = useCalendarEvents();
+  const eventCallbacks = dragCallbacks || defaultCallbacks;
   
   const navigateDay = (direction: "prev" | "next") => {
     const newDate = new Date(currentDate);
@@ -44,83 +52,16 @@ const DayView = ({ currentDate, onDateChange, onCreateEvent }: DayViewProps) => 
     return `${daysOfWeek[date.getDay()]}, ${date.getDate()} de ${months[date.getMonth()]}`;
   };
 
-  // Mock events for the selected day
-  const getMockEvents = (): Event[] => {
-    if (!isToday && currentDate.getDay() === 1) { // Monday
-      return [
-        {
-          id: "1",
-          title: "Reunió d'equip",
-          description: "Revisió del sprint actual i planificació",
-          start: "09:00",
-          end: "10:30",
-          color: "bg-primary",
-          location: "Sala de conferències A"
-        },
-        {
-          id: "2",
-          title: "Revisió de codi",
-          start: "11:00",
-          end: "12:00",
-          color: "bg-success",
-          location: "Online"
-        },
-        {
-          id: "3",
-          title: "Sessió de mentoring",
-          description: "Mentoring amb desenvolupadors junior",
-          start: "14:00",
-          end: "15:30",
-          color: "bg-warning"
-        },
-        {
-          id: "4",
-          title: "Demo del producte",
-          start: "16:30",
-          end: "17:30",
-          color: "bg-secondary",
-          location: "Auditori principal"
-        }
-      ];
-    }
-    
-    if (isToday) {
-      return [
-        {
-          id: "5",
-          title: "Standup diari",
-          start: "09:30",
-          end: "10:00",
-          color: "bg-primary"
-        },
-        {
-          id: "6",
-          title: "Desenvolupament de funcionalitats",
-          description: "Implementació del nou calendari",
-          start: "10:00",
-          end: "12:00",
-          color: "bg-success"
-        },
-        {
-          id: "7",
-          title: "Pausa per dinar",
-          start: "13:00",
-          end: "14:00",
-          color: "bg-muted"
-        }
-      ];
-    }
-    
-    return [];
-  };
+  // Get events for the current day
+  const dayEvents = useMemo(() => {
+    return getEventsForDate(currentDate);
+  }, [currentDate, getEventsForDate]);
 
-  const events = getMockEvents();
-
-  const getEventPosition = (start: string, end: string) => {
-    const startHour = parseInt(start.split(':')[0]);
-    const startMinutes = parseInt(start.split(':')[1]);
-    const endHour = parseInt(end.split(':')[0]);
-    const endMinutes = parseInt(end.split(':')[1]);
+  const getEventPosition = (event: CalendarEvent) => {
+    const startHour = event.startDateTime.getHours();
+    const startMinutes = event.startDateTime.getMinutes();
+    const endHour = event.endDateTime.getHours();
+    const endMinutes = event.endDateTime.getMinutes();
     
     const startPosition = ((startHour - 8) * 60 + startMinutes) / 60; // Hours from 8:00
     const duration = ((endHour - startHour) * 60 + (endMinutes - startMinutes)) / 60;
@@ -129,6 +70,14 @@ const DayView = ({ currentDate, onDateChange, onCreateEvent }: DayViewProps) => 
       top: `${startPosition * 6}rem`, // 6rem per hour for more space
       height: `${Math.max(duration * 6, 1.5)}rem` // Minimum height
     };
+  };
+  
+  // Grid information for drag calculations
+  const gridInfo = {
+    cellWidth: 0, // Day view doesn't use horizontal movement
+    cellHeight: 96, // 6rem = 96px per hour
+    columns: 1,
+    startHour: 8
   };
 
   const getCurrentTimePosition = () => {
@@ -245,39 +194,32 @@ const DayView = ({ currentDate, onDateChange, onCreateEvent }: DayViewProps) => 
               </div>
             )}
             
-            {/* Events */}
-            {events.map((event) => {
-              const position = getEventPosition(event.start, event.end);
+            {/* Draggable Events */}
+            {dayEvents.map((event) => {
+              const position = getEventPosition(event);
               
               return (
-                <div
+                <DraggableEvent
                   key={event.id}
-                  className={cn(
-                    "absolute left-2 right-2 rounded-xl p-3 transition-all duration-200 hover:scale-[1.02] cursor-pointer shadow-lg border border-[hsl(var(--border-medium))] hover:border-[hsl(var(--border-strong))]",
-                    event.color,
-                    "text-white overflow-hidden"
-                  )}
-                  style={position}
-                >
-                  <div className="font-semibold text-sm mb-1">{event.title}</div>
-                  <div className="text-white/90 text-xs mb-1">
-                    {event.start} - {event.end}
-                  </div>
-                  {event.description && (
-                    <div className="text-white/80 text-xs mb-1">{event.description}</div>
-                  )}
-                  {event.location && (
-                    <div className="text-white/70 text-xs">{event.location}</div>
-                  )}
-                  
-                  {/* Gradient overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-50 rounded-xl" />
-                </div>
+                  event={event}
+                  position={{ ...position, left: '0.5rem', right: '0.5rem' }}
+                  viewType="day"
+                  gridInfo={gridInfo}
+                  onDragStop={(draggedEvent, dropZone) => {
+                    if (dropZone.isValid && dropZone.date) {
+                      // Calculate new end time maintaining duration
+                      const duration = draggedEvent.endDateTime.getTime() - draggedEvent.startDateTime.getTime();
+                      const newEndDateTime = new Date(dropZone.date.getTime() + duration);
+                      
+                      eventCallbacks.onEventMove(draggedEvent.id, dropZone.date, newEndDateTime);
+                    }
+                  }}
+                />
               );
             })}
             
             {/* Empty state */}
-            {events.length === 0 && (
+            {dayEvents.length === 0 && (
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="text-center text-muted-foreground">
                   <div className="text-sm font-medium mb-1">No hi ha esdeveniments</div>

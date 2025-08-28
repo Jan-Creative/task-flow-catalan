@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import CalendarViewSelector, { CalendarView } from "./CalendarViewSelector";
 import WeekView from "./WeekView";
 import DayView from "./DayView";
+import { useCalendarEvents } from "@/hooks/useCalendarEvents";
 
 interface CalendarMainCardProps {
   currentDate: Date;
@@ -16,6 +17,8 @@ interface CalendarMainCardProps {
 }
 
 const CalendarMainCard = ({ currentDate, onDateChange, currentView, onViewChange, onCreateEvent }: CalendarMainCardProps) => {
+  // Get drag and drop callbacks
+  const { callbacks: dragCallbacks } = useCalendarEvents();
   const navigate = (direction: "prev" | "next") => {
     const newDate = new Date(currentDate);
     
@@ -99,12 +102,19 @@ const CalendarMainCard = ({ currentDate, onDateChange, currentView, onViewChange
         {/* Calendar Content - Centralized */}
         <div className="flex-1 flex flex-col min-h-0">
           {currentView === "month" && <MonthView currentDate={currentDate} onCreateEvent={onCreateEvent} />}
-          {currentView === "week" && <WeekView currentDate={currentDate} onCreateEvent={onCreateEvent} />}
+          {currentView === "week" && (
+            <WeekView 
+              currentDate={currentDate} 
+              onCreateEvent={onCreateEvent}
+              dragCallbacks={dragCallbacks}
+            />
+          )}
           {currentView === "day" && (
             <DayView 
               currentDate={currentDate} 
               onDateChange={onDateChange}
               onCreateEvent={onCreateEvent}
+              dragCallbacks={dragCallbacks}
             />
           )}
         </div>

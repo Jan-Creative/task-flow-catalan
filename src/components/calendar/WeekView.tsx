@@ -1,9 +1,13 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
+import { useCalendarEvents } from "@/hooks/useCalendarEvents";
+import { DraggableEvent } from "./DraggableEvent";
+import { CalendarEvent, EventDragCallbacks } from "@/types/calendar";
 
 interface WeekViewProps {
   currentDate: Date;
   onCreateEvent?: (eventData: { date: Date; time?: string; position?: { x: number; y: number } }) => void;
+  dragCallbacks?: EventDragCallbacks;
 }
 
 interface Event {
@@ -14,7 +18,7 @@ interface Event {
   color: string;
 }
 
-const WeekView = ({ currentDate, onCreateEvent }: WeekViewProps) => {
+const WeekView = ({ currentDate, onCreateEvent, dragCallbacks }: WeekViewProps) => {
   const hours = Array.from({ length: 15 }, (_, i) => i + 8); // 8:00 to 22:00
   const daysOfWeek = ["Dilluns", "Dimarts", "Dimecres", "Dijous", "Divendres", "Dissabte", "Diumenge"];
   
@@ -34,72 +38,49 @@ const WeekView = ({ currentDate, onCreateEvent }: WeekViewProps) => {
 
   const weekDays = getWeekDays();
   const today = new Date();
+  
+  // Calendar events hook
+  const { getEventsForWeek, callbacks: defaultCallbacks } = useCalendarEvents();
+  const eventCallbacks = dragCallbacks || defaultCallbacks;
 
-  // Mock events for demonstration
-  const generateMockEvents = (dayIndex: number): Event[] => {
-    const events: Event[] = [];
-    
-    // Add some variety based on day
-    if (dayIndex === 0) { // Monday
-      events.push({
-        id: "1",
-        title: "Reunió d'equip",
-        start: "09:00",
-        end: "10:30",
-        color: "bg-primary"
-      });
-      events.push({
-        id: "2",
-        title: "Revisió de projecte",
-        start: "14:00",
-        end: "15:00",
-        color: "bg-success"
-      });
-    }
-    
-    if (dayIndex === 2) { // Wednesday
-      events.push({
-        id: "3",
-        title: "Presentació client",
-        start: "11:00",
-        end: "12:30",
-        color: "bg-warning"
-      });
-    }
-    
-    if (dayIndex === 4) { // Friday
-      events.push({
-        id: "4",
-        title: "Sessió de brainstorming",
-        start: "10:00",
-        end: "11:00",
-        color: "bg-secondary"
-      });
-      events.push({
-        id: "5",
-        title: "Retrospectiva setmanal",
-        start: "16:00",
-        end: "17:00",
-        color: "bg-primary"
-      });
-    }
-    
-    return events;
-  };
+  // Get week events using the hook
+  const weekEvents = useMemo(() => {
+    const startOfWeek = weekDays[0];
+    return getEventsForWeek(startOfWeek);
+  }, [weekDays, getEventsForWeek]);
+  
+  // Group events by day index
+  const eventsByDay = useMemo(() => {
+    const grouped: { [key: number]: CalendarEvent[] } = {};
+    weekDays.forEach((day, index) => {
+      grouped[index] = weekEvents.filter(event => 
+        event.startDateTime.toDateString() === day.toDateString()
+      );
+    });
+    return grouped;
+  }, [weekEvents, weekDays]);
 
-  const getEventPosition = (start: string, end: string) => {
-    const startHour = parseInt(start.split(':')[0]);
-    const startMinutes = parseInt(start.split(':')[1]);
-    const endHour = parseInt(end.split(':')[0]);
-    const endMinutes = parseInt(end.split(':')[1]);
+  const getEventPosition = (event: CalendarEvent) => {
+    const startHour = event.startDateTime.getHours();
+    const startMinutes = event.startDateTime.getMinutes();
+    const endHour = event.endDateTime.getHours();
+    const endMinutes = event.endDateTime.getMinutes();
     
     const startPosition = ((startHour - 8) * 60 + startMinutes) / 60; // Hours from 8:00
     const duration = ((endHour - startHour) * 60 + (endMinutes - startMinutes)) / 60;
     
     return {
       top: `${startPosition * 4}rem`, // 4rem per hour
-      height: `${duration * 4}rem`
+      height: `${Math.max(duration * 4, 1)}rem` // Minimum 1rem height
     };
+  };
+  
+  // Grid information for drag calculations
+  const gridInfo = {
+    cellWidth: 0, // Will be calculated based on container
+    cellHeight: 64, // 4rem = 64px per hour
+    columns: 7,
+    startHour: 8
   };
 
   const handleTimeSlotDoubleClick = (day: Date, event: React.MouseEvent) => {
@@ -169,7 +150,7 @@ const WeekView = ({ currentDate, onCreateEvent }: WeekViewProps) => {
 
           {/* Day columns */}
           {weekDays.map((day, dayIndex) => {
-            const events = generateMockEvents(dayIndex);
+            const dayEvents = eventsByDay[dayIndex] || [];
             
             return (
               <div key={dayIndex} className="bg-card relative rounded-lg border border-[hsl(var(--border-calendar))]">
@@ -182,28 +163,27 @@ const WeekView = ({ currentDate, onCreateEvent }: WeekViewProps) => {
                   />
                 ))}
                 
-                {/* Events */}
-                {events.map((event) => {
-                  const position = getEventPosition(event.start, event.end);
+                {/* Draggable Events */}
+                {dayEvents.map((event) => {
+                  const position = getEventPosition(event);
                   
                   return (
-                    <div
+                    <DraggableEvent
                       key={event.id}
-                      className={cn(
-                        "absolute left-1 right-1 rounded-xl p-2 text-xs font-medium transition-all duration-200 hover:scale-105 cursor-pointer shadow-lg border border-[hsl(var(--border-medium))] hover:border-[hsl(var(--border-strong))]",
-                        event.color,
-                        "text-white overflow-hidden"
-                      )}
-                      style={position}
-                    >
-                      <div className="font-semibold truncate">{event.title}</div>
-                      <div className="text-white/80 text-[10px]">
-                        {event.start} - {event.end}
-                      </div>
-                      
-                      {/* Gradient overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-50 rounded-xl" />
-                    </div>
+                      event={event}
+                      position={{ ...position, left: '0.25rem', right: '0.25rem' }}
+                      viewType="week"
+                      gridInfo={gridInfo}
+                      onDragStop={(draggedEvent, dropZone) => {
+                        if (dropZone.isValid && dropZone.date) {
+                          // Calculate new end time maintaining duration
+                          const duration = draggedEvent.endDateTime.getTime() - draggedEvent.startDateTime.getTime();
+                          const newEndDateTime = new Date(dropZone.date.getTime() + duration);
+                          
+                          eventCallbacks.onEventMove(draggedEvent.id, dropZone.date, newEndDateTime);
+                        }
+                      }}
+                    />
                   );
                 })}
               </div>
