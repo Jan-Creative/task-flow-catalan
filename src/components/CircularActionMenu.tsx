@@ -105,14 +105,47 @@ const CircularActionMenu = ({
     }
   }, [isExpanded]);
 
-  // Calculate positions with FAB as center origin
+  // Intelligent boundary detection and positioning
+  const getOptimalPositioning = () => {
+    if (!fabRef.current) return { radius: isMobile ? 80 : 100, arc: 120 };
+    
+    const fabRect = fabRef.current.getBoundingClientRect();
+    const viewport = {
+      width: window.innerWidth,
+      height: window.innerHeight
+    };
+    
+    // Calculate available space in each direction from FAB center
+    const availableSpace = {
+      left: fabRect.left + fabRect.width / 2,
+      right: viewport.width - (fabRect.left + fabRect.width / 2),
+      top: fabRect.top + fabRect.height / 2,
+      bottom: viewport.height - (fabRect.top + fabRect.height / 2)
+    };
+    
+    // Calculate optimal radius (leaving 20px margin)
+    const maxRadius = Math.min(
+      availableSpace.left - 40,
+      availableSpace.top - 40,
+      isMobile ? 100 : 120
+    );
+    
+    // Determine optimal arc based on available space
+    const optimalRadius = Math.max(60, maxRadius);
+    const arcAngle = availableSpace.left > 120 && availableSpace.top > 120 ? 120 : 90;
+    
+    return { radius: optimalRadius, arc: arcAngle };
+  };
+
+  // Calculate positions with intelligent positioning
   const getOptionPosition = (index: number) => {
-    const radius = isMobile ? 100 : 120;
-    // Start from top-left quadrant for visibility
-    const startAngle = 135; // Top-left
-    const endAngle = 225; // Bottom-left
+    const { radius, arc } = getOptimalPositioning();
+    
+    // Focus on top-left quadrant (180° to 270° for better visibility)
+    const startAngle = 180; // Left
+    const endAngle = 180 + arc; // Arc towards top
     const totalAngle = endAngle - startAngle;
-    const angleStep = totalAngle / (menuOptions.length - 1);
+    const angleStep = menuOptions.length > 1 ? totalAngle / (menuOptions.length - 1) : 0;
     const angle = (startAngle + (index * angleStep)) * (Math.PI / 180);
     
     const x = Math.cos(angle) * radius;
