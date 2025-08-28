@@ -44,6 +44,60 @@ export type Database = {
         }
         Relationships: []
       }
+      events: {
+        Row: {
+          category: string | null
+          color: string
+          created_at: string
+          description: string | null
+          end_datetime: string
+          id: string
+          is_all_day: boolean
+          location: string | null
+          location_type: string | null
+          reminder_time: number | null
+          repeat_pattern: string | null
+          start_datetime: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          color?: string
+          created_at?: string
+          description?: string | null
+          end_datetime: string
+          id?: string
+          is_all_day?: boolean
+          location?: string | null
+          location_type?: string | null
+          reminder_time?: number | null
+          repeat_pattern?: string | null
+          start_datetime: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          color?: string
+          created_at?: string
+          description?: string | null
+          end_datetime?: string
+          id?: string
+          is_all_day?: boolean
+          location?: string | null
+          location_type?: string | null
+          reminder_time?: number | null
+          repeat_pattern?: string | null
+          start_datetime?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       folders: {
         Row: {
           color: string | null

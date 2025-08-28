@@ -1,7 +1,7 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { CalendarEvent, EventDragCallbacks, CalendarConstraints } from '@/types/calendar';
 import { ID } from '@/types/common';
-import { toast } from '@/lib/toastUtils';
+import { useEvents } from './useEvents';
 
 const DEFAULT_CONSTRAINTS: CalendarConstraints = {
   minHour: 8,
@@ -69,55 +69,61 @@ const generateMockEvents = (date: Date): CalendarEvent[] => {
 };
 
 export const useCalendarEvents = (constraints: Partial<CalendarConstraints> = {}) => {
-  const [events, setEvents] = useState<CalendarEvent[]>(() => {
-    // Initialize with mock events for the current week
-    const now = new Date();
-    const startOfWeek = new Date(now);
-    const day = startOfWeek.getDay();
-    const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1);
-    startOfWeek.setDate(diff);
-    
-    const weekEvents: CalendarEvent[] = [];
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(startOfWeek);
-      date.setDate(startOfWeek.getDate() + i);
-      weekEvents.push(...generateMockEvents(date));
-    }
-    return weekEvents;
-  });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { 
+    events, 
+    isLoading, 
+    error: eventsError, 
+    getEventsForDate: getEventsForDateFromHook,
+    getEventsForWeek: getEventsForWeekFromHook,
+    getEventsForMonth: getEventsForMonthFromHook,
+    moveEvent: moveEventFromHook,
+    updateEvent: updateEventFromHook,
+    createEvent: createEventFromHook
+  } = useEvents();
   
   const fullConstraints = { ...DEFAULT_CONSTRAINTS, ...constraints };
   
-  // Get events for a specific date or date range
+  // Get events for specific date (use hook data or fallback to mock)
   const getEventsForDate = useCallback((date: Date): CalendarEvent[] => {
-    return events.filter(event => 
-      event.startDateTime.toDateString() === date.toDateString()
-    );
-  }, [events]);
-  
+    if (events.length > 0) {
+      return getEventsForDateFromHook(date);
+    }
+    // Fallback to mock data for development
+    return generateMockEvents(date);
+  }, [events, getEventsForDateFromHook]);
+
+  // Get events for a week starting from startDate
   const getEventsForWeek = useCallback((startDate: Date): CalendarEvent[] => {
-    const endDate = new Date(startDate);
-    endDate.setDate(startDate.getDate() + 6);
-    
-    return events.filter(event => {
-      const eventDate = event.startDateTime;
-      return eventDate >= startDate && eventDate <= endDate;
-    });
-  }, [events]);
-  
+    if (events.length > 0) {
+      return getEventsForWeekFromHook(startDate);
+    }
+    // Fallback to mock data for development
+    const mockEvents: CalendarEvent[] = [];
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(startDate);
+      date.setDate(startDate.getDate() + i);
+      mockEvents.push(...generateMockEvents(date));
+    }
+    return mockEvents;
+  }, [events, getEventsForWeekFromHook]);
+
+  // Get events for a specific month
   const getEventsForMonth = useCallback((date: Date): CalendarEvent[] => {
+    if (events.length > 0) {
+      return getEventsForMonthFromHook(date);
+    }
+    // Fallback to mock data for development
+    const mockEvents: CalendarEvent[] = [];
     const year = date.getFullYear();
     const month = date.getMonth();
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     
-    return events.filter(event => {
-      const eventDate = event.startDateTime;
-      return eventDate >= firstDay && eventDate <= lastDay;
-    });
-  }, [events]);
+    for (let d = new Date(firstDay); d <= lastDay; d.setDate(d.getDate() + 1)) {
+      mockEvents.push(...generateMockEvents(new Date(d)));
+    }
+    return mockEvents;
+  }, [events, getEventsForMonthFromHook]);
   
   // Validate if a time slot is valid for dropping
   const isValidTimeSlot = useCallback((date: Date, hour: number, minute: number): boolean => {
@@ -147,99 +153,68 @@ export const useCalendarEvents = (constraints: Partial<CalendarConstraints> = {}
     return new Date(date.getFullYear(), date.getMonth(), date.getDate(), constrainedHour, snappedMinute);
   }, [fullConstraints]);
   
-  // Event operations
+  // Move event to new time slot
   const moveEvent = useCallback(async (eventId: ID, newStartDateTime: Date, newEndDateTime: Date): Promise<void> => {
-    setLoading(true);
-    setError(null);
-    
     try {
-      console.log('📅 Moving event:', { eventId, newStartDateTime, newEndDateTime });
-      
       // Validate the new time slot
-      if (!isValidTimeSlot(newStartDateTime, newStartDateTime.getHours(), newStartDateTime.getMinutes())) {
-        throw new Error('Hora no vàlida per aquest esdeveniment');
+      const newStartHour = newStartDateTime.getHours();
+      const newStartMinute = newStartDateTime.getMinutes();
+      
+      if (!isValidTimeSlot(newStartDateTime, newStartHour, newStartMinute)) {
+        throw new Error('Invalid time slot for event placement');
       }
+
+      // Use the hook's moveEvent function
+      await moveEventFromHook(eventId.toString(), newStartDateTime, newEndDateTime);
       
-      // Update event in state (optimistic update)
-      setEvents(prevEvents => 
-        prevEvents.map(event => 
-          event.id === eventId 
-            ? { ...event, startDateTime: newStartDateTime, endDateTime: newEndDateTime }
-            : event
-        )
-      );
-      
-      // TODO: Here would be the actual API call to update the database
-      // await updateEventInDatabase(eventId, { startDateTime: newStartDateTime, endDateTime: newEndDateTime });
-      
-      toast.success('Esdeveniment mogut correctament');
+      console.log(`Event ${eventId} moved to ${newStartDateTime.toISOString()}`);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Error movent l\'esdeveniment';
-      setError(errorMessage);
-      toast.error(errorMessage);
-      
-      // Revert optimistic update on error
-      // You'd fetch the original state here
-    } finally {
-      setLoading(false);
+      console.error('Error moving event:', err);
+      throw err;
     }
-  }, [isValidTimeSlot]);
-  
+  }, [isValidTimeSlot, moveEventFromHook]);
+
+  // Update event properties
   const updateEvent = useCallback(async (eventId: ID, updates: Partial<CalendarEvent>): Promise<void> => {
-    setLoading(true);
-    setError(null);
-    
     try {
-      console.log('📅 Updating event:', { eventId, updates });
+      const updateData: any = { ...updates };
       
-      // Update event in state
-      setEvents(prevEvents => 
-        prevEvents.map(event => 
-          event.id === eventId 
-            ? { ...event, ...updates }
-            : event
-        )
-      );
+      // Convert CalendarEvent format to database format
+      if (updates.startDateTime) updateData.start_datetime = updates.startDateTime;
+      if (updates.endDateTime) updateData.end_datetime = updates.endDateTime;
+      if (updates.isAllDay !== undefined) updateData.is_all_day = updates.isAllDay;
       
-      // TODO: API call
-      toast.success('Esdeveniment actualitzat');
+      await updateEventFromHook({ id: eventId.toString(), ...updateData });
+      
+      console.log(`Event ${eventId} updated:`, updates);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Error actualitzant l\'esdeveniment';
-      setError(errorMessage);
-      toast.error(errorMessage);
-    } finally {
-      setLoading(false);
+      console.error('Error updating event:', err);
+      throw err;
     }
-  }, []);
-  
+  }, [updateEventFromHook]);
+
+  // Create new event
   const createEvent = useCallback(async (eventData: Partial<CalendarEvent>): Promise<void> => {
-    setLoading(true);
-    setError(null);
-    
     try {
-      console.log('📅 Creating event:', eventData);
-      
-      const newEvent: CalendarEvent = {
-        id: `temp-${Date.now()}`,
+      const createData = {
         title: eventData.title || 'Nou esdeveniment',
-        startDateTime: eventData.startDateTime || new Date(),
-        endDateTime: eventData.endDateTime || new Date(),
-        color: eventData.color || 'bg-primary',
-        ...eventData
+        description: eventData.description,
+        start_datetime: eventData.startDateTime || new Date(),
+        end_datetime: eventData.endDateTime || new Date(),
+        color: eventData.color || '#6366f1',
+        location: eventData.location,
+        category: eventData.category,
+        is_all_day: eventData.isAllDay || false,
       };
+
+      await createEventFromHook(createData);
       
-      setEvents(prevEvents => [...prevEvents, newEvent]);
-      
-      // TODO: API call
-      toast.success('Esdeveniment creat');
+      console.log('Event created:', createData);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Error creant l\'esdeveniment';
-      setError(errorMessage);
-      toast.error(errorMessage);
-    } finally {
-      setLoading(false);
+      console.error('Error creating event:', err);
+      throw err;
     }
-  }, []);
+  }, [createEventFromHook]);
   
   const callbacks: EventDragCallbacks = useMemo(() => ({
     onEventMove: moveEvent,
@@ -261,8 +236,8 @@ export const useCalendarEvents = (constraints: Partial<CalendarConstraints> = {}
     callbacks,
     
     // State
-    loading,
-    error,
+    loading: isLoading,
+    error: eventsError?.message || null,
     constraints: fullConstraints
   };
 };

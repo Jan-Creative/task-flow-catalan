@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
+import { useEvents } from "@/hooks/useEvents";
 
 interface CreateEventPopoverProps {
   children?: React.ReactNode;
@@ -57,6 +58,8 @@ export const CreateEventPopover = ({
 }: CreateEventPopoverProps) => {
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  
+  const { createEvent, isCreating } = useEvents();
   const [formData, setFormData] = useState<EventFormData>({
     title: "",
     description: "",
@@ -83,35 +86,56 @@ export const CreateEventPopover = ({
     return `${endHour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title.trim()) return;
 
-    // Combine date and time for start and end dates
-    if (!formData.isAllDay) {
-      const [startHours, startMinutes] = startTime.split(":").map(Number);
-      const [endHours, endMinutes] = endTime.split(":").map(Number);
-      
-      const newStartDate = new Date(formData.startDate);
-      newStartDate.setHours(startHours, startMinutes, 0, 0);
-      
-      const newEndDate = new Date(formData.endDate);
-      newEndDate.setHours(endHours, endMinutes, 0, 0);
-      
-      setFormData(prev => ({
-        ...prev,
-        startDate: newStartDate,
-        endDate: newEndDate,
-      }));
-    }
+    try {
+      // Combine date and time for start and end dates
+      let startDate = new Date(formData.startDate);
+      let endDate = new Date(formData.endDate);
 
-    onCreateEvent?.(formData);
-    if (onOpenChange) {
-      onOpenChange(false);
-    } else {
-      setInternalOpen(false);
+      if (!formData.isAllDay) {
+        const [startHours, startMinutes] = startTime.split(":").map(Number);
+        const [endHours, endMinutes] = endTime.split(":").map(Number);
+        
+        startDate.setHours(startHours, startMinutes, 0, 0);
+        endDate.setHours(endHours, endMinutes, 0, 0);
+      } else {
+        startDate.setHours(0, 0, 0, 0);
+        endDate.setHours(23, 59, 59, 999);
+      }
+
+      const eventData = {
+        title: formData.title,
+        description: formData.description,
+        start_datetime: startDate,
+        end_datetime: endDate,
+        is_all_day: formData.isAllDay,
+        location: formData.location,
+        location_type: formData.locationType,
+        color: "#6366f1", // Default color
+        reminder_time: formData.reminder !== "none" ? parseInt(formData.reminder.replace('min', '').replace('hour', '60').replace('day', '1440')) : undefined,
+      };
+
+      // Use the useEvents hook to create the event
+      await createEvent(eventData);
+
+      // Also call the optional callback if provided
+      if (onCreateEvent) {
+        onCreateEvent(formData);
+      }
+
+      if (onOpenChange) {
+        onOpenChange(false);
+      } else {
+        setInternalOpen(false);
+      }
+      resetForm();
+    } catch (error) {
+      console.error("Error creating event:", error);
+      // Error toast is handled by the useEvents hook
     }
-    resetForm();
   };
 
   const resetForm = () => {
@@ -383,10 +407,10 @@ export const CreateEventPopover = ({
                 </Button>
                 <Button
                   type="submit"
-                  disabled={!formData.title.trim()}
+                  disabled={!formData.title.trim() || isCreating}
                   className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground h-8 text-sm shadow-sm shadow-primary/20 disabled:opacity-50 disabled:shadow-none transition-all duration-200"
                 >
-                  Crear
+                  {isCreating ? "Creant..." : "Crear"}
                 </Button>
               </div>
             </form>
