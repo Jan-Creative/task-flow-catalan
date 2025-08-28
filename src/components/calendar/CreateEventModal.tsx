@@ -8,12 +8,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -28,9 +22,8 @@ import {
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 
-interface CreateEventModalProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+interface CreateEventPopoverProps {
+  children: React.ReactNode;
   defaultDate?: Date;
   onCreateEvent?: (eventData: EventFormData) => void;
 }
@@ -49,12 +42,12 @@ interface EventFormData {
   guests?: string;
 }
 
-export const CreateEventModal = ({
-  open,
-  onOpenChange,
+export const CreateEventPopover = ({
+  children,
   defaultDate = new Date(),
   onCreateEvent,
-}: CreateEventModalProps) => {
+}: CreateEventPopoverProps) => {
+  const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState<EventFormData>({
     title: "",
     description: "",
@@ -97,7 +90,7 @@ export const CreateEventModal = ({
     }
 
     onCreateEvent?.(formData);
-    onOpenChange(false);
+    setOpen(false);
     resetForm();
   };
 
@@ -124,57 +117,64 @@ export const CreateEventModal = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg p-0 border-0 bg-gradient-to-br from-card/95 to-card-secondary/90 backdrop-blur-md">
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        {children}
+      </PopoverTrigger>
+      <PopoverContent 
+        className="w-96 p-0 border-0 bg-gradient-to-br from-card/95 to-card-secondary/90 backdrop-blur-md shadow-2xl"
+        align="start"
+        sideOffset={8}
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
         <div className="relative">
           {/* Glassmorphism overlay */}
           <div className="absolute inset-0 bg-gradient-glass rounded-xl" />
           
           {/* Content */}
-          <div className="relative p-6">
-            <DialogHeader className="space-y-3 pb-6">
-              <div className="flex items-center justify-between">
-                <DialogTitle className="text-xl font-semibold text-foreground">
-                  Nou esdeveniment
-                </DialogTitle>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => onOpenChange(false)}
-                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            </DialogHeader>
+          <div className="relative p-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-foreground">
+                Nou esdeveniment
+              </h3>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setOpen(false)}
+                className="h-7 w-7 text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-3.5 w-3.5" />
+              </Button>
+            </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-4">
               {/* Title */}
-              <div className="space-y-2">
+              <div>
                 <Input
                   placeholder="Títol de l'esdeveniment"
                   value={formData.title}
                   onChange={(e) => updateFormData("title", e.target.value)}
-                  className="text-lg font-medium border-0 bg-secondary/50 backdrop-blur-sm placeholder:text-muted-foreground/70 focus:bg-secondary/70 transition-colors"
+                  className="text-base font-medium border-0 bg-secondary/50 backdrop-blur-sm placeholder:text-muted-foreground/70 focus:bg-secondary/70 transition-colors"
                   required
                 />
               </div>
 
               {/* Date and Time */}
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <Label className="text-sm font-medium text-foreground">Data i hora</Label>
-                  <div className="flex items-center space-x-2">
+                  <Label className="text-xs font-medium text-foreground">Data i hora</Label>
+                  <div className="flex items-center space-x-1.5">
                     <Switch
                       checked={formData.isAllDay}
                       onCheckedChange={(checked) => updateFormData("isAllDay", checked)}
+                      className="scale-75"
                     />
-                    <Label className="text-sm text-muted-foreground">Tot el dia</Label>
+                    <Label className="text-xs text-muted-foreground">Tot el dia</Label>
                   </div>
                 </div>
 
                 {/* Start Date/Time */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-2">
                   <Popover open={showStartDatePicker} onOpenChange={setShowStartDatePicker}>
                     <PopoverTrigger asChild>
                       <Button
@@ -213,7 +213,7 @@ export const CreateEventModal = ({
                 </div>
 
                 {/* End Date/Time */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-2">
                   <Popover open={showEndDatePicker} onOpenChange={setShowEndDatePicker}>
                     <PopoverTrigger asChild>
                       <Button
@@ -252,118 +252,98 @@ export const CreateEventModal = ({
                 </div>
               </div>
 
-              {/* Location */}
-              <div className="space-y-3">
-                <Label className="text-sm font-medium text-foreground">Ubicació</Label>
-                <div className="space-y-2">
+              {/* Location and Options - Compact layout */}
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium text-foreground">Ubicació</Label>
                   <Select
                     value={formData.locationType}
                     onValueChange={(value: "physical" | "virtual") => updateFormData("locationType", value)}
                   >
-                    <SelectTrigger className="bg-secondary/50 border-0 focus:bg-secondary/70">
+                    <SelectTrigger className="bg-secondary/50 border-0 focus:bg-secondary/70 h-8 text-xs">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-popover/95 backdrop-blur-md border-0">
                       <SelectItem value="physical">
                         <div className="flex items-center">
-                          <MapPin className="mr-2 h-4 w-4" />
-                          Presencial
+                          <MapPin className="mr-1.5 h-3 w-3" />
+                          <span className="text-xs">Presencial</span>
                         </div>
                       </SelectItem>
                       <SelectItem value="virtual">
                         <div className="flex items-center">
-                          <Users className="mr-2 h-4 w-4" />
-                          Videotrucada
+                          <Users className="mr-1.5 h-3 w-3" />
+                          <span className="text-xs">Virtual</span>
                         </div>
                       </SelectItem>
                     </SelectContent>
                   </Select>
-                  <Input
-                    placeholder={formData.locationType === "physical" ? "Afegeix ubicació" : "Enllaç de videotrucada"}
-                    value={formData.location}
-                    onChange={(e) => updateFormData("location", e.target.value)}
-                    className="bg-secondary/50 border-0 focus:bg-secondary/70"
-                  />
                 </div>
-              </div>
 
-              {/* Reminder and Repeat */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-foreground">Recordatori</Label>
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium text-foreground">Recordatori</Label>
                   <Select
                     value={formData.reminder}
                     onValueChange={(value) => updateFormData("reminder", value)}
                   >
-                    <SelectTrigger className="bg-secondary/50 border-0 focus:bg-secondary/70">
-                      <Bell className="mr-2 h-4 w-4" />
+                    <SelectTrigger className="bg-secondary/50 border-0 focus:bg-secondary/70 h-8 text-xs">
+                      <Bell className="mr-1 h-3 w-3" />
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-popover/95 backdrop-blur-md border-0">
                       <SelectItem value="none">Cap</SelectItem>
-                      <SelectItem value="5min">5 minuts</SelectItem>
-                      <SelectItem value="15min">15 minuts</SelectItem>
-                      <SelectItem value="30min">30 minuts</SelectItem>
-                      <SelectItem value="1hour">1 hora</SelectItem>
+                      <SelectItem value="5min">5 min</SelectItem>
+                      <SelectItem value="15min">15 min</SelectItem>
+                      <SelectItem value="30min">30 min</SelectItem>
+                      <SelectItem value="1hour">1 h</SelectItem>
                       <SelectItem value="1day">1 dia</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-foreground">Repetició</Label>
-                  <Select
-                    value={formData.repeat}
-                    onValueChange={(value) => updateFormData("repeat", value)}
-                  >
-                    <SelectTrigger className="bg-secondary/50 border-0 focus:bg-secondary/70">
-                      <MoreHorizontal className="mr-2 h-4 w-4" />
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-popover/95 backdrop-blur-md border-0">
-                      <SelectItem value="never">Mai</SelectItem>
-                      <SelectItem value="daily">Diari</SelectItem>
-                      <SelectItem value="weekly">Setmanal</SelectItem>
-                      <SelectItem value="monthly">Mensual</SelectItem>
-                      <SelectItem value="yearly">Anual</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
               </div>
 
-              {/* Description */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-foreground">Descripció</Label>
+              {/* Location Input */}
+              <div>
+                <Input
+                  placeholder={formData.locationType === "physical" ? "Afegeix ubicació" : "Enllaç de videotrucada"}
+                  value={formData.location}
+                  onChange={(e) => updateFormData("location", e.target.value)}
+                  className="bg-secondary/50 border-0 focus:bg-secondary/70 h-8 text-sm"
+                />
+              </div>
+
+              {/* Description - Simplified */}
+              <div>
                 <Textarea
-                  placeholder="Afegeix una descripció..."
+                  placeholder="Descripció (opcional)..."
                   value={formData.description}
                   onChange={(e) => updateFormData("description", e.target.value)}
-                  className="min-h-[80px] bg-secondary/50 border-0 focus:bg-secondary/70 resize-none"
+                  className="min-h-[60px] bg-secondary/50 border-0 focus:bg-secondary/70 resize-none text-sm"
                 />
               </div>
 
               {/* Action Buttons */}
-              <div className="flex gap-3 pt-4">
+              <div className="flex gap-2 pt-2">
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => onOpenChange(false)}
-                  className="flex-1 bg-secondary/50 border-0 hover:bg-secondary/70"
+                  onClick={() => setOpen(false)}
+                  className="flex-1 bg-secondary/50 border-0 hover:bg-secondary/70 h-8 text-sm"
                 >
                   Cancel·lar
                 </Button>
                 <Button
                   type="submit"
                   disabled={!formData.title.trim()}
-                  className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
+                  className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground h-8 text-sm"
                 >
-                  Crear esdeveniment
+                  Crear
                 </Button>
               </div>
             </form>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </PopoverContent>
+    </Popover>
   );
 };

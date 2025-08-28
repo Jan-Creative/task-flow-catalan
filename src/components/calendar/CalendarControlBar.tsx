@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { CalendarView } from "./CalendarViewSelector";
-import { CreateEventModal } from "./CreateEventModal";
+import { CreateEventPopover } from "./CreateEventModal";
 
 interface CalendarControlBarProps {
   className?: string;
@@ -24,7 +24,6 @@ const CalendarControlBar: React.FC<CalendarControlBarProps> = ({
   currentView,
   onViewChange
 }) => {
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const monthNames = [
     "Gener", "Febrer", "Març", "Abril", "Maig", "Juny",
     "Juliol", "Agost", "Setembre", "Octubre", "Novembre", "Desembre"
@@ -179,25 +178,19 @@ const CalendarControlBar: React.FC<CalendarControlBarProps> = ({
           </SelectContent>
         </Select>
 
-        <Button
-          onClick={() => setIsCreateModalOpen(true)}
-          className="bg-primary/90 hover:bg-primary text-primary-foreground shadow-sm transition-all duration-200 hover:shadow-md rounded-xl"
-          size="sm"
+        <CreateEventPopover
+          defaultDate={currentDate}
+          onCreateEvent={onCreateEvent}
         >
-          <CalendarPlus className="h-4 w-4 mr-2" />
-          Nou esdeveniment
-        </Button>
+          <Button
+            className="bg-primary/90 hover:bg-primary text-primary-foreground shadow-sm transition-all duration-200 hover:shadow-md rounded-xl"
+            size="sm"
+          >
+            <CalendarPlus className="h-4 w-4 mr-2" />
+            Nou esdeveniment
+          </Button>
+        </CreateEventPopover>
       </div>
-
-      <CreateEventModal
-        open={isCreateModalOpen}
-        onOpenChange={setIsCreateModalOpen}
-        defaultDate={currentDate}
-        onCreateEvent={(eventData) => {
-          onCreateEvent?.(eventData);
-          setIsCreateModalOpen(false);
-        }}
-      />
     </Card>
   );
 };
