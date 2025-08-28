@@ -117,7 +117,7 @@ export const DropZone = ({
   );
 };
 
-// Grid overlay component for visual feedback during drag
+// Simplified grid overlay for drag feedback
 export const DragGridOverlay = ({ 
   isVisible, 
   viewType, 
@@ -132,40 +132,19 @@ export const DragGridOverlay = ({
     rows: number;
   };
 }) => {
-  if (!isVisible || !gridInfo) return null;
-  
-  const { cellWidth, cellHeight, columns, rows } = gridInfo;
+  if (!isVisible) return null;
   
   return (
-    <div className="absolute inset-0 pointer-events-none z-10">
-      {/* Vertical lines */}
-      {viewType !== 'day' && Array.from({ length: columns + 1 }, (_, i) => (
-        <div
-          key={`v-${i}`}
-          className="absolute top-0 bottom-0 w-px bg-primary/20"
-          style={{ left: i * cellWidth }}
-        />
-      ))}
-      
-      {/* Horizontal lines */}
-      {viewType !== 'month' && Array.from({ length: rows + 1 }, (_, i) => (
-        <div
-          key={`h-${i}`}
-          className="absolute left-0 right-0 h-px bg-primary/20"
-          style={{ top: i * cellHeight }}
-        />
-      ))}
-      
-      {/* Time indicators for non-month views */}
-      {viewType !== 'month' && Array.from({ length: rows }, (_, i) => (
-        <div
-          key={`time-${i}`}
-          className="absolute left-2 text-xs text-primary/60 font-medium"
-          style={{ top: i * cellHeight + 8 }}
-        >
-          {String(8 + i).padStart(2, '0')}:00
+    <div className="fixed inset-0 z-30 pointer-events-none">
+      {/* Simplified overlay with just a subtle background */}
+      <div className="absolute inset-0 bg-black/5 backdrop-blur-[1px]">
+        {/* Helper text */}
+        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-primary/90 text-primary-foreground px-3 py-2 rounded-lg shadow-lg backdrop-blur-sm">
+          <div className="text-sm font-medium text-center">
+            📋 Arrossega a una franja horària
+          </div>
         </div>
-      ))}
+      </div>
     </div>
   );
 };

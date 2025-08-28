@@ -10,6 +10,7 @@ interface MagneticDropZoneProps {
   cellWidth: number;
   cellHeight: number;
   onMagneticHover?: (dropZone: DropZoneInfo | null) => void;
+  onDoubleClick?: () => void;
   className?: string;
   children?: React.ReactNode;
   style?: React.CSSProperties;
@@ -25,6 +26,7 @@ export const MagneticDropZone = ({
   cellWidth,
   cellHeight,
   onMagneticHover,
+  onDoubleClick,
   className,
   children,
   style
@@ -123,6 +125,7 @@ export const MagneticDropZone = ({
       }}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      onDoubleClick={onDoubleClick}
     >
       {children}
       

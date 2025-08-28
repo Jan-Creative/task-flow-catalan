@@ -79,26 +79,18 @@ const WeekView = ({ currentDate, onCreateEvent, dragCallbacks }: WeekViewProps) 
     };
   };
   
-  // Grid information for drag calculations
+  // Grid information for drag calculations - simplified for hour-only slots
   const gridInfo = useMemo(() => ({
-    cellWidth: 180, // Approximate column width in pixels
+    cellWidth: 160, // Fixed column width for consistent grid
     cellHeight: 64, // 4rem = 64px per hour
     columns: 7,
     startHour: 8
   }), []);
 
-  const handleTimeSlotDoubleClick = (day: Date, event: React.MouseEvent) => {
+  const handleTimeSlotDoubleClick = (day: Date, hour: number) => {
     if (onCreateEvent) {
-      const rect = event.currentTarget.getBoundingClientRect();
-      const relativeY = event.clientY - rect.top;
-      const hourDecimal = (relativeY / 64) + 8; // 64px = 4rem per hour, starting from 8am
-      const hour = Math.floor(hourDecimal);
-      const minute = Math.round((hourDecimal - hour) * 60 / 15) * 15; // Round to 15-minute intervals
-      
-      const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-      const position = { x: event.clientX, y: event.clientY };
-      
-      onCreateEvent({ date: day, time: timeString, position });
+      const timeString = `${hour.toString().padStart(2, '0')}:00`;
+      onCreateEvent({ date: day, time: timeString });
     }
   };
 
@@ -158,16 +150,7 @@ const WeekView = ({ currentDate, onCreateEvent, dragCallbacks }: WeekViewProps) 
             
             return (
               <div key={dayIndex} className="bg-card relative rounded-lg border border-[hsl(var(--border-calendar))]">
-                {/* Hour slots */}
-                {hours.map((hour) => (
-                  <div
-                    key={hour}
-                    className="h-16 border-t border-[hsl(var(--border-subtle))] hover:bg-accent/20 transition-colors cursor-pointer first:border-t-0"
-                    onDoubleClick={(e) => handleTimeSlotDoubleClick(day, e)}
-                  />
-                ))}
-                
-                {/* Magnetic Drop Zones */}
+                {/* Hour slots with integrated magnetic zones */}
                 {hours.map((hour) => (
                   <MagneticDropZone
                     key={`${dayIndex}-${hour}`}
@@ -178,13 +161,8 @@ const WeekView = ({ currentDate, onCreateEvent, dragCallbacks }: WeekViewProps) 
                     cellWidth={gridInfo.cellWidth}
                     cellHeight={gridInfo.cellHeight}
                     onMagneticHover={setMagneticDropZone}
-                    className="absolute"
-                    style={{
-                      top: `${(hour - 8) * 4}rem`,
-                      height: '4rem',
-                      left: '0.25rem',
-                      right: '0.25rem'
-                    }}
+                    className="h-16 border-t border-[hsl(var(--border-subtle))] hover:bg-accent/10 transition-colors cursor-pointer first:border-t-0"
+                    onDoubleClick={() => handleTimeSlotDoubleClick(day, hour)}
                   />
                 ))}
 

@@ -31,7 +31,6 @@ export const DraggableEvent = ({
 }: DraggableEventProps) => {
   const [isDragging, setIsDragging] = useState(false);
   const nodeRef = useRef<HTMLDivElement>(null);
-  const dragThrottleRef = useRef<number>();
   
   const calculateDropZone = useCallback((x: number, y: number): DropZoneInfo => {
     if (!gridInfo) {
@@ -43,26 +42,30 @@ export const DraggableEvent = ({
     
     const { cellWidth, cellHeight, columns, startHour } = gridInfo;
     
-    // Calculate which column (day) and row (hour)
-    const column = Math.floor(x / cellWidth);
-    const row = Math.floor(y / cellHeight);
+    // Snap to whole hour slots only - simplified time slots
+    const column = Math.max(0, Math.min(Math.floor(x / cellWidth), columns - 1));
+    const row = Math.max(0, Math.floor(y / cellHeight));
     
-    // Calculate new date and time
     const newDate = new Date(event.startDateTime);
     
     if (viewType === 'week') {
-      // Add days based on column
-      newDate.setDate(newDate.getDate() + column);
+      // Calculate the start of the week
+      const startOfWeek = new Date(event.startDateTime);
+      const day = startOfWeek.getDay();
+      const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1);
+      startOfWeek.setDate(diff);
       
-      // Calculate new hour based on row and time grid
+      // Set to the target day
+      const targetDate = new Date(startOfWeek);
+      targetDate.setDate(startOfWeek.getDate() + column);
+      
+      // Set hour (whole hours only)
       const newHour = startHour + row;
-      const newMinute = Math.round((y % cellHeight) / cellHeight * 60 / 15) * 15; // Snap to 15min
-      
-      newDate.setHours(newHour, newMinute, 0, 0);
+      targetDate.setHours(newHour, 0, 0, 0);
       
       return {
-        date: newDate,
-        time: `${newHour.toString().padStart(2, '0')}:${newMinute.toString().padStart(2, '0')}`,
+        date: targetDate,
+        time: `${newHour.toString().padStart(2, '0')}:00`,
         isValid: newHour >= startHour && newHour <= 22 && column >= 0 && column < columns,
         gridColumn: column,
         gridRow: row
@@ -70,29 +73,14 @@ export const DraggableEvent = ({
     }
     
     if (viewType === 'day') {
-      // Only vertical movement for time change
+      // Only vertical movement for time change (whole hours only)
       const newHour = startHour + row;
-      const newMinute = Math.round((y % cellHeight) / cellHeight * 60 / 15) * 15;
-      
-      newDate.setHours(newHour, newMinute, 0, 0);
+      newDate.setHours(newHour, 0, 0, 0);
       
       return {
         date: newDate,
-        time: `${newHour.toString().padStart(2, '0')}:${newMinute.toString().padStart(2, '0')}`,
+        time: `${newHour.toString().padStart(2, '0')}:00`,
         isValid: newHour >= startHour && newHour <= 22,
-        gridRow: row
-      };
-    }
-    
-    if (viewType === 'month') {
-      // Only day changes, keep original time
-      const daysToAdd = Math.floor(x / cellWidth) + Math.floor(y / cellHeight) * columns;
-      newDate.setDate(newDate.getDate() + daysToAdd);
-      
-      return {
-        date: newDate,
-        isValid: true, // Month view is generally more flexible
-        gridColumn: column,
         gridRow: row
       };
     }
@@ -104,35 +92,19 @@ export const DraggableEvent = ({
   }, [event.startDateTime, gridInfo, viewType]);
   
   const handleDragStart = useCallback((e: ReactDraggableEvent, data: DraggableData) => {
-    console.log('🎯 Drag start:', event.title);
     setIsDragging(true);
-    // Add global dragging class for magnetic zones
     document.body.classList.add('calendar-dragging');
     onDragStart?.(event);
   }, [event, onDragStart]);
   
   const handleDrag = useCallback((e: ReactDraggableEvent, data: DraggableData) => {
-    // Reduced throttling for smoother movement
-    if (dragThrottleRef.current) {
-      cancelAnimationFrame(dragThrottleRef.current);
-    }
-    
-    dragThrottleRef.current = requestAnimationFrame(() => {
-      onDrag?.(event, data.x, data.y);
-    });
+    // Simple, non-throttled drag for smooth movement
+    onDrag?.(event, data.x, data.y);
   }, [event, onDrag]);
   
   const handleDragStop = useCallback((e: ReactDraggableEvent, data: DraggableData) => {
-    console.log('🎯 Drag stop:', event.title, { x: data.x, y: data.y });
     setIsDragging(false);
-    
-    // Remove global dragging class
     document.body.classList.remove('calendar-dragging');
-    
-    // Clear any pending throttled drag calls
-    if (dragThrottleRef.current) {
-      cancelAnimationFrame(dragThrottleRef.current);
-    }
     
     const dropZone = calculateDropZone(data.x, data.y);
     onDragStop?.(event, dropZone);
@@ -145,16 +117,19 @@ export const DraggableEvent = ({
   const duration = event.endDateTime.getTime() - event.startDateTime.getTime();
   const durationHours = duration / (1000 * 60 * 60);
   
-  // Calculate bounds for dragging
+  // Calculate bounds for dragging - restrict to valid calendar area
   const bounds = gridInfo ? {
-    left: -50,
-    top: -20,
-    right: (gridInfo.columns * gridInfo.cellWidth) - 50,
-    bottom: (14 * gridInfo.cellHeight) - 20 // 8AM to 10PM = 14 hours
+    left: 0,
+    top: 0,
+    right: Math.max(0, (gridInfo.columns * gridInfo.cellWidth) - 100),
+    bottom: Math.max(0, (15 * gridInfo.cellHeight) - 50) // 8AM to 10PM = 15 hours
   } : undefined;
 
-  // Grid snap settings
-  const gridSettings: [number, number] | undefined = gridInfo ? [gridInfo.cellWidth, gridInfo.cellHeight / 4] : undefined; // Snap every 15 minutes
+  // Grid snap to whole hour slots only
+  const gridSettings: [number, number] | undefined = gridInfo ? [
+    viewType === 'week' ? gridInfo.cellWidth : 0, // Horizontal snap for week view only
+    gridInfo.cellHeight // Vertical snap to hours
+  ] : undefined;
 
   return (
     <Draggable
@@ -172,16 +147,19 @@ export const DraggableEvent = ({
       <div
         ref={nodeRef}
         className={cn(
-          "absolute rounded-xl p-3 transition-all duration-200 cursor-move select-none shadow-lg border border-[hsl(var(--border-medium))] overflow-hidden",
+          "absolute rounded-xl p-3 cursor-move select-none shadow-lg border border-[hsl(var(--border-medium))] overflow-hidden",
           event.color,
           "text-white",
-          isDragging && "scale-105 shadow-2xl z-50 rotate-2",
+          isDragging && "scale-105 shadow-2xl z-50",
           disabled && "cursor-not-allowed opacity-50",
-          !isDragging && "hover:scale-[1.02] hover:shadow-xl hover:border-[hsl(var(--border-strong))]\""
+          // Remove transitions during drag to prevent stuttering
+          !isDragging && "transition-all duration-200 hover:scale-[1.02] hover:shadow-xl hover:border-[hsl(var(--border-strong))]"
         )}
         style={{
           ...position,
-          zIndex: isDragging ? 1000 : 10
+          zIndex: isDragging ? 1000 : 10,
+          // Disable transitions during drag
+          transition: isDragging ? 'none' : undefined
         }}
       >
         {/* Event Content */}

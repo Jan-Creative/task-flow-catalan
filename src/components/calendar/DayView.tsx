@@ -76,7 +76,7 @@ const DayView = ({ currentDate, onDateChange, onCreateEvent, dragCallbacks }: Da
     };
   };
   
-  // Grid information for drag calculations
+  // Grid information for drag calculations - simplified for hour-only slots
   const gridInfo = useMemo(() => ({
     cellWidth: 0, // Day view doesn't use horizontal movement
     cellHeight: 96, // 6rem = 96px per hour
@@ -95,18 +95,10 @@ const DayView = ({ currentDate, onDateChange, onCreateEvent, dragCallbacks }: Da
     return `${position * 6}rem`;
   };
 
-  const handleTimeSlotDoubleClick = (event: React.MouseEvent) => {
+  const handleTimeSlotDoubleClick = (hour: number) => {
     if (onCreateEvent) {
-      const rect = event.currentTarget.getBoundingClientRect();
-      const relativeY = event.clientY - rect.top;
-      const hourDecimal = (relativeY / 96) + 8; // 96px = 6rem per hour (h-24 = 6rem), starting from 8am
-      const hour = Math.floor(hourDecimal);
-      const minute = Math.round((hourDecimal - hour) * 60 / 15) * 15; // Round to 15-minute intervals
-      
-      const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-      const position = { x: event.clientX, y: event.clientY };
-      
-      onCreateEvent({ date: currentDate, time: timeString, position });
+      const timeString = `${hour.toString().padStart(2, '0')}:00`;
+      onCreateEvent({ date: currentDate, time: timeString });
     }
   };
 
@@ -175,27 +167,22 @@ const DayView = ({ currentDate, onDateChange, onCreateEvent, dragCallbacks }: Da
 
           {/* Events column */}
           <div className="flex-1 relative bg-card/30 rounded-xl border border-[hsl(var(--border-calendar))]">
-            {/* Hour slots with Magnetic Drop Zones */}
+            {/* Hour slots with integrated magnetic zones */}
             {hours.map((hour) => (
-              <div
+              <MagneticDropZone
                 key={hour}
+                timeSlot={currentDate}
+                hour={hour}
+                isWeekView={false}
+                cellWidth={0}
+                cellHeight={96}
+                onMagneticHover={setMagneticDropZone}
                 className="h-24 border-t border-[hsl(var(--border-medium))] hover:bg-accent/10 transition-colors cursor-pointer relative first:border-t-0"
-                onDoubleClick={handleTimeSlotDoubleClick}
+                onDoubleClick={() => handleTimeSlotDoubleClick(hour)}
               >
-                {/* Magnetic Drop Zone */}
-                <MagneticDropZone
-                  timeSlot={currentDate}
-                  hour={hour}
-                  isWeekView={false}
-                  cellWidth={0}
-                  cellHeight={96}
-                  onMagneticHover={setMagneticDropZone}
-                  className="absolute inset-0"
-                />
-                
-                {/* Half-hour line */}
+                {/* Hour indicator */}
                 <div className="absolute top-12 left-0 right-0 h-px bg-[hsl(var(--border-subtle))] opacity-30" />
-              </div>
+              </MagneticDropZone>
             ))}
             
             {/* Current time indicator */}
