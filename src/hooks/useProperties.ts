@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { useQueryClient } from "@tanstack/react-query";
+import { useRealtimeSafety } from './useRealtimeSafety';
 
 export interface PropertyDefinition {
   id: string;
@@ -43,6 +44,7 @@ export interface PropertyWithOptions extends PropertyDefinition {
 export const useProperties = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { isRealtimeAvailable, createSafeSubscription, error: realtimeError } = useRealtimeSafety();
   const [properties, setProperties] = useState<PropertyWithOptions[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -348,23 +350,41 @@ export const useProperties = () => {
     fetchProperties();
   }, [fetchProperties]);
 
-  // Realtime subscription: refresh properties on any change
+  // Realtime subscription: refresh properties on any change (with safety check)
   useEffect(() => {
-    if (!user) return;
-    const channel = supabase
-      .channel('properties-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'property_definitions' }, () => {
+    if (!user || !isRealtimeAvailable) {
+      // Si realtime no està disponible, configurem polling cada 30 segons
+      if (!user) return;
+      
+      const pollInterval = setInterval(() => {
         fetchProperties();
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'property_options' }, () => {
-        fetchProperties();
-      })
-      .subscribe();
+      }, 30000); // Poll cada 30 segons
+
+      return () => clearInterval(pollInterval);
+    }
+
+    // Utilitzem la subscripció segura
+    const channel1 = createSafeSubscription(
+      'properties-changes',
+      { event: '*', schema: 'public', table: 'property_definitions' },
+      () => fetchProperties()
+    );
+
+    const channel2 = createSafeSubscription(
+      'properties-options-changes', 
+      { event: '*', schema: 'public', table: 'property_options' },
+      () => fetchProperties()
+    );
 
     return () => {
-      try { supabase.removeChannel(channel); } catch {}
+      try {
+        if (channel1) supabase.removeChannel(channel1);
+        if (channel2) supabase.removeChannel(channel2);
+      } catch (error) {
+        // Silenci per evitar errors en la neteja
+      }
     };
-  }, [user?.id, fetchProperties]);
+  }, [user?.id, fetchProperties, isRealtimeAvailable, createSafeSubscription]);
 
   const ensureSystemProperties = async () => {
     if (!user) return;

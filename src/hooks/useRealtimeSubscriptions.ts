@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { useRealtimeSafety } from './useRealtimeSafety';
 
 interface SubscriptionConfig {
   table: string;
@@ -14,6 +15,7 @@ interface SubscriptionConfig {
 export const useRealtimeSubscriptions = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { isRealtimeAvailable, createSafeSubscription } = useRealtimeSafety();
   const channelsRef = useRef<Map<string, any>>(new Map());
 
   const setupSubscriptions = (configs: SubscriptionConfig[]) => {

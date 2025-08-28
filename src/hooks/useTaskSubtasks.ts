@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/lib/toastUtils';
+import { useRealtimeSafety } from './useRealtimeSafety';
 import type { Subtask } from '@/types';
 
 export const useTaskSubtasks = (taskId: string) => {
   const [subtasks, setSubtasks] = useState<Subtask[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { isRealtimeAvailable, createSafeSubscription } = useRealtimeSafety();
 
   // Calculate completion stats
   const completedCount = subtasks.filter(subtask => subtask.is_completed).length;
@@ -135,26 +137,39 @@ export const useTaskSubtasks = (taskId: string) => {
     fetchSubtasks();
   }, [taskId]);
 
-  // Realtime subscription for subtasks
+  // Realtime subscription for subtasks (with safety check)
   useEffect(() => {
     if (!taskId) return;
 
-    const channel = supabase
-      .channel(`task-subtasks-${taskId}`)
-      .on('postgres_changes', { 
+    if (!isRealtimeAvailable) {
+      // Si realtime no està disponible, configurem polling cada 30 segons
+      const pollInterval = setInterval(() => {
+        fetchSubtasks();
+      }, 30000);
+
+      return () => clearInterval(pollInterval);
+    }
+
+    // Utilitzem la subscripció segura
+    const channel = createSafeSubscription(
+      `task-subtasks-${taskId}`,
+      { 
         event: '*', 
         schema: 'public', 
         table: 'task_subtasks',
         filter: `task_id=eq.${taskId}`
-      }, () => {
-        fetchSubtasks();
-      })
-      .subscribe();
+      },
+      () => fetchSubtasks()
+    );
 
     return () => {
-      supabase.removeChannel(channel);
+      try {
+        if (channel) supabase.removeChannel(channel);
+      } catch (error) {
+        // Silenci per evitar errors en la neteja
+      }
     };
-  }, [taskId]);
+  }, [taskId, isRealtimeAvailable, createSafeSubscription]);
 
   return {
     subtasks,
