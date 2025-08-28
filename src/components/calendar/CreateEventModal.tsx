@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Calendar, Clock, MapPin, Bell, Users, MoreHorizontal, X } from "lucide-react";
 import { format } from "date-fns";
 import { ca } from "date-fns/locale";
@@ -23,12 +23,13 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 
 interface CreateEventPopoverProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   defaultDate?: Date;
   defaultTime?: string;
   onCreateEvent?: (eventData: EventFormData) => void;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  useHiddenTrigger?: boolean;
 }
 
 interface EventFormData {
@@ -52,6 +53,7 @@ export const CreateEventPopover = ({
   onCreateEvent,
   open: controlledOpen,
   onOpenChange,
+  useHiddenTrigger = false,
 }: CreateEventPopoverProps) => {
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
@@ -134,10 +136,27 @@ export const CreateEventPopover = ({
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  // Safe trigger element to avoid React.Children.only error
+  const triggerElement = useHiddenTrigger || !children ? (
+    <button 
+      style={{ 
+        position: 'absolute', 
+        opacity: 0,
+        pointerEvents: 'none',
+        width: 1,
+        height: 1
+      }}
+      tabIndex={-1}
+      aria-hidden="true"
+    />
+  ) : (
+    React.Children.count(children) === 1 ? children : <span>{children}</span>
+  );
+
   return (
     <Popover open={open} onOpenChange={onOpenChange || setInternalOpen}>
       <PopoverTrigger asChild>
-        {children}
+        {triggerElement}
       </PopoverTrigger>
       <PopoverContent 
         className="w-96 p-0 border-0 bg-gradient-to-br from-card/95 to-card-secondary/90 backdrop-blur-md shadow-2xl"

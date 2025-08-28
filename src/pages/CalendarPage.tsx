@@ -138,9 +138,8 @@ const CalendarPage = () => {
             onOpenChange={(open) => {
               if (!open) handleQuickEventClose();
             }}
-          >
-            <div /> {/* Invisible trigger */}
-          </CreateEventPopover>
+            useHiddenTrigger={true}
+          />
         </div>
       )}
     </div>
