@@ -1,8 +1,9 @@
-import { Calendar, Folder, Settings, Plus, Bell, ChevronRight } from "lucide-react";
+import { Calendar, Folder, Settings, Bell, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import CircularActionMenu from "./CircularActionMenu";
 
 interface AdaptiveBottomNavigationProps {
   activeTab: string;
@@ -105,18 +106,11 @@ const AdaptiveBottomNavigation = ({ activeTab, onTabChange, onCreateTask }: Adap
           </div>
         </div>
 
-        {/* Floating Action Button */}
-        <Button
-          onClick={onCreateTask}
-          size="lg"
-          className="bg-gradient-primary hover:scale-110 active:scale-95 transition-all duration-200 ease-out rounded-full shadow-[var(--shadow-floating)] hover:shadow-glow flex-shrink-0 p-0"
-          style={{
-            height: isMobile ? "52px" : "56px",
-            width: isMobile ? "52px" : "56px"
-          }}
-        >
-          <Plus className={cn(isMobile ? "h-5 w-5" : "h-6 w-6")} />
-        </Button>
+        {/* Circular Action Menu */}
+        <CircularActionMenu
+          onCreateTask={onCreateTask}
+          isMobile={isMobile}
+        />
       </div>
     </div>
   );
