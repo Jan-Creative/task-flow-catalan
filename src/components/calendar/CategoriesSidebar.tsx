@@ -16,7 +16,7 @@ interface Category {
   id: string;
   name: string;
   color: string;
-  icon: any;
+  iconName: string;
   count: number;
   enabled: boolean;
 }
@@ -25,38 +25,10 @@ const CategoriesSidebar = () => {
   const { toast } = useToast();
   
   const [categories, setCategories] = useState<Category[]>([
-    { 
-      id: '1', 
-      name: 'Personal', 
-      color: 'hsl(var(--primary))', 
-      icon: Heart, 
-      count: 8, 
-      enabled: true 
-    },
-    { 
-      id: '2', 
-      name: 'Feina', 
-      color: 'hsl(var(--destructive))', 
-      icon: Briefcase, 
-      count: 12, 
-      enabled: true 
-    },
-    { 
-      id: '3', 
-      name: 'Social', 
-      color: 'hsl(var(--muted-foreground))', 
-      icon: Users, 
-      count: 5, 
-      enabled: false 
-    },
-    { 
-      id: '4', 
-      name: 'Important', 
-      color: 'hsl(var(--warning))', 
-      icon: Star, 
-      count: 3, 
-      enabled: true 
-    }
+    { id: '1', name: 'Personal', color: 'hsl(var(--primary))', iconName: 'Heart', count: 8, enabled: true },
+    { id: '2', name: 'Feina', color: 'hsl(var(--destructive))', iconName: 'Briefcase', count: 12, enabled: true },
+    { id: '3', name: 'Social', color: 'hsl(var(--muted-foreground))', iconName: 'Users', count: 5, enabled: false },
+    { id: '4', name: 'Important', color: 'hsl(var(--warning))', iconName: 'Star', count: 3, enabled: true }
   ]);
 
   // Configuration state
@@ -131,18 +103,10 @@ const CategoriesSidebar = () => {
   };
 
   const handleIconChange = (categoryId: string, newIconName: string) => {
-    // Use the icon library to get the correct icon component
-    const iconDefinition = getIconByName(newIconName);
-    
-    if (!iconDefinition) {
-      console.warn(`Icon "${newIconName}" not found in library, using fallback`);
-      return;
-    }
-    
     setCategories(prev => 
       prev.map(cat => 
         cat.id === categoryId 
-          ? { ...cat, icon: iconDefinition.icon }
+          ? { ...cat, iconName: newIconName }
           : cat
       )
     );
@@ -153,19 +117,11 @@ const CategoriesSidebar = () => {
   const handleCreateCategory = () => {
     if (!newCategory.name.trim()) return;
     
-    // Use the icon library to get the correct icon component
-    const iconDefinition = getIconByName(newCategory.icon);
-    
-    if (!iconDefinition) {
-      console.warn(`Icon "${newCategory.icon}" not found in library, using fallback`);
-      return;
-    }
-
-    const categoryToCreate = {
+    const categoryToCreate: Category = {
       id: Date.now().toString(),
       name: newCategory.name,
       color: newCategory.color,
-      icon: iconDefinition.icon,
+      iconName: newCategory.icon,
       count: 0,
       enabled: true
     };
@@ -238,7 +194,7 @@ const CategoriesSidebar = () => {
                   
                   <div className="space-y-2 max-h-60 overflow-y-auto">
                     {categories.map((category) => {
-                      const IconComponent = category.icon;
+                      const IconComponent = (getIconByName(category.iconName)?.icon) || Heart;
                        return (
                          <div key={category.id} className="group flex items-center gap-3 p-2 rounded-lg hover:bg-[#2a2a2a] transition-colors">
                            {/* Icon with color - clickable to open customization popover */}
@@ -463,7 +419,7 @@ const CategoriesSidebar = () => {
             setIconEditPopoverId(null);
           }}
           selectedIcon={editingCategoryId ? 
-            categories.find(cat => cat.id === editingCategoryId)?.icon?.name || 'Heart' : 
+            categories.find(cat => cat.id === editingCategoryId)?.iconName || 'Heart' : 
             newCategory.icon
           }
           title="Seleccionar icona per a la categoria"
@@ -474,7 +430,7 @@ const CategoriesSidebar = () => {
         <ScrollArea className="h-full">
           <div className="space-y-2 px-6 pb-3">
             {categories.map((category) => {
-            const IconComponent = category.icon;
+            const IconComponent = (getIconByName(category.iconName)?.icon) || Heart;
             return (
               <div key={category.id} className="flex items-center justify-between group hover:bg-accent/50 rounded-lg p-1 transition-colors">
                  <div className="flex items-center gap-2 flex-1 min-w-0">
