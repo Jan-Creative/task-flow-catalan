@@ -25,25 +25,40 @@ interface Category {
 const CategoriesSidebar = () => {
   const { toast } = useToast();
   
-  // Robust icon resolution function
+  // Enhanced icon resolution with name normalization
   const resolveIcon = (iconName: string) => {
     console.log(`🔍 Resolving icon: "${iconName}"`);
     
-    // Method 1: Try lucide-react direct import
-    const directIcon = (Icons as any)[iconName];
+    // Normalize icon name to PascalCase (handle kebab-case and lowercase)
+    const normalizedName = iconName
+      .split('-')
+      .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+      .join('');
+    
+    console.log(`📝 Normalized "${iconName}" to "${normalizedName}"`);
+    
+    // Method 1: Try lucide-react direct import with original name
+    let directIcon = (Icons as any)[iconName];
     if (directIcon && typeof directIcon === 'function') {
       console.log(`✅ Found direct icon: ${iconName}`);
       return directIcon;
     }
     
-    // Method 2: Try icon library
+    // Method 2: Try lucide-react direct import with normalized name
+    directIcon = (Icons as any)[normalizedName];
+    if (directIcon && typeof directIcon === 'function') {
+      console.log(`✅ Found direct icon with normalized name: ${normalizedName}`);
+      return directIcon;
+    }
+    
+    // Method 3: Try icon library
     const libraryIcon = getIconByName(iconName);
     if (libraryIcon?.icon) {
       console.log(`✅ Found library icon: ${iconName}`);
       return libraryIcon.icon;
     }
     
-    // Method 3: Fallback to Heart
+    // Method 4: Fallback to Heart
     console.log(`⚠️ Using fallback icon for: ${iconName}`);
     return Heart;
   };
@@ -60,7 +75,7 @@ const CategoriesSidebar = () => {
   const [currentView, setCurrentView] = useState<'main' | 'nova_categoria'>('main');
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
   const [isIconPickerOpen, setIsIconPickerOpen] = useState(false);
-  const [iconEditPopoverId, setIconEditPopoverId] = useState<string | null>(null);
+  const [iconTarget, setIconTarget] = useState<{ type: 'new' } | { type: 'category', id: string } | null>(null);
   const [newCategory, setNewCategory] = useState({
     name: '',
     color: 'hsl(var(--primary))',
@@ -126,22 +141,39 @@ const CategoriesSidebar = () => {
     );
   };
 
-  const handleIconChange = (categoryId: string, newIconName: string) => {
-    console.log(`🔄 Changing icon for category ${categoryId} to: ${newIconName}`);
+  // Unified icon selection handler
+  const onIconSelected = (iconName: string) => {
+    console.log(`🎯 Icon selected: "${iconName}" for target:`, iconTarget);
     
-    // Test icon resolution before updating
-    const resolvedIcon = resolveIcon(newIconName);
-    console.log(`🧪 Resolved icon component:`, resolvedIcon.name || 'unnamed');
+    if (!iconTarget) {
+      console.error('❌ No icon target set!');
+      return;
+    }
     
-    setCategories(prev => 
-      prev.map(cat => 
-        cat.id === categoryId 
-          ? { ...cat, iconName: newIconName }
-          : cat
-      )
-    );
+    if (iconTarget.type === 'category') {
+      console.log(`🔄 Updating existing category ${iconTarget.id} with icon: ${iconName}`);
+      setCategories(prev => 
+        prev.map(cat => 
+          cat.id === iconTarget.id 
+            ? { ...cat, iconName: iconName }
+            : cat
+        )
+      );
+      console.log(`✅ Updated category ${iconTarget.id} with icon: ${iconName}`);
+    } else if (iconTarget.type === 'new') {
+      console.log(`🆕 Setting new category icon to: ${iconName}`);
+      setNewCategory(prev => ({ ...prev, icon: iconName }));
+      console.log(`✅ Updated new category icon to: ${iconName}`);
+    }
     
-    console.log(`✅ Updated category ${categoryId} with icon: ${newIconName}`);
+    // Close icon picker and clear target
+    setIsIconPickerOpen(false);
+    setIconTarget(null);
+    
+    // Optionally re-open config popover if it was closed
+    if (!isConfigOpen) {
+      setTimeout(() => setIsConfigOpen(true), 100);
+    }
   };
 
   const handleCreateCategory = () => {
@@ -171,8 +203,7 @@ const CategoriesSidebar = () => {
   const resetConfigState = () => {
     setCurrentView('main');
     setEditingCategoryId(null);
-    // Don't close icon picker from here - let it manage its own state
-    setIconEditPopoverId(null);
+    setIconTarget(null);
     setNewCategory({ name: '', color: 'hsl(var(--primary))', icon: 'Heart' });
   };
 
@@ -190,7 +221,7 @@ const CategoriesSidebar = () => {
           </Badge>
           <Popover open={isConfigOpen} onOpenChange={(open) => {
             setIsConfigOpen(open);
-            if (!open && !isIconPickerOpen) {
+            if (!open) {
               resetConfigState();
             }
           }}>
@@ -228,62 +259,15 @@ const CategoriesSidebar = () => {
                       console.log(`🎨 Rendering category "${category.name}" with icon: ${category.iconName} -> ${IconComponent.name || 'unnamed'}`);
                        return (
                          <div key={category.id} className="group flex items-center gap-3 p-2 rounded-lg hover:bg-[#2a2a2a] transition-colors">
-                           {/* Icon with color - clickable to open customization popover */}
-                           <Popover 
-                             open={iconEditPopoverId === category.id} 
-                             onOpenChange={(open) => setIconEditPopoverId(open ? category.id : null)}
+                           {/* Icon with color */}
+                           <div 
+                             className="h-6 w-6 flex items-center justify-center"
                            >
-                             <PopoverTrigger asChild>
-                               <Button
-                                 variant="ghost"
-                                 size="sm"
-                                 className="h-6 w-6 p-0 hover:bg-[#353535] transition-colors"
-                               >
-                                 <IconComponent 
-                                   className="h-4 w-4" 
-                                   style={{ color: category.color.includes('hsl') ? '#3b82f6' : category.color }}
-                                 />
-                               </Button>
-                             </PopoverTrigger>
-                             <PopoverContent 
-                               className="w-64 p-3 bg-[#1f1f1f] border-[#333] text-white"
-                               align="start"
-                               sideOffset={8}
-                             >
-                               <div className="space-y-3">
-                                 <h4 className="text-sm font-medium text-white">Personalitzar categoria</h4>
-                                 
-                                  {/* Color picker */}
-                                  <div>
-                                    <label className="text-xs text-[#b8b8b8] mb-2 block">Color</label>
-                                    <input
-                                      type="color"
-                                      value={category.color.includes('hsl') ? '#3b82f6' : category.color}
-                                      onChange={(e) => handleColorChange(category.id, e.target.value)}
-                                      className="w-8 h-8 rounded border-none cursor-pointer"
-                                    />
-                                  </div>
-                                 
-                                 {/* Icon selection */}
-                                 <div>
-                                   <label className="text-xs text-[#b8b8b8] mb-2 block">Icona</label>
-                                   <Button
-                                     variant="outline"
-                                     size="sm"
-                                     className="w-full justify-start bg-[#333] border-[#444] text-[#b8b8b8] hover:bg-[#353535]"
-                                       onClick={() => {
-                                         setEditingCategoryId(category.id);
-                                         setIconEditPopoverId(null);
-                                         setTimeout(() => setIsIconPickerOpen(true), 100);
-                                       }}
-                                   >
-                                     <IconComponent className="h-4 w-4 mr-2" style={{ color: category.color.includes('hsl') ? '#3b82f6' : category.color }} />
-                                     Canviar icona
-                                   </Button>
-                                 </div>
-                               </div>
-                             </PopoverContent>
-                           </Popover>
+                             <IconComponent 
+                               className="h-4 w-4" 
+                               style={{ color: category.color.includes('hsl') ? '#3b82f6' : category.color }}
+                             />
+                           </div>
                            
                            {/* Name */}
                            {editingCategoryId === category.id ? (
@@ -307,25 +291,31 @@ const CategoriesSidebar = () => {
                              </span>
                            )}
                            
-                           {/* Actions */}
-                           <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                             <Button
-                               variant="ghost"
-                               size="sm"
-                               className="h-6 w-6 p-0 hover:bg-[#353535]"
-                               onClick={() => setEditingCategoryId(category.id)}
-                             >
-                               <Edit2 className="h-3 w-3 text-[#b8b8b8]" />
-                             </Button>
-                             <Button
-                               variant="ghost"
-                               size="sm"
-                               className="h-6 w-6 p-0 hover:bg-[#353535]"
-                               onClick={() => handleDeleteCategory(category.id)}
-                             >
-                               <Trash2 className="h-3 w-3 text-red-400" />
-                             </Button>
-                           </div>
+                            {/* Actions */}
+                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0 hover:bg-[#353535]"
+                                onClick={() => {
+                                  console.log(`🖱️ Change icon clicked for category: ${category.id}`);
+                                  setIconTarget({ type: 'category', id: category.id });
+                                  setIsConfigOpen(false);
+                                  setTimeout(() => setIsIconPickerOpen(true), 100);
+                                }}
+                                title="Canviar icona"
+                              >
+                                <Edit2 className="h-3 w-3 text-[#b8b8b8]" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0 hover:bg-[#353535]"
+                                onClick={() => handleDeleteCategory(category.id)}
+                              >
+                                <Trash2 className="h-3 w-3 text-red-400" />
+                              </Button>
+                            </div>
                          </div>
                       );
                     })}
@@ -400,7 +390,12 @@ const CategoriesSidebar = () => {
                         variant="outline"
                         size="sm"
                         className="bg-[#333] border-[#444] text-[#b8b8b8] hover:bg-[#353535]"
-                        onClick={() => setIsIconPickerOpen(true)}
+                        onClick={() => {
+                          console.log(`🖱️ New category icon selection clicked`);
+                          setIconTarget({ type: 'new' });
+                          setIsConfigOpen(false);
+                          setTimeout(() => setIsIconPickerOpen(true), 100);
+                        }}
                       >
                         {newCategory.icon} - Seleccionar icona
                       </Button>
@@ -434,23 +429,15 @@ const CategoriesSidebar = () => {
         <SimpleIconPicker
           open={isIconPickerOpen}
           onOpenChange={(open) => {
+            console.log(`🔄 Icon picker open state changed to: ${open}`);
             setIsIconPickerOpen(open);
             if (!open) {
-              setIconEditPopoverId(null);
-              setEditingCategoryId(null);
+              setIconTarget(null);
             }
           }}
-          onIconSelect={(iconName) => {
-            if (editingCategoryId) {
-              handleIconChange(editingCategoryId, iconName);
-            } else {
-              setNewCategory(prev => ({ ...prev, icon: iconName }));
-            }
-            setIsIconPickerOpen(false);
-            setIconEditPopoverId(null);
-          }}
-          selectedIcon={editingCategoryId ? 
-            categories.find(cat => cat.id === editingCategoryId)?.iconName || 'Heart' : 
+          onIconSelect={onIconSelected}
+          selectedIcon={iconTarget?.type === 'category' ? 
+            categories.find(cat => cat.id === iconTarget.id)?.iconName || 'Heart' : 
             newCategory.icon
           }
           title="Seleccionar icona per a la categoria"
