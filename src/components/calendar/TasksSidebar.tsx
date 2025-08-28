@@ -130,8 +130,8 @@ const TasksSidebar = () => {
   const completedTasks = tasks.filter(task => task.completed);
 
   return (
-    <Card className="flex flex-col h-[320px] bg-card shadow-[var(--shadow-card)]">
-      <CardHeader className="pb-3">
+    <Card className="flex flex-col h-[320px] bg-card shadow-[var(--shadow-card)] overflow-hidden">
+      <CardHeader className="pb-3 px-6">
         <CardTitle className="text-sm font-medium flex items-center gap-2 text-foreground">
           <Clock className="h-4 w-4 text-primary" />
           Checklist Tasques
@@ -141,9 +141,9 @@ const TasksSidebar = () => {
         </CardTitle>
       </CardHeader>
       
-      <CardContent className="flex-1 pt-0">
+      <CardContent className="flex-1 p-0 min-h-0">
         <ScrollArea className="h-full">
-          <div className="space-y-3">
+          <div className="space-y-3 px-6 pb-6">
             
             {/* Tasques pendents */}
             {pendingTasks.length > 0 && (

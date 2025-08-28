@@ -51,8 +51,8 @@ const MiniCalendarSidebar = ({ currentDate, onDateSelect }: MiniCalendarSidebarP
   };
 
   return (
-    <Card className="h-[280px] flex flex-col bg-card shadow-[var(--shadow-card)]">
-      <CardHeader className="pb-3">
+    <Card className="h-[280px] flex flex-col bg-card shadow-[var(--shadow-card)] overflow-hidden">
+      <CardHeader className="pb-3 px-6">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-medium text-foreground">
             {displayDate.toLocaleDateString('ca-ES', { month: 'long', year: 'numeric' })}
@@ -78,7 +78,7 @@ const MiniCalendarSidebar = ({ currentDate, onDateSelect }: MiniCalendarSidebarP
         </div>
       </CardHeader>
       
-      <CardContent className="flex-1 pt-0">
+      <CardContent className="flex-1 p-6 pt-0 min-h-0">
         {/* Dies de la setmana */}
         <div className="grid grid-cols-7 gap-1 mb-2">
           {['dl', 'dt', 'dc', 'dj', 'dv', 'ds', 'dg'].map((day) => (

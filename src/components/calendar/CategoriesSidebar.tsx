@@ -3,6 +3,7 @@ import { Calendar, Users, Briefcase, Heart, Star } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface Category {
   id: string;
@@ -63,8 +64,8 @@ const CategoriesSidebar = () => {
   const totalVisibleEvents = activeCategories.reduce((sum, cat) => sum + cat.count, 0);
 
   return (
-    <Card className="h-[240px] flex flex-col bg-card shadow-[var(--shadow-card)]">
-      <CardHeader className="pb-3">
+    <Card className="h-[240px] flex flex-col bg-card shadow-[var(--shadow-card)] overflow-hidden">
+      <CardHeader className="pb-3 px-6">
         <CardTitle className="text-sm font-medium flex items-center gap-2 text-foreground">
           <Calendar className="h-4 w-4 text-primary" />
           Categories
@@ -74,9 +75,10 @@ const CategoriesSidebar = () => {
         </CardTitle>
       </CardHeader>
       
-      <CardContent className="flex-1 pt-0 space-y-3">
-        <div className="space-y-2 flex-1">
-          {categories.map((category) => {
+      <CardContent className="flex-1 p-0 min-h-0">
+        <ScrollArea className="h-full">
+          <div className="space-y-2 px-6 pb-3">
+            {categories.map((category) => {
             const IconComponent = category.icon;
             return (
               <div key={category.id} className="flex items-center justify-between group hover:bg-accent/50 rounded-lg p-1 transition-colors">
@@ -99,9 +101,10 @@ const CategoriesSidebar = () => {
               </div>
             );
           })}
-        </div>
-
-        <div className="pt-2 border-t border-border">
+          </div>
+        </ScrollArea>
+        
+        <div className="px-6 py-3 border-t border-border bg-muted/30">
           <div className="text-xs text-muted-foreground text-center">
             <span className="font-medium text-foreground">{totalVisibleEvents}</span> esdeveniments visibles
           </div>
