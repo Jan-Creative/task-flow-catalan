@@ -105,52 +105,101 @@ const CircularActionMenu = ({
     }
   }, [isExpanded]);
 
-  // Intelligent boundary detection and positioning
+  // Intelligent boundary detection and positioning (ensures all buttons stay on-screen)
   const getOptimalPositioning = () => {
-    if (!fabRef.current) return { radius: isMobile ? 80 : 100, arc: 120 };
-    
+    // Reasonable default if ref not yet ready
+    if (!fabRef.current) {
+      return { radius: isMobile ? 72 : 90, startAngle: 180, endAngle: 240 };
+    }
+
     const fabRect = fabRef.current.getBoundingClientRect();
-    const viewport = {
-      width: window.innerWidth,
-      height: window.innerHeight
-    };
-    
-    // Calculate available space in each direction from FAB center
+    const viewport = { width: window.innerWidth, height: window.innerHeight };
+    const cx = fabRect.left + fabRect.width / 2;
+    const cy = fabRect.top + fabRect.height / 2;
+
+    // Available space from FAB center to viewport edges
     const availableSpace = {
-      left: fabRect.left + fabRect.width / 2,
-      right: viewport.width - (fabRect.left + fabRect.width / 2),
-      top: fabRect.top + fabRect.height / 2,
-      bottom: viewport.height - (fabRect.top + fabRect.height / 2)
+      left: cx,
+      right: viewport.width - cx,
+      top: cy,
+      bottom: viewport.height - cy,
     };
-    
-    // Calculate optimal radius (leaving 20px margin)
-    const maxRadius = Math.min(
-      availableSpace.left - 40,
-      availableSpace.top - 40,
-      isMobile ? 100 : 120
+
+    // Button size + safe margin
+    const optionBtn = isMobile ? 56 : 60;
+    const safeMargin = optionBtn / 2 + 16; // include half button + padding
+
+    // Base radius limited by top-left space and a max cap
+    let radius = Math.max(
+      36,
+      Math.min(availableSpace.left - safeMargin, availableSpace.top - safeMargin, isMobile ? 100 : 120)
     );
-    
-    // Determine optimal arc based on available space
-    const optimalRadius = Math.max(60, maxRadius);
-    const arcAngle = availableSpace.left > 120 && availableSpace.top > 120 ? 120 : 90;
-    
-    return { radius: optimalRadius, arc: arcAngle };
+
+    // We prefer the top-left quadrant only: [180°, 270°]. Max arc = 90°
+    let startAngle = 180;
+    let endAngle = Math.min(270, startAngle + 120); // will clamp via candidates below
+
+    const n = menuOptions.length;
+
+    // Helper: check if all option centers are within viewport with margins
+    const fitsAll = (r: number, sDeg: number, eDeg: number) => {
+      const total = Math.max(0, eDeg - sDeg);
+      const step = n > 1 ? total / (n - 1) : 0;
+      for (let i = 0; i < n; i++) {
+        const ang = (sDeg + i * step) * (Math.PI / 180);
+        const x = Math.cos(ang) * r;
+        const y = Math.sin(ang) * r; // y positive is downwards; negative goes up
+        const px = cx + x;
+        const py = cy + y;
+        if (
+          px - safeMargin < 0 ||
+          px + safeMargin > viewport.width ||
+          py - safeMargin < 0 ||
+          py + safeMargin > viewport.height
+        ) {
+          return false;
+        }
+      }
+      return true;
+    };
+
+    // Try decreasing arc first (keeps buttons tighter together)
+    const arcCandidates = [90, 80, 70, 60, 50, 40];
+    for (const arc of arcCandidates) {
+      startAngle = 180;
+      endAngle = Math.min(270, startAngle + arc);
+      if (fitsAll(radius, startAngle, endAngle)) {
+        return { radius, startAngle, endAngle };
+      }
+    }
+
+    // If still not fitting, progressively reduce radius and retry arc candidates
+    for (let i = 0; i < 8; i++) {
+      radius = Math.max(28, radius - 10);
+      for (const arc of arcCandidates) {
+        startAngle = 180;
+        endAngle = Math.min(270, startAngle + arc);
+        if (fitsAll(radius, startAngle, endAngle)) {
+          return { radius, startAngle, endAngle };
+        }
+      }
+    }
+
+    // Fallback: very tight arc in TL quadrant
+    return { radius, startAngle: 180, endAngle: 220 };
   };
 
   // Calculate positions with intelligent positioning
   const getOptionPosition = (index: number) => {
-    const { radius, arc } = getOptimalPositioning();
-    
-    // Focus on top-left quadrant (180° to 270° for better visibility)
-    const startAngle = 180; // Left
-    const endAngle = 180 + arc; // Arc towards top
-    const totalAngle = endAngle - startAngle;
+    const { radius, startAngle, endAngle } = getOptimalPositioning();
+
+    const totalAngle = Math.max(0, endAngle - startAngle);
     const angleStep = menuOptions.length > 1 ? totalAngle / (menuOptions.length - 1) : 0;
-    const angle = (startAngle + (index * angleStep)) * (Math.PI / 180);
-    
+    const angle = (startAngle + index * angleStep) * (Math.PI / 180);
+
     const x = Math.cos(angle) * radius;
     const y = Math.sin(angle) * radius;
-    
+
     return { x, y };
   };
 
