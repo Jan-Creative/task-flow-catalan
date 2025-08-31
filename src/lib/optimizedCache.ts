@@ -1,4 +1,4 @@
-import { QueryClient } from "@tanstack/react-query";
+import { QueryClient, QueryCache, MutationCache } from "@tanstack/react-query";
 
 // ============= OPTIMIZED CACHE CONFIGURATION =============
 
@@ -87,7 +87,7 @@ export const createOptimizedQueryClient = () => {
     },
     
     // Global query client configuration
-    queryCache: new (QueryClient.prototype.constructor as any).QueryCache({
+    queryCache: new QueryCache({
       onError: (error, query) => {
         console.warn(`Query failed [${query.queryKey.join(', ')}]:`, error);
       },
@@ -99,7 +99,7 @@ export const createOptimizedQueryClient = () => {
       }
     }),
     
-    mutationCache: new (QueryClient.prototype.constructor as any).MutationCache({
+    mutationCache: new MutationCache({
       onError: (error, _variables, _context, mutation) => {
         console.error('Mutation failed:', error, mutation);
       }
