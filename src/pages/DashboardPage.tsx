@@ -112,26 +112,26 @@ const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar }: 
         </div>
 
         {/* Executive Summary */}
-        <Card className="bg-gradient-to-r from-primary/10 to-secondary/10 backdrop-blur-glass border-border/50">
-          <CardContent className="p-4">
-            <div className="grid grid-cols-3 gap-4 text-center">
-              <div>
-                <div className="text-2xl font-bold text-warning">
+        <Card className="bg-gradient-to-br from-orange-400/20 to-pink-400/20 backdrop-blur-md border-border/20 shadow-xl">
+          <CardContent className="p-6">
+            <div className="grid grid-cols-3 gap-6 text-center">
+              <div className="p-4 rounded-xl bg-background/20 hover:bg-background/30 transition-all duration-200">
+                <div className="text-3xl font-bold text-warning mb-1">
                   {dashboardTasks.length}
                 </div>
-                <div className="text-xs text-muted-foreground">Tasques pendents</div>
+                <div className="text-sm text-muted-foreground">Tasques pendents</div>
               </div>
-              <div>
-                <div className="text-2xl font-bold text-primary">
+              <div className="p-4 rounded-xl bg-background/20 hover:bg-background/30 transition-all duration-200">
+                <div className="text-3xl font-bold text-primary mb-1">
                   {todayEvents.length}
                 </div>
-                <div className="text-xs text-muted-foreground">Esdeveniments avui</div>
+                <div className="text-sm text-muted-foreground">Esdeveniments avui</div>
               </div>
-              <div>
-                <div className="text-2xl font-bold text-destructive">
+              <div className="p-4 rounded-xl bg-background/20 hover:bg-background/30 transition-all duration-200">
+                <div className="text-3xl font-bold text-destructive mb-1">
                   {urgentTasks.length}
                 </div>
-                <div className="text-xs text-muted-foreground">Tasques urgents</div>
+                <div className="text-sm text-muted-foreground">Tasques urgents</div>
               </div>
             </div>
           </CardContent>
@@ -141,7 +141,7 @@ const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar }: 
       {/* Dashboard Cards Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Today's Tasks Card */}
-        <Card className="bg-card/60 backdrop-blur-glass border-border/50">
+        <Card className="bg-gradient-to-br from-blue-400/10 to-cyan-400/10 backdrop-blur-md border-border/20 shadow-xl">
           <CardHeader className="flex flex-row items-center justify-between pb-3">
             <CardTitle className="flex items-center gap-2 text-lg">
               <CheckSquare className="h-5 w-5 text-primary" />
@@ -195,7 +195,7 @@ const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar }: 
         </Card>
 
         {/* Today's Events Card */}
-        <Card className="bg-card/60 backdrop-blur-glass border-border/50">
+        <Card className="bg-gradient-to-br from-purple-400/10 to-blue-400/10 backdrop-blur-md border-border/20 shadow-xl">
           <CardHeader className="flex flex-row items-center justify-between pb-3">
             <CardTitle className="flex items-center gap-2 text-lg">
               <Calendar className="h-5 w-5 text-primary" />
@@ -237,7 +237,7 @@ const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar }: 
         </Card>
 
         {/* Urgent Tasks Card */}
-        <Card className="bg-card/60 backdrop-blur-glass border-border/50">
+        <Card className="bg-gradient-to-br from-red-400/10 to-orange-400/10 backdrop-blur-md border-border/20 shadow-xl">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-lg">
               <AlertTriangle className="h-5 w-5 text-destructive" />
@@ -282,7 +282,7 @@ const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar }: 
         </Card>
 
         {/* Mini Weekly Calendar Card */}
-        <Card className="bg-card/60 backdrop-blur-glass border-border/50">
+        <Card className="bg-gradient-to-br from-green-400/10 to-emerald-400/10 backdrop-blur-md border-border/20 shadow-xl">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-lg">
               <Calendar className="h-5 w-5 text-primary" />
