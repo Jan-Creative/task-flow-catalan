@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import AdaptiveBottomNavigation from "@/components/AdaptiveBottomNavigation";
 import { LazyPage, TodayPageLazy, FoldersPageLazy, SettingsPageLazy, NotificationsPageLazy, CreateTaskModalLazy } from "@/lib/lazyLoading";
 import CalendarPage from "@/pages/CalendarPage";
+import DashboardPage from "@/pages/DashboardPage";
 import AuthPage from "@/pages/AuthPage";
 import { useDadesApp } from "@/hooks/useDadesApp";
 import { useTaskOperations } from "@/hooks/useTaskOperations";
@@ -18,7 +19,7 @@ const Index = () => {
   const { user, loading, signOut } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(() => {
-    return searchParams.get("tab") || "avui";
+    return searchParams.get("tab") || "inici";
   });
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
@@ -56,14 +57,14 @@ const Index = () => {
 
   // Sincronitzar activeTab amb paràmetres URL
   useEffect(() => {
-    const tab = searchParams.get("tab") || "avui";
+    const tab = searchParams.get("tab") || "inici";
     setActiveTab(tab);
   }, [searchParams]);
 
   // Actualitzar URL quan canvia activeTab
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
-    if (tab === "avui") {
+    if (tab === "inici") {
       setSearchParams({});
     } else {
       setSearchParams({ tab });
@@ -92,6 +93,16 @@ const Index = () => {
   // Keep-alive rendering with lazy loading - All pages stay mounted
   const renderKeepAlivePages = useCallback(() => (
     <div className="relative w-full">
+      <TabPage tabId="inici" activeTab={activeTab}>
+        <LazyPage pageName="Inici">
+          <DashboardPage 
+            onEditTask={handleEditTaskClick} 
+            onNavigateToTasks={() => setActiveTab("avui")}
+            onNavigateToCalendar={() => setActiveTab("calendar")}
+          />
+        </LazyPage>
+      </TabPage>
+      
       <TabPage tabId="avui" activeTab={activeTab}>
         <LazyPage pageName="Avui">
           <TodayPageLazy 
