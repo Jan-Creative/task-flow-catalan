@@ -214,17 +214,24 @@ const TodayPage = React.memo(({ onEditTask, onNavigateToSettings }: TodayPagePro
         {/* Quick stats */}
         <div className="grid grid-cols-3 gap-3">
           {getStatusOptions().slice(0, 3).map((option, index) => (
-            <Card 
+            <div 
               key={option.value} 
-              className="bg-card/60 backdrop-blur-glass border-border/50"
+              className="relative bg-card/80 backdrop-blur-xl rounded-2xl shadow-[var(--shadow-elevated)] border border-border/30 hover:shadow-[var(--shadow-organic)] transition-all duration-300 p-3 before:absolute before:inset-0 before:rounded-2xl before:pointer-events-none"
+              style={{
+                '--tw-before-bg': index === 0 
+                  ? 'linear-gradient(135deg, rgb(251 146 60 / 0.12), rgb(251 113 133 / 0.12))'
+                  : index === 1 
+                  ? 'linear-gradient(135deg, rgb(59 130 246 / 0.12), rgb(37 99 235 / 0.12))'
+                  : 'linear-gradient(135deg, rgb(34 197 94 / 0.12), rgb(16 185 129 / 0.12))'
+              } as React.CSSProperties}
             >
-              <CardContent className="p-3 text-center">
+              <div className="relative z-10 text-center">
                 <div className={`text-2xl font-bold ${index === 0 ? 'text-warning' : index === 1 ? 'text-primary' : 'text-success'}`}>
                   {taskStats[option.value] || 0}
                 </div>
                 <div className="text-xs text-muted-foreground">{option.label}</div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           ))}
         </div>
 
@@ -245,15 +252,15 @@ const TodayPage = React.memo(({ onEditTask, onNavigateToSettings }: TodayPagePro
 
       {/* Content */}
       {filteredTasks.length === 0 ? (
-        <Card className="bg-card/60 backdrop-blur-glass border-border/50">
-          <CardContent className="p-8 text-center">
+        <div className="relative bg-card/70 backdrop-blur-xl rounded-2xl shadow-[var(--shadow-elevated)] border border-border/30 p-8 before:absolute before:inset-0 before:bg-gradient-to-br before:from-slate-500/8 before:to-gray-500/8 before:rounded-2xl before:pointer-events-none">
+          <div className="relative z-10 text-center">
             <div className="text-muted-foreground">
               <SlidersHorizontal className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>No hi ha tasques per avui</p>
               <p className="text-sm mt-2">Comença creant una nova tasca!</p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       ) : (
         <>
           {viewMode === "list" && (
@@ -298,14 +305,24 @@ const TodayPage = React.memo(({ onEditTask, onNavigateToSettings }: TodayPagePro
                   >
                     <div className="sticky top-0 z-10 mb-4">
                       <div 
-                        className="px-4 py-3 rounded-lg backdrop-blur-sm border border-white/10"
-                        style={getColumnBackgroundStyle(statusColor)}
+                        className="relative bg-card/80 backdrop-blur-xl rounded-2xl shadow-[var(--shadow-elevated)] border border-border/30 px-4 py-3 before:absolute before:inset-0 before:rounded-2xl before:pointer-events-none"
+                        style={{
+                          '--tw-before-bg': statusColor && statusColor.startsWith('#') 
+                            ? (() => {
+                                const hex = statusColor.slice(1);
+                                const r = parseInt(hex.substr(0, 2), 16);
+                                const g = parseInt(hex.substr(2, 2), 16);
+                                const b = parseInt(hex.substr(4, 2), 16);
+                                return `linear-gradient(135deg, rgba(${r}, ${g}, ${b}, 0.12), rgba(${r}, ${g}, ${b}, 0.08))`;
+                              })()
+                            : 'linear-gradient(135deg, rgb(71 85 105 / 0.12), rgb(51 65 85 / 0.08))'
+                        } as React.CSSProperties}
                       >
-                        <div className="flex items-center justify-between">
-                          <h3 className="font-medium text-white">
+                        <div className="relative z-10 flex items-center justify-between">
+                          <h3 className="font-medium text-foreground">
                             {getStatusLabel(status)}
                           </h3>
-                          <span className="text-sm text-white/70 bg-white/10 px-2 py-1 rounded-full">
+                          <span className="text-sm text-muted-foreground bg-white/10 px-2 py-1 rounded-full border border-white/20">
                             {statusTasks.length}
                           </span>
                         </div>
