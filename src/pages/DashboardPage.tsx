@@ -116,21 +116,21 @@ const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar }: 
         </div>
 
         {/* Executive Summary */}
-        <div className="bg-gradient-to-br from-orange-400/8 to-pink-400/8 backdrop-blur-lg rounded-2xl shadow-xl border-0 p-6">
-          <div className="grid grid-cols-3 gap-6 text-center">
-            <div className="p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-all duration-200 border-0">
+        <div className="relative bg-card/80 backdrop-blur-xl rounded-2xl shadow-[var(--shadow-elevated)] border border-border/30 hover:shadow-[var(--shadow-organic)] transition-all duration-300 p-6 before:absolute before:inset-0 before:bg-gradient-to-br before:from-orange-500/15 before:to-pink-500/15 before:rounded-2xl before:pointer-events-none">
+          <div className="relative z-10 grid grid-cols-3 gap-6 text-center">
+            <div className="p-4 rounded-xl bg-white/10 hover:bg-white/15 transition-all duration-200 border border-white/10">
               <div className="text-3xl font-bold text-warning mb-1">
                 {dashboardTasks.length}
               </div>
               <div className="text-sm text-muted-foreground">Tasques pendents</div>
             </div>
-            <div className="p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-all duration-200 border-0">
+            <div className="p-4 rounded-xl bg-white/10 hover:bg-white/15 transition-all duration-200 border border-white/10">
               <div className="text-3xl font-bold text-primary mb-1">
                 {todayEvents.length}
               </div>
               <div className="text-sm text-muted-foreground">Esdeveniments avui</div>
             </div>
-            <div className="p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-all duration-200 border-0">
+            <div className="p-4 rounded-xl bg-white/10 hover:bg-white/15 transition-all duration-200 border border-white/10">
               <div className="text-3xl font-bold text-destructive mb-1">
                 {urgentTasks.length}
               </div>
@@ -143,8 +143,8 @@ const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar }: 
       {/* Dashboard Cards Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Today's Tasks Card */}
-        <div className="bg-gradient-to-br from-blue-400/8 to-cyan-400/8 backdrop-blur-lg rounded-2xl shadow-xl border-0 p-6">
-          <div className="flex flex-row items-center justify-between pb-3">
+        <div className="relative bg-card/70 backdrop-blur-xl rounded-2xl shadow-[var(--shadow-elevated)] border border-border/30 hover:shadow-[var(--shadow-organic)] transition-all duration-300 p-6 before:absolute before:inset-0 before:bg-gradient-to-br before:from-blue-500/12 before:to-cyan-500/12 before:rounded-2xl before:pointer-events-none hover:before:from-blue-500/18 hover:before:to-cyan-500/18">
+          <div className="relative z-10 flex flex-row items-center justify-between pb-3">
             <h3 className="flex items-center gap-2 text-lg font-semibold">
               <CheckSquare className="h-5 w-5 text-primary" />
               Tasques d'avui
@@ -158,7 +158,7 @@ const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar }: 
               Veure totes
             </Button>
           </div>
-          <div className="pt-0">
+          <div className="relative z-10 pt-0">
             {dashboardTasks.length === 0 ? (
               <div className="text-center py-8">
                 <p className="text-muted-foreground text-sm">No tens tasques pendents per avui</p>
@@ -197,8 +197,8 @@ const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar }: 
         </div>
 
         {/* Today's Events Card */}
-        <div className="bg-gradient-to-br from-purple-400/8 to-blue-400/8 backdrop-blur-lg rounded-2xl shadow-xl border-0 p-6">
-          <div className="flex flex-row items-center justify-between pb-3">
+        <div className="relative bg-card/70 backdrop-blur-xl rounded-2xl shadow-[var(--shadow-elevated)] border border-border/30 hover:shadow-[var(--shadow-organic)] transition-all duration-300 p-6 before:absolute before:inset-0 before:bg-gradient-to-br before:from-purple-500/12 before:to-blue-500/12 before:rounded-2xl before:pointer-events-none hover:before:from-purple-500/18 hover:before:to-blue-500/18">
+          <div className="relative z-10 flex flex-row items-center justify-between pb-3">
             <h3 className="flex items-center gap-2 text-lg font-semibold">
               <Calendar className="h-5 w-5 text-primary" />
               Esdeveniments d'avui
@@ -212,7 +212,7 @@ const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar }: 
               Veure calendari
             </Button>
           </div>
-          <div className="pt-0">
+          <div className="relative z-10 pt-0">
             {todayEvents.length === 0 ? (
               <div className="text-center py-8">
                 <p className="text-muted-foreground text-sm">No tens esdeveniments programats per avui</p>
@@ -239,14 +239,14 @@ const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar }: 
         </div>
 
         {/* Urgent Tasks Card */}
-        <div className="bg-gradient-to-br from-red-400/8 to-orange-400/8 backdrop-blur-lg rounded-2xl shadow-xl border-0 p-6">
-          <div className="pb-3">
+        <div className="relative bg-card/80 backdrop-blur-xl rounded-2xl shadow-[var(--shadow-elevated)] border border-border/30 hover:shadow-[var(--shadow-organic)] transition-all duration-300 p-6 before:absolute before:inset-0 before:bg-gradient-to-br before:from-red-500/15 before:to-orange-500/15 before:rounded-2xl before:pointer-events-none hover:before:from-red-500/20 hover:before:to-orange-500/20">
+          <div className="relative z-10 pb-3">
             <h3 className="flex items-center gap-2 text-lg font-semibold">
               <AlertTriangle className="h-5 w-5 text-destructive" />
               Tasques urgents
             </h3>
           </div>
-          <div className="pt-0">
+          <div className="relative z-10 pt-0">
             {urgentTasks.length === 0 ? (
               <div className="text-center py-8">
                 <p className="text-muted-foreground text-sm">No tens tasques urgents</p>
@@ -283,14 +283,14 @@ const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar }: 
         </div>
 
         {/* Mini Weekly Calendar Card */}
-        <div className="bg-gradient-to-br from-green-400/8 to-emerald-400/8 backdrop-blur-lg rounded-2xl shadow-xl border-0 p-6">
-          <div className="pb-3">
+        <div className="relative bg-card/70 backdrop-blur-xl rounded-2xl shadow-[var(--shadow-elevated)] border border-border/30 hover:shadow-[var(--shadow-organic)] transition-all duration-300 p-6 before:absolute before:inset-0 before:bg-gradient-to-br before:from-green-500/10 before:to-emerald-500/10 before:rounded-2xl before:pointer-events-none hover:before:from-green-500/15 hover:before:to-emerald-500/15">
+          <div className="relative z-10 pb-3">
             <h3 className="flex items-center gap-2 text-lg font-semibold">
               <Calendar className="h-5 w-5 text-primary" />
               Calendari setmanal
             </h3>
           </div>
-          <div className="pt-0">
+          <div className="relative z-10 pt-0">
             <MiniCalendarCard currentDate={selectedDate} onDateSelect={setSelectedDate} />
           </div>
         </div>
