@@ -102,7 +102,7 @@ const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar }: 
       {/* Personalized Header */}
       <div className="space-y-4">
         <div className="flex items-center gap-3">
-          <div className="p-3 bg-gradient-primary/20 rounded-2xl backdrop-blur-sm">
+          <div className="p-3 bg-primary/20 rounded-2xl">
             <GreetingIcon className="h-6 w-6 text-primary" />
           </div>
           <div>
@@ -116,21 +116,21 @@ const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar }: 
         </div>
 
         {/* Executive Summary */}
-        <div className="bg-card rounded-2xl shadow-[var(--shadow-card)] border border-border/30 hover:shadow-[var(--shadow-organic)] transition-all duration-300 p-6">
+        <div className="bg-card rounded-2xl shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-organic)] transition-all duration-300 p-6">
           <div className="grid grid-cols-3 gap-6 text-center">
-            <div className="p-4 rounded-xl bg-accent hover:bg-accent/80 transition-all duration-200 border border-border">
+            <div className="p-4 rounded-xl bg-accent hover:bg-accent/80 transition-all duration-200">
               <div className="text-3xl font-bold text-warning mb-1">
                 {dashboardTasks.length}
               </div>
               <div className="text-sm text-muted-foreground">Tasques pendents</div>
             </div>
-            <div className="p-4 rounded-xl bg-accent hover:bg-accent/80 transition-all duration-200 border border-border">
+            <div className="p-4 rounded-xl bg-accent hover:bg-accent/80 transition-all duration-200">
               <div className="text-3xl font-bold text-primary mb-1">
                 {todayEvents.length}
               </div>
               <div className="text-sm text-muted-foreground">Esdeveniments avui</div>
             </div>
-            <div className="p-4 rounded-xl bg-accent hover:bg-accent/80 transition-all duration-200 border border-border">
+            <div className="p-4 rounded-xl bg-accent hover:bg-accent/80 transition-all duration-200">
               <div className="text-3xl font-bold text-destructive mb-1">
                 {urgentTasks.length}
               </div>
@@ -143,7 +143,7 @@ const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar }: 
       {/* Dashboard Cards Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Today's Tasks Card */}
-        <div className="bg-card rounded-2xl shadow-[var(--shadow-card)] border border-border/30 hover:shadow-[var(--shadow-organic)] transition-all duration-300 p-6">
+        <div className="bg-card rounded-2xl shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-organic)] transition-all duration-300 p-6">
           <div className="flex flex-row items-center justify-between pb-3">
             <h3 className="flex items-center gap-2 text-lg font-semibold">
               <CheckSquare className="h-5 w-5 text-primary" />
@@ -168,13 +168,13 @@ const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar }: 
                 {dashboardTasks.map((task) => (
                   <div
                     key={task.id}
-                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/50 transition-colors border-0"
+                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/50 transition-colors"
                   >
                     <input
                       type="checkbox"
                       checked={task.status === 'completat'}
                       onChange={() => handleTaskToggle(task)}
-                      className="rounded border-gray-300 bg-transparent"
+                      className="rounded bg-transparent accent-primary"
                     />
                     <div className="flex-1 min-w-0">
                       <p className={cn(
@@ -197,7 +197,7 @@ const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar }: 
         </div>
 
         {/* Today's Events Card */}
-        <div className="bg-card rounded-2xl shadow-[var(--shadow-card)] border border-border/30 hover:shadow-[var(--shadow-organic)] transition-all duration-300 p-6">
+        <div className="bg-card rounded-2xl shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-organic)] transition-all duration-300 p-6">
           <div className="flex flex-row items-center justify-between pb-3">
             <h3 className="flex items-center gap-2 text-lg font-semibold">
               <Calendar className="h-5 w-5 text-primary" />
@@ -222,7 +222,7 @@ const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar }: 
                 {todayEvents.map((event) => (
                   <div
                     key={event.id}
-                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/50 transition-colors border-0"
+                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/50 transition-colors"
                   >
                     <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
                     <div className="flex-1 min-w-0">
@@ -239,7 +239,7 @@ const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar }: 
         </div>
 
         {/* Urgent Tasks Card */}
-        <div className="bg-card rounded-2xl shadow-[var(--shadow-card)] border border-border/30 hover:shadow-[var(--shadow-organic)] transition-all duration-300 p-6">
+        <div className="bg-card rounded-2xl shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-organic)] transition-all duration-300 p-6">
           <div className="pb-3">
             <h3 className="flex items-center gap-2 text-lg font-semibold">
               <AlertTriangle className="h-5 w-5 text-destructive" />
@@ -256,13 +256,13 @@ const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar }: 
                 {urgentTasks.map((task) => (
                   <div
                     key={task.id}
-                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/50 transition-colors border-0"
+                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/50 transition-colors"
                   >
                     <input
                       type="checkbox"
                       checked={task.status === 'completat'}
                       onChange={() => handleTaskToggle(task)}
-                      className="rounded border-gray-300 bg-transparent"
+                      className="rounded bg-transparent accent-primary"
                     />
                     <div className="flex-1 min-w-0">
                       <p className={cn(
@@ -283,7 +283,7 @@ const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar }: 
         </div>
 
         {/* Mini Weekly Calendar Card */}
-        <div className="bg-card rounded-2xl shadow-[var(--shadow-card)] border border-border/30 hover:shadow-[var(--shadow-organic)] transition-all duration-300 p-6">
+        <div className="bg-card rounded-2xl shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-organic)] transition-all duration-300 p-6">
           <div className="pb-3">
             <h3 className="flex items-center gap-2 text-lg font-semibold">
               <Calendar className="h-5 w-5 text-primary" />
