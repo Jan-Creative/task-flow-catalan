@@ -216,19 +216,9 @@ const TodayPage = React.memo(({ onEditTask, onNavigateToSettings }: TodayPagePro
           {getStatusOptions().slice(0, 3).map((option, index) => (
             <div 
               key={option.value} 
-              className="relative bg-card/80 backdrop-blur-xl rounded-2xl shadow-[var(--shadow-elevated)] border border-border/30 hover:shadow-[var(--shadow-organic)] transition-all duration-300 p-3"
+              className="bg-card rounded-2xl shadow-[var(--shadow-card)] border border-border/30 hover:shadow-[var(--shadow-organic)] transition-all duration-300 p-3"
             >
-              <div 
-                className="absolute inset-0 rounded-2xl pointer-events-none"
-                style={{
-                  background: index === 0 
-                    ? 'linear-gradient(135deg, rgb(251 146 60 / 0.12), rgb(251 113 133 / 0.12))'
-                    : index === 1 
-                    ? 'linear-gradient(135deg, rgb(59 130 246 / 0.12), rgb(37 99 235 / 0.12))'
-                    : 'linear-gradient(135deg, rgb(34 197 94 / 0.12), rgb(16 185 129 / 0.12))'
-                }}
-              />
-              <div className="relative z-10 text-center">
+              <div className="text-center">
                 <div className={`text-2xl font-bold ${index === 0 ? 'text-warning' : index === 1 ? 'text-primary' : 'text-success'}`}>
                   {taskStats[option.value] || 0}
                 </div>
@@ -255,14 +245,8 @@ const TodayPage = React.memo(({ onEditTask, onNavigateToSettings }: TodayPagePro
 
       {/* Content */}
       {filteredTasks.length === 0 ? (
-        <div className="relative bg-card/70 backdrop-blur-xl rounded-2xl shadow-[var(--shadow-elevated)] border border-border/30 p-8">
-          <div 
-            className="absolute inset-0 rounded-2xl pointer-events-none"
-            style={{
-              background: 'linear-gradient(135deg, rgb(100 116 139 / 0.08), rgb(71 85 105 / 0.08))'
-            }}
-          />
-          <div className="relative z-10 text-center">
+        <div className="bg-card rounded-2xl shadow-[var(--shadow-card)] border border-border/30 p-8">
+          <div className="text-center">
             <div className="text-muted-foreground">
               <SlidersHorizontal className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>No hi ha tasques per avui</p>
@@ -313,26 +297,12 @@ const TodayPage = React.memo(({ onEditTask, onNavigateToSettings }: TodayPagePro
                     className="min-w-80 flex-shrink-0"
                   >
                     <div className="sticky top-0 z-10 mb-4">
-                      <div className="relative bg-card/80 backdrop-blur-xl rounded-2xl shadow-[var(--shadow-elevated)] border border-border/30 px-4 py-3">
-                        <div 
-                          className="absolute inset-0 rounded-2xl pointer-events-none"
-                          style={{
-                            background: statusColor && statusColor.startsWith('#') 
-                              ? (() => {
-                                  const hex = statusColor.slice(1);
-                                  const r = parseInt(hex.substr(0, 2), 16);
-                                  const g = parseInt(hex.substr(2, 2), 16);
-                                  const b = parseInt(hex.substr(4, 2), 16);
-                                  return `linear-gradient(135deg, rgba(${r}, ${g}, ${b}, 0.12), rgba(${r}, ${g}, ${b}, 0.08))`;
-                                })()
-                              : 'linear-gradient(135deg, rgb(71 85 105 / 0.12), rgb(51 65 85 / 0.08))'
-                          }}
-                        />
-                        <div className="relative z-10 flex items-center justify-between">
+                      <div className="bg-card rounded-2xl shadow-[var(--shadow-card)] border border-border/30 px-4 py-3">
+                        <div className="flex items-center justify-between">
                           <h3 className="font-medium text-foreground">
                             {getStatusLabel(status)}
                           </h3>
-                          <span className="text-sm text-muted-foreground bg-white/10 px-2 py-1 rounded-full border border-white/20">
+                          <span className="text-sm text-muted-foreground bg-accent px-2 py-1 rounded-full border border-border">
                             {statusTasks.length}
                           </span>
                         </div>
