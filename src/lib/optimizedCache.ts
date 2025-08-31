@@ -28,35 +28,82 @@ export const createOptimizedQueryClient = () => {
   return new QueryClient({
     defaultOptions: {
       queries: {
-        // Smart cache timing based on data type
-        staleTime: 1000 * 60 * 5, // 5 minutes (default)
-        gcTime: 1000 * 60 * 15, // 15 minutes 
+        // Enhanced cache timing based on data type and usage patterns
+        staleTime: 1000 * 60 * 3, // 3 minutes (reduced for better real-time experience)
+        gcTime: 1000 * 60 * 20, // 20 minutes (increased for better memory management)
         
-        // Optimized retry strategy
+        // Advanced retry strategy with exponential backoff
         retry: (failureCount, error: any) => {
-          // Don't retry auth errors
-          if (error?.status === 401 || error?.status === 403) return false;
-          // Retry network errors up to 3 times
+          // Don't retry client errors (4xx)
+          if (error?.status >= 400 && error?.status < 500) return false;
+          // Don't retry fatal errors
+          if (error?.code === 'PGRST301' || error?.code === 'PGRST204') return false;
+          // Retry network and server errors up to 3 times
           return failureCount < 3;
         },
         
-        retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
+        retryDelay: (attemptIndex, error: any) => {
+          // Shorter delays for likely temporary issues
+          const baseDelay = (error && typeof error === 'object' && error.status >= 500) ? 500 : 1000;
+          return Math.min(baseDelay * 2 ** attemptIndex, 20000);
+        },
         
-        // Smart refetching
-        refetchOnWindowFocus: false,
-        refetchOnMount: "always", // Always fresh data on mount
-        refetchOnReconnect: true, // Refetch after network reconnection
+        // Intelligent refetching based on user activity
+        refetchOnWindowFocus: (query) => {
+          // Only refetch recent queries that might be stale
+          const lastUpdated = query.state.dataUpdatedAt;
+          const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
+          return lastUpdated < fiveMinutesAgo;
+        },
         
-        // Background updates for stale data
-        refetchInterval: 1000 * 60 * 10, // 10 minutes for background refresh
+        refetchOnMount: (query) => {
+          // Smarter mount refetching
+          const lastUpdated = query.state.dataUpdatedAt;
+          const twoMinutesAgo = Date.now() - 2 * 60 * 1000;
+          return lastUpdated < twoMinutesAgo || query.state.data === undefined;
+        },
+        
+        refetchOnReconnect: 'always', // Always refetch after network reconnection
+        
+        // Reduced background refresh for better performance
+        refetchInterval: 1000 * 60 * 15, // 15 minutes for background refresh
         refetchIntervalInBackground: false,
+        
+        // Network mode optimization
+        networkMode: 'online', // Only fetch when online
       },
       mutations: {
-        // Optimistic updates with rollback
-        retry: 1,
-        retryDelay: 1000,
+        // Enhanced mutation strategy
+        retry: (failureCount, error: any) => {
+          // Retry network errors only
+          if (error?.status >= 500 || !error?.status) return failureCount < 2;
+          return false;
+        },
+        retryDelay: 2000, // Fixed 2 second delay for mutations
+        
+        // Network mode for mutations
+        networkMode: 'online',
       }
-    }
+    },
+    
+    // Global query client configuration
+    queryCache: new (QueryClient.prototype.constructor as any).QueryCache({
+      onError: (error, query) => {
+        console.warn(`Query failed [${query.queryKey.join(', ')}]:`, error);
+      },
+      onSuccess: (data, query) => {
+        // Optional: Log successful queries in development
+        if (process.env.NODE_ENV === 'development') {
+          console.debug(`Query success [${query.queryKey.join(', ')}]`);
+        }
+      }
+    }),
+    
+    mutationCache: new (QueryClient.prototype.constructor as any).MutationCache({
+      onError: (error, _variables, _context, mutation) => {
+        console.error('Mutation failed:', error, mutation);
+      }
+    })
   });
 };
 
@@ -99,16 +146,57 @@ export const cacheUtils = {
     queryClient.removeQueries({ queryKey: CACHE_KEYS.LEGACY.DADES(userId) });
   },
   
-  // Optimize cache size (remove old unused data)
+  // Enhanced cache optimization with memory monitoring
   optimizeCacheSize: (queryClient: QueryClient) => {
-    // Remove queries that haven't been accessed in 30 minutes
-    const cutoffTime = Date.now() - (1000 * 60 * 30);
+    const queries = queryClient.getQueryCache().getAll();
+    const cutoffTime = Date.now() - (1000 * 60 * 30); // 30 minutes
     
-    queryClient.getQueryCache().getAll().forEach(query => {
-      if (query.state.dataUpdatedAt < cutoffTime && !query.getObserversCount()) {
+    let removedCount = 0;
+    let totalMemoryFreed = 0;
+    
+    queries.forEach(query => {
+      const shouldRemove = (
+        query.state.dataUpdatedAt < cutoffTime && 
+        !query.getObserversCount() &&
+        query.state.status !== 'pending'
+      );
+      
+      if (shouldRemove) {
+        // Estimate memory usage before removal
+        const estimatedSize = JSON.stringify(query.state.data || {}).length;
+        totalMemoryFreed += estimatedSize;
+        
         queryClient.removeQueries({ queryKey: query.queryKey });
+        removedCount++;
       }
     });
+    
+    if (removedCount > 0) {
+      console.log(`🧹 Cache optimized: ${removedCount} queries removed, ~${(totalMemoryFreed / 1024).toFixed(1)}KB freed`);
+    }
+    
+    return { removedCount, memoryFreed: totalMemoryFreed };
+  },
+  
+  // Monitor cache health
+  getCacheStats: (queryClient: QueryClient) => {
+    const queries = queryClient.getQueryCache().getAll();
+    const mutations = queryClient.getMutationCache().getAll();
+    
+    const stats = {
+      totalQueries: queries.length,
+      activeQueries: queries.filter(q => q.getObserversCount() > 0).length,
+      staleQueries: queries.filter(q => q.isStale()).length,
+      pendingQueries: queries.filter(q => q.state.status === 'pending').length,
+      errorQueries: queries.filter(q => q.state.status === 'error').length,
+      totalMutations: mutations.length,
+      pendingMutations: mutations.filter(m => m.state.status === 'pending').length,
+      estimatedMemoryUsage: queries.reduce((acc, query) => {
+        return acc + JSON.stringify(query.state.data || {}).length;
+      }, 0)
+    };
+    
+    return stats;
   }
 };
 
