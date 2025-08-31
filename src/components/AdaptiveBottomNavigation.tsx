@@ -1,4 +1,4 @@
-import { Calendar, Folder, Settings, Bell, ChevronRight } from "lucide-react";
+import { Calendar, Folder, Settings, Bell, ChevronRight, Home, CheckSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
@@ -20,7 +20,8 @@ const AdaptiveBottomNavigation = ({ activeTab, onTabChange, onCreateTask }: Adap
   const { mode, isArcMode, toggleMode } = useCircularMenuMode("arc"); // Always start with arc mode
 
   const tabs = [
-    { id: "avui", label: "Avui", icon: Calendar },
+    { id: "inici", label: "Inici", icon: Home },
+    { id: "avui", label: "Avui", icon: CheckSquare },
     { id: "carpetes", label: "Carpetes", icon: Folder },
     { id: "calendar", label: "Calendari", icon: Calendar },
     { id: "notificacions", label: "Notificacions", icon: Bell },

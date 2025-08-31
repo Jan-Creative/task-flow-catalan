@@ -5,11 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { PriorityBadge } from "@/components/ui/priority-badge";
+import { PropertyBadge } from "@/components/ui/property-badge";
 import { useAuth } from "@/hooks/useAuth";
 import { useDadesApp } from "@/hooks/useDadesApp";
 import { useEvents } from "@/hooks/useEvents";
 import { useOptimizedPropertyLabels } from "@/hooks/useOptimizedPropertyLabels";
 import MiniCalendarCard from "@/components/calendar/MiniCalendarCard";
+import { cn } from "@/lib/utils";
 import { 
   CheckSquare, 
   Calendar, 
@@ -89,8 +92,9 @@ const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar }: 
   }, [events]);
 
   // Handle task status toggle
-  const handleTaskToggle = async (taskId: string, completed: boolean) => {
-    await updateTaskStatus(taskId, completed ? 'completat' : 'pendent');
+  const handleTaskToggle = async (task: any) => {
+    const newStatus = task.status === 'completat' ? 'pendent' : 'completat';
+    await updateTaskStatus(task.id, newStatus);
   };
 
   return (
@@ -112,190 +116,184 @@ const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar }: 
         </div>
 
         {/* Executive Summary */}
-        <Card className="bg-gradient-to-br from-orange-400/20 to-pink-400/20 backdrop-blur-md border-border/20 shadow-xl">
-          <CardContent className="p-6">
-            <div className="grid grid-cols-3 gap-6 text-center">
-              <div className="p-4 rounded-xl bg-background/20 hover:bg-background/30 transition-all duration-200">
-                <div className="text-3xl font-bold text-warning mb-1">
-                  {dashboardTasks.length}
-                </div>
-                <div className="text-sm text-muted-foreground">Tasques pendents</div>
+        <div className="bg-gradient-to-br from-orange-400/8 to-pink-400/8 backdrop-blur-lg rounded-2xl shadow-xl border-0 p-6">
+          <div className="grid grid-cols-3 gap-6 text-center">
+            <div className="p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-all duration-200 border-0">
+              <div className="text-3xl font-bold text-warning mb-1">
+                {dashboardTasks.length}
               </div>
-              <div className="p-4 rounded-xl bg-background/20 hover:bg-background/30 transition-all duration-200">
-                <div className="text-3xl font-bold text-primary mb-1">
-                  {todayEvents.length}
-                </div>
-                <div className="text-sm text-muted-foreground">Esdeveniments avui</div>
-              </div>
-              <div className="p-4 rounded-xl bg-background/20 hover:bg-background/30 transition-all duration-200">
-                <div className="text-3xl font-bold text-destructive mb-1">
-                  {urgentTasks.length}
-                </div>
-                <div className="text-sm text-muted-foreground">Tasques urgents</div>
-              </div>
+              <div className="text-sm text-muted-foreground">Tasques pendents</div>
             </div>
-          </CardContent>
-        </Card>
+            <div className="p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-all duration-200 border-0">
+              <div className="text-3xl font-bold text-primary mb-1">
+                {todayEvents.length}
+              </div>
+              <div className="text-sm text-muted-foreground">Esdeveniments avui</div>
+            </div>
+            <div className="p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-all duration-200 border-0">
+              <div className="text-3xl font-bold text-destructive mb-1">
+                {urgentTasks.length}
+              </div>
+              <div className="text-sm text-muted-foreground">Tasques urgents</div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Dashboard Cards Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Today's Tasks Card */}
-        <Card className="bg-gradient-to-br from-blue-400/10 to-cyan-400/10 backdrop-blur-md border-border/20 shadow-xl">
-          <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
+        <div className="bg-gradient-to-br from-blue-400/8 to-cyan-400/8 backdrop-blur-lg rounded-2xl shadow-xl border-0 p-6">
+          <div className="flex flex-row items-center justify-between pb-3">
+            <h3 className="flex items-center gap-2 text-lg font-semibold">
               <CheckSquare className="h-5 w-5 text-primary" />
               Tasques d'avui
-            </CardTitle>
+            </h3>
             <Button
               variant="ghost"
               size="sm"
-              onClick={onNavigateToTasks}
-              className="text-muted-foreground hover:text-foreground"
+              onClick={() => onNavigateToTasks()}
+              className="text-xs text-muted-foreground hover:text-foreground border-0 bg-transparent"
             >
-              <ChevronRight className="h-4 w-4" />
+              Veure totes
             </Button>
-          </CardHeader>
-          <CardContent className="space-y-3">
+          </div>
+          <div className="pt-0">
             {dashboardTasks.length === 0 ? (
-              <p className="text-muted-foreground text-sm">No hi ha tasques per avui</p>
+              <div className="text-center py-8">
+                <p className="text-muted-foreground text-sm">No tens tasques pendents per avui</p>
+              </div>
             ) : (
-              dashboardTasks.map((task) => (
-                <div
-                  key={task.id}
-                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent/50 transition-colors cursor-pointer group"
-                  onClick={() => onEditTask(task)}
-                >
-                  <Checkbox
-                    checked={task.status === 'completat'}
-                    onCheckedChange={(checked) => handleTaskToggle(task.id, !!checked)}
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">
-                      {task.title}
-                    </p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge
-                        variant="secondary"
-                        className="text-xs"
-                        style={{ backgroundColor: getPriorityColor(task.priority) + '20' }}
-                      >
-                        {task.priority}
-                      </Badge>
-                      <span className="text-xs text-muted-foreground">
-                        {getStatusLabel(task.status)}
-                      </span>
+              <div className="space-y-3">
+                {dashboardTasks.map((task) => (
+                  <div
+                    key={task.id}
+                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition-colors border-0"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={task.status === 'completat'}
+                      onChange={() => handleTaskToggle(task)}
+                      className="rounded border-gray-300 bg-transparent"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className={cn(
+                        "text-sm truncate",
+                        task.status === 'completat' ? "line-through text-muted-foreground" : "text-foreground"
+                      )}>
+                        {task.title}
+                      </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        {task.priority && (
+                          <PriorityBadge priority={task.priority} />
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))
+                ))}
+              </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Today's Events Card */}
-        <Card className="bg-gradient-to-br from-purple-400/10 to-blue-400/10 backdrop-blur-md border-border/20 shadow-xl">
-          <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
+        <div className="bg-gradient-to-br from-purple-400/8 to-blue-400/8 backdrop-blur-lg rounded-2xl shadow-xl border-0 p-6">
+          <div className="flex flex-row items-center justify-between pb-3">
+            <h3 className="flex items-center gap-2 text-lg font-semibold">
               <Calendar className="h-5 w-5 text-primary" />
               Esdeveniments d'avui
-            </CardTitle>
+            </h3>
             <Button
               variant="ghost"
               size="sm"
-              onClick={onNavigateToCalendar}
-              className="text-muted-foreground hover:text-foreground"
+              onClick={() => onNavigateToCalendar()}
+              className="text-xs text-muted-foreground hover:text-foreground border-0 bg-transparent"
             >
-              <ChevronRight className="h-4 w-4" />
+              Veure calendari
             </Button>
-          </CardHeader>
-          <CardContent className="space-y-3">
+          </div>
+          <div className="pt-0">
             {todayEvents.length === 0 ? (
-              <p className="text-muted-foreground text-sm">No hi ha esdeveniments avui</p>
+              <div className="text-center py-8">
+                <p className="text-muted-foreground text-sm">No tens esdeveniments programats per avui</p>
+              </div>
             ) : (
-              todayEvents.map((event) => (
-                <div
-                  key={event.id}
-                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent/50 transition-colors"
-                >
-                  <div className="p-2 bg-primary/20 rounded-lg">
-                    <Clock className="h-4 w-4 text-primary" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">
-                      {event.title}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {format(new Date(event.startDateTime), "HH:mm")} - {format(new Date(event.endDateTime), "HH:mm")}
-                    </p>
-                  </div>
-                </div>
-              ))
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Urgent Tasks Card */}
-        <Card className="bg-gradient-to-br from-red-400/10 to-orange-400/10 backdrop-blur-md border-border/20 shadow-xl">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <AlertTriangle className="h-5 w-5 text-destructive" />
-              Tasques urgents
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {urgentTasks.length === 0 ? (
-              <p className="text-muted-foreground text-sm">No hi ha tasques urgents</p>
-            ) : (
-              urgentTasks.map((task) => (
-                <div
-                  key={task.id}
-                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent/50 transition-colors cursor-pointer group"
-                  onClick={() => onEditTask(task)}
-                >
-                  <Checkbox
-                    checked={task.status === 'completat'}
-                    onCheckedChange={(checked) => handleTaskToggle(task.id, !!checked)}
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">
-                      {task.title}
-                    </p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge
-                        variant="destructive"
-                        className="text-xs"
-                      >
-                        {task.priority}
-                      </Badge>
-                      <span className="text-xs text-muted-foreground">
-                        {getStatusLabel(task.status)}
-                      </span>
+              <div className="space-y-3">
+                {todayEvents.map((event) => (
+                  <div
+                    key={event.id}
+                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition-colors border-0"
+                  >
+                    <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-foreground truncate">{event.title}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {format(new Date(event.startDateTime), 'HH:mm', { locale: ca })} - {format(new Date(event.endDateTime), 'HH:mm', { locale: ca })}
+                      </p>
                     </div>
                   </div>
-                </div>
-              ))
+                ))}
+              </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
+
+        {/* Urgent Tasks Card */}
+        <div className="bg-gradient-to-br from-red-400/8 to-orange-400/8 backdrop-blur-lg rounded-2xl shadow-xl border-0 p-6">
+          <div className="pb-3">
+            <h3 className="flex items-center gap-2 text-lg font-semibold">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Tasques urgents
+            </h3>
+          </div>
+          <div className="pt-0">
+            {urgentTasks.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground text-sm">No tens tasques urgents</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {urgentTasks.map((task) => (
+                  <div
+                    key={task.id}
+                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition-colors border-0"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={task.status === 'completat'}
+                      onChange={() => handleTaskToggle(task)}
+                      className="rounded border-gray-300 bg-transparent"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className={cn(
+                        "text-sm truncate",
+                        task.status === 'completat' ? "line-through text-muted-foreground" : "text-foreground"
+                      )}>
+                        {task.title}
+                      </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <PriorityBadge priority={task.priority} />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
 
         {/* Mini Weekly Calendar Card */}
-        <Card className="bg-gradient-to-br from-green-400/10 to-emerald-400/10 backdrop-blur-md border-border/20 shadow-xl">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
+        <div className="bg-gradient-to-br from-green-400/8 to-emerald-400/8 backdrop-blur-lg rounded-2xl shadow-xl border-0 p-6">
+          <div className="pb-3">
+            <h3 className="flex items-center gap-2 text-lg font-semibold">
               <Calendar className="h-5 w-5 text-primary" />
               Calendari setmanal
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <MiniCalendarCard
-              currentDate={selectedDate}
-              onDateSelect={setSelectedDate}
-            />
-          </CardContent>
-        </Card>
+            </h3>
+          </div>
+          <div className="pt-0">
+            <MiniCalendarCard currentDate={selectedDate} onDateSelect={setSelectedDate} />
+          </div>
+        </div>
       </div>
     </div>
   );
