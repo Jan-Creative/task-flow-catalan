@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { TasksForDayCard } from '@/components/prepare-tomorrow/TasksForDayCard';
+import { TimeBlocksCard } from '@/components/prepare-tomorrow/TimeBlocksCard';
 import { ArrowLeft, Calendar, Clock, Target, FolderOpen, NotebookPen, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format, addDays } from 'date-fns';
@@ -13,7 +15,16 @@ import { ca } from 'date-fns/locale';
 
 export default function PrepareTomorrowPage() {
   const navigate = useNavigate();
-  const { preparation, loading, updateNotes, markCompleted, tomorrow } = usePrepareTomorrow();
+  const { 
+    preparation, 
+    loading, 
+    updateNotes, 
+    markCompleted, 
+    addTimeBlock, 
+    updateTimeBlock, 
+    removeTimeBlock, 
+    tomorrow 
+  } = usePrepareTomorrow();
   const { tasks, folders } = useDadesApp();
   
   const [notes, setNotes] = useState(preparation?.notes || '');
@@ -113,124 +124,28 @@ export default function PrepareTomorrowPage() {
           </CardContent>
         </Card>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Tasks Planning */}
-          <Card className="lg:col-span-2">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="h-5 w-5 text-primary" />
-                Tasques Suggerides per Demà
-              </CardTitle>
-              <CardDescription>
-                Revisa i selecciona les tasques que vols abordar demà
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {overdueTasks.length > 0 && (
-                <div>
-                  <h4 className="font-medium text-destructive mb-2">Tasques Vençudes</h4>
-                  <div className="space-y-2">
-                    {overdueTasks.slice(0, 3).map(task => (
-                      <div key={task.id} className="flex items-center gap-3 p-3 rounded-lg bg-destructive/5">
-                        <input
-                          type="checkbox"
-                          checked={selectedTasks.includes(task.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedTasks([...selectedTasks, task.id]);
-                            } else {
-                              setSelectedTasks(selectedTasks.filter(id => id !== task.id));
-                            }
-                          }}
-                          className="rounded"
-                        />
-                        <div className="flex-1">
-                          <p className="font-medium">{task.title}</p>
-                          <p className="text-sm text-muted-foreground">
-                            Vençuda: {format(new Date(task.due_date!), "d 'de' MMMM", { locale: ca })}
-                          </p>
-                        </div>
-                        <Badge variant="destructive" className="text-xs">Vençuda</Badge>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Tasks for Day Card - 1 column */}
+          <TasksForDayCard 
+            tomorrow={tomorrow}
+            onTasksUpdate={(tasks) => {
+              // Optional callback for when tasks are updated
+              console.log('Tasks updated:', tasks);
+            }}
+          />
+          
+          {/* Time Blocks Card - 2 columns */}
+          <TimeBlocksCard 
+            className="lg:col-span-2"
+            timeBlocks={preparation?.time_blocks || []}
+            onAddTimeBlock={addTimeBlock}
+            onUpdateTimeBlock={updateTimeBlock}
+            onRemoveTimeBlock={removeTimeBlock}
+          />
 
-              {todayTasks.length > 0 && (
-                <div>
-                  <h4 className="font-medium text-orange-600 mb-2">Tasques d'Avui Pendents</h4>
-                  <div className="space-y-2">
-                    {todayTasks.slice(0, 3).map(task => (
-                      <div key={task.id} className="flex items-center gap-3 p-3 rounded-lg bg-orange-50 dark:bg-orange-950/20">
-                        <input
-                          type="checkbox"
-                          checked={selectedTasks.includes(task.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedTasks([...selectedTasks, task.id]);
-                            } else {
-                              setSelectedTasks(selectedTasks.filter(id => id !== task.id));
-                            }
-                          }}
-                          className="rounded"
-                        />
-                        <div className="flex-1">
-                          <p className="font-medium">{task.title}</p>
-                          <p className="text-sm text-muted-foreground">Per completar avui</p>
-                        </div>
-                        <Badge variant="secondary" className="text-xs bg-orange-100 text-orange-700">Avui</Badge>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {pendingTasks.length > 0 && (
-                <div>
-                  <h4 className="font-medium mb-2">Tasques Pendents</h4>
-                  <div className="space-y-2">
-                    {pendingTasks.slice(0, 4).map(task => (
-                      <div key={task.id} className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                        <input
-                          type="checkbox"
-                          checked={selectedTasks.includes(task.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedTasks([...selectedTasks, task.id]);
-                            } else {
-                              setSelectedTasks(selectedTasks.filter(id => id !== task.id));
-                            }
-                          }}
-                          className="rounded"
-                        />
-                        <div className="flex-1">
-                          <p className="font-medium">{task.title}</p>
-                          {task.folder_id && (
-                            <p className="text-sm text-muted-foreground">
-                              {folders.find(f => f.id === task.folder_id)?.name}
-                            </p>
-                          )}
-                        </div>
-                        <Badge variant="outline" className="text-xs">Pendent</Badge>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {selectedTasks.length > 0 && (
-                <div className="mt-4 p-3 bg-primary/5 rounded-lg">
-                  <p className="text-sm font-medium text-primary">
-                    {selectedTasks.length} tasques seleccionades per demà
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
 
           {/* Quick Organization */}
-          <Card>
+          <Card className="lg:col-span-1">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FolderOpen className="h-5 w-5 text-primary" />
@@ -267,7 +182,7 @@ export default function PrepareTomorrowPage() {
           </Card>
 
           {/* Notes */}
-          <Card>
+          <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <NotebookPen className="h-5 w-5 text-primary" />

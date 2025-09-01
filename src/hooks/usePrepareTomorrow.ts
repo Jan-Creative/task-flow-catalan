@@ -98,6 +98,30 @@ export const usePrepareTomorrow = () => {
     await savePreparation({ is_completed: true });
   }, [savePreparation]);
 
+  // Time blocks management
+  const addTimeBlock = useCallback(async (block: any) => {
+    const currentBlocks = preparation?.time_blocks || [];
+    const newBlock = {
+      id: crypto.randomUUID(),
+      ...block
+    };
+    await savePreparation({ time_blocks: [...currentBlocks, newBlock] });
+  }, [preparation, savePreparation]);
+
+  const updateTimeBlock = useCallback(async (blockId: string, updates: any) => {
+    const currentBlocks = preparation?.time_blocks || [];
+    const updatedBlocks = currentBlocks.map((block: any) => 
+      block.id === blockId ? { ...block, ...updates } : block
+    );
+    await savePreparation({ time_blocks: updatedBlocks });
+  }, [preparation, savePreparation]);
+
+  const removeTimeBlock = useCallback(async (blockId: string) => {
+    const currentBlocks = preparation?.time_blocks || [];
+    const filteredBlocks = currentBlocks.filter((block: any) => block.id !== blockId);
+    await savePreparation({ time_blocks: filteredBlocks });
+  }, [preparation, savePreparation]);
+
   return {
     preparation,
     loading: loading || fetchLoading,
@@ -108,6 +132,9 @@ export const usePrepareTomorrow = () => {
     updateTimeBlocks,
     updateNotes,
     markCompleted,
+    addTimeBlock,
+    updateTimeBlock,
+    removeTimeBlock,
     tomorrow
   };
 };
