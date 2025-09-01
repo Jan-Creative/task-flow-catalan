@@ -44,6 +44,45 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_preparations: {
+        Row: {
+          created_at: string
+          id: string
+          is_completed: boolean
+          notes: string | null
+          planned_tasks: Json | null
+          preparation_date: string
+          priorities: Json | null
+          time_blocks: Json | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_completed?: boolean
+          notes?: string | null
+          planned_tasks?: Json | null
+          preparation_date: string
+          priorities?: Json | null
+          time_blocks?: Json | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_completed?: boolean
+          notes?: string | null
+          planned_tasks?: Json | null
+          preparation_date?: string
+          priorities?: Json | null
+          time_blocks?: Json | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       events: {
         Row: {
           category: string | null

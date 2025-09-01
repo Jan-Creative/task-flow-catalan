@@ -184,6 +184,15 @@ const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar }: 
             </div>
           </div>
         </div>
+
+        {/* Prepare Tomorrow Button */}
+        <Button 
+          onClick={() => window.location.href = '/prepare-tomorrow'}
+          className="w-full mt-4 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground py-3 h-auto"
+        >
+          <Moon className="h-5 w-5 mr-2" />
+          🌙 Preparar el dia de demà
+        </Button>
       </div>
 
       {/* Dashboard Cards Grid */}
