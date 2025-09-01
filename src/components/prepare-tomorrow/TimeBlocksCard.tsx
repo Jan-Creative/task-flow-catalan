@@ -42,8 +42,8 @@ export const TimeBlocksCard = ({
     const duration = ((endHour - startHour) * 60 + (endMinutes - startMinutes)) / 60;
     
     return {
-      top: `${startPosition * 4}rem`, // 4rem per hour
-      height: `${Math.max(duration * 4, 1)}rem`, // Minimum height
+      top: `${startPosition * 3.5}rem`, // 3.5rem per hour (reduced from 4rem)
+      height: `${Math.max(duration * 3.5, 1)}rem`, // Minimum height
     };
   };
 
@@ -93,14 +93,14 @@ export const TimeBlocksCard = ({
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Timeline view */}
-          <div className="relative bg-muted/10 rounded-lg border border-border/50 overflow-hidden">
+          <div className="relative bg-muted/5 rounded-lg border border-border/30 overflow-hidden">
             <div className="flex">
               {/* Time column */}
-              <div className="w-16 flex-shrink-0 bg-card/80">
+              <div className="w-14 flex-shrink-0 bg-card/60">
                 {hours.map((hour) => (
                   <div
                     key={hour}
-                    className="h-12 px-2 py-1 text-xs text-muted-foreground border-t border-border/30 flex items-start first:border-t-0"
+                    className="h-10 px-2 py-1 text-xs text-muted-foreground/60 border-t border-muted/20 flex items-start first:border-t-0"
                   >
                     {hour.toString().padStart(2, '0')}:00
                   </div>
@@ -108,16 +108,16 @@ export const TimeBlocksCard = ({
               </div>
 
               {/* Blocks column */}
-              <div className="flex-1 relative min-h-[720px]"> {/* 15 hours * 48px per hour */}
+              <div className="flex-1 relative min-h-[525px]"> {/* 15 hours * 35px per hour */}
                 {/* Hour separators */}
                 {hours.map((hour) => (
                   <div
                     key={hour}
-                    className="absolute left-0 right-0 h-12 border-t border-border/20 first:border-t-0"
-                    style={{ top: `${(hour - 8) * 3}rem` }}
+                    className="absolute left-0 right-0 h-10 border-t border-muted/15 first:border-t-0"
+                    style={{ top: `${(hour - 8) * 2.5}rem` }}
                   >
                     {/* Half-hour line */}
-                    <div className="absolute top-6 left-0 right-0 h-px bg-border/10" />
+                    <div className="absolute top-5 left-0 right-0 h-px bg-muted/8" />
                   </div>
                 ))}
 
@@ -128,10 +128,10 @@ export const TimeBlocksCard = ({
                   return (
                     <div
                       key={block.id}
-                      className="absolute left-1 right-1 rounded-md cursor-pointer group hover:shadow-md transition-all duration-200 border border-white/20"
+                      className="absolute left-2 right-2 rounded-lg cursor-pointer group hover:shadow-lg transition-all duration-300 border-2"
                       style={{
                         ...position,
-                        backgroundColor: block.color + '40', // 40% opacity
+                        backgroundColor: block.color + '30', // 30% opacity
                         borderColor: block.color,
                       }}
                       onClick={() => handleBlockClick(block)}

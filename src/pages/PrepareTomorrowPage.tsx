@@ -124,19 +124,21 @@ export default function PrepareTomorrowPage() {
           </CardContent>
         </Card>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Tasks for Day Card - 1 column */}
-          <TasksForDayCard 
-            tomorrow={tomorrow}
-            onTasksUpdate={(tasks) => {
-              // Optional callback for when tasks are updated
-              console.log('Tasks updated:', tasks);
-            }}
-          />
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+          {/* Tasks for Day Card - 2 columns */}
+          <div className="lg:col-span-2">
+            <TasksForDayCard 
+              tomorrow={tomorrow}
+              onTasksUpdate={(tasks) => {
+                // Optional callback for when tasks are updated
+                console.log('Tasks updated:', tasks);
+              }}
+            />
+          </div>
           
-          {/* Time Blocks Card - 2 columns */}
+          {/* Time Blocks Card - 3 columns */}
           <TimeBlocksCard 
-            className="lg:col-span-2"
+            className="lg:col-span-3"
             timeBlocks={preparation?.time_blocks || []}
             onAddTimeBlock={addTimeBlock}
             onUpdateTimeBlock={updateTimeBlock}
@@ -145,7 +147,7 @@ export default function PrepareTomorrowPage() {
 
 
           {/* Quick Organization */}
-          <Card className="lg:col-span-1">
+          <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FolderOpen className="h-5 w-5 text-primary" />
@@ -182,7 +184,7 @@ export default function PrepareTomorrowPage() {
           </Card>
 
           {/* Notes */}
-          <Card className="lg:col-span-2">
+          <Card className="lg:col-span-3">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <NotebookPen className="h-5 w-5 text-primary" />
