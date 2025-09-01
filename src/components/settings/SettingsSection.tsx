@@ -18,7 +18,7 @@ export const SettingsSection = ({
   className = "" 
 }: SettingsSectionProps) => {
   return (
-    <Card className={`bg-card/60 backdrop-blur-glass border-border/50 shadow-glass ${className}`}>
+    <Card className={`bg-card shadow-[var(--shadow-card)] border-border/30 ${className}`}>
       <CardHeader>
         <CardTitle className="flex items-center gap-3">
           {Icon && (
