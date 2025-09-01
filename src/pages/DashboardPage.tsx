@@ -1,10 +1,9 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { format, isToday } from "date-fns";
 import { ca } from "date-fns/locale";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { PriorityBadge } from "@/components/ui/priority-badge";
 import { PropertyBadge } from "@/components/ui/property-badge";
 import { useAuth } from "@/hooks/useAuth";
@@ -12,6 +11,7 @@ import { useDadesApp } from "@/hooks/useDadesApp";
 import { useEvents } from "@/hooks/useEvents";
 import { useOptimizedPropertyLabels } from "@/hooks/useOptimizedPropertyLabels";
 import MiniCalendarCard from "@/components/calendar/MiniCalendarCard";
+import TaskChecklistItem from "@/components/TaskChecklistItem";
 import { cn } from "@/lib/utils";
 import { 
   CheckSquare, 
@@ -32,10 +32,14 @@ interface DashboardPageProps {
 
 const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar }: DashboardPageProps) => {
   const { user } = useAuth();
-  const { todayTasks, updateTaskStatus, taskStats } = useDadesApp();
+  const { todayTasks, updateTaskStatus, deleteTask, taskStats } = useDadesApp();
   const { events } = useEvents();
   const { getStatusLabel, getPriorityColor } = useOptimizedPropertyLabels();
   const [selectedDate, setSelectedDate] = useState(new Date());
+  
+  // State for 3-second delay system
+  const [completingTasks, setCompletingTasks] = useState<Set<string>>(new Set());
+  const timeoutsRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
 
   // Get user display name
   const userName = useMemo(() => {
@@ -91,11 +95,53 @@ const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar }: 
       .slice(0, 4);
   }, [events]);
 
-  // Handle task status toggle
-  const handleTaskToggle = async (task: any) => {
-    const newStatus = task.status === 'completat' ? 'pendent' : 'completat';
-    await updateTaskStatus(task.id, newStatus);
-  };
+  // Unified 3-second delay status change handler
+  const handleStatusChange = useCallback((taskId: string, newStatus: any) => {
+    if (newStatus === 'completat') {
+      // Clear any existing timeout for this task
+      const existingTimeout = timeoutsRef.current.get(taskId);
+      if (existingTimeout) {
+        clearTimeout(existingTimeout);
+      }
+
+      // Mark task as completing (optimistic UI)
+      setCompletingTasks(prev => new Set(prev).add(taskId));
+
+      // Set timeout for actual status change
+      const timeoutId = setTimeout(async () => {
+        try {
+          await updateTaskStatus(taskId, newStatus);
+        } catch (error) {
+          console.error('Error updating task status:', error);
+        } finally {
+          // Remove from completing state
+          setCompletingTasks(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(taskId);
+            return newSet;
+          });
+          timeoutsRef.current.delete(taskId);
+        }
+      }, 3000);
+
+      timeoutsRef.current.set(taskId, timeoutId);
+    } else {
+      // For non-completion status changes, update immediately
+      updateTaskStatus(taskId, newStatus);
+    }
+  }, [updateTaskStatus]);
+
+  const handleDelete = useCallback((taskId: string) => {
+    deleteTask(taskId);
+  }, [deleteTask]);
+
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      timeoutsRef.current.forEach(timeout => clearTimeout(timeout));
+      timeoutsRef.current.clear();
+    };
+  }, []);
 
   return (
     <div className="w-full max-w-full p-4 pb-24 space-y-6">
@@ -164,32 +210,17 @@ const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar }: 
                 <p className="text-muted-foreground text-sm">No tens tasques pendents per avui</p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {dashboardTasks.map((task) => (
-                  <div
+                  <TaskChecklistItem
                     key={task.id}
-                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/50 transition-colors"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={task.status === 'completat'}
-                      onChange={() => handleTaskToggle(task)}
-                      className="rounded bg-transparent accent-primary"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className={cn(
-                        "text-sm truncate",
-                        task.status === 'completat' ? "line-through text-muted-foreground" : "text-foreground"
-                      )}>
-                        {task.title}
-                      </p>
-                      <div className="flex items-center gap-2 mt-1">
-                        {task.priority && (
-                          <PriorityBadge priority={task.priority} />
-                        )}
-                      </div>
-                    </div>
-                  </div>
+                    task={task}
+                    onStatusChange={handleStatusChange}
+                    onEdit={onEditTask}
+                    onDelete={handleDelete}
+                    viewMode="list"
+                    completingTasks={completingTasks}
+                  />
                 ))}
               </div>
             )}
@@ -252,30 +283,17 @@ const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar }: 
                 <p className="text-muted-foreground text-sm">No tens tasques urgents</p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {urgentTasks.map((task) => (
-                  <div
+                  <TaskChecklistItem
                     key={task.id}
-                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/50 transition-colors"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={task.status === 'completat'}
-                      onChange={() => handleTaskToggle(task)}
-                      className="rounded bg-transparent accent-primary"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className={cn(
-                        "text-sm truncate",
-                        task.status === 'completat' ? "line-through text-muted-foreground" : "text-foreground"
-                      )}>
-                        {task.title}
-                      </p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <PriorityBadge priority={task.priority} />
-                      </div>
-                    </div>
-                  </div>
+                    task={task}
+                    onStatusChange={handleStatusChange}
+                    onEdit={onEditTask}
+                    onDelete={handleDelete}
+                    viewMode="list"
+                    completingTasks={completingTasks}
+                  />
                 ))}
               </div>
             )}
