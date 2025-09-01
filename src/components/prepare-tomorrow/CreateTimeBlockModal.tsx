@@ -103,12 +103,13 @@ export const CreateTimeBlockModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md" aria-describedby="timeblock-desc">
         <DialogHeader>
           <DialogTitle>
             {isEditing ? 'Editar Bloc de Temps' : 'Nou Bloc de Temps'}
           </DialogTitle>
         </DialogHeader>
+        <p id="timeblock-desc" className="sr-only">Formulari per crear o editar un bloc de temps</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Title */}

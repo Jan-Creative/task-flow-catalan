@@ -46,13 +46,14 @@ export const usePrepareTomorrow = () => {
   // Create or update preparation
   const saveMutation = useMutation({
     mutationFn: async (data: Partial<DailyPreparation>) => {
+      const user = (await supabase.auth.getUser()).data.user;
       const { data: result, error } = await supabase
         .from('daily_preparations')
         .upsert({
           preparation_date: tomorrow,
-          user_id: (await supabase.auth.getUser()).data.user?.id,
+          user_id: user?.id,
           ...data
-        })
+        }, { onConflict: 'user_id,preparation_date' })
         .select()
         .single();
 

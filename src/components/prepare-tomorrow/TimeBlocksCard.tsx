@@ -16,9 +16,9 @@ export interface TimeBlock {
 
 interface TimeBlocksCardProps {
   timeBlocks: TimeBlock[];
-  onAddTimeBlock?: (block: Omit<TimeBlock, 'id'>) => void;
-  onUpdateTimeBlock?: (blockId: string, updates: Partial<TimeBlock>) => void;
-  onRemoveTimeBlock?: (blockId: string) => void;
+  onAddTimeBlock?: (block: Omit<TimeBlock, 'id'>) => Promise<void> | void;
+  onUpdateTimeBlock?: (blockId: string, updates: Partial<TimeBlock>) => Promise<void> | void;
+  onRemoveTimeBlock?: (blockId: string) => Promise<void> | void;
   className?: string;
 }
 
