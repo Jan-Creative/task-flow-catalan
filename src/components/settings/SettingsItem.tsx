@@ -22,7 +22,7 @@ export const SettingsItem = ({
 }: SettingsItemProps) => {
   return (
     <div 
-      className={`flex items-center justify-between p-4 bg-secondary/20 rounded-lg border border-border/30 hover:bg-secondary/30 transition-colors ${onClick ? 'cursor-pointer' : ''} ${className}`}
+      className={`flex items-center justify-between p-4 bg-secondary/20 rounded-lg hover:bg-secondary/30 transition-colors ${onClick ? 'cursor-pointer' : ''} ${className}`}
       onClick={onClick}
     >
       <div className="flex items-center gap-3 min-w-0 flex-1">

@@ -74,7 +74,7 @@ export const EditableField = ({
           variant="ghost"
           onClick={handleSave}
           disabled={isLoading}
-          className="h-8 w-8 p-0 text-success hover:text-success"
+          className="h-8 w-8 p-0 text-success hover:text-success hover:bg-success/10"
         >
           <Check className="h-4 w-4" />
         </Button>
@@ -83,7 +83,7 @@ export const EditableField = ({
           variant="ghost"
           onClick={handleCancel}
           disabled={isLoading}
-          className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+          className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground hover:bg-accent"
         >
           <X className="h-4 w-4" />
         </Button>
@@ -100,7 +100,7 @@ export const EditableField = ({
         size="sm"
         variant="ghost"
         onClick={() => setIsEditing(true)}
-        className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-foreground"
+        className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-foreground hover:bg-accent"
       >
         <Edit3 className="h-3 w-3" />
       </Button>
