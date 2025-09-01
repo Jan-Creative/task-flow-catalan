@@ -42,7 +42,7 @@ const SettingsPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
         {/* Profile Card */}
-        <Card className="bg-card shadow-[var(--shadow-card)] border-border/30">
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-3">
               <div className="p-2 bg-primary/20 rounded-lg">
@@ -57,7 +57,7 @@ const SettingsPage = () => {
         </Card>
 
         {/* Notifications Card */}
-        <Card className="bg-card shadow-[var(--shadow-card)] border-border/30">
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-3">
               <div className="p-2 bg-primary/20 rounded-lg">
@@ -124,7 +124,7 @@ const SettingsPage = () => {
         </Card>
 
         {/* Appearance Card */}
-        <Card className="bg-card shadow-[var(--shadow-card)] border-border/30">
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-3">
               <div className="p-2 bg-primary/20 rounded-lg">
@@ -149,7 +149,7 @@ const SettingsPage = () => {
         </Card>
 
         {/* Privacy & Security Card */}
-        <Card className="bg-card shadow-[var(--shadow-card)] border-border/30">
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-3">
               <div className="p-2 bg-primary/20 rounded-lg">
@@ -183,7 +183,7 @@ const SettingsPage = () => {
         </Card>
 
         {/* General Settings Card */}
-        <Card className="bg-card shadow-[var(--shadow-card)] border-border/30">
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-3">
               <div className="p-2 bg-primary/20 rounded-lg">
@@ -216,7 +216,7 @@ const SettingsPage = () => {
         </Card>
 
         {/* About Card */}
-        <Card className="bg-card shadow-[var(--shadow-card)] border-border/30">
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-3">
               <div className="p-2 bg-primary/20 rounded-lg">
