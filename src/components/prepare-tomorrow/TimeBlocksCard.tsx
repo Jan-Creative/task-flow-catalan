@@ -96,7 +96,7 @@ export const TimeBlocksCard = ({
           <div className="relative bg-muted/5 rounded-lg border border-border/30 overflow-hidden">
             <div className="relative">
               {/* Time column */}
-              <div className="w-14 flex-shrink-0 bg-card/60 relative z-10">
+              <div className="w-14 flex-shrink-0 bg-muted/10 relative z-10">
                 {hours.map((hour) => (
                   <div
                     key={hour}
