@@ -94,41 +94,43 @@ export const TimeBlocksCard = ({
         <CardContent className="space-y-4">
           {/* Timeline view */}
           <div className="relative bg-muted/5 rounded-lg border border-border/30 overflow-hidden">
-            <div className="flex">
+            <div className="relative">
               {/* Time column */}
-              <div className="w-14 flex-shrink-0 bg-card/60">
+              <div className="w-14 flex-shrink-0 bg-card/60 relative z-10">
                 {hours.map((hour) => (
                   <div
                     key={hour}
-                    className="h-10 px-2 py-1 text-xs text-muted-foreground/60 border-t border-muted/20 flex items-start first:border-t-0"
+                    className="h-10 px-2 py-1 text-xs text-muted-foreground/50 border-t border-muted/10 flex items-start first:border-t-0"
                   >
                     {hour.toString().padStart(2, '0')}:00
                   </div>
                 ))}
               </div>
 
-              {/* Blocks column */}
-              <div className="flex-1 relative min-h-[525px]"> {/* 15 hours * 35px per hour */}
+              {/* Grid background - positioned absolutely to cover full width */}
+              <div className="absolute inset-0 min-h-[375px]">
                 {/* Hour separators */}
                 {hours.map((hour) => (
                   <div
                     key={hour}
-                    className="absolute left-0 right-0 h-10 border-t border-muted/15 first:border-t-0"
+                    className="absolute left-0 right-0 h-10 border-t border-muted/10 first:border-t-0"
                     style={{ top: `${(hour - 8) * 2.5}rem` }}
                   >
                     {/* Half-hour line */}
-                    <div className="absolute top-5 left-0 right-0 h-px bg-muted/8" />
+                    <div className="absolute top-5 left-0 right-0 h-px bg-muted/10" />
                   </div>
                 ))}
+              </div>
 
-                {/* Time blocks */}
+              {/* Time blocks - positioned absolutely to cover full width */}
+              <div className="absolute inset-0 min-h-[375px]">
                 {timeBlocks.map((block) => {
                   const position = getBlockPosition(block);
                   
                   return (
                     <div
                       key={block.id}
-                      className="absolute left-2 right-2 rounded-lg cursor-pointer group hover:shadow-lg transition-all duration-300 border-2"
+                      className="absolute left-0 right-0 rounded-lg cursor-pointer group hover:shadow-lg transition-all duration-300 border-2"
                       style={{
                         ...position,
                         backgroundColor: block.color + '30', // 30% opacity
@@ -136,7 +138,7 @@ export const TimeBlocksCard = ({
                       }}
                       onClick={() => handleBlockClick(block)}
                     >
-                      <div className="p-2 h-full flex flex-col justify-between">
+                      <div className="p-2 pl-16 h-full flex flex-col justify-between"> {/* pl-16 to avoid time column */}
                         <div>
                           <div 
                             className="text-xs font-medium leading-tight truncate"
@@ -144,15 +146,12 @@ export const TimeBlocksCard = ({
                           >
                             {block.title}
                           </div>
-                          <div className="text-xs text-muted-foreground mt-0.5">
-                            {block.startTime} - {block.endTime}
-                          </div>
+                          {block.description && (
+                            <div className="text-xs text-muted-foreground truncate mt-1">
+                              {block.description}
+                            </div>
+                          )}
                         </div>
-                        {block.description && (
-                          <div className="text-xs text-muted-foreground truncate mt-1">
-                            {block.description}
-                          </div>
-                        )}
                         
                         {/* Edit indicator on hover */}
                         <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
