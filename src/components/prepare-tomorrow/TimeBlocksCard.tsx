@@ -47,6 +47,16 @@ export const TimeBlocksCard = ({
     };
   };
 
+  const formatDuration = (block: TimeBlock) => {
+    const [startHour, startMinutes] = block.startTime.split(':').map(Number);
+    const [endHour, endMinutes] = block.endTime.split(':').map(Number);
+    const duration = ((endHour - startHour) * 60 + (endMinutes - startMinutes)) / 60;
+    
+    if (duration === 1) return "1 hora";
+    if (duration < 1) return `${Math.round(duration * 60)} min`;
+    return `${duration.toFixed(1)} hores`;
+  };
+
   const handleCreateBlock = (blockData: Omit<TimeBlock, 'id'>) => {
     if (onAddTimeBlock) {
       onAddTimeBlock(blockData);
@@ -93,14 +103,14 @@ export const TimeBlocksCard = ({
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Timeline view */}
-          <div className="relative bg-muted/5 rounded-lg border border-border/30 overflow-hidden">
+          <div className="relative bg-muted/5 rounded-lg border border-muted/8 overflow-hidden">
             <div className="relative">
               {/* Time column */}
-              <div className="w-14 flex-shrink-0 bg-muted/10 relative z-10">
+              <div className="w-14 flex-shrink-0 bg-muted/8 relative z-10">
                 {hours.map((hour) => (
                   <div
                     key={hour}
-                    className="h-10 px-2 py-1 text-xs text-muted-foreground/50 border-t border-muted/10 flex items-start first:border-t-0"
+                    className="h-10 px-2 py-1 text-xs text-muted-foreground/40 border-t border-muted/8 flex items-start first:border-t-0"
                   >
                     {hour.toString().padStart(2, '0')}:00
                   </div>
@@ -113,11 +123,11 @@ export const TimeBlocksCard = ({
                 {hours.map((hour) => (
                   <div
                     key={hour}
-                    className="absolute left-0 right-0 h-10 border-t border-muted/10 first:border-t-0"
+                    className="absolute left-0 right-0 h-10 border-t border-muted/8 first:border-t-0"
                     style={{ top: `${(hour - 8) * 2.5}rem` }}
                   >
                     {/* Half-hour line */}
-                    <div className="absolute top-5 left-0 right-0 h-px bg-muted/10" />
+                    <div className="absolute top-5 left-0 right-0 h-px bg-muted/5" />
                   </div>
                 ))}
               </div>
@@ -138,23 +148,26 @@ export const TimeBlocksCard = ({
                       }}
                       onClick={() => handleBlockClick(block)}
                     >
-                      <div className="p-2 pl-16 h-full flex flex-col justify-between"> {/* pl-16 to avoid time column */}
-                        <div>
+                      <div className="p-3 pl-16 h-full flex flex-col justify-start"> {/* pl-16 to avoid time column */}
+                        <div className="space-y-1">
                           <div 
-                            className="text-xs font-medium leading-tight truncate"
+                            className="text-sm font-semibold leading-tight truncate"
                             style={{ color: block.color }}
                           >
                             {block.title}
                           </div>
+                          <div className="text-xs text-muted-foreground/80 font-medium">
+                            {formatDuration(block)}
+                          </div>
                           {block.description && (
-                            <div className="text-xs text-muted-foreground truncate mt-1">
+                            <div className="text-xs text-muted-foreground/70 truncate mt-1">
                               {block.description}
                             </div>
                           )}
                         </div>
                         
                         {/* Edit indicator on hover */}
-                        <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                           <MoreHorizontal className="h-3 w-3 text-muted-foreground" />
                         </div>
                       </div>
