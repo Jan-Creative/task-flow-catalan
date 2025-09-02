@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Plus, Clock, MoreHorizontal } from 'lucide-react';
 import { CreateTimeBlockModal } from './CreateTimeBlockModal';
 import { cn } from '@/lib/utils';
+import { useBlockResize } from '@/hooks/useBlockResize';
 
 export interface TimeBlock {
   id: string;
@@ -31,6 +32,14 @@ export const TimeBlocksCard = ({
 }: TimeBlocksCardProps) => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingBlock, setEditingBlock] = useState<TimeBlock | null>(null);
+
+  // Initialize resize functionality
+  const { resizeState, startResize, containerRef } = useBlockResize({
+    onUpdateBlock: onUpdateTimeBlock || (() => {}),
+    minHour: 8,
+    maxHour: 22,
+    snapMinutes: 15,
+  });
 
   const hours = Array.from({ length: 15 }, (_, i) => i + 8); // 8:00 to 22:00
 
@@ -133,22 +142,49 @@ export const TimeBlocksCard = ({
               </div>
 
               {/* Time blocks - positioned absolutely to cover full width */}
-              <div className="absolute inset-0 min-h-[375px]">
+              <div ref={containerRef} className="absolute inset-0 min-h-[375px]">
                 {timeBlocks.map((block) => {
                   const position = getBlockPosition(block);
+                  const isResizing = resizeState.isResizing && resizeState.blockId === block.id;
                   
                   return (
                     <div
                       key={block.id}
-                      className="absolute left-0 right-0 rounded-lg cursor-pointer group hover:shadow-lg transition-all duration-300 border-2"
+                      className={cn(
+                        "absolute left-0 right-0 rounded-lg cursor-pointer group hover:shadow-lg transition-all duration-300 border-2",
+                        isResizing && "shadow-xl ring-2 ring-primary/50"
+                      )}
                       style={{
                         ...position,
                         backgroundColor: block.color + '30', // 30% opacity
                         borderColor: block.color,
                       }}
-                      onClick={() => handleBlockClick(block)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleBlockClick(block);
+                      }}
                     >
-                      <div className="p-3 pl-16 h-full flex flex-col justify-start"> {/* pl-16 to avoid time column */}
+                      {/* Top resize handle */}
+                      <div
+                        className="absolute top-0 left-0 right-0 h-2 cursor-ns-resize hover:bg-primary/20 transition-colors z-20"
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          startResize(block.id, 'top', e.clientY, block.startTime, block.endTime);
+                        }}
+                      />
+                      
+                      {/* Bottom resize handle */}
+                      <div
+                        className="absolute bottom-0 left-0 right-0 h-2 cursor-ns-resize hover:bg-primary/20 transition-colors z-20"
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          startResize(block.id, 'bottom', e.clientY, block.startTime, block.endTime);
+                        }}
+                      />
+
+                      <div className="p-3 pl-16 h-full flex flex-col justify-start relative z-10"> {/* pl-16 to avoid time column */}
                         <div className="space-y-1">
                           <div 
                             className="text-sm font-semibold leading-tight truncate"
