@@ -51,8 +51,8 @@ export const TimeBlocksCard = ({
     const duration = ((endHour - startHour) * 60 + (endMinutes - startMinutes)) / 60;
     
     return {
-      top: `${startPosition * 3.5}rem`, // 3.5rem per hour (reduced from 4rem)
-      height: `${Math.max(duration * 3.5, 1)}rem`, // Minimum height
+      top: `${startPosition * 2.5}rem`, // 2.5rem per hour to match grid
+      height: `${Math.max(duration * 2.5, 1)}rem`, // Minimum height
     };
   };
 
@@ -144,8 +144,11 @@ export const TimeBlocksCard = ({
               {/* Time blocks - positioned absolutely to cover full width */}
               <div ref={containerRef} className="absolute inset-0 min-h-[375px]">
                 {timeBlocks.map((block) => {
-                  const position = getBlockPosition(block);
                   const isResizing = resizeState.isResizing && resizeState.blockId === block.id;
+                  const renderBlock: TimeBlock = isResizing && resizeState.currentStartTime
+                    ? { ...block, startTime: resizeState.currentStartTime, endTime: resizeState.currentEndTime }
+                    : block;
+                  const position = getBlockPosition(renderBlock);
                   
                   return (
                     <div
@@ -193,7 +196,7 @@ export const TimeBlocksCard = ({
                             {block.title}
                           </div>
                           <div className="text-xs text-muted-foreground/80 font-medium">
-                            {formatDuration(block)}
+                            {formatDuration(renderBlock)}
                           </div>
                           {block.description && (
                             <div className="text-xs text-muted-foreground/70 truncate mt-1">

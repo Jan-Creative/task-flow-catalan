@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 
 export interface TimeBlock {
   id: string;
@@ -23,6 +23,8 @@ interface ResizeState {
   startY: number;
   originalStartTime: string;
   originalEndTime: string;
+  currentStartTime: string;
+  currentEndTime: string;
 }
 
 export const useBlockResize = ({ 
@@ -38,6 +40,8 @@ export const useBlockResize = ({
     startY: 0,
     originalStartTime: '',
     originalEndTime: '',
+    currentStartTime: '',
+    currentEndTime: '',
   });
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -83,6 +87,8 @@ export const useBlockResize = ({
       startY,
       originalStartTime,
       originalEndTime,
+      currentStartTime: originalStartTime,
+      currentEndTime: originalEndTime,
     });
   }, []);
 
@@ -92,25 +98,36 @@ export const useBlockResize = ({
     const containerRect = containerRef.current.getBoundingClientRect();
     const newTime = yToTime(e.clientY, containerRect);
     
-    let newStartTime = resizeState.originalStartTime;
-    let newEndTime = resizeState.originalEndTime;
-    
-    if (resizeState.resizeType === 'top') {
-      newStartTime = newTime;
-    } else {
-      newEndTime = newTime;
-    }
-    
-    // Validate the new times
-    if (isValidTime(newStartTime, newEndTime)) {
-      onUpdateBlock(resizeState.blockId!, {
-        startTime: newStartTime,
-        endTime: newEndTime,
-      });
-    }
-  }, [resizeState, yToTime, isValidTime, onUpdateBlock]);
+    setResizeState((prev) => {
+      if (!prev.isResizing) return prev;
+      let newStartTime = prev.originalStartTime;
+      let newEndTime = prev.originalEndTime;
+      
+      if (prev.resizeType === 'top') {
+        newStartTime = newTime;
+      } else {
+        newEndTime = newTime;
+      }
+      
+      // Update preview times only if valid
+      if (isValidTime(newStartTime, newEndTime)) {
+        return { ...prev, currentStartTime: newStartTime, currentEndTime: newEndTime };
+      }
+      return prev;
+    });
+  }, [resizeState.isResizing, yToTime, isValidTime]);
 
   const handleMouseUp = useCallback(() => {
+    if (resizeState.isResizing && resizeState.blockId) {
+      const { currentStartTime, currentEndTime } = resizeState;
+      if (isValidTime(currentStartTime, currentEndTime)) {
+        onUpdateBlock(resizeState.blockId, {
+          startTime: currentStartTime,
+          endTime: currentEndTime,
+        });
+      }
+    }
+
     setResizeState({
       isResizing: false,
       blockId: null,
@@ -118,8 +135,10 @@ export const useBlockResize = ({
       startY: 0,
       originalStartTime: '',
       originalEndTime: '',
+      currentStartTime: '',
+      currentEndTime: '',
     });
-  }, []);
+  }, [resizeState, isValidTime, onUpdateBlock]);
 
   // Add global event listeners when resizing
   const attachListeners = useCallback(() => {
@@ -137,11 +156,14 @@ export const useBlockResize = ({
   }, [handleMouseMove, handleMouseUp]);
 
   // Effect to handle event listeners
-  if (resizeState.isResizing) {
+  useEffect(() => {
+    if (!resizeState.isResizing) return;
+
     attachListeners();
-  } else {
-    detachListeners();
-  }
+    return () => {
+      detachListeners();
+    };
+  }, [resizeState.isResizing, attachListeners, detachListeners]);
 
   return {
     resizeState,
