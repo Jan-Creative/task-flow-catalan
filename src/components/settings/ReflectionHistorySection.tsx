@@ -4,11 +4,14 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { Progress } from '@/components/ui/progress';
 import { useDailyReflections } from '@/hooks/useDailyReflections';
 import { useReflectionAnalytics } from '@/hooks/useReflectionAnalytics';
-import { Heart, Calendar, Download, Search, Trash2, BarChart3, TrendingUp, Zap, Brain, Target } from 'lucide-react';
+import { ReflectionDetailModal } from './ReflectionDetailModal';
+import { Heart, Calendar, Download, Search, Trash2, BarChart3, TrendingUp, Zap, Brain, Target, CheckCircle } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { format, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
+import type { DailyReflection } from '@/types/reflection';
 import { ca } from 'date-fns/locale';
 import {
   AlertDialog,
@@ -31,6 +34,7 @@ export const ReflectionHistorySection = () => {
   const [selectedMonth, setSelectedMonth] = useState<string>('all');
   const [selectedMood, setSelectedMood] = useState<string>('all');
   const [selectedReflections, setSelectedReflections] = useState<string[]>([]);
+  const [selectedReflectionForDetail, setSelectedReflectionForDetail] = useState<DailyReflection | null>(null);
 
   // Filter reflections
   const filteredReflections = useMemo(() => {
@@ -147,6 +151,17 @@ export const ReflectionHistorySection = () => {
     if (rating >= 6) return 'Bé';
     if (rating >= 4) return 'Regular';
     return 'Difícil';
+  };
+
+  const getTasksCompletionColor = (percentage: number) => {
+    if (percentage >= 80) return 'text-green-500';
+    if (percentage >= 60) return 'text-yellow-500';
+    if (percentage >= 40) return 'text-orange-500';
+    return 'text-red-500';
+  };
+
+  const handleReflectionClick = (reflection: DailyReflection) => {
+    setSelectedReflectionForDetail(reflection);
   };
 
   if (loading) {
@@ -372,19 +387,25 @@ export const ReflectionHistorySection = () => {
               {filteredReflections.map((reflection) => (
                 <div 
                   key={reflection.id}
-                  className="flex items-start gap-3 p-4 rounded-lg border border-border bg-muted/20 hover:bg-muted/30 transition-colors"
+                  className="flex items-start gap-3 p-4 rounded-lg border border-border bg-muted/20 hover:bg-muted/30 transition-colors group"
                 >
                   <input
                     type="checkbox"
                     checked={selectedReflections.includes(reflection.id)}
-                    onChange={() => handleSelectReflection(reflection.id)}
+                    onChange={(e) => {
+                      e.stopPropagation();
+                      handleSelectReflection(reflection.id);
+                    }}
                     className="rounded mt-1"
                   />
                   
-                  <div className="flex-1 min-w-0 space-y-2">
+                  <div 
+                    className="flex-1 min-w-0 space-y-2 cursor-pointer" 
+                    onClick={() => handleReflectionClick(reflection)}
+                  >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <h4 className="font-medium text-sm">
+                        <h4 className="font-medium text-sm group-hover:text-primary transition-colors">
                           {format(new Date(reflection.reflection_date), 'dd MMMM yyyy', { locale: ca })}
                         </h4>
                         <Badge 
@@ -394,9 +415,28 @@ export const ReflectionHistorySection = () => {
                           {getRatingBadge(reflection.day_rating)} ({reflection.day_rating}/10)
                         </Badge>
                       </div>
-                      <div className="text-xs text-muted-foreground">
-                        {reflection.tasks_completed_percentage}% tasques
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
+                          <CheckCircle className={`h-3 w-3 ${getTasksCompletionColor(reflection.tasks_completed_percentage)}`} />
+                          <span className={`text-xs font-medium ${getTasksCompletionColor(reflection.tasks_completed_percentage)}`}>
+                            {reflection.tasks_completed_percentage}%
+                          </span>
+                        </div>
                       </div>
+                    </div>
+                    
+                    {/* Task completion visual bar */}
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground">Tasques completades</span>
+                        <span className={`font-medium ${getTasksCompletionColor(reflection.tasks_completed_percentage)}`}>
+                          {reflection.tasks_completed_percentage}%
+                        </span>
+                      </div>
+                      <Progress 
+                        value={reflection.tasks_completed_percentage} 
+                        className="h-2"
+                      />
                     </div>
                     
                     {reflection.notes && (
@@ -440,6 +480,13 @@ export const ReflectionHistorySection = () => {
             </div>
           </ScrollArea>
         )}
+        
+        {/* Reflection Detail Modal */}
+        <ReflectionDetailModal
+          reflection={selectedReflectionForDetail}
+          isOpen={!!selectedReflectionForDetail}
+          onClose={() => setSelectedReflectionForDetail(null)}
+        />
       </CardContent>
     </Card>
   );
