@@ -138,7 +138,7 @@ export const CompletedTasksTodayCard = () => {
           completedTasksToday.map((task) => (
           <div 
             key={task.id} 
-            className="flex items-center gap-3 p-3 rounded-lg border border-border bg-muted/30 hover:bg-muted/50 transition-colors"
+            className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/10 transition-colors"
           >
             <Checkbox
               checked={selectedTasks.includes(task.id)}
@@ -179,11 +179,11 @@ export const CompletedTasksTodayCard = () => {
         )}
         
         {completedTasksToday.length > 0 && (
-          <div className="mt-4 p-3 bg-muted/20 rounded-lg border border-dashed border-border">
-          <p className="text-sm text-muted-foreground">
-            💡 <strong>Consell:</strong> Arxiva les tasques completades per mantenir l'app neta. 
-            Les tasques arxivades es poden consultar a la configuració de l'app.
-          </p>
+          <div className="mt-4 p-3 rounded-lg border border-dashed">
+            <p className="text-sm text-muted-foreground">
+              💡 <strong>Consell:</strong> Arxiva les tasques completades per mantenir l'app neta. 
+              Les tasques arxivades es poden consultar a la configuració de l'app.
+            </p>
           </div>
         )}
       </CardContent>

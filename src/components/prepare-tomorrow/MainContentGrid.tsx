@@ -37,11 +37,11 @@ export const MainContentGrid: React.FC<MainContentGridProps> = ({
   removeTimeBlock
 }) => {
   return (
-    <div className="w-full h-full flex flex-col gap-4 animate-fade-in transition-all duration-300">
-      {/* Primary Row - Perfect mosaic alignment */}
-      <div className="w-full grid grid-cols-1 lg:grid-cols-5 gap-4 animate-scale-in transition-all duration-300">
-        {/* Tasks for Day Card - Clean, expanded (3 cols) */}
-        <div className="lg:col-span-3 h-fit">
+    <div className="w-full h-full flex flex-col gap-3 animate-fade-in">
+      {/* Primary Row - Mosaic perfectament alineat */}
+      <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-3 h-fit">
+        {/* Tasks for Day Card - Targeta principal (7 cols) */}
+        <div className="lg:col-span-7">
           <TasksForDayCard 
             tomorrow={tomorrow}
             onTasksUpdate={(tasks) => {
@@ -50,10 +50,9 @@ export const MainContentGrid: React.FC<MainContentGridProps> = ({
           />
         </div>
         
-        {/* Time Blocks Card - Compact, aligned (2 cols) */}
-        <div className="lg:col-span-2 h-fit">
+        {/* Time Blocks Card - Targeta secundària (5 cols) */}
+        <div className="lg:col-span-5">
           <TimeBlocksCard 
-            className="h-full"
             timeBlocks={preparation?.time_blocks || []}
             onAddTimeBlock={addTimeBlock}
             onUpdateTimeBlock={updateTimeBlock}
@@ -62,10 +61,10 @@ export const MainContentGrid: React.FC<MainContentGridProps> = ({
         </div>
       </div>
 
-      {/* Secondary Row - Supporting cards, perfect alignment */}
-      <div className="w-full grid grid-cols-1 lg:grid-cols-5 gap-4 animate-scale-in transition-all duration-300 delay-100">
-        {/* Notes Card - Clean, expanded (3 cols) */}
-        <Card className="lg:col-span-3 h-fit hover:shadow-lg transition-all duration-300 border-muted/30">
+      {/* Secondary Row - Targetes de suport */}
+      <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-3 h-fit">
+        {/* Notes Card - Ampliat (7 cols) */}
+        <Card className="lg:col-span-7 h-fit">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
               <NotebookPen className="h-4 w-4 text-primary" />
@@ -81,21 +80,21 @@ export const MainContentGrid: React.FC<MainContentGridProps> = ({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={6}
-              className="resize-none focus:ring-2 focus:ring-primary/20 transition-all border-muted/30"
+              className="resize-none focus:ring-2 focus:ring-primary/20 transition-all"
             />
             <Button 
               onClick={handleSaveNotes} 
               variant="outline" 
               size="sm"
-              className="w-full hover:bg-primary hover:text-primary-foreground transition-colors border-muted/30"
+              className="w-full hover:bg-primary hover:text-primary-foreground transition-colors"
             >
               Guardar Notes
             </Button>
           </CardContent>
         </Card>
 
-        {/* Quick Organization Card - Clean, compact (2 cols) */}
-        <Card className="lg:col-span-2 h-fit hover:shadow-md transition-all duration-300 border-muted/30">
+        {/* Quick Organization Card - Compactat (5 cols) */}
+        <Card className="lg:col-span-5 h-fit">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
               <FolderOpen className="h-4 w-4 text-primary" />

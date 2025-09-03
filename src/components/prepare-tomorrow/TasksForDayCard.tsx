@@ -52,7 +52,7 @@ export const TasksForDayCard = ({ tomorrow, onTasksUpdate }: TasksForDayCardProp
 
   return (
     <>
-      <Card className="h-fit hover:shadow-lg transition-all duration-300 border-2 border-muted/50 hover:border-primary/30">
+      <Card className="h-fit hover:shadow-lg transition-all duration-300">
         <CardHeader className="pb-4">
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -94,7 +94,7 @@ export const TasksForDayCard = ({ tomorrow, onTasksUpdate }: TasksForDayCardProp
               tasksForTomorrow.map(task => {
                 const folder = folders.find(f => f.id === task.folder_id);
                 return (
-                  <div key={task.id} className="group p-3 rounded-lg hover:bg-muted/10 transition-all duration-200 border-l-2 border-primary/30 hover:border-primary/60">
+                  <div key={task.id} className="group p-3 rounded-lg hover:bg-muted/10 transition-all duration-200 border-l-3 border-primary/20 hover:border-primary/50">
                     <div className="flex items-start gap-3">
                       <div className="flex-1 space-y-2">
                         <div className="flex items-center justify-between">
