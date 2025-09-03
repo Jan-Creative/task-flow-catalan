@@ -215,7 +215,7 @@ export const IncompleteTasksCard = () => {
         {tasks.map(task => (
           <div 
             key={task.id} 
-            className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/10 transition-colors"
+            className="flex items-center gap-3 p-3 rounded-lg border border-border bg-muted/30 hover:bg-muted/50 transition-colors"
           >
             <Checkbox
               checked={selectedTasks.includes(task.id)}
@@ -347,7 +347,7 @@ export const IncompleteTasksCard = () => {
             </div>
           )}
           
-          <div className="mt-4 p-3 rounded-lg border border-dashed">
+          <div className="mt-4 p-3 bg-muted/20 rounded-lg border border-dashed border-border">
             <p className="text-sm text-muted-foreground">
               💡 <strong>Consell:</strong> Organitza les tasques incompletes per mantenir el control. 
               Pots moure-les a demà, reorganitzar-les per altres dies, o portar-les a la carpeta Bustia per revisar-les més tard.

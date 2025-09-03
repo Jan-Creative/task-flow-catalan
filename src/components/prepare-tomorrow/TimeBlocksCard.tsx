@@ -141,14 +141,14 @@ export const TimeBlocksCard = ({
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Timeline view */}
-          <div className="relative rounded-lg border overflow-hidden">
+          <div className="relative bg-muted/5 rounded-lg border border-muted/8 overflow-hidden">
             <div className="relative">
               {/* Time column */}
-              <div className="w-14 flex-shrink-0 relative z-10">
+              <div className="w-14 flex-shrink-0 bg-muted/8 relative z-10">
                 {hours.map((hour) => (
                   <div
                     key={hour}
-                    className="h-10 px-2 py-1 text-xs text-muted-foreground border-t border-muted/20 flex items-start first:border-t-0"
+                    className="h-10 px-2 py-1 text-xs text-muted-foreground/40 border-t border-muted/8 flex items-start first:border-t-0"
                   >
                     {hour.toString().padStart(2, '0')}:00
                   </div>
@@ -161,11 +161,11 @@ export const TimeBlocksCard = ({
                 {hours.map((hour) => (
                   <div
                     key={hour}
-                    className="absolute left-0 right-0 h-10 border-t border-muted/20 first:border-t-0"
+                    className="absolute left-0 right-0 h-10 border-t border-muted/8 first:border-t-0"
                     style={{ top: `${(hour - 8) * 2.5}rem` }}
                   >
                     {/* Half-hour line */}
-                    <div className="absolute top-5 left-0 right-0 h-px bg-muted/10" />
+                    <div className="absolute top-5 left-0 right-0 h-px bg-muted/5" />
                   </div>
                 ))}
               </div>
