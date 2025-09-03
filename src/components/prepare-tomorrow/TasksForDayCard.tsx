@@ -68,34 +68,33 @@ export const TasksForDayCard = ({ tomorrow, onTasksUpdate }: TasksForDayCardProp
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Enhanced Progress summary */}
-          <div className="p-4 rounded-lg bg-gradient-to-r from-muted/20 to-muted/10 border border-muted/30">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-primary" />
-                <span className="text-sm font-semibold">Progres de Preparació</span>
-              </div>
-              <span className="text-xs text-muted-foreground">
-                {totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0}%
-              </span>
+          {/* Clean Progress summary - no white boxes */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-primary" />
+              <span className="text-sm font-semibold">Progres de Preparació</span>
             </div>
-            {totalCount > 0 && (
-              <div className="w-full bg-muted/20 rounded-full h-2">
-                <div 
-                  className="bg-primary h-2 rounded-full transition-all duration-300" 
-                  style={{ width: `${(completedCount / totalCount) * 100}%` }}
-                />
-              </div>
-            )}
+            <span className="text-xs text-muted-foreground font-medium">
+              {totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0}%
+            </span>
           </div>
+          
+          {totalCount > 0 && (
+            <div className="w-full bg-muted/20 rounded-full h-2 mb-6">
+              <div 
+                className="bg-primary h-2 rounded-full transition-all duration-300" 
+                style={{ width: `${(completedCount / totalCount) * 100}%` }}
+              />
+            </div>
+          )}
 
-          {/* Enhanced Tasks list */}
+          {/* Clean Tasks list - direct integration */}
           <div className="space-y-3">
             {tasksForTomorrow.length > 0 ? (
               tasksForTomorrow.map(task => {
                 const folder = folders.find(f => f.id === task.folder_id);
                 return (
-                  <div key={task.id} className="group p-4 rounded-lg bg-muted/20 hover:bg-muted/30 transition-all duration-200 border border-muted/20 hover:border-muted/40">
+                  <div key={task.id} className="group p-3 rounded-lg hover:bg-muted/10 transition-all duration-200 border-l-2 border-primary/30 hover:border-primary/60">
                     <div className="flex items-start gap-3">
                       <div className="flex-1 space-y-2">
                         <div className="flex items-center justify-between">
@@ -140,8 +139,8 @@ export const TasksForDayCard = ({ tomorrow, onTasksUpdate }: TasksForDayCardProp
                 );
               })
             ) : (
-              <div className="text-center py-12 text-muted-foreground">
-                <Calendar className="h-12 w-12 mx-auto mb-3 opacity-40" />
+              <div className="text-center py-8 text-muted-foreground">
+                <Calendar className="h-10 w-10 mx-auto mb-3 opacity-40" />
                 <p className="text-sm font-medium mb-1">No hi ha tasques programades</p>
                 <p className="text-xs">Afegeix tasques per organitzar el teu dia de demà</p>
               </div>
