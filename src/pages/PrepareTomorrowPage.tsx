@@ -11,6 +11,7 @@ import { TimeBlocksCard } from '@/components/prepare-tomorrow/TimeBlocksCard';
 import { CompletedTasksTodayCard } from '@/components/prepare-tomorrow/CompletedTasksTodayCard';
 import { IncompleteTasksCard } from '@/components/prepare-tomorrow/IncompleteTasksCard';
 import { DailyReminderConfigModal } from '@/components/prepare-tomorrow/DailyReminderConfigModal';
+import { DailyReflectionCard } from '@/components/prepare-tomorrow/DailyReflectionCard';
 import { ArrowLeft, Calendar, Clock, Target, FolderOpen, NotebookPen, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format, addDays } from 'date-fns';
@@ -155,9 +156,13 @@ export default function PrepareTomorrowPage() {
             onRemoveTimeBlock={removeTimeBlock}
           />
 
+          {/* Daily Reflection Card - 2 columns */}
+          <div className="lg:col-span-2">
+            <DailyReflectionCard date={new Date()} />
+          </div>
 
           {/* Quick Organization */}
-          <Card className="lg:col-span-2">
+          <Card className="lg:col-span-1">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FolderOpen className="h-5 w-5 text-primary" />
@@ -168,24 +173,21 @@ export default function PrepareTomorrowPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              {folders.slice(0, 4).map(folder => {
+              {folders.slice(0, 3).map(folder => {
                 const folderTasks = tasks.filter(t => t.folder_id === folder.id);
                 const completedTasks = folderTasks.filter(t => t.status === 'completada');
                 
                 return (
-                  <div key={folder.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/20">
-                    <div className="flex items-center gap-3">
+                  <div key={folder.id} className="flex items-center justify-between p-2 rounded-lg bg-muted/20">
+                    <div className="flex items-center gap-2">
                       <div 
-                        className="w-3 h-3 rounded-full" 
+                        className="w-2 h-2 rounded-full" 
                         style={{ backgroundColor: folder.color }} 
                       />
-                      <span className="font-medium">{folder.name}</span>
+                      <span className="text-sm font-medium">{folder.name}</span>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-medium">{folderTasks.length} tasques</p>
-                      <p className="text-xs text-muted-foreground">
-                        {completedTasks.length} completades
-                      </p>
+                      <p className="text-xs font-medium">{folderTasks.length}</p>
                     </div>
                   </div>
                 );
@@ -194,7 +196,7 @@ export default function PrepareTomorrowPage() {
           </Card>
 
           {/* Notes */}
-          <Card className="lg:col-span-3">
+          <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <NotebookPen className="h-5 w-5 text-primary" />
@@ -209,7 +211,7 @@ export default function PrepareTomorrowPage() {
                 placeholder="Objectius per demà, coses a recordar, reflexions del dia d'avui..."
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                rows={6}
+                rows={4}
                 className="resize-none"
               />
               <Button onClick={handleSaveNotes} variant="outline" className="w-full">

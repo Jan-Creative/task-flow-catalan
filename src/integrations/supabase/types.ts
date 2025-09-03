@@ -83,6 +83,63 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_reflections: {
+        Row: {
+          accomplishments: string[] | null
+          created_at: string
+          day_rating: number
+          energy_level: number
+          gratitude_notes: string | null
+          id: string
+          mood_tags: string[] | null
+          notes: string | null
+          obstacles: string[] | null
+          reflection_date: string
+          stress_level: number
+          tasks_completed_percentage: number
+          tomorrow_focus: string | null
+          updated_at: string
+          user_id: string
+          work_satisfaction: number
+        }
+        Insert: {
+          accomplishments?: string[] | null
+          created_at?: string
+          day_rating: number
+          energy_level: number
+          gratitude_notes?: string | null
+          id?: string
+          mood_tags?: string[] | null
+          notes?: string | null
+          obstacles?: string[] | null
+          reflection_date: string
+          stress_level: number
+          tasks_completed_percentage?: number
+          tomorrow_focus?: string | null
+          updated_at?: string
+          user_id: string
+          work_satisfaction: number
+        }
+        Update: {
+          accomplishments?: string[] | null
+          created_at?: string
+          day_rating?: number
+          energy_level?: number
+          gratitude_notes?: string | null
+          id?: string
+          mood_tags?: string[] | null
+          notes?: string | null
+          obstacles?: string[] | null
+          reflection_date?: string
+          stress_level?: number
+          tasks_completed_percentage?: number
+          tomorrow_focus?: string | null
+          updated_at?: string
+          user_id?: string
+          work_satisfaction?: number
+        }
+        Relationships: []
+      }
       daily_reminder_preferences: {
         Row: {
           created_at: string
