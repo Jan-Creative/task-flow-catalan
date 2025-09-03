@@ -39,7 +39,10 @@ export const useDadesApp = () => {
       const [tasksResult, foldersResult] = await Promise.all([
         supabase
           .from("tasks")
-          .select("id, title, description, status, priority, folder_id, due_date, created_at, updated_at")
+          .select(`
+            id, title, description, status, priority, folder_id, due_date, created_at, updated_at, completed_at,
+            folder:folders(id, name, color)
+          `)
           .eq("user_id", user.id)
           .order("created_at", { ascending: false }),
         supabase

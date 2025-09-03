@@ -6,9 +6,19 @@ import { Archive, CheckCircle, Clock, Folder } from 'lucide-react';
 import { useState } from 'react';
 import { useDadesApp } from '@/hooks/useDadesApp';
 import { useTaskHistory } from '@/hooks/useTaskHistory';
-import { Task } from '@/types/task';
+import { Tasca } from '@/types';
 import { format } from 'date-fns';
 import { ca } from 'date-fns/locale';
+
+// Extended task type for completed tasks with additional properties
+interface ExtendedTask extends Tasca {
+  completed_at?: string;
+  folder?: {
+    id: string;
+    name: string;
+    color: string;
+  };
+}
 
 export const CompletedTasksTodayCard = () => {
   const { tasks } = useDadesApp();
@@ -16,10 +26,10 @@ export const CompletedTasksTodayCard = () => {
   const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
 
   // Filter completed tasks from today
-  const completedTasksToday = tasks.filter(task => {
-    if (task.status !== 'completada' || !(task as any).completed_at) return false;
+  const completedTasksToday = (tasks as ExtendedTask[]).filter(task => {
+    if (task.status !== 'completat' || !task.completed_at) return false;
     
-    const completedDate = new Date((task as any).completed_at);
+    const completedDate = new Date(task.completed_at);
     const today = new Date();
     
     return (
@@ -125,10 +135,10 @@ export const CompletedTasksTodayCard = () => {
                 <h4 className="font-medium text-sm text-foreground truncate">
                   {task.title}
                 </h4>
-                {(task as any).folder && (
+                {task.folder && (
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
                     <Folder className="h-3 w-3" />
-                    <span>{(task as any).folder.name}</span>
+                    <span>{task.folder.name}</span>
                   </div>
                 )}
               </div>
@@ -142,7 +152,7 @@ export const CompletedTasksTodayCard = () => {
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Clock className="h-3 w-3" />
                 <span>
-                  Completada: {format(new Date((task as any).completed_at!), 'HH:mm', { locale: ca })}
+                  Completada: {format(new Date(task.completed_at!), 'HH:mm', { locale: ca })}
                 </span>
                 <Badge variant="outline" className="text-xs">
                   {task.priority}
