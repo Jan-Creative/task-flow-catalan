@@ -5,6 +5,8 @@ import { UserProfileCard } from "@/components/settings/UserProfileCard";
 import { SettingsItem } from "@/components/settings/SettingsItem";
 import { SettingsGroup } from "@/components/settings/SettingsGroup";
 import { ThemeSelector } from "@/components/settings/ThemeSelector";
+import { TaskHistorySection } from "@/components/settings/TaskHistorySection";
+import { TaskResetSection } from "@/components/settings/TaskResetSection";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -254,6 +256,9 @@ const SettingsPage = () => {
             </SettingsGroup>
           </CardContent>
         </Card>
+
+        <TaskHistorySection />
+        <TaskResetSection />
       </div>
     </div>
   );

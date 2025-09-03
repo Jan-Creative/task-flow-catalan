@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { TasksForDayCard } from '@/components/prepare-tomorrow/TasksForDayCard';
 import { TimeBlocksCard } from '@/components/prepare-tomorrow/TimeBlocksCard';
+import { CompletedTasksTodayCard } from '@/components/prepare-tomorrow/CompletedTasksTodayCard';
 import { ArrowLeft, Calendar, Clock, Target, FolderOpen, NotebookPen, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format, addDays } from 'date-fns';
@@ -123,6 +124,8 @@ export default function PrepareTomorrowPage() {
             </div>
           </CardContent>
         </Card>
+
+        <CompletedTasksTodayCard />
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
           {/* Tasks for Day Card - 2 columns */}

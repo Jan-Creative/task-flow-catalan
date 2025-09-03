@@ -510,6 +510,57 @@ export type Database = {
           },
         ]
       }
+      task_history: {
+        Row: {
+          archived_at: string
+          completed_at: string
+          created_at: string
+          description: string | null
+          folder_color: string | null
+          folder_name: string | null
+          id: string
+          metadata: Json | null
+          original_created_at: string
+          original_task_id: string
+          priority: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          archived_at?: string
+          completed_at: string
+          created_at?: string
+          description?: string | null
+          folder_color?: string | null
+          folder_name?: string | null
+          id?: string
+          metadata?: Json | null
+          original_created_at: string
+          original_task_id: string
+          priority?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          archived_at?: string
+          completed_at?: string
+          created_at?: string
+          description?: string | null
+          folder_color?: string | null
+          folder_name?: string | null
+          id?: string
+          metadata?: Json | null
+          original_created_at?: string
+          original_task_id?: string
+          priority?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       task_notes: {
         Row: {
           content: string
