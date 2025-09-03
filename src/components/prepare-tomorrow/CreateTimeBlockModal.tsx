@@ -5,9 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Bell } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
-import type { TimeBlock } from './TimeBlocksCard';
+import type { TimeBlock, TimeBlockNotificationConfig } from '@/types/timeblock';
 
 interface CreateTimeBlockModalProps {
   open: boolean;
@@ -15,6 +16,7 @@ interface CreateTimeBlockModalProps {
   onSubmit: (block: Omit<TimeBlock, 'id'>) => void;
   editingBlock?: TimeBlock | null;
   onDelete?: () => void;
+  notificationConfig?: TimeBlockNotificationConfig;
 }
 
 const timeOptions = Array.from({ length: 15 * 4 }, (_, i) => {
@@ -23,6 +25,14 @@ const timeOptions = Array.from({ length: 15 * 4 }, (_, i) => {
   const minutes = totalMinutes % 60;
   return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
 });
+
+const reminderOptions = [
+  { value: 0, label: 'En el moment exacte' },
+  { value: 5, label: '5 minuts abans' },
+  { value: 10, label: '10 minuts abans' },
+  { value: 15, label: '15 minuts abans' },
+  { value: 30, label: '30 minuts abans' },
+];
 
 const colorOptions = [
   { value: '#ef4444', label: 'Vermell', name: 'Urgent/Important' },
@@ -40,13 +50,18 @@ export const CreateTimeBlockModal = ({
   onClose, 
   onSubmit, 
   editingBlock,
-  onDelete 
+  onDelete,
+  notificationConfig
 }: CreateTimeBlockModalProps) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [startTime, setStartTime] = useState('09:00');
   const [endTime, setEndTime] = useState('10:00');
   const [color, setColor] = useState('#3b82f6');
+  const [notifyStart, setNotifyStart] = useState(false);
+  const [notifyEnd, setNotifyEnd] = useState(false);
+  const [startReminderMinutes, setStartReminderMinutes] = useState(5);
+  const [endReminderMinutes, setEndReminderMinutes] = useState(5);
 
   const isEditing = !!editingBlock;
 
@@ -57,14 +72,23 @@ export const CreateTimeBlockModal = ({
       setStartTime(editingBlock.startTime);
       setEndTime(editingBlock.endTime);
       setColor(editingBlock.color);
+      setNotifyStart(editingBlock.notifications?.start || false);
+      setNotifyEnd(editingBlock.notifications?.end || false);
+      setStartReminderMinutes(editingBlock.reminderMinutes?.start || 5);
+      setEndReminderMinutes(editingBlock.reminderMinutes?.end || 5);
     } else {
       setTitle('');
       setDescription('');
       setStartTime('09:00');
       setEndTime('10:00');
       setColor('#3b82f6');
+      // Apply defaults from config if available
+      setNotifyStart(notificationConfig?.defaultStartEnabled || false);
+      setNotifyEnd(notificationConfig?.defaultEndEnabled || false);
+      setStartReminderMinutes(notificationConfig?.defaultStartReminder || 5);
+      setEndReminderMinutes(notificationConfig?.defaultEndReminder || 5);
     }
-  }, [editingBlock]);
+  }, [editingBlock, notificationConfig]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,6 +112,14 @@ export const CreateTimeBlockModal = ({
       startTime,
       endTime,
       color,
+      notifications: notificationConfig?.enableGlobal ? {
+        start: notifyStart,
+        end: notifyEnd
+      } : undefined,
+      reminderMinutes: notificationConfig?.enableGlobal ? {
+        start: startReminderMinutes,
+        end: endReminderMinutes
+      } : undefined,
     });
 
     if (!isEditing) {
@@ -96,6 +128,10 @@ export const CreateTimeBlockModal = ({
       setStartTime('09:00');
       setEndTime('10:00');
       setColor('#3b82f6');
+      setNotifyStart(notificationConfig?.defaultStartEnabled || false);
+      setNotifyEnd(notificationConfig?.defaultEndEnabled || false);
+      setStartReminderMinutes(notificationConfig?.defaultStartReminder || 5);
+      setEndReminderMinutes(notificationConfig?.defaultEndReminder || 5);
     }
   };
 
@@ -202,6 +238,90 @@ export const CreateTimeBlockModal = ({
               rows={3}
             />
           </div>
+
+          {/* Notifications Section */}
+          {notificationConfig?.enableGlobal && (
+            <div className="space-y-4 p-4 border rounded-lg bg-muted/20">
+              <div className="flex items-center gap-2">
+                <Bell className="h-4 w-4 text-primary" />
+                <Label className="font-medium">Notificacions</Label>
+              </div>
+              
+              {/* Start notification */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="notifyStart" className="text-sm">
+                    Notificar a l'inici
+                  </Label>
+                  <Switch
+                    id="notifyStart"
+                    checked={notifyStart}
+                    onCheckedChange={setNotifyStart}
+                  />
+                </div>
+                
+                {notifyStart && (
+                  <div>
+                    <Label className="text-xs text-muted-foreground">
+                      Avís abans de l'inici:
+                    </Label>
+                    <Select 
+                      value={startReminderMinutes.toString()}
+                      onValueChange={(value) => setStartReminderMinutes(parseInt(value))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {reminderOptions.map(option => (
+                          <SelectItem key={option.value} value={option.value.toString()}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+
+              {/* End notification */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="notifyEnd" className="text-sm">
+                    Notificar al final
+                  </Label>
+                  <Switch
+                    id="notifyEnd"
+                    checked={notifyEnd}
+                    onCheckedChange={setNotifyEnd}
+                  />
+                </div>
+                
+                {notifyEnd && (
+                  <div>
+                    <Label className="text-xs text-muted-foreground">
+                      Avís abans del final:
+                    </Label>
+                    <Select 
+                      value={endReminderMinutes.toString()}
+                      onValueChange={(value) => setEndReminderMinutes(parseInt(value))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {reminderOptions.map(option => (
+                          <SelectItem key={option.value} value={option.value.toString()}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Action buttons */}
           <div className="flex gap-2 pt-4">

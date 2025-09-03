@@ -1,19 +1,16 @@
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Clock, MoreHorizontal } from 'lucide-react';
+import { Plus, Clock, MoreHorizontal, Settings } from 'lucide-react';
 import { CreateTimeBlockModal } from './CreateTimeBlockModal';
+import { TimeBlockNotificationConfigModal } from './TimeBlockNotificationConfig';
+import { TimeBlockNotificationPopover } from './TimeBlockNotificationPopover';
 import { cn } from '@/lib/utils';
 import { useBlockResize } from '@/hooks/useBlockResize';
+import { useTimeBlockNotifications } from '@/hooks/useTimeBlockNotifications';
+import type { TimeBlock, TimeBlockNotificationConfig } from '@/types/timeblock';
 
-export interface TimeBlock {
-  id: string;
-  title: string;
-  startTime: string; // "09:00"
-  endTime: string;   // "11:00"
-  color: string;
-  description?: string;
-}
+// TimeBlock interface now imported from types
 
 interface TimeBlocksCardProps {
   timeBlocks: TimeBlock[];
@@ -32,6 +29,14 @@ export const TimeBlocksCard = ({
 }: TimeBlocksCardProps) => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingBlock, setEditingBlock] = useState<TimeBlock | null>(null);
+  const [showNotificationConfig, setShowNotificationConfig] = useState(false);
+  const [notificationConfig, setNotificationConfig] = useState<TimeBlockNotificationConfig>({
+    enableGlobal: false,
+    defaultStartReminder: 5,
+    defaultEndReminder: 5,
+    defaultStartEnabled: true,
+    defaultEndEnabled: false,
+  });
 
   // Initialize resize functionality
   const { resizeState, startResize, containerRef } = useBlockResize({
@@ -40,6 +45,8 @@ export const TimeBlocksCard = ({
     maxHour: 22,
     snapMinutes: 15,
   });
+
+  const { updateBlockNotifications } = useTimeBlockNotifications();
 
   const hours = Array.from({ length: 15 }, (_, i) => i + 8); // 8:00 to 22:00
 
@@ -66,16 +73,29 @@ export const TimeBlocksCard = ({
     return `${duration.toFixed(1)} hores`;
   };
 
-  const handleCreateBlock = (blockData: Omit<TimeBlock, 'id'>) => {
+  const handleCreateBlock = async (blockData: Omit<TimeBlock, 'id'>) => {
+    const newBlock = { ...blockData, id: crypto.randomUUID() };
     if (onAddTimeBlock) {
       onAddTimeBlock(blockData);
     }
+    
+    // Schedule notifications if enabled
+    if (blockData.notifications) {
+      await updateBlockNotifications(newBlock);
+    }
+    
     setShowCreateModal(false);
   };
 
-  const handleEditBlock = (blockData: Omit<TimeBlock, 'id'>) => {
+  const handleEditBlock = async (blockData: Omit<TimeBlock, 'id'>) => {
     if (editingBlock && onUpdateTimeBlock) {
+      const updatedBlock = { ...editingBlock, ...blockData };
       onUpdateTimeBlock(editingBlock.id, blockData);
+      
+      // Update notifications if enabled
+      if (blockData.notifications) {
+        await updateBlockNotifications(updatedBlock, editingBlock);
+      }
     }
     setEditingBlock(null);
   };
@@ -97,9 +117,18 @@ export const TimeBlocksCard = ({
     <>
       <Card className={cn("h-fit", className)}>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Clock className="h-5 w-5 text-primary" />
-            Blocs de Temps
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Clock className="h-5 w-5 text-primary" />
+              Blocs de Temps
+            </div>
+            <Button
+              onClick={() => setShowNotificationConfig(true)}
+              variant="outline"
+              size="sm"
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
           </CardTitle>
           <CardDescription>
             Organitza el teu temps en blocs dedicats
@@ -205,9 +234,15 @@ export const TimeBlocksCard = ({
                           )}
                         </div>
                         
-                        {/* Edit indicator on hover */}
-                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <MoreHorizontal className="h-3 w-3 text-muted-foreground" />
+                        {/* Notification and edit indicators on hover */}
+                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                          <TimeBlockNotificationPopover
+                            block={block}
+                            onUpdateBlock={(updates) => onUpdateTimeBlock?.(block.id, updates)}
+                          />
+                          <div className="p-1">
+                            <MoreHorizontal className="h-3 w-3 text-muted-foreground" />
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -245,6 +280,14 @@ export const TimeBlocksCard = ({
         open={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         onSubmit={handleCreateBlock}
+        notificationConfig={notificationConfig}
+      />
+
+      <TimeBlockNotificationConfigModal
+        open={showNotificationConfig}
+        onClose={() => setShowNotificationConfig(false)}
+        config={notificationConfig}
+        onConfigChange={setNotificationConfig}
       />
 
       {editingBlock && (
@@ -253,6 +296,7 @@ export const TimeBlocksCard = ({
           onClose={() => setEditingBlock(null)}
           onSubmit={handleEditBlock}
           editingBlock={editingBlock}
+          notificationConfig={notificationConfig}
           onDelete={onRemoveTimeBlock ? () => {
             onRemoveTimeBlock(editingBlock.id);
             setEditingBlock(null);
