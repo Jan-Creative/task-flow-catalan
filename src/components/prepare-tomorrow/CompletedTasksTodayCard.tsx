@@ -39,7 +39,10 @@ export const CompletedTasksTodayCard = () => {
     );
   });
 
-  if (completedTasksToday.length === 0) {
+  // Temporarily show card even when empty for development
+  const shouldShowCard = true; // completedTasksToday.length > 0;
+  
+  if (!shouldShowCard) {
     return null;
   }
 
@@ -120,7 +123,19 @@ export const CompletedTasksTodayCard = () => {
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
-        {completedTasksToday.map((task) => (
+        {completedTasksToday.length === 0 ? (
+          <div className="text-center py-8">
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">
+                📋 No hi ha tasques completades avui
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Les tasques que completis avui apareixeran aquí
+              </p>
+            </div>
+          </div>
+        ) : (
+          completedTasksToday.map((task) => (
           <div 
             key={task.id} 
             className="flex items-center gap-3 p-3 rounded-lg border border-border bg-muted/30 hover:bg-muted/50 transition-colors"
@@ -160,14 +175,17 @@ export const CompletedTasksTodayCard = () => {
               </div>
             </div>
           </div>
-        ))}
+          ))
+        )}
         
-        <div className="mt-4 p-3 bg-muted/20 rounded-lg border border-dashed border-border">
+        {completedTasksToday.length > 0 && (
+          <div className="mt-4 p-3 bg-muted/20 rounded-lg border border-dashed border-border">
           <p className="text-sm text-muted-foreground">
             💡 <strong>Consell:</strong> Arxiva les tasques completades per mantenir l'app neta. 
             Les tasques arxivades es poden consultar a la configuració de l'app.
           </p>
-        </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
