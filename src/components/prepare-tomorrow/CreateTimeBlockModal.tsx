@@ -112,14 +112,14 @@ export const CreateTimeBlockModal = ({
       startTime,
       endTime,
       color,
-      notifications: notificationConfig?.enableGlobal ? {
+      notifications: {
         start: notifyStart,
         end: notifyEnd
-      } : undefined,
-      reminderMinutes: notificationConfig?.enableGlobal ? {
+      },
+      reminderMinutes: {
         start: startReminderMinutes,
         end: endReminderMinutes
-      } : undefined,
+      },
     });
 
     if (!isEditing) {
@@ -239,89 +239,110 @@ export const CreateTimeBlockModal = ({
             />
           </div>
 
-          {/* Notifications Section */}
-          {notificationConfig?.enableGlobal && (
-            <div className="space-y-4 p-4 border rounded-lg bg-muted/20">
+          {/* Notifications Section - Always visible */}
+          <div className="space-y-4 p-4 border rounded-lg bg-muted/20">
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Bell className="h-4 w-4 text-primary" />
                 <Label className="font-medium">Notificacions</Label>
               </div>
-              
-              {/* Start notification */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="notifyStart" className="text-sm">
-                    Notificar a l'inici
-                  </Label>
-                  <Switch
-                    id="notifyStart"
-                    checked={notifyStart}
-                    onCheckedChange={setNotifyStart}
-                  />
+              {notificationConfig?.enableGlobal && (
+                <div className="text-xs text-muted-foreground">
+                  Configuració global activada
                 </div>
-                
-                {notifyStart && (
-                  <div>
-                    <Label className="text-xs text-muted-foreground">
-                      Avís abans de l'inici:
-                    </Label>
-                    <Select 
-                      value={startReminderMinutes.toString()}
-                      onValueChange={(value) => setStartReminderMinutes(parseInt(value))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {reminderOptions.map(option => (
-                          <SelectItem key={option.value} value={option.value.toString()}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-              </div>
-
-              {/* End notification */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="notifyEnd" className="text-sm">
-                    Notificar al final
-                  </Label>
-                  <Switch
-                    id="notifyEnd"
-                    checked={notifyEnd}
-                    onCheckedChange={setNotifyEnd}
-                  />
-                </div>
-                
-                {notifyEnd && (
-                  <div>
-                    <Label className="text-xs text-muted-foreground">
-                      Avís abans del final:
-                    </Label>
-                    <Select 
-                      value={endReminderMinutes.toString()}
-                      onValueChange={(value) => setEndReminderMinutes(parseInt(value))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {reminderOptions.map(option => (
-                          <SelectItem key={option.value} value={option.value.toString()}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-              </div>
+              )}
             </div>
-          )}
+            
+            {/* Start notification */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="notifyStart" className="text-sm">
+                  Notificar a l'inici
+                </Label>
+                <Switch
+                  id="notifyStart"
+                  checked={notifyStart}
+                  onCheckedChange={setNotifyStart}
+                />
+              </div>
+              
+              {notifyStart && (
+                <div>
+                  <Label className="text-xs text-muted-foreground">
+                    Avís abans de l'inici:
+                  </Label>
+                  <Select 
+                    value={startReminderMinutes.toString()}
+                    onValueChange={(value) => setStartReminderMinutes(parseInt(value))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {reminderOptions.map(option => (
+                        <SelectItem key={option.value} value={option.value.toString()}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    Notificació programada per a les {(() => {
+                      const [hours, minutes] = editingBlock?.startTime.split(':').map(Number) || startTime.split(':').map(Number);
+                      const reminderTime = new Date();
+                      reminderTime.setHours(hours, minutes - startReminderMinutes, 0, 0);
+                      return reminderTime.toLocaleTimeString('ca-ES', { hour: '2-digit', minute: '2-digit' });
+                    })()}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* End notification */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="notifyEnd" className="text-sm">
+                  Notificar al final
+                </Label>
+                <Switch
+                  id="notifyEnd"
+                  checked={notifyEnd}
+                  onCheckedChange={setNotifyEnd}
+                />
+              </div>
+              
+              {notifyEnd && (
+                <div>
+                  <Label className="text-xs text-muted-foreground">
+                    Avís abans del final:
+                  </Label>
+                  <Select 
+                    value={endReminderMinutes.toString()}
+                    onValueChange={(value) => setEndReminderMinutes(parseInt(value))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {reminderOptions.map(option => (
+                        <SelectItem key={option.value} value={option.value.toString()}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    Notificació programada per a les {(() => {
+                      const [hours, minutes] = editingBlock?.endTime.split(':').map(Number) || endTime.split(':').map(Number);
+                      const reminderTime = new Date();
+                      reminderTime.setHours(hours, minutes - endReminderMinutes, 0, 0);
+                      return reminderTime.toLocaleTimeString('ca-ES', { hour: '2-digit', minute: '2-digit' });
+                    })()}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
 
           {/* Action buttons */}
           <div className="flex gap-2 pt-4">

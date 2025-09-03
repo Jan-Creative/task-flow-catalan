@@ -66,9 +66,14 @@ export const TimeBlockNotificationPopover = ({
         </Button>
       </PopoverTrigger>
       
-      <PopoverContent className="w-72" align="start">
+      <PopoverContent className="w-80" align="start">
         <div className="space-y-4">
-          <h4 className="font-medium text-sm">Notificacions del bloc</h4>
+          <div className="flex items-center justify-between">
+            <h4 className="font-medium text-sm">Notificacions del bloc</h4>
+            <div className="text-xs text-muted-foreground">
+              {hasNotifications ? 'Activades' : 'Desactivades'}
+            </div>
+          </div>
           
           {/* Start notification */}
           <div className="space-y-2">
@@ -86,7 +91,7 @@ export const TimeBlockNotificationPopover = ({
             </div>
             
             {notifications.start && (
-              <div>
+              <div className="space-y-2">
                 <Label className="text-xs text-muted-foreground">
                   Avís abans de:
                 </Label>
@@ -107,6 +112,14 @@ export const TimeBlockNotificationPopover = ({
                     ))}
                   </SelectContent>
                 </Select>
+                <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
+                  Notificació: {(() => {
+                    const [hours, minutes] = block.startTime.split(':').map(Number);
+                    const reminderTime = new Date();
+                    reminderTime.setHours(hours, minutes - reminderMinutes.start, 0, 0);
+                    return reminderTime.toLocaleTimeString('ca-ES', { hour: '2-digit', minute: '2-digit' });
+                  })()} (demà)
+                </div>
               </div>
             )}
           </div>
@@ -127,7 +140,7 @@ export const TimeBlockNotificationPopover = ({
             </div>
             
             {notifications.end && (
-              <div>
+              <div className="space-y-2">
                 <Label className="text-xs text-muted-foreground">
                   Avís abans de:
                 </Label>
@@ -148,6 +161,14 @@ export const TimeBlockNotificationPopover = ({
                     ))}
                   </SelectContent>
                 </Select>
+                <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
+                  Notificació: {(() => {
+                    const [hours, minutes] = block.endTime.split(':').map(Number);
+                    const reminderTime = new Date();
+                    reminderTime.setHours(hours, minutes - reminderMinutes.end, 0, 0);
+                    return reminderTime.toLocaleTimeString('ca-ES', { hour: '2-digit', minute: '2-digit' });
+                  })()} (demà)
+                </div>
               </div>
             )}
           </div>
