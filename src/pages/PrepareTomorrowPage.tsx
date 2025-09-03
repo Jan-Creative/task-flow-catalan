@@ -10,6 +10,7 @@ import { TasksForDayCard } from '@/components/prepare-tomorrow/TasksForDayCard';
 import { TimeBlocksCard } from '@/components/prepare-tomorrow/TimeBlocksCard';
 import { CompletedTasksTodayCard } from '@/components/prepare-tomorrow/CompletedTasksTodayCard';
 import { IncompleteTasksCard } from '@/components/prepare-tomorrow/IncompleteTasksCard';
+import { DailyReminderConfigModal } from '@/components/prepare-tomorrow/DailyReminderConfigModal';
 import { ArrowLeft, Calendar, Clock, Target, FolderOpen, NotebookPen, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format, addDays } from 'date-fns';
@@ -94,12 +95,15 @@ export default function PrepareTomorrowPage() {
               <p className="text-muted-foreground">{tomorrowDate}</p>
             </div>
           </div>
-          {preparation?.is_completed && (
-            <Badge variant="default" className="bg-green-500/20 text-green-600">
-              <CheckCircle className="h-3 w-3 mr-1" />
-              Completada
-            </Badge>
-          )}
+          <div className="flex items-center gap-3">
+            <DailyReminderConfigModal />
+            {preparation?.is_completed && (
+              <Badge variant="default" className="bg-green-500/20 text-green-600">
+                <CheckCircle className="h-3 w-3 mr-1" />
+                Completada
+              </Badge>
+            )}
+          </div>
         </div>
       </div>
 

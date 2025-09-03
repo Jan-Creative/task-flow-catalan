@@ -83,6 +83,42 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_reminder_preferences: {
+        Row: {
+          created_at: string
+          custom_message: string | null
+          custom_title: string | null
+          days_of_week: number[]
+          id: string
+          is_enabled: boolean
+          reminder_time: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          custom_message?: string | null
+          custom_title?: string | null
+          days_of_week?: number[]
+          id?: string
+          is_enabled?: boolean
+          reminder_time?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          custom_message?: string | null
+          custom_title?: string | null
+          days_of_week?: number[]
+          id?: string
+          is_enabled?: boolean
+          reminder_time?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       events: {
         Row: {
           category: string | null

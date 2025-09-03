@@ -8,17 +8,15 @@ const corsHeaders = {
 interface Database {
   public: {
     Tables: {
-      notification_preferences: {
+      daily_reminder_preferences: {
         Row: {
           id: string
           user_id: string
-          enabled: boolean
-          task_reminders: boolean
-          deadline_alerts: boolean
-          custom_notifications: boolean
-          quiet_hours_start: string | null
-          quiet_hours_end: string | null
-          notification_sound: boolean
+          is_enabled: boolean
+          reminder_time: string
+          custom_title: string | null
+          custom_message: string | null
+          days_of_week: number[]
           created_at: string
           updated_at: string
         }
@@ -55,99 +53,89 @@ Deno.serve(async (req: Request) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Get current time and day of week
-    const now = new Date();
-    const currentHour = now.getHours();
-    const dayOfWeek = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
-
-    console.log(`Current time: ${now.toISOString()}, Day: ${dayOfWeek}, Hour: ${currentHour}`);
-
-    // Determine message based on day of week
-    let title: string;
-    let message: string;
-    
-    if (dayOfWeek === 5) { // Friday
-      title = "🎉 Prepara la setmana que ve";
-      message = "Planifica la setmana vinent i gaudeix del cap de setmana!";
-    } else if (dayOfWeek >= 1 && dayOfWeek <= 4) { // Monday to Thursday
-      title = "🌙 És hora de preparar el dia de demà";
-      message = "Dedica uns minuts a planificar les tasques i prioritats de demà.";
-    } else {
-      // Weekend - no notifications
-      console.log('🚫 No notifications sent during weekends');
-      return new Response(
-        JSON.stringify({ 
-          success: true, 
-          message: 'No notifications sent during weekends',
-          sent_count: 0 
-        }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200 
-        }
-      );
+    // Check if it's a test request
+    const body = await req.text();
+    let isTest = false;
+    try {
+      const parsedBody = JSON.parse(body);
+      isTest = parsedBody.test === true;
+    } catch {
+      // Not JSON or no test field, continue normally
     }
 
-    // Get all users with active notification preferences
+    // Get current time and day of week
+    const now = new Date();
+    const currentDay = now.getDay(); // 0=Sunday, 1=Monday, ..., 6=Saturday
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    
+    // Convert Sunday=0 to Monday=1 system (as in DB)
+    const weekday = currentDay === 0 ? 7 : currentDay;
+
+    console.log(`Current time: ${now.toISOString()}, Weekday: ${weekday}, Hour: ${currentHour}:${currentMinute}`);
+
+    // Default messages
+    const defaultTitle = "🌙 És hora de preparar el dia de demà";
+    const defaultMessage = "Dedica uns minuts a planificar les tasques i prioritats de demà.";
+    
+    if (currentDay === 5) { // Friday
+      const defaultTitle = "🎉 Prepara la setmana que ve";
+      const defaultMessage = "Planifica la setmana vinent i gaudeix del cap de setmana!";
+    }
+
+    // Get users with daily reminder preferences enabled
     const { data: users, error: usersError } = await supabaseClient
-      .from('notification_preferences')
-      .select('user_id, enabled, custom_notifications, quiet_hours_start, quiet_hours_end')
-      .eq('enabled', true)
-      .eq('custom_notifications', true);
+      .from('daily_reminder_preferences')
+      .select('user_id, reminder_time, custom_title, custom_message, days_of_week, is_enabled')
+      .eq('is_enabled', true);
 
     if (usersError) {
       console.error('❌ Error fetching users:', usersError);
       throw usersError;
     }
 
-    console.log(`📋 Found ${users?.length || 0} users with notifications enabled`);
+    console.log(`📋 Found ${users?.length || 0} users with daily reminders enabled`);
 
     if (!users || users.length === 0) {
+      console.log('🔍 No hi ha usuaris amb recordatoris diaris habilitats');
       return new Response(
         JSON.stringify({ 
           success: true, 
-          message: 'No users with notifications enabled',
-          sent_count: 0 
+          message: 'No users with daily reminders enabled', 
+          sent: 0 
         }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200 
-        }
+        { headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
 
-    // Filter users based on quiet hours
-    const eligibleUsers = users.filter(user => {
-      if (!user.quiet_hours_start || !user.quiet_hours_end) {
-        return true; // No quiet hours set, user is eligible
+    // Filter users based on day of week and time (unless it's a test)
+    const eligibleUsers = isTest ? users : users.filter(user => {
+      // Check if today is an active day for this user
+      if (!user.days_of_week.includes(weekday)) {
+        return false;
       }
 
-      const quietStart = parseInt(user.quiet_hours_start.split(':')[0]);
-      const quietEnd = parseInt(user.quiet_hours_end.split(':')[0]);
+      // Check if it's the correct time (with ±5 minutes tolerance)
+      const [reminderHour, reminderMinute] = user.reminder_time.split(':').map(Number);
+      const currentTimeMinutes = currentHour * 60 + currentMinute;
+      const reminderTimeMinutes = reminderHour * 60 + reminderMinute;
       
-      // Check if current hour is within quiet hours
-      if (quietStart <= quietEnd) {
-        // Same day quiet hours (e.g., 22:00 - 07:00 next day is handled differently)
-        return currentHour < quietStart || currentHour >= quietEnd;
-      } else {
-        // Quiet hours span midnight (e.g., 22:00 - 07:00)
-        return currentHour < quietStart && currentHour >= quietEnd;
-      }
+      // Tolerance of 5 minutes before and after
+      const timeDiff = Math.abs(currentTimeMinutes - reminderTimeMinutes);
+      return timeDiff <= 5;
     });
 
-    console.log(`✅ ${eligibleUsers.length} users eligible for notifications (after quiet hours filter)`);
+    console.log(`✅ ${eligibleUsers.length} users eligible for notifications (day/time filter)`);
 
-    if (eligibleUsers.length === 0) {
+    if (eligibleUsers.length === 0 && !isTest) {
+      console.log('🔕 No hi ha usuaris elegibles en aquest moment (dia/hora)');
       return new Response(
         JSON.stringify({ 
           success: true, 
-          message: 'All users in quiet hours',
-          sent_count: 0 
+          message: 'No eligible users at this time (day/hour)', 
+          sent: 0 
         }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200 
-        }
+        { headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
 
@@ -170,73 +158,80 @@ Deno.serve(async (req: Request) => {
         JSON.stringify({ 
           success: true, 
           message: 'No active subscriptions found',
-          sent_count: 0 
+          sent: 0 
         }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200 
-        }
+        { headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
 
-    // Send notifications
+    // Send notifications to each eligible user
     let sentCount = 0;
-    let errors: any[] = [];
+    const errors: string[] = [];
 
-    for (const subscription of subscriptions) {
+    for (const user of eligibleUsers) {
       try {
-        console.log(`📤 Sending notification to user: ${subscription.user_id}`);
+        // Determine title and message (custom or default)
+        const notificationTitle = user.custom_title || defaultTitle;
+        const notificationMessage = user.custom_message || defaultMessage;
 
-        const { error: notificationError } = await supabaseClient.functions.invoke('send-notification', {
-          body: {
-            subscription: {
-              endpoint: subscription.endpoint,
-              keys: {
-                p256dh: subscription.p256dh_key,
-                auth: subscription.auth_key
-              }
-            },
-            payload: {
-              title,
-              body: message,
-              icon: '/icon-192x192.png',
-              badge: '/icon-192x192.png',
-              tag: 'daily-preparation',
-              requireInteraction: false,
-              actions: [
-                {
-                  action: 'prepare',
-                  title: 'Preparar Ara'
+        // Get active subscriptions for this user
+        const userSubscriptions = subscriptions.filter(s => s.user_id === user.user_id);
+
+        if (userSubscriptions.length === 0) {
+          console.log(`⚠️ L'usuari ${user.user_id} no té subscripcions actives`);
+          continue;
+        }
+
+        // Send notification to each subscription
+        for (const subscription of userSubscriptions) {
+          try {
+            const { error: notificationError } = await supabaseClient.functions.invoke('send-notification', {
+              body: {
+                subscription: {
+                  endpoint: subscription.endpoint,
+                  keys: {
+                    p256dh: subscription.p256dh_key,
+                    auth: subscription.auth_key
+                  }
                 },
-                {
-                  action: 'later',
-                  title: 'Més Tard'
+                title: notificationTitle,
+                message: notificationMessage,
+                data: {
+                  type: 'daily_preparation_reminder',
+                  timestamp: now.toISOString(),
+                  user_id: user.user_id,
+                  test: isTest
                 }
-              ]
-            }
-          }
-        });
+              }
+            });
 
-        if (notificationError) {
-          console.error(`❌ Error sending to ${subscription.user_id}:`, notificationError);
-          errors.push({ user_id: subscription.user_id, error: notificationError });
-        } else {
-          sentCount++;
-          console.log(`✅ Notification sent successfully to ${subscription.user_id}`);
+            if (notificationError) {
+              console.error(`❌ Error enviant notificació:`, notificationError);
+              errors.push(`Notification error: ${notificationError.message}`);
+            } else {
+              console.log(`✅ Notificació enviada a l'usuari ${user.user_id} - ${notificationTitle}`);
+              sentCount++;
+            }
+          } catch (error) {
+            console.error(`❌ Error enviant notificació a l'usuari ${user.user_id}:`, error);
+            errors.push(`User ${user.user_id}: ${error.message}`);
+          }
         }
       } catch (error) {
-        console.error(`❌ Exception sending to ${subscription.user_id}:`, error);
-        errors.push({ user_id: subscription.user_id, error: error.message });
+        console.error(`❌ Error processant l'usuari ${user.user_id}:`, error);
+        errors.push(`User ${user.user_id}: ${error.message}`);
       }
     }
 
     const result = {
       success: true,
-      message: `Daily preparation reminders processed`,
-      sent_count: sentCount,
+      message: `Daily preparation reminders processed ${isTest ? '(TEST MODE)' : ''}`,
+      sent: sentCount,
       total_subscriptions: subscriptions.length,
-      day_of_week: dayOfWeek,
-      notification_type: dayOfWeek === 5 ? 'weekend_prep' : 'daily_prep',
+      eligible_users: eligibleUsers.length,
+      weekday,
+      current_time: `${currentHour}:${currentMinute}`,
+      test_mode: isTest,
       errors: errors.length > 0 ? errors : undefined
     };
 
@@ -244,10 +239,7 @@ Deno.serve(async (req: Request) => {
 
     return new Response(
       JSON.stringify(result),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200 
-      }
+      { headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
 
   } catch (error) {
@@ -259,10 +251,7 @@ Deno.serve(async (req: Request) => {
         error: error.message,
         timestamp: new Date().toISOString()
       }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500 
-      }
+      { headers: { "Content-Type": "application/json", ...corsHeaders }, status: 500 }
     );
   }
 });
