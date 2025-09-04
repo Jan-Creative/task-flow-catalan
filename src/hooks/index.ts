@@ -10,6 +10,7 @@ export * from './tasks';
 export * from './performance';
 export * from './notifications';
 export * from './calendar';
+export * from './device';
 
 // Utility and specialized hooks
 export { useTypedForm } from './useTypedForm';
