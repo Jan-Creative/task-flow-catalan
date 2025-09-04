@@ -1,5 +1,3 @@
-import { Toaster } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import CalendarPage from "./pages/CalendarPage";
@@ -13,8 +11,6 @@ import { BackgroundRenderer } from "@/components/backgrounds/BackgroundRenderer"
 import { NotificationDisplay } from "@/components/NotificationDisplay";
 import { PerformanceMonitor } from "@/components/performance/PerformanceMonitor";
 import { SecurityMonitor } from "@/components/security/SecurityMonitor";
-import { NotificationProvider } from "@/contexts/NotificationContext";
-import { SecurityProvider } from "@/contexts/SecurityContext";
 import { config, validateConfig } from "@/config/appConfig";
 
 const App = () => {
@@ -31,31 +27,24 @@ const App = () => {
   return (
     <div className="w-full min-h-screen overflow-x-hidden">
       <BackgroundRenderer />
-      <TooltipProvider>
-        <SecurityProvider>
-          <NotificationProvider>
-            <Toaster />
-            <BrowserRouter>
-              <RouteCacheProvider maxAge={15 * 60 * 1000} maxEntries={25}>
-                <BackgroundRefresher />
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/calendar" element={<CalendarPage />} />
-                  <Route path="/prepare-tomorrow" element={<PrepareTomorrowPage />} />
-                  <Route path="/task/:taskId" element={<LazyTaskDetailPage />} />
-                  <Route path="/folder/:folderId" element={<LazyFolderDetailPage />} />
-                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </RouteCacheProvider>
-            </BrowserRouter>
-            <PomodoroWidget />
-            <NotificationDisplay />
-            <PerformanceMonitor />
-            <SecurityMonitor />
-          </NotificationProvider>
-        </SecurityProvider>
-      </TooltipProvider>
+      <BrowserRouter>
+        <RouteCacheProvider maxAge={15 * 60 * 1000} maxEntries={25}>
+          <BackgroundRefresher />
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/calendar" element={<CalendarPage />} />
+            <Route path="/prepare-tomorrow" element={<PrepareTomorrowPage />} />
+            <Route path="/task/:taskId" element={<LazyTaskDetailPage />} />
+            <Route path="/folder/:folderId" element={<LazyFolderDetailPage />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </RouteCacheProvider>
+      </BrowserRouter>
+      <PomodoroWidget />
+      <NotificationDisplay />
+      <PerformanceMonitor />
+      <SecurityMonitor />
     </div>
   );
 };

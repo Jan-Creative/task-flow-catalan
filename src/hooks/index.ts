@@ -1,13 +1,20 @@
-// Barrel export for all hooks
-export { useAuth } from './useAuth';
-export { useDadesApp } from './useDadesApp';
-export { useKeyboardShortcuts, useShortcut } from './useKeyboardShortcuts';
-export { useProperties } from './useProperties';
-export { usePropertyLabels } from './usePropertyLabels';
-export { useTaskNotes } from './useTaskNotes';
-export { useTaskSubtasks } from './useTaskSubtasks';
-export { usePrepareTomorrow } from './usePrepareTomorrow';
-export { usePrepareTomorrowVisibility } from './usePrepareTomorrowVisibility';
+/**
+ * Centralized hook exports - organized by category
+ * This provides a clean API for importing hooks throughout the app
+ */
 
-// Task-specific hooks
-export { useCreateTaskForm } from './tasks/useCreateTaskForm';
+// Re-export organized hook categories
+export * from './core';
+export * from './ui';
+export * from './tasks';
+export * from './performance';
+export * from './notifications';
+export * from './calendar';
+
+// Utility and specialized hooks
+export { useTypedForm } from './useTypedForm';
+export { useUnifiedProperties } from './useUnifiedProperties';
+export { useErrorHandler } from './useErrorHandler';
+export { useRealtimeSafety } from './useRealtimeSafety';
+export { useRealtimeSubscriptions } from './useRealtimeSubscriptions';
+export { useServiceWorkerStatus } from './useServiceWorkerStatus';

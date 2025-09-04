@@ -13,7 +13,6 @@ export const FolderDetailPageLazy = lazy(() => import('@/pages/FolderDetailPage'
 
 // Modals and dialogs
 export const CreateTaskModalLazy = lazy(() => import('@/components/CreateTaskModal'));
-export const CreateTaskDrawerLazy = lazy(() => import('@/components/CreateTaskDrawer'));
 
 // ============= OPTIMIZED LOADING COMPONENTS =============
 

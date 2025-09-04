@@ -125,12 +125,17 @@ Deno.serve(async (req: Request) => {
           minute: '2-digit'
         }).slice(-5); // Get HH:MM format
         
-        // Get user's local day of week
-        const userLocalDay = new Date().toLocaleDateString('en-US', {
-          timeZone: userTimezone,
-          weekday: 'numeric'
-        });
-        const userWeekday = parseInt(userLocalDay) === 0 ? 7 : parseInt(userLocalDay);
+    // Get user's local day of week
+    const userLocalDay = new Date().toLocaleDateString('en-US', {
+      timeZone: userTimezone,
+      weekday: 'short'
+    });
+    
+    // Map day names to numbers consistently
+    const dayMap: { [key: string]: number } = {
+      'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5, 'Sat': 6, 'Sun': 7
+    };
+    const userWeekday = dayMap[userLocalDay] || 1;
 
         console.log(`👤 User ${user.user_id}: Local time ${userLocalTime}, Local day ${userWeekday}, Reminder time ${user.reminder_time}, Timezone: ${userTimezone}`);
 
