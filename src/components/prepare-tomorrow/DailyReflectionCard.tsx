@@ -8,10 +8,7 @@ import { useDadesApp } from '@/hooks/useDadesApp';
 import { format } from 'date-fns';
 import { ca } from 'date-fns/locale';
 import type { CreateReflectionData } from '@/types/reflection';
-import { MoodSelectorCard } from './reflection/MoodSelectorCard';
-import { MetricsCard } from './reflection/MetricsCard';
-import { EmotionalTagsCard } from './reflection/EmotionalTagsCard';
-import { PersonalNotesCard } from './reflection/PersonalNotesCard';
+import { UnifiedReflectionCard } from './reflection/UnifiedReflectionCard';
 
 interface DailyReflectionCardProps {
   date: Date;
@@ -85,31 +82,8 @@ export function DailyReflectionCard({ date }: DailyReflectionCardProps) {
     }
   };
 
-  const toggleMoodTag = (tag: string) => {
-    setFormData(prev => ({
-      ...prev,
-      mood_tags: prev.mood_tags?.includes(tag) 
-        ? prev.mood_tags.filter(t => t !== tag)
-        : [...(prev.mood_tags || []), tag]
-    }));
-  };
-
-  const toggleAccomplishment = (tag: string) => {
-    setFormData(prev => ({
-      ...prev,
-      accomplishments: prev.accomplishments?.includes(tag) 
-        ? prev.accomplishments.filter(t => t !== tag)
-        : [...(prev.accomplishments || []), tag]
-    }));
-  };
-
-  const toggleObstacle = (tag: string) => {
-    setFormData(prev => ({
-      ...prev,
-      obstacles: prev.obstacles?.includes(tag) 
-        ? prev.obstacles.filter(t => t !== tag)
-        : [...(prev.obstacles || []), tag]
-    }));
+  const handleDataChange = (data: CreateReflectionData) => {
+    setFormData(data);
   };
 
   const getRatingEmoji = (value: number) => {
@@ -228,60 +202,12 @@ export function DailyReflectionCard({ date }: DailyReflectionCardProps) {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <Card className="bg-gradient-to-r from-primary/10 via-primary-glow/5 to-primary/10 border-primary/20 backdrop-blur-sm">
-        <CardHeader className="text-center">
-          <CardTitle className="text-xl font-bold text-foreground flex items-center justify-center gap-2">
-            <Heart className="h-6 w-6 text-primary animate-pulse" />
-            {existingReflection ? 'Editar Reflexió del Dia' : 'Nova Reflexió del Dia'}
-            <Sparkles className="h-5 w-5 text-primary-glow" />
-          </CardTitle>
-          <div className="text-sm text-muted-foreground capitalize font-medium">{formatDate}</div>
-        </CardHeader>
-      </Card>
-
-      {/* Mood Selector - Main hero component */}
-      <MoodSelectorCard
-        value={formData.day_rating}
-        onChange={(value) => setFormData(prev => ({ ...prev, day_rating: value }))}
-        disabled={isSaving}
-      />
-
-      {/* Metrics */}
-      <MetricsCard
-        workSatisfaction={formData.work_satisfaction}
-        energyLevel={formData.energy_level}
-        stressLevel={formData.stress_level}
-        onWorkSatisfactionChange={(value) => setFormData(prev => ({ ...prev, work_satisfaction: value }))}
-        onEnergyLevelChange={(value) => setFormData(prev => ({ ...prev, energy_level: value }))}
-        onStressLevelChange={(value) => setFormData(prev => ({ ...prev, stress_level: value }))}
-        disabled={isSaving}
-      />
-
-      {/* Emotional Tags */}
-      <EmotionalTagsCard
-        moodTags={formData.mood_tags || []}
-        accomplishments={formData.accomplishments || []}
-        obstacles={formData.obstacles || []}
-        onToggleMoodTag={toggleMoodTag}
-        onToggleAccomplishment={toggleAccomplishment}
-        onToggleObstacle={toggleObstacle}
-        disabled={isSaving}
-      />
-
-      {/* Personal Notes & Save */}
-      <PersonalNotesCard
-        notes={formData.notes}
-        gratitudeNotes={formData.gratitude_notes || ''}
-        tomorrowFocus={formData.tomorrow_focus}
-        onNotesChange={(value) => setFormData(prev => ({ ...prev, notes: value }))}
-        onGratitudeNotesChange={(value) => setFormData(prev => ({ ...prev, gratitude_notes: value }))}
-        onTomorrowFocusChange={(value) => setFormData(prev => ({ ...prev, tomorrow_focus: value }))}
-        onSave={handleSave}
-        isSaving={isSaving}
-        disabled={isSaving}
-      />
-    </div>
+    <UnifiedReflectionCard
+      initialData={formData}
+      onDataChange={handleDataChange}
+      onSave={handleSave}
+      isSaving={isSaving}
+      disabled={isSaving}
+    />
   );
 }
