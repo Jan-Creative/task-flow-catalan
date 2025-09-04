@@ -22,11 +22,17 @@ export const useTimeBlockNotifications = (baseDate?: Date) => {
     const blockDateTime = parse(timeString, 'HH:mm', targetDate);
     
     // Subtract reminder minutes
-    const reminderDateTime = addMinutes(blockDateTime, -block.reminderMinutes[type]);
+    let reminderDateTime = addMinutes(blockDateTime, -block.reminderMinutes[type]);
     
-    // Don't schedule if the reminder time has already passed
-    if (reminderDateTime <= new Date()) {
-      return;
+    // If the reminder time has already passed and we're scheduling for today, 
+    // add a 60-second buffer to ensure it gets scheduled
+    const now = new Date();
+    if (reminderDateTime <= now && baseDate && 
+        format(baseDate, 'yyyy-MM-dd') === format(now, 'yyyy-MM-dd')) {
+      reminderDateTime = addMinutes(now, 1); // Schedule 1 minute from now
+      console.log(`⏰ Bloc "${block.title}" (${type}) ja ha passat l'hora original, programant en 1 minut`);
+    } else if (reminderDateTime <= now) {
+      return; // Skip if it's for a future date and time has passed
     }
 
     const title = type === 'start' 
@@ -38,7 +44,10 @@ export const useTimeBlockNotifications = (baseDate?: Date) => {
       : `"${block.title}" acabarà en ${block.reminderMinutes[type]} minuts (${timeString})`;
 
     try {
-      await createCustomNotification(title, message, reminderDateTime);
+      await createCustomNotification(title, message, reminderDateTime, {
+        block_id: block.id,
+        notification_type: 'time_block_reminder'
+      });
       console.log(`✅ Notificació programada per ${block.title} (${type}) a ${format(reminderDateTime, 'dd/MM/yyyy HH:mm')} (target date: ${format(targetDate, 'dd/MM/yyyy')})`);
     } catch (error) {
       console.error(`❌ Error programant notificació per ${block.title}:`, error);

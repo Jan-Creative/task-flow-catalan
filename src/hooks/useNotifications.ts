@@ -453,7 +453,8 @@ export const useNotifications = () => {
   const createCustomNotification = useCallback(async (
     title: string,
     message: string,
-    scheduledAt: Date
+    scheduledAt: Date,
+    metadata?: { block_id?: string; notification_type?: string }
   ) => {
     if (!user) return;
 
@@ -465,8 +466,10 @@ export const useNotifications = () => {
           title,
           message,
           scheduled_at: scheduledAt.toISOString(),
-          notification_type: 'custom',
-          status: 'pending'
+          notification_type: metadata?.notification_type || 'custom',
+          block_id: metadata?.block_id || null,
+          status: 'pending',
+          metadata: metadata || {}
         });
 
       if (error) throw error;
