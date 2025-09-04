@@ -23,8 +23,20 @@ export function useDeviceType(): DeviceInfo {
 
   useEffect(() => {
     const detectDevice = (): DeviceInfo => {
+      // Safety check for SSR/Node environment
+      if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+        return {
+          type: 'unknown',
+          isTouch: false,
+          isMobile: false,
+          isTablet: false,
+          isDesktop: true,
+          os: 'unknown'
+        };
+      }
+
       const userAgent = navigator.userAgent;
-      const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      const isTouch = 'ontouchstart' in window || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
       
       // iOS Detection
       if (/iPad/.test(userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) {

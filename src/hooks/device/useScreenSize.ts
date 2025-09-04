@@ -40,10 +40,23 @@ export function useScreenSize(): ScreenInfo {
   });
 
   function calculateScreenInfo(): ScreenInfo {
+    // Safety check for SSR environment
+    if (typeof window === 'undefined') {
+      return {
+        width: 1920,
+        height: 1080,
+        breakpoint: 'xl',
+        deviceSize: 'desktop',
+        orientation: 'landscape',
+        isRetina: false,
+        aspectRatio: 16/9
+      };
+    }
+
     const width = window.innerWidth;
     const height = window.innerHeight;
     const aspectRatio = width / height;
-    const isRetina = window.devicePixelRatio > 1;
+    const isRetina = window.devicePixelRatio && window.devicePixelRatio > 1;
     
     // Determine breakpoint
     let breakpoint: ScreenBreakpoint = 'xs';
