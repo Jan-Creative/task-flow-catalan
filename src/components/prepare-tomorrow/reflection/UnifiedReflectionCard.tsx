@@ -161,11 +161,11 @@ export function UnifiedReflectionCard({
             onClick={() => updateFormData({ day_rating: mood.value })}
             disabled={disabled}
             className={cn(
-              "relative p-6 rounded-2xl border-2 transition-all duration-300 group",
+              "relative p-6 rounded-2xl border-2 transition-all duration-300 group bg-transparent",
               "hover:scale-105 hover:shadow-lg",
               formData.day_rating === mood.value
-                ? "border-primary bg-gradient-to-br " + mood.color + " scale-105"
-                : "border-border hover:border-primary/50 bg-secondary/30",
+                ? "border-primary scale-105"
+                : "border-border hover:border-primary/50",
               disabled && "opacity-50 cursor-not-allowed"
             )}
             style={formData.day_rating === mood.value ? {
@@ -192,7 +192,7 @@ export function UnifiedReflectionCard({
       </div>
 
       {selectedMood && (
-        <div className="text-center p-4 rounded-xl bg-gradient-to-br from-primary/10 to-primary-glow/5 border border-primary/20">
+        <div className="text-center p-4 rounded-xl border border-primary/20 bg-transparent">
           <div className="text-2xl mb-2">{selectedMood.emoji}</div>
           <div className="font-medium text-primary">{selectedMood.label}</div>
           <div className="text-sm text-muted-foreground">Puntuació: {selectedMood.value}/7</div>
@@ -248,10 +248,10 @@ export function UnifiedReflectionCard({
                       onClick={() => updateFormData({ [metric.key]: num })}
                       disabled={disabled}
                       className={cn(
-                        "w-6 h-6 rounded-full text-xs font-medium transition-all",
-                        value === num
-                          ? "bg-primary text-primary-foreground scale-125"
-                          : "bg-secondary/50 text-muted-foreground hover:bg-primary/20 hover:text-primary"
+                         "w-6 h-6 rounded-full text-xs font-medium transition-all bg-transparent border",
+                         value === num
+                           ? "border-primary text-primary scale-125 shadow-[0_0_10px_hsl(var(--primary)/0.4)]"
+                           : "border-border text-muted-foreground hover:border-primary/50 hover:text-primary"
                       )}
                     >
                       {num}
@@ -292,10 +292,10 @@ export function UnifiedReflectionCard({
                   onClick={() => updateFormData({ mood_tags: toggleArrayItem(formData.mood_tags, tag) })}
                   disabled={disabled}
                   className={cn(
-                    "px-3 py-2 rounded-full text-sm font-medium transition-all border",
-                    isSelected
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-secondary/30 text-muted-foreground border-border hover:border-primary/50 hover:bg-primary/10"
+                     "px-3 py-2 rounded-full text-sm font-medium transition-all border bg-transparent",
+                     isSelected
+                       ? "text-primary border-primary shadow-[0_0_15px_hsl(var(--primary)/0.3)]"
+                       : "text-muted-foreground border-border hover:border-primary/50 hover:text-primary"
                   )}
                 >
                   {tag}
@@ -320,10 +320,10 @@ export function UnifiedReflectionCard({
                   onClick={() => updateFormData({ accomplishments: toggleArrayItem(formData.accomplishments, accomplishment) })}
                   disabled={disabled}
                   className={cn(
-                    "px-3 py-2 rounded-full text-sm font-medium transition-all border",
-                    isSelected
-                      ? "bg-success text-success-foreground border-success"
-                      : "bg-secondary/30 text-muted-foreground border-border hover:border-success/50 hover:bg-success/10"
+                     "px-3 py-2 rounded-full text-sm font-medium transition-all border bg-transparent",
+                     isSelected
+                       ? "text-success border-success shadow-[0_0_15px_hsl(var(--success)/0.3)]"
+                       : "text-muted-foreground border-border hover:border-success/50 hover:text-success"
                   )}
                 >
                   {accomplishment}
@@ -348,10 +348,10 @@ export function UnifiedReflectionCard({
                   onClick={() => updateFormData({ obstacles: toggleArrayItem(formData.obstacles, obstacle) })}
                   disabled={disabled}
                   className={cn(
-                    "px-3 py-2 rounded-full text-sm font-medium transition-all border",
-                    isSelected
-                      ? "bg-warning text-warning-foreground border-warning"
-                      : "bg-secondary/30 text-muted-foreground border-border hover:border-warning/50 hover:bg-warning/10"
+                     "px-3 py-2 rounded-full text-sm font-medium transition-all border bg-transparent",
+                     isSelected
+                       ? "text-warning border-warning shadow-[0_0_15px_hsl(var(--warning)/0.3)]"
+                       : "text-muted-foreground border-border hover:border-warning/50 hover:text-warning"
                   )}
                 >
                   {obstacle}
@@ -382,7 +382,7 @@ export function UnifiedReflectionCard({
             onChange={(e) => updateFormData({ notes: e.target.value })}
             placeholder="Com ha anat el dia? Què has après?"
             disabled={disabled}
-            className="min-h-[100px] resize-none"
+            className="min-h-[100px] resize-none bg-transparent border-border/30 focus:border-primary"
           />
         </div>
 
@@ -396,7 +396,7 @@ export function UnifiedReflectionCard({
             onChange={(e) => updateFormData({ gratitude_notes: e.target.value })}
             placeholder="Per què estàs agraït avui?"
             disabled={disabled}
-            className="min-h-[80px] resize-none"
+            className="min-h-[80px] resize-none bg-transparent border-border/30 focus:border-primary"
           />
         </div>
 
@@ -407,6 +407,7 @@ export function UnifiedReflectionCard({
             onChange={(e) => updateFormData({ tomorrow_focus: e.target.value })}
             placeholder="En què et vols centrar demà?"
             disabled={disabled}
+            className="bg-transparent border-border/30 focus:border-primary"
           />
         </div>
       </div>
@@ -428,8 +429,8 @@ export function UnifiedReflectionCard({
   const allStepsCompleted = completedSteps.size === STEPS.length;
 
   return (
-    <Card className="bg-gradient-to-br from-card via-card to-card/80 border-border/50 backdrop-blur-sm">
-      <CardHeader className="text-center">
+    <Card className="h-[600px] w-full max-w-2xl bg-gradient-to-br from-card via-card to-card/80 border-border/50 backdrop-blur-sm">
+      <CardHeader className="text-center pb-4">
         <CardTitle className="text-2xl font-bold text-foreground flex items-center justify-center gap-2">
           <Heart className="h-6 w-6 text-primary" />
           Reflexió del Dia
@@ -437,34 +438,34 @@ export function UnifiedReflectionCard({
         </CardTitle>
       </CardHeader>
       
-      <CardContent className="space-y-6">
+      <CardContent className="h-[calc(100%-120px)] flex flex-col">
         {renderProgressDots()}
         
-        <div className="min-h-[400px]">
+        <div className="flex-1 overflow-y-auto">
           {renderStepContent()}
         </div>
         
         {/* Navigation */}
         <div className="flex items-center justify-between pt-4 border-t border-border/50">
           <Button
-            variant="outline"
+            variant="ghost"
             onClick={goPrevious}
             disabled={!canGoPrevious || disabled}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 bg-transparent border border-border/30 hover:border-primary/50"
           >
             <ChevronLeft className="h-4 w-4" />
             Anterior
           </Button>
-          
+
           <div className="text-sm text-muted-foreground">
-            {currentStepIndex + 1} de {STEPS.length}
+            {currentStepIndex + 1} / {STEPS.length}
           </div>
-          
+
           {canGoNext ? (
             <Button
               onClick={goNext}
               disabled={disabled}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 bg-transparent border border-primary hover:bg-primary/10"
             >
               Següent
               <ChevronRight className="h-4 w-4" />
@@ -472,21 +473,18 @@ export function UnifiedReflectionCard({
           ) : (
             <Button
               onClick={onSave}
-              disabled={disabled || isSaving}
-              className="flex items-center gap-2 bg-gradient-to-r from-primary to-primary-glow"
+              disabled={isSaving || disabled}
+              className="flex items-center gap-2 bg-transparent border border-success hover:bg-success/10 text-success"
             >
-              <Save className="h-4 w-4" />
-              {isSaving ? 'Guardant...' : 'Guardar Reflexió'}
+              {isSaving ? "Guardant..." : (
+                <>
+                  <Save className="h-4 w-4" />
+                  Guardar
+                </>
+              )}
             </Button>
           )}
         </div>
-        
-        {allStepsCompleted && (
-          <div className="text-center p-4 rounded-xl bg-gradient-to-r from-success/10 to-success/5 border border-success/20">
-            <div className="text-success font-medium">🎉 Reflexió completa!</div>
-            <div className="text-sm text-muted-foreground">Has completat totes les seccions</div>
-          </div>
-        )}
       </CardContent>
     </Card>
   );
