@@ -53,15 +53,14 @@ export function FolderItem({
       className="rounded-xl"
     >
       <div 
-        className="group flex items-center justify-between p-4 rounded-xl hover:bg-secondary/50 transition-all duration-200 cursor-pointer border border-transparent hover:border-border/50"
+        className="group flex items-center justify-between p-4 rounded-xl hover:bg-secondary/50 transition-all duration-200 cursor-pointer"
         onClick={handleFolderClick}
       >
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <div 
             className="flex-shrink-0 p-2 rounded-lg backdrop-blur-sm"
             style={{ 
-              backgroundColor: `${folder.color}20`,
-              border: `1px solid ${folder.color}40`
+              backgroundColor: `${folder.color}20`
             }}
           >
             {(() => {
@@ -98,7 +97,7 @@ export function FolderItem({
             </DropdownMenuTrigger>
             <DropdownMenuContent 
               align="end" 
-              className="w-48 bg-popover/95 backdrop-blur-md border border-border/50"
+              className="w-48 bg-popover/95 backdrop-blur-md"
             >
               <DropdownMenuItem 
                 onClick={(e) => {
