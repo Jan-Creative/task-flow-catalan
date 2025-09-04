@@ -24,6 +24,7 @@ import {
   Moon,
   Sunset
 } from "lucide-react";
+import { ConfigurationMenu } from "@/components/dashboard/ConfigurationMenu";
 
 interface DashboardPageProps {
   onEditTask: (task: any) => void;
@@ -149,18 +150,25 @@ const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar }: 
     <div className="w-full max-w-full p-4 pb-24 space-y-6">
       {/* Personalized Header */}
       <div className="space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-primary/20 rounded-2xl">
-            <GreetingIcon className="h-6 w-6 text-primary" />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-primary/20 rounded-2xl">
+              <GreetingIcon className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-foreground">
+                {greeting}, {userName}!
+              </h1>
+              <p className="text-muted-foreground">
+                {format(new Date(), "EEEE, d MMMM yyyy", { locale: ca })}
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">
-              {greeting}, {userName}!
-            </h1>
-            <p className="text-muted-foreground">
-              {format(new Date(), "EEEE, d MMMM yyyy", { locale: ca })}
-            </p>
-          </div>
+          
+          {/* Configuration Menu */}
+          <ConfigurationMenu 
+            onNavigateToPrepareTomorrow={() => window.location.href = '/prepare-tomorrow'}
+          />
         </div>
 
         {/* Executive Summary */}
