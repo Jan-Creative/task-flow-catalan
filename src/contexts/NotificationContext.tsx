@@ -21,7 +21,7 @@ interface NotificationContextType {
   initializeNotifications: () => Promise<boolean>;
   updatePreferences: (updates: Partial<NotificationPreferences>) => Promise<void>;
   createTaskReminder: (taskId: string, title: string, message: string, scheduledAt: Date) => Promise<void>;
-  createCustomNotification: (title: string, message: string, scheduledAt: Date) => Promise<void>;
+  createCustomNotification: (title: string, message: string, scheduledAt: Date, metadata?: { block_id?: string; notification_type?: string }) => Promise<void>;
   cancelReminder: (reminderId: string) => Promise<void>;
   refreshData: () => Promise<void>;
   runRemindersProcessor: () => Promise<void>;
@@ -102,9 +102,9 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       }
     },
 
-    createCustomNotification: async (title: string, message: string, scheduledAt: Date) => {
+    createCustomNotification: async (title: string, message: string, scheduledAt: Date, metadata?: { block_id?: string; notification_type?: string }) => {
       try {
-        await notifications.createCustomNotification(title, message, scheduledAt);
+        await notifications.createCustomNotification(title, message, scheduledAt, metadata);
       } catch (error) {
         console.error('Error in createCustomNotification:', error);
         toast({
