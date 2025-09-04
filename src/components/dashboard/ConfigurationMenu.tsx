@@ -17,6 +17,7 @@ interface ConfigurationMenuProps {
 
 export const ConfigurationMenu = ({ onNavigateToPrepareTomorrow }: ConfigurationMenuProps) => {
   const [showTimeBlocks, setShowTimeBlocks] = useState(false);
+  const [showReminderConfig, setShowReminderConfig] = useState(false);
 
   const handlePrepareTomorrow = () => {
     if (onNavigateToPrepareTomorrow) {
@@ -38,9 +39,13 @@ export const ConfigurationMenu = ({ onNavigateToPrepareTomorrow }: Configuration
             <Settings className="h-5 w-5" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-56">
-          <DropdownMenuItem className="cursor-pointer p-0 focus:bg-transparent">
-            <DailyReminderConfigModal />
+        <DropdownMenuContent align="end" className="w-56 bg-background border shadow-md z-50">
+          <DropdownMenuItem 
+            className="cursor-pointer"
+            onClick={() => setShowReminderConfig(true)}
+          >
+            <Bell className="h-4 w-4 mr-2" />
+            Configurar Recordatoris
           </DropdownMenuItem>
           
           <DropdownMenuSeparator />
@@ -62,6 +67,8 @@ export const ConfigurationMenu = ({ onNavigateToPrepareTomorrow }: Configuration
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <DailyReminderConfigModal open={showReminderConfig} onOpenChange={setShowReminderConfig} />
 
       <TodayTimeBlocksModal 
         open={showTimeBlocks}

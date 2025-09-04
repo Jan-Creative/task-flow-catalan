@@ -1,6 +1,5 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Clock, X } from "lucide-react";
+import { Clock } from "lucide-react";
 import { TimeBlocksCard } from "@/components/prepare-tomorrow/TimeBlocksCard";
 import { useTodayTimeBlocks } from "@/hooks/useTodayTimeBlocks";
 
@@ -22,19 +21,9 @@ export const TodayTimeBlocksModal = ({ open, onClose }: TodayTimeBlocksModalProp
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader className="flex-shrink-0">
-          <DialogTitle className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-primary" />
-              Blocs de Temps d'Avui
-            </div>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={onClose}
-              className="h-6 w-6"
-            >
-              <X className="h-4 w-4" />
-            </Button>
+          <DialogTitle className="flex items-center gap-2">
+            <Clock className="h-5 w-5 text-primary" />
+            Blocs de Temps d'Avui
           </DialogTitle>
         </DialogHeader>
         

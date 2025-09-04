@@ -35,10 +35,18 @@ const DAYS_OF_WEEK = [
 const DEFAULT_TITLE = "⏰ Hora de preparar el dia de demà!";
 const DEFAULT_MESSAGE = "No oblidis planificar les teves tasques i organitzar el teu dia de demà per començar amb bon peu.";
 
-export function DailyReminderConfigModal() {
+interface DailyReminderConfigModalProps {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
+export function DailyReminderConfigModal({ open: externalOpen, onOpenChange }: DailyReminderConfigModalProps = {}) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  
+  const open = externalOpen !== undefined ? externalOpen : internalOpen;
+  const setOpen = onOpenChange || setInternalOpen;
   const [loading, setLoading] = useState(false);
   const [preferences, setPreferences] = useState<DailyReminderPreferences>({
     is_enabled: true,
@@ -163,12 +171,14 @@ export function DailyReminderConfigModal() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <Settings className="h-4 w-4 mr-2" />
-          Configurar Recordatoris
-        </Button>
-      </DialogTrigger>
+      {externalOpen === undefined && (
+        <DialogTrigger asChild>
+          <Button variant="outline" size="sm">
+            <Settings className="h-4 w-4 mr-2" />
+            Configurar Recordatoris
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
