@@ -14,6 +14,7 @@ import type { Tasca } from '@/types';
 import { useOptimizedPropertyLabels } from '@/hooks/useOptimizedPropertyLabels';
 import { getIconByName } from '@/lib/iconLibrary';
 import { SmoothPriorityBadge } from '@/components/ui/smooth-priority-badge';
+import { SwipeableItem } from '@/components/SwipeableItem';
 import { cn } from '@/lib/utils';
 
 interface OptimizedTaskItemProps {
@@ -54,6 +55,10 @@ const OptimizedTaskItem = memo<OptimizedTaskItemProps>(({
     onDelete?.(task.id);
   }, [task.id, onDelete]);
 
+  const handleSwipeStatusChange = useCallback((status: Tasca['status']) => {
+    onStatusChange?.(task.id, status);
+  }, [task.id, onStatusChange]);
+
   const isCompleted = useMemo(() => task.status === 'completat', [task.status]);
   const isCompleting = useMemo(() => completingTasks.has(task.id), [completingTasks, task.id]);
   const isOverdue = useMemo(() => {
@@ -80,104 +85,115 @@ const OptimizedTaskItem = memo<OptimizedTaskItemProps>(({
   }, [task.due_date]);
 
   return (
-    <Card className={`p-4 transition-all duration-200 hover:shadow-md ${
-      isCompleted ? 'opacity-75' : ''
-    } ${isOverdue ? 'border-destructive/50' : ''} ${
-      viewMode === 'kanban' ? 'p-3' : ''
-    }`}>
-      <div className="flex items-start gap-3">
-        {/* Checkbox */}
-        <Checkbox
-          checked={isCompleted}
-          onCheckedChange={handleStatusChange}
-          disabled={isCompleting}
-          className="mt-1"
-          aria-label={`Marcar tasca "${task.title}" com a ${isCompleted ? 'pendent' : 'completada'}`}
-        />
+    <SwipeableItem
+      task={task}
+      onDelete={handleDelete}
+      onEdit={handleEdit}
+      onStatusChange={handleSwipeStatusChange}
+      disabled={isCompleting}
+    >
+      <Card className={cn(
+        "p-4 transition-all duration-200 hover:shadow-md",
+        isCompleted && "opacity-75",
+        isOverdue && "border-destructive/50",
+        viewMode === 'kanban' && "p-3"
+      )}>
+        <div className="flex items-start gap-3">
+          {/* Checkbox */}
+          <Checkbox
+            checked={isCompleted}
+            onCheckedChange={handleStatusChange}
+            disabled={isCompleting}
+            className="mt-1"
+            aria-label={`Marcar tasca "${task.title}" com a ${isCompleted ? 'pendent' : 'completada'}`}
+          />
 
-        {/* Content */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-2">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <h3 className={`font-medium ${viewMode === 'kanban' ? 'text-sm' : 'text-sm'} line-clamp-2 ${
-                  isCompleted ? 'line-through text-muted-foreground' : 'text-foreground'
-                }`}>
-                  {task.title}
-                </h3>
+          {/* Content */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className={cn(
+                    "font-medium text-sm line-clamp-2",
+                    isCompleted ? "line-through text-muted-foreground" : "text-foreground"
+                  )}>
+                    {task.title}
+                  </h3>
+                  
+                  {/* Priority Badge */}
+                  <SmoothPriorityBadge priority={task.priority} size="sm" />
+                </div>
                 
-                {/* Priority Badge */}
-                <SmoothPriorityBadge priority={task.priority} size="sm" />
+                {task.description && (
+                  <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
+                    {task.description}
+                  </p>
+                )}
               </div>
-              
-              {task.description && (
-                <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
-                  {task.description}
-                </p>
-              )}
+
+              {/* Actions Menu */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <MoreVertical className="h-4 w-4" />
+                    <span className="sr-only">Obrir menú d'accions</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={handleEdit}>
+                    <Edit className="mr-2 h-4 w-4" />
+                    Editar
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={handleDelete}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Eliminar
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
 
-            {/* Actions Menu */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                  <MoreVertical className="h-4 w-4" />
-                  <span className="sr-only">Obrir menú d'accions</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={handleEdit}>
-                  <Edit className="mr-2 h-4 w-4" />
-                  Editar
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={handleDelete}
-                  className="text-destructive focus:text-destructive"
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Eliminar
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-
-          {/* Badges and metadata */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <Badge variant="outline" className="text-xs flex items-center gap-1" style={statusColor}>
-              {(() => {
-                const statusIconName = getStatusIcon(task.status);
-                if (statusIconName) {
-                  const iconDef = getIconByName(statusIconName);
-                  if (iconDef) {
-                    const StatusIconComponent = iconDef.icon;
-                    return <StatusIconComponent className="h-2.5 w-2.5" />;
+            {/* Badges and metadata */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <Badge variant="outline" className="text-xs flex items-center gap-1" style={statusColor}>
+                {(() => {
+                  const statusIconName = getStatusIcon(task.status);
+                  if (statusIconName) {
+                    const iconDef = getIconByName(statusIconName);
+                    if (iconDef) {
+                      const StatusIconComponent = iconDef.icon;
+                      return <StatusIconComponent className="h-2.5 w-2.5" />;
+                    }
                   }
-                }
-                return null;
-              })()}
-              {getStatusLabel(task.status)}
-            </Badge>
+                  return null;
+                })()}
+                {getStatusLabel(task.status)}
+              </Badge>
 
-            {formattedDueDate && (
-              <div className={`flex items-center gap-1 text-xs ${
-                isOverdue ? 'text-destructive' : 'text-muted-foreground'
-              }`}>
-                <Calendar className="h-3 w-3" />
-                <span>{formattedDueDate}</span>
-                {isOverdue && <span className="font-medium">(vencida)</span>}
-              </div>
-            )}
+              {formattedDueDate && (
+                <div className={cn(
+                  "flex items-center gap-1 text-xs",
+                  isOverdue ? "text-destructive" : "text-muted-foreground"
+                )}>
+                  <Calendar className="h-3 w-3" />
+                  <span>{formattedDueDate}</span>
+                  {isOverdue && <span className="font-medium">(vencida)</span>}
+                </div>
+              )}
 
-            {viewMode !== 'kanban' && (
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <Clock className="h-3 w-3" />
-                <span>{new Date(task.created_at).toLocaleDateString('ca-ES')}</span>
-              </div>
-            )}
+              {viewMode !== 'kanban' && (
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Clock className="h-3 w-3" />
+                  <span>{new Date(task.created_at).toLocaleDateString('ca-ES')}</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
-    </Card>
+      </Card>
+    </SwipeableItem>
   );
 });
 

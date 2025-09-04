@@ -1,11 +1,24 @@
 import { useRef, useState, useCallback } from 'react';
 
+interface SwipeAction {
+  id: string;
+  icon: React.ComponentType<any>;
+  label: string;
+  color: string;
+  bgColor: string;
+  threshold?: number;
+  action: () => void;
+}
+
 interface SwipeGestureOptions {
   onSwipeLeft?: (distance: number) => void;
   onSwipeRight?: (distance: number) => void;
   onSwipeEnd?: (direction: 'left' | 'right' | null, distance: number) => void;
+  leftActions?: SwipeAction[];
+  rightActions?: SwipeAction[];
   threshold?: number;
   maxDistance?: number;
+  executeThreshold?: number;
 }
 
 interface SwipeState {
@@ -20,8 +33,11 @@ export const useSwipeGestures = (options: SwipeGestureOptions = {}) => {
     onSwipeLeft,
     onSwipeRight,
     onSwipeEnd,
+    leftActions = [],
+    rightActions = [],
     threshold = 50,
-    maxDistance = 200
+    maxDistance = 200,
+    executeThreshold = 120
   } = options;
 
   const [swipeState, setSwipeState] = useState<SwipeState>({
@@ -75,6 +91,15 @@ export const useSwipeGestures = (options: SwipeGestureOptions = {}) => {
 
     isDragging.current = false;
 
+    // Check if we should auto-execute an action
+    if (distance >= executeThreshold) {
+      const actions = direction === 'left' ? leftActions : rightActions;
+      if (actions.length > 0) {
+        // Execute the first (primary) action for auto-execute
+        actions[0].action();
+      }
+    }
+
     // Only trigger action if above threshold
     const finalDirection = distance >= threshold ? direction : null;
 
@@ -93,7 +118,7 @@ export const useSwipeGestures = (options: SwipeGestureOptions = {}) => {
     // Reset refs
     touchStartX.current = 0;
     touchCurrentX.current = 0;
-  }, [threshold, onSwipeEnd]);
+  }, [threshold, executeThreshold, onSwipeEnd, leftActions, rightActions]);
 
   const resetSwipe = useCallback(() => {
     setSwipeState({

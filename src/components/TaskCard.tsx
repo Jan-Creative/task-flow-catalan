@@ -2,13 +2,14 @@ import type { Task } from "@/types";
 import { Calendar, Clock, Bell } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import React from "react";
+import React, { useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { useOptimizedPropertyLabels } from "@/hooks/useOptimizedPropertyLabels";
 import { getIconByName } from "@/lib/iconLibrary";
 import { SmoothPriorityBadge } from "@/components/ui/smooth-priority-badge";
 import { TaskReminderDialog } from "@/components/TaskReminderDialog";
+import { SwipeableItem } from "@/components/SwipeableItem";
 
 
 interface TaskCardProps {
@@ -38,9 +39,27 @@ const TaskCard = ({ task, onStatusChange, onEdit, onDelete }: TaskCardProps) => 
     return { color: color };
   };
 
+  const handleEdit = useCallback(() => {
+    onEdit(task);
+  }, [task, onEdit]);
+
+  const handleDelete = useCallback(() => {
+    onDelete(task.id);
+  }, [task.id, onDelete]);
+
+  const handleSwipeStatusChange = useCallback((status: Task['status']) => {
+    onStatusChange(task.id, status);
+  }, [task.id, onStatusChange]);
+
   return (
-    <Card className="bg-card/60 backdrop-blur-glass border-border/50 shadow-glass hover:shadow-elevated transition-smooth rounded-2xl">
-      <CardContent className="p-4">
+    <SwipeableItem
+      task={task}
+      onDelete={handleDelete}
+      onEdit={handleEdit}
+      onStatusChange={handleSwipeStatusChange}
+    >
+      <Card className="bg-card/60 backdrop-blur-glass border-border/50 shadow-glass hover:shadow-elevated transition-smooth rounded-2xl">
+        <CardContent className="p-4">
         <div className="flex items-start justify-between mb-3">
           <h3 
             className={cn(
@@ -131,8 +150,9 @@ const TaskCard = ({ task, onStatusChange, onEdit, onDelete }: TaskCardProps) => 
             Eliminar
           </Button>
         </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </SwipeableItem>
   );
 };
 

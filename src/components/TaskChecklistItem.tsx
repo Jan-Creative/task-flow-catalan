@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { useOptimizedPropertyLabels } from "@/hooks/useOptimizedPropertyLabels";
 import { getIconByName } from "@/lib/iconLibrary";
 import { SmoothPriorityBadge } from "@/components/ui/smooth-priority-badge";
+import { SwipeableItem } from "@/components/SwipeableItem";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -74,6 +75,10 @@ const TaskChecklistItem = memo(({
     onDelete(task.id);
   }, [task.id, onDelete]);
 
+  const handleStatusChange = useCallback((status: Task['status']) => {
+    onStatusChange(task.id, status);
+  }, [task.id, onStatusChange]);
+
   // Memoized computed values
   const computedValues = useMemo(() => ({
     isCompleted: task.status === 'completat',
@@ -86,103 +91,111 @@ const TaskChecklistItem = memo(({
   const { isCompleted, isInProgress, isCompleting, showStartButton, formattedDate } = computedValues;
 
   return (
-    <div className={cn(
-      "group flex items-center gap-3 py-2 px-1 hover:bg-accent/30 rounded-lg transition-colors",
-      viewMode === "kanban" && "py-3 px-3",
-      isCompleting && "task-completing"
-    )}>
-      {/* Circular Checkbox */}
-      <div className="flex-shrink-0">
-        <Checkbox
-          checked={isCompleted || isCompleting}
-          onCheckedChange={handleCheckboxChange}
-          className={cn(
-            "h-5 w-5 rounded-full data-[state=checked]:bg-success data-[state=checked]:border-success checkbox-hover",
-            isCompleting && "checkbox-completing"
-          )}
-        />
-      </div>
-
-      {/* Task Content - Clickable */}
-      <Link to={`/task/${task.id}`} className="flex-1 min-w-0 block">
-        <div className="flex items-center gap-2 mb-1">
-          <h3 
+    <SwipeableItem
+      task={task}
+      onDelete={handleDelete}
+      onEdit={handleEdit}
+      onStatusChange={handleStatusChange}
+      disabled={isCompleting}
+    >
+      <div className={cn(
+        "group flex items-center gap-3 py-2 px-1 hover:bg-accent/30 rounded-lg transition-colors",
+        viewMode === "kanban" && "py-3 px-3",
+        isCompleting && "task-completing"
+      )}>
+        {/* Circular Checkbox */}
+        <div className="flex-shrink-0">
+          <Checkbox
+            checked={isCompleted || isCompleting}
+            onCheckedChange={handleCheckboxChange}
             className={cn(
-              "font-medium text-sm leading-tight truncate transition-colors text-white hover:text-white/80",
-              (isCompleted || isCompleting) && "line-through text-white/60"
+              "h-5 w-5 rounded-full data-[state=checked]:bg-success data-[state=checked]:border-success checkbox-hover",
+              isCompleting && "checkbox-completing"
             )}
-          >
-            {task.title}
-          </h3>
-          
-          {/* Priority Badge */}
-          <SmoothPriorityBadge priority={task.priority} size="sm" />
-          
-          {isInProgress && (
-            <Badge variant="outline" className="text-xs px-1.5 py-0 flex items-center gap-1" style={statusColor}>
-              {(() => {
-                const statusIconName = getStatusIcon(task.status);
-                if (statusIconName) {
-                  const iconDef = getIconByName(statusIconName);
-                  if (iconDef) {
-                    const StatusIconComponent = iconDef.icon;
-                    return <StatusIconComponent className="h-2.5 w-2.5" />;
-                  }
-                }
-                return null;
-              })()}
-              {getStatusLabel(task.status)}
-            </Badge>
-          )}
+          />
         </div>
 
-        <div className="flex items-center gap-2 text-xs text-white/70">
-          
-          {formattedDate && (
-            <>
-              <span>•</span>
-              <div className="flex items-center gap-1">
-                <Calendar className="h-3 w-3" />
-                <span>{formattedDate}</span>
-              </div>
-            </>
-          )}
-        </div>
-      </Link>
-
-      {/* Actions */}
-      <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-        {showStartButton && !isCompleted && !isCompleting && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleStartTask}
-            className="h-6 px-2 text-xs text-primary hover:bg-primary/10"
-          >
-            {getStatusLabel('en_proces')}
-          </Button>
-        )}
-        
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-              <MoreHorizontal className="h-3 w-3" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={handleEdit}>
-              Editar
-            </DropdownMenuItem>
-            <DropdownMenuItem 
-              onClick={handleDelete}
-              className="text-destructive focus:text-destructive"
+        {/* Task Content - Clickable */}
+        <Link to={`/task/${task.id}`} className="flex-1 min-w-0 block">
+          <div className="flex items-center gap-2 mb-1">
+            <h3 
+              className={cn(
+                "font-medium text-sm leading-tight truncate transition-colors text-white hover:text-white/80",
+                (isCompleted || isCompleting) && "line-through text-white/60"
+              )}
             >
-              Eliminar
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+              {task.title}
+            </h3>
+            
+            {/* Priority Badge */}
+            <SmoothPriorityBadge priority={task.priority} size="sm" />
+            
+            {isInProgress && (
+              <Badge variant="outline" className="text-xs px-1.5 py-0 flex items-center gap-1" style={statusColor}>
+                {(() => {
+                  const statusIconName = getStatusIcon(task.status);
+                  if (statusIconName) {
+                    const iconDef = getIconByName(statusIconName);
+                    if (iconDef) {
+                      const StatusIconComponent = iconDef.icon;
+                      return <StatusIconComponent className="h-2.5 w-2.5" />;
+                    }
+                  }
+                  return null;
+                })()}
+                {getStatusLabel(task.status)}
+              </Badge>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 text-xs text-white/70">
+            
+            {formattedDate && (
+              <>
+                <span>•</span>
+                <div className="flex items-center gap-1">
+                  <Calendar className="h-3 w-3" />
+                  <span>{formattedDate}</span>
+                </div>
+              </>
+            )}
+          </div>
+        </Link>
+
+        {/* Actions */}
+        <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+          {showStartButton && !isCompleted && !isCompleting && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleStartTask}
+              className="h-6 px-2 text-xs text-primary hover:bg-primary/10"
+            >
+              {getStatusLabel('en_proces')}
+            </Button>
+          )}
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                <MoreHorizontal className="h-3 w-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleEdit}>
+                Editar
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={handleDelete}
+                className="text-destructive focus:text-destructive"
+              >
+                Eliminar
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
-    </div>
+    </SwipeableItem>
   );
 });
 
