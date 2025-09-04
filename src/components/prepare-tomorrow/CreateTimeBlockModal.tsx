@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Trash2, Bell } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
+import { getIntelligentDefaultTimes } from '@/utils/timeUtils';
 import type { TimeBlock, TimeBlockNotificationConfig } from '@/types/timeblock';
 
 interface CreateTimeBlockModalProps {
@@ -77,10 +78,13 @@ export const CreateTimeBlockModal = ({
       setStartReminderMinutes(editingBlock.reminderMinutes?.start || 5);
       setEndReminderMinutes(editingBlock.reminderMinutes?.end || 5);
     } else {
+      // Use intelligent default times based on current time
+      const { startTime: defaultStart, endTime: defaultEnd } = getIntelligentDefaultTimes();
+      
       setTitle('');
       setDescription('');
-      setStartTime('09:00');
-      setEndTime('10:00');
+      setStartTime(defaultStart);
+      setEndTime(defaultEnd);
       setColor('#3b82f6');
       // Apply defaults from config if available
       setNotifyStart(notificationConfig?.defaultStartEnabled || false);
@@ -123,10 +127,13 @@ export const CreateTimeBlockModal = ({
     });
 
     if (!isEditing) {
+      // Use intelligent default times for the next block
+      const { startTime: defaultStart, endTime: defaultEnd } = getIntelligentDefaultTimes();
+      
       setTitle('');
       setDescription('');
-      setStartTime('09:00');
-      setEndTime('10:00');
+      setStartTime(defaultStart);
+      setEndTime(defaultEnd);
       setColor('#3b82f6');
       setNotifyStart(notificationConfig?.defaultStartEnabled || false);
       setNotifyEnd(notificationConfig?.defaultEndEnabled || false);
