@@ -47,18 +47,19 @@ const iPadSidebar = ({
     }
   ];
 
-  const sidebarWidth = isCollapsed ? "w-20" : "w-80";
-
   return (
     <div className={cn(
-      "fixed left-0 top-0 h-full z-40 transition-all duration-300 ease-out",
-      sidebarWidth
+      "fixed left-0 top-0 h-full z-40 p-4 transition-all duration-300 ease-out",
+      "flex items-start justify-start"
     )}>
-      {/* Backdrop blur overlay with Apple Music aesthetic */}
-      <div className="absolute inset-0 bg-background/95 backdrop-blur-2xl border-r border-border/20 shadow-2xl" />
-      
-      {/* Content */}
-      <div className="relative h-full flex flex-col">
+      {/* Floating Card Container */}
+      <div className={cn(
+        "relative flex flex-col bg-card/95 backdrop-blur-2xl rounded-3xl border border-border/20 transition-all duration-300 ease-out",
+        "shadow-floating hover:shadow-elevated",
+        isCollapsed ? "w-16 h-auto py-4" : "w-72 h-[calc(100vh-2rem)]"
+      )}>
+        {/* Content */}
+        <div className="relative h-full flex flex-col">
         {/* Header */}
         <div className="p-6 border-b border-border/30">
           {!isCollapsed && (
@@ -166,6 +167,7 @@ const iPadSidebar = ({
             </div>
           </div>
         )}
+        </div>
       </div>
     </div>
   );

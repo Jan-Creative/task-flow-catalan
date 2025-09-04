@@ -18,10 +18,10 @@ const AdaptiveLayout = ({ children, sidebarCollapsed = false }: AdaptiveLayoutPr
         return "w-full pb-24";
       
       case 'ipad':
-        // iPad: Sidebar layout with left margin
+        // iPad: Floating sidebar layout with left margin for floating card
         return cn(
           "transition-all duration-300 ease-out min-h-screen",
-          sidebarCollapsed ? "ml-20" : "ml-80"
+          sidebarCollapsed ? "ml-24" : "ml-80"
         );
       
       case 'desktop':

@@ -86,6 +86,7 @@ export default {
 			boxShadow: {
 				'glass': 'var(--shadow-glass)',
 				'elevated': 'var(--shadow-elevated)',
+				'floating': 'var(--shadow-floating)',
 				'glow': 'var(--glow-primary)'
 			},
 			backdropBlur: {
