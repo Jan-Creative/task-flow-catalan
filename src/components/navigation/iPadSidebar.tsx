@@ -54,14 +54,14 @@ const iPadSidebar = ({
     )}>
       {/* Floating Card Container */}
       <div className={cn(
-        "relative flex flex-col bg-card/95 backdrop-blur-2xl rounded-3xl border border-border/20 transition-all duration-300 ease-out",
+        "relative flex flex-col bg-card backdrop-blur-2xl rounded-3xl transition-all duration-300 ease-out",
         "shadow-floating hover:shadow-elevated",
         isCollapsed ? "w-16 h-auto py-4" : "w-72 h-[calc(100vh-2rem)]"
       )}>
         {/* Content */}
         <div className="relative h-full flex flex-col">
         {/* Header */}
-        <div className="p-6 border-b border-border/30">
+        <div className="p-6">
           {!isCollapsed && (
             <h1 className="text-xl font-semibold text-foreground">
               Dades
@@ -151,8 +151,7 @@ const iPadSidebar = ({
               </nav>
               
               {sectionIndex < mainSections.length - 1 && !isCollapsed && (
-                <div className="px-6 mt-4">
-                  <Separator className="bg-border/30" />
+                <div className="px-6 mt-6 mb-2">
                 </div>
               )}
             </div>
@@ -161,7 +160,7 @@ const iPadSidebar = ({
 
         {/* Footer */}
         {!isCollapsed && (
-          <div className="p-6 border-t border-border/30">
+          <div className="p-6">
             <div className="text-xs text-muted-foreground text-center">
               Optimitzat per iPad
             </div>
