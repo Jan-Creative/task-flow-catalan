@@ -3,7 +3,7 @@ import { addDays, parse, addMinutes, format } from 'date-fns';
 import { useNotificationContext } from '@/contexts/NotificationContext';
 import type { TimeBlock } from '@/types/timeblock';
 
-export const useTimeBlockNotifications = () => {
+export const useTimeBlockNotifications = (baseDate?: Date) => {
   const { createCustomNotification, cancelReminder } = useNotificationContext();
 
   const scheduleBlockNotification = useCallback(async (
@@ -14,11 +14,12 @@ export const useTimeBlockNotifications = () => {
       return;
     }
 
-    const tomorrow = addDays(new Date(), 1);
+    // Use baseDate if provided, otherwise default to tomorrow
+    const targetDate = baseDate || addDays(new Date(), 1);
     const timeString = type === 'start' ? block.startTime : block.endTime;
     
-    // Parse time and combine with tomorrow's date
-    const blockDateTime = parse(timeString, 'HH:mm', tomorrow);
+    // Parse time and combine with target date
+    const blockDateTime = parse(timeString, 'HH:mm', targetDate);
     
     // Subtract reminder minutes
     const reminderDateTime = addMinutes(blockDateTime, -block.reminderMinutes[type]);
@@ -38,7 +39,7 @@ export const useTimeBlockNotifications = () => {
 
     try {
       await createCustomNotification(title, message, reminderDateTime);
-      console.log(`✅ Notificació programada per ${block.title} (${type}) a ${format(reminderDateTime, 'HH:mm')}`);
+      console.log(`✅ Notificació programada per ${block.title} (${type}) a ${format(reminderDateTime, 'dd/MM/yyyy HH:mm')} (target date: ${format(targetDate, 'dd/MM/yyyy')})`);
     } catch (error) {
       console.error(`❌ Error programant notificació per ${block.title}:`, error);
     }

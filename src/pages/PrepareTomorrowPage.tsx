@@ -154,6 +154,7 @@ export default function PrepareTomorrowPage() {
             onAddTimeBlock={addTimeBlock}
             onUpdateTimeBlock={updateTimeBlock}
             onRemoveTimeBlock={removeTimeBlock}
+            baseDate={addDays(new Date(), 1)}
           />
 
           {/* Daily Reflection Card - 2 columns */}

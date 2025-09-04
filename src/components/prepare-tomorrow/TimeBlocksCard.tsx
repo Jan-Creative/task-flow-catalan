@@ -18,6 +18,7 @@ interface TimeBlocksCardProps {
   onUpdateTimeBlock?: (blockId: string, updates: Partial<TimeBlock>) => Promise<void> | void;
   onRemoveTimeBlock?: (blockId: string) => Promise<void> | void;
   className?: string;
+  baseDate?: Date;
 }
 
 export const TimeBlocksCard = ({ 
@@ -25,7 +26,8 @@ export const TimeBlocksCard = ({
   onAddTimeBlock, 
   onUpdateTimeBlock, 
   onRemoveTimeBlock,
-  className 
+  className,
+  baseDate 
 }: TimeBlocksCardProps) => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingBlock, setEditingBlock] = useState<TimeBlock | null>(null);
@@ -46,7 +48,7 @@ export const TimeBlocksCard = ({
     snapMinutes: 15,
   });
 
-  const { updateBlockNotifications } = useTimeBlockNotifications();
+  const { updateBlockNotifications } = useTimeBlockNotifications(baseDate);
 
   const hours = Array.from({ length: 15 }, (_, i) => i + 8); // 8:00 to 22:00
 

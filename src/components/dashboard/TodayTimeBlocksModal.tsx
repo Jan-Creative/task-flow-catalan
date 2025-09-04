@@ -39,6 +39,7 @@ export const TodayTimeBlocksModal = ({ open, onClose }: TodayTimeBlocksModalProp
               onUpdateTimeBlock={updateTimeBlock}
               onRemoveTimeBlock={removeTimeBlock}
               className="border-0 shadow-none"
+              baseDate={new Date()}
             />
           )}
         </div>
