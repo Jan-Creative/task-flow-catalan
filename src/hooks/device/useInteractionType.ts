@@ -29,22 +29,10 @@ export function useInteractionType(): InteractionInfo {
   });
 
   function detectInteractionCapabilities(): InteractionInfo {
-    // Safety check for SSR environment
-    if (typeof window === 'undefined' || typeof navigator === 'undefined') {
-      return {
-        primary: 'mouse',
-        capabilities: ['mouse', 'keyboard'],
-        supportsHover: true,
-        supportsPressure: false,
-        maxTouchPoints: 0,
-        hasPhysicalKeyboard: true
-      };
-    }
-
     const capabilities: InputCapability[] = [];
     
-    // Touch detection with safety checks
-    const hasTouch = 'ontouchstart' in window || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
+    // Touch detection
+    const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     if (hasTouch) {
       capabilities.push('touch');
     }
@@ -75,19 +63,18 @@ export function useInteractionType(): InteractionInfo {
       primary = 'mixed';
     }
     
-    // Hover support with safety check
-    const supportsHover = window.matchMedia && window.matchMedia('(hover: hover)').matches;
+    // Hover support
+    const supportsHover = window.matchMedia('(hover: hover)').matches;
     
-    // Pressure support (basic detection) - safely check for TouchEvent
-    const supportsPressure = typeof TouchEvent !== 'undefined' && 
-      ('force' in TouchEvent.prototype || 'webkitForce' in TouchEvent.prototype);
+    // Pressure support (basic detection)
+    const supportsPressure = 'force' in TouchEvent.prototype || 'webkitForce' in TouchEvent.prototype;
     
     return {
       primary,
       capabilities,
       supportsHover,
       supportsPressure,
-      maxTouchPoints: (navigator.maxTouchPoints && navigator.maxTouchPoints) || 0,
+      maxTouchPoints: navigator.maxTouchPoints || 0,
       hasPhysicalKeyboard: hasKeyboard
     };
   }
@@ -98,26 +85,19 @@ export function useInteractionType(): InteractionInfo {
       setInteractionInfo(detectInteractionCapabilities());
     };
 
+    // Re-detect on media query changes
+    const hoverQuery = window.matchMedia('(hover: hover)');
+    const handleHoverChange = () => {
+      setInteractionInfo(detectInteractionCapabilities());
+    };
+
     window.addEventListener('focus', handleFocus);
-
-    // Re-detect on media query changes with safety check
-    if (window.matchMedia) {
-      const hoverQuery = window.matchMedia('(hover: hover)');
-      const handleHoverChange = () => {
-        setInteractionInfo(detectInteractionCapabilities());
-      };
-
-      hoverQuery.addEventListener('change', handleHoverChange);
-      
-      return () => {
-        window.removeEventListener('focus', handleFocus);
-        hoverQuery.removeEventListener('change', handleHoverChange);
-      };
-    } else {
-      return () => {
-        window.removeEventListener('focus', handleFocus);
-      };
-    }
+    hoverQuery.addEventListener('change', handleHoverChange);
+    
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      hoverQuery.removeEventListener('change', handleHoverChange);
+    };
   }, []);
 
   return interactionInfo;

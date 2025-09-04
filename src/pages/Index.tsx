@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { AdaptiveLayoutWrapper } from "@/components/layouts";
+import AdaptiveBottomNavigation from "@/components/AdaptiveBottomNavigation";
 import { LazyPage, TodayPageLazy, FoldersPageLazy, SettingsPageLazy, NotificationsPageLazy, CreateTaskModalLazy } from "@/lib/lazyLoading";
 import CalendarPage from "@/pages/CalendarPage";
 import DashboardPage from "@/pages/DashboardPage";
@@ -165,15 +165,18 @@ const Index = () => {
   // Show main app if authenticated
   return (
     <div className="w-full min-h-screen bg-background overflow-x-hidden relative">
-      <AdaptiveLayoutWrapper
+      {/* Reserved space for future quick-action bar */}
+      {/* Future: New event, New task, Reminders, etc. */}
+
+      <KeepAlivePages activeTab={activeTab}>
+        {renderKeepAlivePages()}
+      </KeepAlivePages>
+      
+      <AdaptiveBottomNavigation
         activeTab={activeTab}
         onTabChange={handleTabChange}
         onCreateTask={() => setShowCreateDialog(true)}
-      >
-        <KeepAlivePages activeTab={activeTab}>
-          {renderKeepAlivePages()}
-        </KeepAlivePages>
-      </AdaptiveLayoutWrapper>
+      />
 
       <CreateTaskModalLazy
         open={showCreateDialog}
