@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import AdaptiveBottomNavigation from "@/components/AdaptiveBottomNavigation";
+import AdaptiveNavigation from "@/components/navigation/AdaptiveNavigation";
+import AdaptiveLayout from "@/components/layout/AdaptiveLayout";
+import DeviceIndicator from "@/components/DeviceIndicator";
 import { LazyPage, TodayPageLazy, FoldersPageLazy, SettingsPageLazy, NotificationsPageLazy, CreateTaskModalLazy } from "@/lib/lazyLoading";
 import CalendarPage from "@/pages/CalendarPage";
 import DashboardPage from "@/pages/DashboardPage";
@@ -24,6 +26,7 @@ const Index = () => {
   });
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { folders } = useDadesApp();
   const { handleCreateTask, handleEditTask: handleEditTaskOp } = useTaskOperations();
   
@@ -165,18 +168,24 @@ const Index = () => {
   // Show main app if authenticated
   return (
     <div className="w-full min-h-screen bg-background overflow-x-hidden relative">
-      {/* Reserved space for future quick-action bar */}
-      {/* Future: New event, New task, Reminders, etc. */}
-
-      <KeepAlivePages activeTab={activeTab}>
-        {renderKeepAlivePages()}
-      </KeepAlivePages>
-      
-      <AdaptiveBottomNavigation
+      {/* Adaptive Navigation */}
+      <AdaptiveNavigation
         activeTab={activeTab}
         onTabChange={handleTabChange}
         onCreateTask={() => setShowCreateDialog(true)}
+        sidebarCollapsed={sidebarCollapsed}
+        onSidebarCollapseChange={setSidebarCollapsed}
       />
+
+      {/* Main Content with Adaptive Layout */}
+      <AdaptiveLayout sidebarCollapsed={sidebarCollapsed}>
+        <KeepAlivePages activeTab={activeTab}>
+          {renderKeepAlivePages()}
+        </KeepAlivePages>
+      </AdaptiveLayout>
+
+      {/* Device Indicator for testing */}
+      <DeviceIndicator />
 
       <CreateTaskModalLazy
         open={showCreateDialog}
