@@ -25,7 +25,8 @@ import {
   Sunset
 } from "lucide-react";
 import { ConfigurationMenu } from "@/components/dashboard/ConfigurationMenu";
-
+import { DailyReminderConfigModal } from "@/components/prepare-tomorrow/DailyReminderConfigModal";
+import { TodayTimeBlocksModal } from "@/components/dashboard/TodayTimeBlocksModal";
 interface DashboardPageProps {
   onEditTask: (task: any) => void;
   onNavigateToTasks?: () => void;
@@ -39,6 +40,10 @@ const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar }: 
   const { getStatusLabel, getPriorityColor } = useOptimizedPropertyLabels();
   const { isVisible: showPrepareTomorrow } = usePrepareTomorrowVisibility();
   const [selectedDate, setSelectedDate] = useState(new Date());
+  
+  // Dashboard-level modals
+  const [showReminderConfig, setShowReminderConfig] = useState(false);
+  const [showTimeBlocks, setShowTimeBlocks] = useState(false);
   
   // State for 3-second delay system
   const [completingTasks, setCompletingTasks] = useState<Set<string>>(new Set());
@@ -165,9 +170,10 @@ const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar }: 
             </div>
           </div>
           
-          {/* Configuration Menu */}
           <ConfigurationMenu 
             onNavigateToPrepareTomorrow={() => window.location.href = '/prepare-tomorrow'}
+            onOpenReminderConfig={() => setShowReminderConfig(true)}
+            onOpenTodayTimeBlocks={() => setShowTimeBlocks(true)}
           />
         </div>
 
@@ -334,6 +340,9 @@ const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar }: 
           </div>
         </div>
       </div>
+      {/* Global modals */}
+      <DailyReminderConfigModal open={showReminderConfig} onOpenChange={(o) => { console.debug('DailyReminderConfigModal onOpenChange', o); setShowReminderConfig(o); }} />
+      <TodayTimeBlocksModal open={showTimeBlocks} onClose={() => setShowTimeBlocks(false)} />
     </div>
   );
 };

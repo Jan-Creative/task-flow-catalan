@@ -1,4 +1,4 @@
-import { useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -8,16 +8,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Settings, Moon, Clock, Bell } from "lucide-react";
-import { DailyReminderConfigModal } from "@/components/prepare-tomorrow/DailyReminderConfigModal";
-import { TodayTimeBlocksModal } from "./TodayTimeBlocksModal";
+
+
 
 interface ConfigurationMenuProps {
   onNavigateToPrepareTomorrow?: () => void;
+  onOpenReminderConfig?: () => void;
+  onOpenTodayTimeBlocks?: () => void;
 }
 
-export const ConfigurationMenu = ({ onNavigateToPrepareTomorrow }: ConfigurationMenuProps) => {
-  const [showTimeBlocks, setShowTimeBlocks] = useState(false);
-  const [showReminderConfig, setShowReminderConfig] = useState(false);
+export const ConfigurationMenu = ({ onNavigateToPrepareTomorrow, onOpenReminderConfig, onOpenTodayTimeBlocks }: ConfigurationMenuProps) => {
 
   const handlePrepareTomorrow = () => {
     if (onNavigateToPrepareTomorrow) {
@@ -39,10 +39,10 @@ export const ConfigurationMenu = ({ onNavigateToPrepareTomorrow }: Configuration
             <Settings className="h-5 w-5" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-56 bg-background border shadow-md z-50">
+        <DropdownMenuContent align="end" className="w-56 bg-background border shadow-md z-50" onCloseAutoFocus={(e) => e.preventDefault()}>
           <DropdownMenuItem 
             className="cursor-pointer"
-            onClick={() => setShowReminderConfig(true)}
+            onClick={() => setTimeout(() => onOpenReminderConfig?.(), 10)}
           >
             <Bell className="h-4 w-4 mr-2" />
             Configurar Recordatoris
@@ -60,7 +60,7 @@ export const ConfigurationMenu = ({ onNavigateToPrepareTomorrow }: Configuration
           
           <DropdownMenuItem 
             className="cursor-pointer"
-            onClick={() => setShowTimeBlocks(true)}
+            onClick={() => setTimeout(() => onOpenTodayTimeBlocks?.(), 10)}
           >
             <Clock className="h-4 w-4 mr-2" />
             Blocs de Temps d'Avui
@@ -68,12 +68,8 @@ export const ConfigurationMenu = ({ onNavigateToPrepareTomorrow }: Configuration
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <DailyReminderConfigModal open={showReminderConfig} onOpenChange={setShowReminderConfig} />
+      
 
-      <TodayTimeBlocksModal 
-        open={showTimeBlocks}
-        onClose={() => setShowTimeBlocks(false)}
-      />
     </>
   );
 };
