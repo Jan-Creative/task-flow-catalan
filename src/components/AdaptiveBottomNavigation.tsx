@@ -1,4 +1,4 @@
-import { Calendar, Folder, Settings, Bell, ChevronRight, Home, CheckSquare } from "lucide-react";
+import { Calendar, Folder, Settings, Bell, ChevronRight, Home, CheckSquare, Sunrise } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
@@ -6,6 +6,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import CircularActionMenuWithArc from "./CircularActionMenuWithArc";
 import CircularActionMenu from "./CircularActionMenu";
 import { useCircularMenuMode } from "@/hooks/useCircularMenuMode";
+import { usePrepareTomorrowVisibility } from "@/hooks/usePrepareTomorrowVisibility";
 
 interface AdaptiveBottomNavigationProps {
   activeTab: string;
@@ -18,8 +19,9 @@ const AdaptiveBottomNavigation = ({ activeTab, onTabChange, onCreateTask }: Adap
   const [showTransition, setShowTransition] = useState(false);
   const isMobile = useIsMobile();
   const { mode, isArcMode, toggleMode } = useCircularMenuMode("arc"); // Always start with arc mode
+  const { isVisible: showPrepareTomorrow } = usePrepareTomorrowVisibility();
 
-  const tabs = [
+  const baseTabs = [
     { id: "inici", label: "Inici", icon: Home },
     { id: "avui", label: "Avui", icon: CheckSquare },
     { id: "carpetes", label: "Carpetes", icon: Folder },
@@ -27,6 +29,15 @@ const AdaptiveBottomNavigation = ({ activeTab, onTabChange, onCreateTask }: Adap
     { id: "notificacions", label: "Notificacions", icon: Bell },
     { id: "configuracio", label: "Configuració", icon: Settings },
   ];
+
+  // Add prepare tomorrow tab when visible
+  const tabs = showPrepareTomorrow 
+    ? [
+        ...baseTabs.slice(0, 4), // inici, avui, carpetes, calendar
+        { id: "preparar-dema", label: "Preparar demà", icon: Sunrise },
+        ...baseTabs.slice(4) // notificacions, configuracio
+      ]
+    : baseTabs;
 
   const activeTabData = tabs.find(tab => tab.id === activeTab);
 
@@ -93,7 +104,8 @@ const AdaptiveBottomNavigation = ({ activeTab, onTabChange, onCreateTask }: Adap
                       isMobile ? "py-1.5 px-2 min-w-[50px]" : "py-2 px-3 min-w-[60px]",
                       activeTab === tab.id
                         ? "bg-primary/10 text-primary scale-105"
-                        : "text-muted-foreground hover:text-foreground hover:bg-accent/50 hover:scale-102"
+                        : "text-muted-foreground hover:text-foreground hover:bg-accent/50 hover:scale-102",
+                      tab.id === "preparar-dema" && "bg-gradient-to-r from-orange-500/20 to-yellow-500/20 text-orange-300 animate-pulse"
                     )}
                   >
                     <Icon className={cn("shrink-0", isMobile ? "h-3.5 w-3.5" : "h-4 w-4")} />

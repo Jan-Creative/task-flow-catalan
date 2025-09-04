@@ -6,6 +6,7 @@ import { LazyPage, TodayPageLazy, FoldersPageLazy, SettingsPageLazy, Notificatio
 import CalendarPage from "@/pages/CalendarPage";
 import DashboardPage from "@/pages/DashboardPage";
 import AuthPage from "@/pages/AuthPage";
+import PrepareTomorrowPage from "@/pages/PrepareTomorrowPage";
 import { useDadesApp } from "@/hooks/useDadesApp";
 import { useTaskOperations } from "@/hooks/useTaskOperations";
 import { usePerformanceMonitor, useCacheOptimization, useMemoryCleanup } from "@/hooks/usePerformanceOptimization";
@@ -127,6 +128,12 @@ const Index = () => {
       <TabPage tabId="notificacions" activeTab={activeTab}>
         <LazyPage pageName="Notificacions">
           <NotificationsPageLazy />
+        </LazyPage>
+      </TabPage>
+      
+      <TabPage tabId="preparar-dema" activeTab={activeTab}>
+        <LazyPage pageName="Preparar demà">
+          <PrepareTomorrowPage />
         </LazyPage>
       </TabPage>
       
