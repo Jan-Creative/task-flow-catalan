@@ -10,6 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useDadesApp } from "@/hooks/useDadesApp";
 import { useEvents } from "@/hooks/useEvents";
 import { useOptimizedPropertyLabels } from "@/hooks/useOptimizedPropertyLabels";
+import { usePrepareTomorrowVisibility } from "@/hooks/usePrepareTomorrowVisibility";
 import MiniCalendarCard from "@/components/calendar/MiniCalendarCard";
 import TaskChecklistItem from "@/components/TaskChecklistItem";
 import { cn } from "@/lib/utils";
@@ -35,6 +36,7 @@ const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar }: 
   const { todayTasks, updateTaskStatus, deleteTask, taskStats } = useDadesApp();
   const { events } = useEvents();
   const { getStatusLabel, getPriorityColor } = useOptimizedPropertyLabels();
+  const { isVisible: showPrepareTomorrow } = usePrepareTomorrowVisibility();
   const [selectedDate, setSelectedDate] = useState(new Date());
   
   // State for 3-second delay system
@@ -186,13 +188,15 @@ const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar }: 
         </div>
 
         {/* Prepare Tomorrow Button */}
-        <Button 
-          onClick={() => window.location.href = '/prepare-tomorrow'}
-          className="w-full mt-4 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground py-3 h-auto"
-        >
-          <Moon className="h-5 w-5 mr-2" />
-          🌙 Preparar el dia de demà
-        </Button>
+        {showPrepareTomorrow && (
+          <Button 
+            onClick={() => window.location.href = '/prepare-tomorrow'}
+            className="w-full mt-4 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground py-3 h-auto"
+          >
+            <Moon className="h-5 w-5 mr-2" />
+            🌙 Preparar el dia de demà
+          </Button>
+        )}
       </div>
 
       {/* Dashboard Cards Grid */}
