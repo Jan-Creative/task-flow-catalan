@@ -148,7 +148,9 @@ export type Database = {
           days_of_week: number[]
           id: string
           is_enabled: boolean
+          last_sent_at: string | null
           reminder_time: string
+          timezone: string | null
           updated_at: string
           user_id: string
         }
@@ -159,7 +161,9 @@ export type Database = {
           days_of_week?: number[]
           id?: string
           is_enabled?: boolean
+          last_sent_at?: string | null
           reminder_time?: string
+          timezone?: string | null
           updated_at?: string
           user_id: string
         }
@@ -170,7 +174,9 @@ export type Database = {
           days_of_week?: number[]
           id?: string
           is_enabled?: boolean
+          last_sent_at?: string | null
           reminder_time?: string
+          timezone?: string | null
           updated_at?: string
           user_id?: string
         }

@@ -17,6 +17,8 @@ interface Database {
           custom_title: string | null
           custom_message: string | null
           days_of_week: number[]
+          timezone: string
+          last_sent_at: string | null
           created_at: string
           updated_at: string
         }
@@ -86,7 +88,7 @@ Deno.serve(async (req: Request) => {
     // Get users with daily reminder preferences enabled
     const { data: users, error: usersError } = await supabaseClient
       .from('daily_reminder_preferences')
-      .select('user_id, reminder_time, custom_title, custom_message, days_of_week, is_enabled')
+      .select('user_id, reminder_time, custom_title, custom_message, days_of_week, timezone, last_sent_at, is_enabled')
       .eq('is_enabled', true);
 
     if (usersError) {
@@ -108,21 +110,66 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // Filter users based on day of week and time (unless it's a test)
+    // Filter users based on their local time and day (unless it's a test)
     const eligibleUsers = isTest ? users : users.filter(user => {
-      // Check if today is an active day for this user
-      if (!user.days_of_week.includes(weekday)) {
+      try {
+        // Calculate user's local time using their timezone
+        const userTimezone = user.timezone || 'Europe/Madrid';
+        const userLocalDate = new Date();
+        
+        // Get user's local time
+        const userLocalTime = userLocalDate.toLocaleString('en-US', {
+          timeZone: userTimezone,
+          hour12: false,
+          hour: '2-digit',
+          minute: '2-digit'
+        }).slice(-5); // Get HH:MM format
+        
+        // Get user's local day of week
+        const userLocalDay = new Date().toLocaleDateString('en-US', {
+          timeZone: userTimezone,
+          weekday: 'numeric'
+        });
+        const userWeekday = parseInt(userLocalDay) === 0 ? 7 : parseInt(userLocalDay);
+
+        console.log(`👤 User ${user.user_id}: Local time ${userLocalTime}, Local day ${userWeekday}, Reminder time ${user.reminder_time}, Timezone: ${userTimezone}`);
+
+        // Check if today is an active day for this user in their timezone
+        if (!user.days_of_week.includes(userWeekday)) {
+          console.log(`📅 User ${user.user_id}: Not scheduled for day ${userWeekday}`);
+          return false;
+        }
+
+        // Check if it's the correct time (with ±5 minutes tolerance)
+        const [reminderHour, reminderMinute] = user.reminder_time.split(':').map(Number);
+        const [userHour, userMinute] = userLocalTime.split(':').map(Number);
+        
+        const currentTimeMinutes = userHour * 60 + userMinute;
+        const reminderTimeMinutes = reminderHour * 60 + reminderMinute;
+        
+        // Tolerance of 5 minutes before and after
+        const timeDiff = Math.abs(currentTimeMinutes - reminderTimeMinutes);
+        
+        if (timeDiff > 5) {
+          console.log(`⏰ User ${user.user_id}: Time diff too large (${timeDiff} minutes)`);
+          return false;
+        }
+
+        // Check if we haven't sent today already (prevent duplicates)
+        const today = new Date().toISOString().split('T')[0];
+        const lastSentDate = user.last_sent_at ? new Date(user.last_sent_at).toISOString().split('T')[0] : null;
+
+        if (lastSentDate === today) {
+          console.log(`⏭️ User ${user.user_id}: Already sent today`);
+          return false;
+        }
+
+        console.log(`✅ User ${user.user_id} is eligible (time diff: ${timeDiff} minutes)`);
+        return true;
+      } catch (error) {
+        console.error(`❌ Error processing user ${user.user_id}:`, error);
         return false;
       }
-
-      // Check if it's the correct time (with ±5 minutes tolerance)
-      const [reminderHour, reminderMinute] = user.reminder_time.split(':').map(Number);
-      const currentTimeMinutes = currentHour * 60 + currentMinute;
-      const reminderTimeMinutes = reminderHour * 60 + reminderMinute;
-      
-      // Tolerance of 5 minutes before and after
-      const timeDiff = Math.abs(currentTimeMinutes - reminderTimeMinutes);
-      return timeDiff <= 5;
     });
 
     console.log(`✅ ${eligibleUsers.length} users eligible for notifications (day/time filter)`);
@@ -187,19 +234,13 @@ Deno.serve(async (req: Request) => {
           try {
             const { error: notificationError } = await supabaseClient.functions.invoke('send-notification', {
               body: {
-                subscription: {
-                  endpoint: subscription.endpoint,
-                  keys: {
-                    p256dh: subscription.p256dh_key,
-                    auth: subscription.auth_key
-                  }
-                },
                 title: notificationTitle,
-                message: notificationMessage,
+                body: notificationMessage,
+                userId: user.user_id,
                 data: {
                   type: 'daily_preparation_reminder',
                   timestamp: now.toISOString(),
-                  user_id: user.user_id,
+                  url: '/prepare-tomorrow',
                   test: isTest
                 }
               }
@@ -211,6 +252,12 @@ Deno.serve(async (req: Request) => {
             } else {
               console.log(`✅ Notificació enviada a l'usuari ${user.user_id} - ${notificationTitle}`);
               sentCount++;
+              
+              // Update last_sent_at for this user to prevent duplicates
+              await supabaseClient
+                .from('daily_reminder_preferences')
+                .update({ last_sent_at: now.toISOString() })
+                .eq('user_id', user.user_id);
             }
           } catch (error) {
             console.error(`❌ Error enviant notificació a l'usuari ${user.user_id}:`, error);

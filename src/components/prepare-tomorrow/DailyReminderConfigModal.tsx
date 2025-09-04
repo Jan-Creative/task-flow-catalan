@@ -18,6 +18,7 @@ interface DailyReminderPreferences {
   custom_title: string | null;
   custom_message: string | null;
   days_of_week: number[];
+  timezone?: string;
 }
 
 const DAYS_OF_WEEK = [
@@ -43,6 +44,7 @@ export function DailyReminderConfigModal() {
     custom_title: null,
     custom_message: null,
     days_of_week: [1, 2, 3, 4, 5, 6, 7], // Tots els dies per defecte
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Madrid'
   });
 
   useEffect(() => {
@@ -71,6 +73,7 @@ export function DailyReminderConfigModal() {
           custom_title: data.custom_title,
           custom_message: data.custom_message,
           days_of_week: data.days_of_week,
+          timezone: data.timezone || 'Europe/Madrid'
         });
       }
     } catch (error) {
@@ -93,6 +96,7 @@ export function DailyReminderConfigModal() {
           custom_title: preferences.custom_title,
           custom_message: preferences.custom_message,
           days_of_week: preferences.days_of_week,
+          timezone: preferences.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Madrid',
         });
 
       if (error) throw error;
