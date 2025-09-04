@@ -10,6 +10,7 @@ import { Settings, Clock, Bell, TestTube } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface DailyReminderPreferences {
   id?: string;
@@ -36,6 +37,7 @@ const DEFAULT_MESSAGE = "No oblidis planificar les teves tasques i organitzar el
 
 export function DailyReminderConfigModal() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [preferences, setPreferences] = useState<DailyReminderPreferences>({
@@ -59,17 +61,20 @@ export function DailyReminderConfigModal() {
         .from('daily_reminder_preferences')
         .select('*')
         .eq('user_id', user!.id)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         throw error;
       }
 
       if (data) {
+        // Normalize reminder_time to HH:mm format for the input
+        const normalizedTime = data.reminder_time.length > 5 ? data.reminder_time.substring(0, 5) : data.reminder_time;
+        
         setPreferences({
           id: data.id,
           is_enabled: data.is_enabled,
-          reminder_time: data.reminder_time,
+          reminder_time: normalizedTime,
           custom_title: data.custom_title,
           custom_message: data.custom_message,
           days_of_week: data.days_of_week,
@@ -78,7 +83,7 @@ export function DailyReminderConfigModal() {
       }
     } catch (error) {
       console.error('Error loading preferences:', error);
-      toast.error('Error carregant les preferències');
+      toast.error(`Error carregant les preferències: ${error.message}`);
     }
   };
 
@@ -87,25 +92,35 @@ export function DailyReminderConfigModal() {
 
     setLoading(true);
     try {
+      // Ensure reminder_time is in HH:mm format
+      const normalizedTime = preferences.reminder_time.length > 5 ? preferences.reminder_time.substring(0, 5) : preferences.reminder_time;
+      
       const { error } = await supabase
         .from('daily_reminder_preferences')
         .upsert({
           user_id: user.id,
           is_enabled: preferences.is_enabled,
-          reminder_time: preferences.reminder_time,
+          reminder_time: normalizedTime,
           custom_title: preferences.custom_title,
           custom_message: preferences.custom_message,
           days_of_week: preferences.days_of_week,
           timezone: preferences.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Madrid',
+        }, {
+          onConflict: 'user_id'
         });
 
       if (error) throw error;
+
+      // Invalidate the query cache so the visibility hook updates immediately
+      await queryClient.invalidateQueries({
+        queryKey: ['daily-reminder-preferences', user.id]
+      });
 
       toast.success('Configuració guardada correctament');
       setOpen(false);
     } catch (error) {
       console.error('Error saving preferences:', error);
-      toast.error('Error guardant la configuració');
+      toast.error(`Error guardant la configuració: ${error.message || 'Error desconegut'}`);
     } finally {
       setLoading(false);
     }

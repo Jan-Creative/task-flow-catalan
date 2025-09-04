@@ -47,30 +47,44 @@ export const usePrepareTomorrowVisibility = () => {
     }
 
     const checkVisibility = () => {
+      // Get timezone from preferences or default to user's timezone
+      const timezone = preferences.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+      
+      // Create dates in the user's timezone
       const now = new Date();
-      const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
+      const currentTimeInTimezone = new Date(now.toLocaleString("en-US", { timeZone: timezone }));
+      
+      const currentDay = currentTimeInTimezone.getDay(); // 0 = Sunday, 1 = Monday, etc.
       const currentDayAdjusted = currentDay === 0 ? 7 : currentDay; // Convert to 1-7 format
       
       // Check if today is in the configured days
       if (!preferences.days_of_week.includes(currentDayAdjusted)) {
+        console.log(`[PrepareVisibility] Not showing: today (${currentDayAdjusted}) not in configured days [${preferences.days_of_week.join(',')}]`);
         setIsVisible(false);
         return;
       }
 
-      // Parse reminder time
-      const [hours, minutes] = preferences.reminder_time.split(':').map(Number);
-      const reminderTime = new Date();
+      // Parse reminder time (handle both HH:mm and HH:mm:ss formats)
+      const timeStr = preferences.reminder_time.split(':');
+      const hours = parseInt(timeStr[0]);
+      const minutes = parseInt(timeStr[1]);
+      
+      // Create reminder time for today in user's timezone
+      const reminderTime = new Date(currentTimeInTimezone);
       reminderTime.setHours(hours, minutes, 0, 0);
 
       // Check if current time is at or after reminder time
-      const currentTime = new Date();
-      const isTimeToShow = currentTime >= reminderTime;
+      const isTimeToShow = currentTimeInTimezone >= reminderTime;
 
       // Check if preparation is already completed
       const isCompleted = preparation?.is_completed || false;
 
-      // Show button if it's time and not completed yet
-      setIsVisible(isTimeToShow && !isCompleted);
+      // Final visibility decision
+      const shouldShow = isTimeToShow && !isCompleted;
+      
+      console.log(`[PrepareVisibility] Current: ${currentTimeInTimezone.toLocaleTimeString()}, Reminder: ${reminderTime.toLocaleTimeString()}, TimeToShow: ${isTimeToShow}, Completed: ${isCompleted}, ShouldShow: ${shouldShow}`);
+      
+      setIsVisible(shouldShow);
     };
 
     // Check immediately
