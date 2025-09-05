@@ -112,8 +112,20 @@ export const useDadesApp = () => {
   const crearTasca = useCallback(async (taskData: CrearTascaData) => {
     if (!user) throw new Error("User not authenticated");
 
+    // Normalize task data - convert empty strings to null
+    const taskDataNormalized = {
+      title: taskData.title?.trim() || '',
+      description: taskData.description?.trim() || null,
+      due_date: taskData.due_date || null,
+      status: taskData.status || 'pendent',
+      priority: taskData.priority || 'mitjana',
+      folder_id: taskData.folder_id || null
+    };
+
+    console.debug('Creating task with normalized data:', taskDataNormalized);
+
     const optimisticTask = {
-      ...taskData,
+      ...taskDataNormalized,
       id: `temp-${Date.now()}`,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -130,7 +142,7 @@ export const useDadesApp = () => {
 
     try {
       // Find inbox folder efficiently
-      let finalFolderId = taskData.folder_id;
+      let finalFolderId = taskDataNormalized.folder_id;
       if (!finalFolderId) {
         const inboxFolder = dadesOptimitzades?.carpetes.find(f => f.is_system && f.name === "Bustia");
         if (!inboxFolder) {
@@ -147,9 +159,17 @@ export const useDadesApp = () => {
         }
       }
 
+      const insertData = {
+        ...taskDataNormalized,
+        user_id: user.id,
+        folder_id: finalFolderId ?? null
+      };
+
+      console.debug('Inserting to database:', insertData);
+
       const { data: newTask, error } = await supabase
         .from("tasks")
-        .insert([{ ...taskData, user_id: user.id, folder_id: finalFolderId }])
+        .insert([insertData])
         .select("id, title, description, status, priority, folder_id, due_date, created_at, updated_at")
         .single();
 
@@ -208,13 +228,24 @@ export const useDadesApp = () => {
 
   // Task update with enhanced optimistic updates
   const actualitzarTasca = useCallback(async (taskId: string, taskData: ActualitzarTascaData) => {
+    // Normalize task data - convert empty strings to null
+    const taskDataNormalized = {
+      ...taskData,
+      description: taskData.description?.trim() || null,
+      due_date: taskData.due_date || null,
+      status: taskData.status || 'pendent',
+      priority: taskData.priority || 'mitjana'
+    };
+
+    console.debug('Updating task with normalized data:', taskDataNormalized);
+
     // Optimistic update
     queryClient.setQueryData([CLAU_CACHE_DADES, user?.id], (old: any) => {
       if (!old) return old;
       return {
         ...old,
         tasks: old.tasks.map((task: Tasca) =>
-          task.id === taskId ? { ...task, ...taskData } : task
+          task.id === taskId ? { ...task, ...taskDataNormalized } : task
         )
       };
     });
@@ -222,7 +253,7 @@ export const useDadesApp = () => {
     try {
       const { error } = await supabase
         .from("tasks")
-        .update(taskData)
+        .update(taskDataNormalized)
         .eq("id", taskId);
 
       if (error) throw error;
