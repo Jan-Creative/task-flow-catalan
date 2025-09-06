@@ -31,25 +31,26 @@ export function useInteractionType(): InteractionInfo {
   function detectInteractionCapabilities(): InteractionInfo {
     const capabilities: InputCapability[] = [];
     
-    // Touch detection
-    const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    // Safe touch detection
+    const hasTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
     if (hasTouch) {
       capabilities.push('touch');
     }
     
-    // Mouse detection (assume mouse if not pure touch device)
+    // Mouse detection (reliable hover support indicates mouse)
     const hasMouse = window.matchMedia('(hover: hover)').matches;
     if (hasMouse) {
       capabilities.push('mouse');
     }
     
-    // Keyboard detection (assume keyboard unless pure mobile)
-    const hasKeyboard = !(/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) || window.innerWidth >= 768;
+    // Keyboard detection - more reliable approach
+    const isMobileDevice = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const hasKeyboard = !isMobileDevice || window.innerWidth >= 768;
     if (hasKeyboard) {
       capabilities.push('keyboard');
     }
     
-    // Stylus detection (basic check for devices that commonly support stylus)
+    // Stylus detection for devices that commonly support it
     const supportsStylus = /iPad|Android/i.test(navigator.userAgent) && hasTouch;
     if (supportsStylus) {
       capabilities.push('stylus');
@@ -66,8 +67,16 @@ export function useInteractionType(): InteractionInfo {
     // Hover support
     const supportsHover = window.matchMedia('(hover: hover)').matches;
     
-    // Pressure support (basic detection)
-    const supportsPressure = 'force' in TouchEvent.prototype || 'webkitForce' in TouchEvent.prototype;
+    // Safe pressure support detection
+    let supportsPressure = false;
+    if (typeof TouchEvent !== 'undefined') {
+      try {
+        supportsPressure = 'force' in TouchEvent.prototype || 'webkitForce' in TouchEvent.prototype;
+      } catch (e) {
+        // TouchEvent not available or accessible, pressure not supported
+        supportsPressure = false;
+      }
+    }
     
     return {
       primary,
