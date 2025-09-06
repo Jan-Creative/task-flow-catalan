@@ -20,6 +20,22 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
+    // Enable aggressive minification
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true, // Remove console.log in production
+        drop_debugger: true,
+        pure_funcs: ['console.log', 'console.info', 'console.debug'],
+        passes: 2, // Run compression twice for better results
+      },
+      mangle: {
+        safari10: true, // Fix Safari 10+ compatibility
+      },
+      format: {
+        comments: false, // Remove all comments
+      },
+    },
     // Optimize chunk splitting for better caching
     rollupOptions: {
       output: {
@@ -40,5 +56,7 @@ export default defineConfig(({ mode }) => ({
     // Optimize asset handling
     assetsInlineLimit: 4096, // Inline small assets
     sourcemap: false, // Disable sourcemaps in production for smaller files
+    // Enable CSS minification
+    cssMinify: true,
   },
 }));
