@@ -19,3 +19,7 @@ export { useErrorHandler } from './useErrorHandler';
 export { useRealtimeSafety } from './useRealtimeSafety';
 export { useRealtimeSubscriptions } from './useRealtimeSubscriptions';
 export { useServiceWorkerStatus } from './useServiceWorkerStatus';
+
+// Offline hooks
+export { useOfflineTasks } from './useOfflineTasks';
+export { useOfflineContext } from '@/contexts/OfflineContext';

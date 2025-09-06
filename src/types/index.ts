@@ -20,6 +20,9 @@ export interface Tasca {
   due_date?: string;
   created_at: string;
   updated_at: string;
+  completed_at?: string | null;
+  user_id?: string;
+  folder?: any;
 }
 
 // ============= FOLDER TYPES =============

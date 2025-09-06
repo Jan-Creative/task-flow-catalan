@@ -175,16 +175,84 @@ self.addEventListener('message', (event) => {
   }
 });
 
-// Intercepció de requests (cache first strategy)
+// Enhanced fetch handler for offline support
 self.addEventListener('fetch', (event) => {
-  // Només per requests GET
-  if (event.request.method !== 'GET') return;
+  const url = new URL(event.request.url);
   
-  event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        // Retorna de cache si existeix, sinó fetch de la xarxa
-        return response || fetch(event.request);
+  // Only handle Supabase API requests and app resources
+  if (url.hostname.includes('supabase.co') || url.hostname === self.location.hostname) {
+    
+    // Handle Supabase API requests
+    if (url.hostname.includes('supabase.co')) {
+      // For Supabase requests, try network first, fallback to cache
+      event.respondWith(
+        fetch(event.request)
+          .then(response => {
+            // Cache successful responses
+            if (response.ok && event.request.method === 'GET') {
+              const responseClone = response.clone();
+              caches.open(CACHE_NAME).then(cache => {
+                cache.put(event.request, responseClone);
+              });
+            }
+            return response;
+          })
+          .catch(error => {
+            console.log('🔌 Network request failed, trying cache:', event.request.url);
+            
+            // Try to return cached response
+            return caches.match(event.request).then(cachedResponse => {
+              if (cachedResponse) {
+                console.log('📦 Returning cached response for:', event.request.url);
+                return cachedResponse;
+              }
+              
+              // For API requests, return a custom offline response
+              if (url.pathname.includes('/rest/v1/')) {
+                return new Response(JSON.stringify({
+                  error: 'offline',
+                  message: 'App is offline. Changes will be synced when online.'
+                }), {
+                  status: 503,
+                  statusText: 'Service Unavailable (Offline)',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'X-Offline': 'true'
+                  }
+                });
+              }
+              
+              throw error;
+            });
+          })
+      );
+    } else {
+      // For app resources, use cache first strategy
+      event.respondWith(
+        caches.match(event.request)
+          .then((response) => {
+            return response || fetch(event.request);
+          })
+      );
+    }
+  }
+});
+
+// Background sync for when connection is restored
+self.addEventListener('sync', (event) => {
+  console.log('🔄 Background sync triggered:', event.tag);
+  
+  if (event.tag === 'background-sync') {
+    event.waitUntil(
+      // Notify the app to perform sync
+      self.clients.matchAll().then(clients => {
+        clients.forEach(client => {
+          client.postMessage({
+            type: 'BACKGROUND_SYNC',
+            timestamp: Date.now()
+          });
+        });
       })
-  );
+    );
+  }
 });

@@ -16,6 +16,7 @@ import { BackgroundProvider } from '@/contexts/BackgroundContext';
 import { KeyboardShortcutsProvider } from '@/contexts/KeyboardShortcutsContext';
 import { PomodoroProvider } from '@/contexts/PomodoroContext';
 import { PropertyDialogProvider } from '@/contexts/PropertyDialogContext';
+import { OfflineProvider } from '@/contexts/OfflineContext';
 
 import { createOptimizedQueryClient } from '@/lib/optimizedCache';
 
@@ -35,22 +36,24 @@ export const OptimizedAppProvider = ({ children }: OptimizedAppProviderProps) =>
         disableTransitionOnChange
       >
         <TooltipProvider>
-          <SecurityProvider>
-            <BackgroundProvider>
-              <NotificationProvider>
-                <UnifiedTaskProvider>
-                  <KeyboardShortcutsProvider>
-                    <PomodoroProvider>
-                      <PropertyDialogProvider>
-                        <Toaster />
-                        {children}
-                      </PropertyDialogProvider>
-                    </PomodoroProvider>
-                  </KeyboardShortcutsProvider>
-                </UnifiedTaskProvider>
-              </NotificationProvider>
-            </BackgroundProvider>
-          </SecurityProvider>
+          <OfflineProvider>
+            <SecurityProvider>
+              <BackgroundProvider>
+                <NotificationProvider>
+                  <UnifiedTaskProvider>
+                    <KeyboardShortcutsProvider>
+                      <PomodoroProvider>
+                        <PropertyDialogProvider>
+                          <Toaster />
+                          {children}
+                        </PropertyDialogProvider>
+                      </PomodoroProvider>
+                    </KeyboardShortcutsProvider>
+                  </UnifiedTaskProvider>
+                </NotificationProvider>
+              </BackgroundProvider>
+            </SecurityProvider>
+          </OfflineProvider>
         </TooltipProvider>
       </ThemeProvider>
     </QueryClientProvider>
