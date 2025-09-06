@@ -29,23 +29,23 @@ const IPadTopNavigation = ({
   ];
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 px-6 pt-6">
-      {/* Floating Card Container */}
-      <div className="max-w-5xl mx-auto">
-        <div className="bg-card backdrop-blur-2xl border border-border/60 rounded-2xl shadow-floating">
+    <div className="fixed top-0 left-0 right-0 z-50 px-6 pt-4">
+      {/* Floating Glass Card Container */}
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-background/5 backdrop-blur-xl backdrop-saturate-150 backdrop-brightness-110 border border-white/5 rounded-2xl shadow-lg/10 transition-all duration-300">
           {/* Content */}
-          <div className="flex items-center justify-between h-14 px-6">
+          <div className="flex items-center justify-between h-12 px-4">
         {/* Left side - Mode toggle */}
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
             size="sm"
             onClick={toggleNavigationMode}
-            className="h-8 w-8 p-0 hover:bg-accent/60"
+            className="h-7 w-7 p-0 hover:bg-white/10 backdrop-blur-sm transition-all duration-200"
           >
-            <LayoutGrid className="h-4 w-4" />
+            <LayoutGrid className="h-3.5 w-3.5" />
           </Button>
-          <h1 className="text-lg font-semibold text-foreground">
+          <h1 className="text-base font-semibold text-white/90">
             Dades
           </h1>
         </div>
@@ -63,23 +63,23 @@ const IPadTopNavigation = ({
                 variant="ghost"
                 onClick={() => onTabChange(item.id)}
                 className={cn(
-                  "h-9 px-3 rounded-lg transition-all duration-200 group hover:scale-[1.02] active:scale-[0.98]",
+                  "h-8 px-3 rounded-xl transition-all duration-200 group hover:scale-[1.02] active:scale-[0.98] backdrop-blur-sm",
                   isActive 
-                    ? "bg-primary/15 text-primary font-medium shadow-md border border-primary/20" 
-                    : "text-muted-foreground hover:text-foreground hover:bg-accent/60",
-                  isSpecial && "bg-gradient-to-r from-orange-500/15 to-yellow-500/15 text-orange-400 hover:from-orange-500/25 hover:to-yellow-500/25"
+                    ? "bg-white/15 text-white font-medium shadow-lg/20 border border-white/20" 
+                    : "text-white/70 hover:text-white hover:bg-white/10",
+                  isSpecial && "bg-gradient-to-r from-orange-500/20 to-yellow-500/20 text-orange-300 hover:from-orange-500/30 hover:to-yellow-500/30"
                 )}
               >
                 <Icon className={cn(
-                  "h-4 w-4 transition-colors duration-200",
-                  isActive && "text-primary",
-                  isSpecial && "text-orange-400"
+                  "h-3.5 w-3.5 transition-colors duration-200",
+                  isActive && "text-white",
+                  isSpecial && "text-orange-300"
                 )} />
-                <span className="ml-2 text-sm hidden sm:inline">
+                <span className="ml-2 text-xs hidden sm:inline">
                   {item.label}
                 </span>
                 {isActive && (
-                  <div className="ml-2 w-1.5 h-1.5 bg-primary rounded-full" />
+                  <div className="ml-2 w-1 h-1 bg-white rounded-full" />
                 )}
               </Button>
             );
@@ -91,11 +91,11 @@ const IPadTopNavigation = ({
           <Button
             onClick={onCreateTask}
             size="sm"
-            className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium h-9 px-4"
+            className="bg-white/15 hover:bg-white/25 text-white font-medium h-8 px-3 backdrop-blur-sm border border-white/20 transition-all duration-200"
           >
-            <Plus className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">Nova Tasca</span>
-            <span className="sm:hidden">Nova</span>
+            <Plus className="h-3.5 w-3.5 mr-1.5" />
+            <span className="hidden sm:inline text-xs">Nova Tasca</span>
+            <span className="sm:hidden text-xs">Nova</span>
           </Button>
         </div>
           </div>

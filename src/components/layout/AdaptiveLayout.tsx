@@ -22,7 +22,7 @@ const AdaptiveLayout = ({ children, sidebarCollapsed = false }: AdaptiveLayoutPr
       case 'ipad':
         // iPad: Different layouts based on navigation mode
         if (navigationMode === 'topbar') {
-          return "transition-all duration-300 ease-out min-h-screen pt-24";
+          return "transition-all duration-300 ease-out min-h-screen pt-20";
         }
         // Sidebar mode: Floating sidebar layout with left margin for floating card
         return cn(
