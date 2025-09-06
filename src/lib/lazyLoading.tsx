@@ -86,7 +86,7 @@ export const LazyModal = ({ children }: { children: ReactNode }) => {
 
 export const LazyBackground = ({ children }: { children: ReactNode }) => {
   const fallback = React.createElement('div', {
-    className: "fixed inset-0 bg-gradient-gentle"
+    className: "fixed inset-0 bg-background"
   });
 
   return React.createElement(LazyWrapper, {

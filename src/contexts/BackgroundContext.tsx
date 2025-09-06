@@ -18,7 +18,7 @@ interface BackgroundContextType {
 const BackgroundContext = createContext<BackgroundContextType | undefined>(undefined);
 
 const DEFAULT_SETTINGS: BackgroundSettings = {
-  type: 'dark-veil',
+  type: 'none',
   intensity: 0.5,
   speed: 1.0,
   hueShift: 0.0,

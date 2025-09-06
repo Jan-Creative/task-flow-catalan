@@ -240,7 +240,7 @@ const FolderDetailPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-gentle flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
           <p className="text-muted-foreground mt-2">Carregant...</p>
@@ -252,7 +252,7 @@ const FolderDetailPage = () => {
   if (!currentFolder) {
     console.warn("No folder found for folderId:", folderId);
     return (
-      <div className="min-h-screen bg-gradient-gentle flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-xl font-semibold text-foreground mb-2">Carpeta no trobada</h2>
           <p className="text-muted-foreground mb-4">
@@ -267,7 +267,7 @@ const FolderDetailPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-gentle">
+    <div className="min-h-screen bg-background">
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
         {/* Header with breadcrumb and folder info */}
         <div className="mb-6">
