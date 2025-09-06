@@ -17,6 +17,7 @@ import { KeyboardShortcutsProvider } from '@/contexts/KeyboardShortcutsContext';
 import { PomodoroProvider } from '@/contexts/PomodoroContext';
 import { PropertyDialogProvider } from '@/contexts/PropertyDialogContext';
 import { OfflineProvider } from '@/contexts/OfflineContext';
+import { IPadNavigationProvider } from '@/contexts/IPadNavigationContext';
 
 import { createOptimizedQueryClient } from '@/lib/optimizedCache';
 
@@ -44,8 +45,10 @@ export const OptimizedAppProvider = ({ children }: OptimizedAppProviderProps) =>
                     <KeyboardShortcutsProvider>
                       <PomodoroProvider>
                         <PropertyDialogProvider>
-                          <Toaster />
-                          {children}
+                          <IPadNavigationProvider>
+                            <Toaster />
+                            {children}
+                          </IPadNavigationProvider>
                         </PropertyDialogProvider>
                       </PomodoroProvider>
                     </KeyboardShortcutsProvider>

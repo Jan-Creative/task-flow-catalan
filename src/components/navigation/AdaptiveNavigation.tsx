@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useDeviceDetection } from '@/hooks/useDeviceDetection';
 import AdaptiveBottomNavigation from '@/components/AdaptiveBottomNavigation';
 import IPadSidebar from './iPadSidebar';
+import IPadTopNavigation from './IPadTopNavigation';
+import { useIPadNavigation } from '@/contexts/IPadNavigationContext';
 
 interface AdaptiveNavigationProps {
   activeTab: string;
@@ -36,17 +38,15 @@ const AdaptiveNavigation = ({
     );
   }
 
-  // iPad: Use sidebar navigation
+  // iPad: Use adaptive navigation (sidebar or topbar)
   if (type === 'ipad') {
-    return (
-      <IPadSidebar
-        activeTab={activeTab}
-        onTabChange={onTabChange}
-        onCreateTask={onCreateTask}
-        isCollapsed={sidebarCollapsed}
-        onToggleCollapse={toggleSidebarCollapse}
-      />
-    );
+    return <IPadNavigationWrapper 
+      activeTab={activeTab}
+      onTabChange={onTabChange}
+      onCreateTask={onCreateTask}
+      sidebarCollapsed={sidebarCollapsed}
+      onToggleSidebarCollapse={toggleSidebarCollapse}
+    />;
   }
 
   // Desktop: Use top navigation (placeholder for future implementation)
@@ -56,6 +56,45 @@ const AdaptiveNavigation = ({
       activeTab={activeTab}
       onTabChange={onTabChange}
       onCreateTask={onCreateTask}
+    />
+  );
+};
+
+// iPad Navigation Wrapper Component
+interface IPadNavigationWrapperProps {
+  activeTab: string;
+  onTabChange: (tab: string) => void;
+  onCreateTask: () => void;
+  sidebarCollapsed: boolean;
+  onToggleSidebarCollapse: () => void;
+}
+
+const IPadNavigationWrapper = ({ 
+  activeTab, 
+  onTabChange, 
+  onCreateTask,
+  sidebarCollapsed,
+  onToggleSidebarCollapse
+}: IPadNavigationWrapperProps) => {
+  const { navigationMode } = useIPadNavigation();
+
+  if (navigationMode === 'topbar') {
+    return (
+      <IPadTopNavigation
+        activeTab={activeTab}
+        onTabChange={onTabChange}
+        onCreateTask={onCreateTask}
+      />
+    );
+  }
+
+  return (
+    <IPadSidebar
+      activeTab={activeTab}
+      onTabChange={onTabChange}
+      onCreateTask={onCreateTask}
+      isCollapsed={sidebarCollapsed}
+      onToggleCollapse={onToggleSidebarCollapse}
     />
   );
 };

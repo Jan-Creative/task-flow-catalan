@@ -1,8 +1,9 @@
-import { Calendar, Folder, Settings, Bell, Home, CheckSquare, Sunrise, ChevronRight } from "lucide-react";
+import { Calendar, Folder, Settings, Bell, Home, CheckSquare, Sunrise, ChevronRight, LayoutGrid } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import { usePrepareTomorrowVisibility } from "@/hooks/usePrepareTomorrowVisibility";
+import { useIPadNavigation } from "@/contexts/IPadNavigationContext";
 
 interface iPadSidebarProps {
   activeTab: string;
@@ -20,6 +21,7 @@ const iPadSidebar = ({
   onToggleCollapse 
 }: iPadSidebarProps) => {
   const { isVisible: showPrepareTomorrow } = usePrepareTomorrowVisibility();
+  const { toggleNavigationMode } = useIPadNavigation();
 
   // Navigation items organized by sections
   const mainSections = [
@@ -67,22 +69,37 @@ const iPadSidebar = ({
               Dades
             </h1>
           )}
-          {onToggleCollapse && (
+          <div className="absolute top-4 right-4 flex items-center gap-2">
+            {/* Navigation Mode Toggle */}
             <Button
               variant="ghost"
               size="sm"
-              onClick={onToggleCollapse}
+              onClick={toggleNavigationMode}
               className={cn(
-                "absolute top-4 right-4 h-8 w-8 p-0",
-                isCollapsed && "right-2"
+                "h-8 w-8 p-0 hover:bg-accent/60",
+                isCollapsed && "hidden"
               )}
+              title="Canviar a barra superior"
             >
-              <ChevronRight className={cn(
-                "h-4 w-4 transition-transform duration-200",
-                !isCollapsed && "rotate-180"
-              )} />
+              <LayoutGrid className="h-4 w-4" />
             </Button>
-          )}
+            
+            {/* Collapse Toggle */}
+            {onToggleCollapse && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onToggleCollapse}
+                className="h-8 w-8 p-0"
+                title={isCollapsed ? "Expandir sidebar" : "Comprimir sidebar"}
+              >
+                <ChevronRight className={cn(
+                  "h-4 w-4 transition-transform duration-200",
+                  !isCollapsed && "rotate-180"
+                )} />
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Quick Action Button */}
