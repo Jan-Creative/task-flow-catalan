@@ -12,19 +12,19 @@
   "scope": "/",
   "icons": [
     {
-      "src": "/icona App 11.png",
-      "sizes": "16x16 32x32 48x48 72x72 96x96 144x144 192x192",
+      "src": "/icona App 11.png?v=3",
+      "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icona App 11.png",
+      "src": "/icona App 11.png?v=3",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "maskable"
     },
     {
-      "src": "/icona App 11.png",
+      "src": "/icona App 11.png?v=3",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
@@ -45,7 +45,7 @@
       "url": "/?action=new-task",
       "icons": [
         {
-          "src": "/icona App 11.png",
+          "src": "/icona App 11.png?v=3",
           "sizes": "192x192",
           "type": "image/png"
         }
