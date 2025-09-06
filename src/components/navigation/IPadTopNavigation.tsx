@@ -29,12 +29,12 @@ const IPadTopNavigation = ({
   ];
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50">
-      {/* Background with blur effect */}
-      <div className="absolute inset-0 bg-background/80 backdrop-blur-xl border-b border-border/50" />
-      
-      {/* Content */}
-      <div className="relative flex items-center justify-between h-16 px-6">
+    <div className="fixed top-0 left-0 right-0 z-50 px-6 pt-6">
+      {/* Floating Card Container */}
+      <div className="max-w-5xl mx-auto">
+        <div className="bg-card backdrop-blur-2xl border border-border/60 rounded-2xl shadow-floating">
+          {/* Content */}
+          <div className="flex items-center justify-between h-14 px-6">
         {/* Left side - Mode toggle */}
         <div className="flex items-center gap-3">
           <Button
@@ -97,6 +97,8 @@ const IPadTopNavigation = ({
             <span className="hidden sm:inline">Nova Tasca</span>
             <span className="sm:hidden">Nova</span>
           </Button>
+        </div>
+          </div>
         </div>
       </div>
     </div>
