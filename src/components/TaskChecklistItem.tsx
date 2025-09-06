@@ -99,7 +99,8 @@ const TaskChecklistItem = memo(({
       disabled={isCompleting}
     >
       <div className={cn(
-        "group flex items-center gap-3 py-2 px-1 hover:bg-accent/30 rounded-lg transition-colors",
+        "group flex items-center gap-3 py-2 px-1 transition-colors",
+        // Remove default hover background - let SwipeableItem handle the visual feedback
         viewMode === "kanban" && "py-3 px-3",
         isCompleting && "task-completing"
       )}>

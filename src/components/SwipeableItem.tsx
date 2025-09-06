@@ -160,14 +160,14 @@ export const SwipeableItem = memo(({
     <div className={cn("relative overflow-hidden", className)}>
       {/* Left Actions Background */}
       {direction === 'left' && isActive && taskActions.left.length > 0 && (
-        <div className="absolute inset-y-0 right-0 flex">
+        <div className="absolute inset-y-0 right-0 flex rounded-xl">
           {/* Primary action (Delete) */}
           <div 
             className={cn(
-              "flex items-center justify-center transition-all duration-200 ease-out",
+              "flex items-center justify-center transition-all duration-300 ease-out",
               taskActions.left[0].bgColor,
               taskActions.left[0].color,
-              "font-medium"
+              "font-medium rounded-l-xl"
             )}
             style={{
               width: `${Math.min(progress * 80, 80)}px`,
@@ -188,10 +188,10 @@ export const SwipeableItem = memo(({
           {showSecondAction && taskActions.left[1] && (
             <div 
               className={cn(
-                "flex items-center justify-center transition-all duration-200 ease-out",
+                "flex items-center justify-center transition-all duration-300 ease-out",
                 taskActions.left[1].bgColor,
                 taskActions.left[1].color,
-                "font-medium"
+                "font-medium rounded-r-xl"
               )}
               style={{
                 width: `${Math.min((progress - 0.4) * 120, 80)}px`,
@@ -213,7 +213,7 @@ export const SwipeableItem = memo(({
       {direction === 'right' && isActive && taskActions.right.length > 0 && (
         <div 
           className={cn(
-            "absolute inset-y-0 left-0 flex items-center justify-center transition-all duration-200 ease-out",
+            "absolute inset-y-0 left-0 flex items-center justify-center transition-all duration-300 ease-out rounded-xl",
             taskActions.right[0].bgColor,
             taskActions.right[0].color,
             "font-medium"
@@ -237,7 +237,14 @@ export const SwipeableItem = memo(({
       {/* Main Content */}
       <div
         className={cn(
-          "relative transition-transform duration-200 ease-out bg-card",
+          "relative transition-all duration-300 ease-out",
+          // Dynamic Apple-style frame only during swipe
+          isActive && progress > 0.15 && [
+            "bg-card/40 backdrop-blur-sm border border-border/40 rounded-xl shadow-sm",
+            progress > 0.3 && "bg-card/60 border-border/60 shadow-md scale-[1.01]",
+            progress > 0.5 && "bg-card/80 border-border/80 shadow-lg"
+          ],
+          // Z-index for active swipe
           isActive && "z-10"
         )}
         style={{
