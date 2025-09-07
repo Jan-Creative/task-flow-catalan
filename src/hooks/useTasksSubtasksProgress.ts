@@ -29,10 +29,14 @@ export const useTasksSubtasksProgress = (taskIds: string[]) => {
       setLoading(true);
       
       // Single query to get all subtasks for the given task IDs
+      console.debug('Fetching subtask progress for tasks:', stableTaskIds);
+      
       const { data, error } = await supabase
         .from('task_subtasks')
         .select('task_id, completed')
         .in('task_id', stableTaskIds);
+      
+      console.debug('Subtasks query result:', { data, error });
 
       if (error) throw error;
 
@@ -96,7 +100,10 @@ export const useTasksSubtasksProgress = (taskIds: string[]) => {
         schema: 'public', 
         table: 'task_subtasks'
       },
-      () => fetchProgress()
+      () => {
+        console.debug('Subtask change detected, refreshing progress');
+        fetchProgress();
+      }
     );
 
     return () => {

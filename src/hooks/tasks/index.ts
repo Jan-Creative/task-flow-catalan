@@ -15,3 +15,4 @@ export { useTaskBasicContext, useTaskOperationsContext } from '../useTaskContext
 export { useOptimisticTasks } from '../useOptimisticTasks';
 export { useOfflineTasks } from '../useOfflineTasks';
 export { useTasksSubtasksProgress } from '../useTasksSubtasksProgress';
+export { useTaskManager } from '../useTaskManager';

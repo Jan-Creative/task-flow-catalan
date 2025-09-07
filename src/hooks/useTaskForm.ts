@@ -31,8 +31,8 @@ export const useTaskForm = (config: TaskFormConfig) => {
     initialValues: {
       title: config.initialData?.title || '',
       description: config.initialData?.description || '',
-      status: config.initialData?.status || 'pendent' as TaskStatus,
-      priority: config.initialData?.priority || 'mitjana' as TaskPriority,
+      status: config.initialData?.status || 'pending' as TaskStatus,
+      priority: config.initialData?.priority || 'medium' as TaskPriority,
       folder_id: config.initialData?.folder_id || '',
       due_date: config.initialData?.due_date || '',
       customProperties: config.initialData?.customProperties || [],
@@ -59,15 +59,15 @@ export const useTaskForm = (config: TaskFormConfig) => {
 
   // Status and priority options
   const statusOptions = useMemo(() => [
-    { value: 'pendent', label: 'Pendent', color: '#ef4444' },
-    { value: 'en_proces', label: 'En procés', color: '#f59e0b' },
-    { value: 'completat', label: 'Completat', color: '#10b981' }
+    { value: 'pending', label: 'Pendent', color: '#ef4444' },
+    { value: 'in_progress', label: 'En procés', color: '#f59e0b' },
+    { value: 'completed', label: 'Completat', color: '#10b981' }
   ], []);
 
   const priorityOptions = useMemo(() => [
-    { value: 'baixa', label: 'Baixa', color: '#6b7280' },
-    { value: 'mitjana', label: 'Mitjana', color: '#3b82f6' },
-    { value: 'alta', label: 'Alta', color: '#f59e0b' },
+    { value: 'low', label: 'Baixa', color: '#6b7280' },
+    { value: 'medium', label: 'Mitjana', color: '#3b82f6' },
+    { value: 'high', label: 'Alta', color: '#f59e0b' },
     { value: 'urgent', label: 'Urgent', color: '#ef4444' }
   ], []);
 
@@ -130,8 +130,8 @@ export const useTaskForm = (config: TaskFormConfig) => {
       const newValues = {
         title: config.initialData.title || '',
         description: config.initialData.description || '',
-        status: config.initialData.status || 'pendent' as TaskStatus,
-        priority: config.initialData.priority || 'mitjana' as TaskPriority,
+        status: config.initialData.status || 'pending' as TaskStatus,
+        priority: config.initialData.priority || 'medium' as TaskPriority,
         folder_id: config.initialData.folder_id || '',
         due_date: config.initialData.due_date || '',
         customProperties: config.initialData.customProperties || [],
@@ -150,8 +150,8 @@ export const useTaskForm = (config: TaskFormConfig) => {
     const newValues = {
       title: config.initialData?.title || '',
       description: config.initialData?.description || '',
-      status: config.initialData?.status || 'pendent' as TaskStatus,
-      priority: config.initialData?.priority || 'mitjana' as TaskPriority,
+      status: config.initialData?.status || 'pending' as TaskStatus,
+      priority: config.initialData?.priority || 'medium' as TaskPriority,
       folder_id: config.initialData?.folder_id || '',
       due_date: config.initialData?.due_date || '',
       customProperties: config.initialData?.customProperties || [],

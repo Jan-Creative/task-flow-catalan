@@ -78,7 +78,7 @@ export const useTypedForm = <T extends Record<string, unknown>>(
         errors: { ...prev.errors, [field]: error },
         touched: { ...prev.touched, [field]: true },
         isValid: error === '' && Object.entries(prev.errors).every(([key, err]) => 
-          key === field ? !error : !err
+          key === String(field) ? !error : !err
         )
       };
     });
@@ -103,13 +103,16 @@ export const useTypedForm = <T extends Record<string, unknown>>(
   }, [config.initialValues]);
 
   const updateInitialValues = useCallback((newValues: Partial<T>) => {
-    setState(prev => ({
-      ...prev,
-      values: { ...prev.values, ...newValues },
-      errors: {},
-      touched: {},
-      isValid: true
-    }));
+    setState(prev => {
+      const updatedValues = { ...prev.values, ...newValues };
+      return {
+        ...prev,
+        values: updatedValues,
+        errors: {},
+        touched: {},
+        isValid: true
+      };
+    });
   }, []);
 
   const handleSubmit = useCallback(async (e?: React.FormEvent) => {
