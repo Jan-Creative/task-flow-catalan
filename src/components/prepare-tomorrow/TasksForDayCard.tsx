@@ -47,7 +47,7 @@ export const TasksForDayCard = ({ tomorrow, onTasksUpdate }: TasksForDayCardProp
     }
   };
 
-  const completedCount = tasksForTomorrow.filter(task => task.status === 'completada').length;
+  const completedCount = tasksForTomorrow.filter(task => task.status === 'completat').length;
   const totalCount = tasksForTomorrow.length;
 
   return (
@@ -96,10 +96,10 @@ export const TasksForDayCard = ({ tomorrow, onTasksUpdate }: TasksForDayCardProp
                     </div>
                   </div>
                   <Badge 
-                    variant={task.status === 'completada' ? 'default' : 'outline'} 
+                    variant={task.status === 'completat' ? 'default' : 'outline'} 
                     className="text-xs"
                   >
-                    {task.status === 'completada' ? 'Completada' : 'Pendent'}
+                    {task.status === 'completat' ? 'Completada' : 'Pendent'}
                   </Badge>
                 </div>
               ))

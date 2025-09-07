@@ -112,13 +112,25 @@ export const useDadesApp = () => {
   const crearTasca = useCallback(async (taskData: CrearTascaData) => {
     if (!user) throw new Error("User not authenticated");
 
-    // Normalize task data - convert empty strings to null
+    // Normalize and map old English values to Catalan (safeguard)
+    const statusMapping: Record<string, string> = {
+      'pending': 'pendent',
+      'in_progress': 'en_proces', 
+      'completed': 'completat'
+    };
+    const priorityMapping: Record<string, string> = {
+      'low': 'baixa',
+      'medium': 'mitjana',
+      'high': 'alta'
+    };
+
+    // Normalize task data - convert empty strings to null and map values
     const taskDataNormalized = {
       title: taskData.title?.trim() || '',
       description: taskData.description?.trim() || null,
       due_date: taskData.due_date || null,
-      status: taskData.status || 'pendent',
-      priority: taskData.priority || 'mitjana',
+      status: statusMapping[taskData.status] || taskData.status || 'pendent',
+      priority: priorityMapping[taskData.priority] || taskData.priority || 'mitjana',
       folder_id: taskData.folder_id || null
     };
 

@@ -60,8 +60,14 @@ const CreateTaskModal = ({ open, onClose, onSubmit, folders, editingTask }: Crea
     } : undefined,
     onSubmit: async (data) => {
       const { customProperties, ...taskData } = data;
-      onSubmit(taskData, customProperties);
-      handleClose();
+      try {
+        await onSubmit(taskData, customProperties);
+        // Only close modal if submission was successful
+        handleClose();
+      } catch (error) {
+        console.error('[CreateTaskModal] Submit failed:', error);
+        // Modal stays open on error - toast will show error message
+      }
     },
     mode: editingTask ? 'edit' : 'create'
   });
