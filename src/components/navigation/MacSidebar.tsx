@@ -52,7 +52,7 @@ const MacSidebar = ({
   return (
     <div className="fixed left-0 top-0 h-full w-64 z-40 p-2">
       {/* Main Sidebar Container */}
-      <div className="h-full flex flex-col backdrop-blur-sm">
+      <div className="h-full flex flex-col bg-card backdrop-blur-2xl rounded-2xl shadow-floating hover:shadow-elevated transition-shadow duration-300">
         
         {/* Header Section */}
         <div className="p-6 space-y-4">
