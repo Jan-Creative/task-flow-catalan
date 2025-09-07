@@ -28,6 +28,7 @@ export const useTaskOperations = () => {
       return created;
     } catch (error) {
       console.error("Error creating task with properties:", error);
+      // Don't re-throw here, let the UI handle the original error
       throw error;
     }
   }, [createTask, setTaskProperty]);
@@ -51,6 +52,7 @@ export const useTaskOperations = () => {
       }
     } catch (error) {
       console.error("Error updating task with properties:", error);
+      // Don't re-throw here, let the UI handle the original error
       throw error;
     }
   }, [updateTask, setTaskProperty]);

@@ -262,9 +262,23 @@ export const useDadesApp = () => {
         description: "La tasca s'ha actualitzat correctament",
       });
     } catch (error) {
-      // Revert on error
-      queryClient.invalidateQueries({ queryKey: [CLAU_CACHE_DADES, user?.id] });
+      // Revert optimistic update on error
+      queryClient.setQueryData([CLAU_CACHE_DADES, user?.id], (old: any) => {
+        if (!old) return old;
+        // Find the original task and revert
+        const originalTask = old.tasks.find((t: Tasca) => t.id === taskId);
+        if (originalTask) {
+          return {
+            ...old,
+            tasks: old.tasks.map((task: Tasca) =>
+              task.id === taskId ? originalTask : task
+            )
+          };
+        }
+        return old;
+      });
       handleError(error instanceof Error ? error : new Error("No s'ha pogut actualitzar la tasca"));
+      throw error; // Re-throw to allow handling in UI
     }
   }, [user?.id, queryClient, toast, handleError]);
 
@@ -305,9 +319,23 @@ export const useDadesApp = () => {
         description: `Estat canviat a ${status}`,
       });
     } catch (error) {
-      // Revert on error
-      queryClient.invalidateQueries({ queryKey: [CLAU_CACHE_DADES, user?.id] });
+      // Revert optimistic update on error
+      queryClient.setQueryData([CLAU_CACHE_DADES, user?.id], (old: any) => {
+        if (!old) return old;
+        // Find the original task and revert status
+        const originalTask = old.tasks.find((t: Tasca) => t.id === taskId);
+        if (originalTask) {
+          return {
+            ...old,
+            tasks: old.tasks.map((task: Tasca) =>
+              task.id === taskId ? originalTask : task
+            )
+          };
+        }
+        return old;
+      });
       handleError(error instanceof Error ? error : new Error("No s'ha pogut actualitzar la tasca"));
+      throw error; // Re-throw to allow handling in UI
     }
   }, [user?.id, queryClient, toast, setTaskProperty, getPropertyByName, handleError]);
 
@@ -334,9 +362,15 @@ export const useDadesApp = () => {
         description: "La tasca s'ha eliminat correctament",
       });
     } catch (error) {
-      // Revert on error
-      queryClient.invalidateQueries({ queryKey: [CLAU_CACHE_DADES, user?.id] });
+      // Revert optimistic update on error - restore the deleted task
+      queryClient.setQueryData([CLAU_CACHE_DADES, user?.id], (old: any) => {
+        if (!old) return old;
+        // We need to restore the task - we'll need to refetch to get it back
+        queryClient.invalidateQueries({ queryKey: [CLAU_CACHE_DADES, user?.id] });
+        return old;
+      });
       handleError(error instanceof Error ? error : new Error("No s'ha pogut eliminar la tasca"));
+      throw error; // Re-throw to allow handling in UI
     }
   }, [user?.id, queryClient, toast, handleError]);
 

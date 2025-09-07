@@ -94,13 +94,23 @@ export const useTypedForm = <T extends Record<string, unknown>>(
 
   const resetForm = useCallback(() => {
     setState({
-      values: config.initialValues,
+      values: { ...config.initialValues },
       errors: {},
       touched: {},
       isSubmitting: false,
       isValid: true
     });
   }, [config.initialValues]);
+
+  const updateInitialValues = useCallback((newValues: Partial<T>) => {
+    setState(prev => ({
+      ...prev,
+      values: { ...prev.values, ...newValues },
+      errors: {},
+      touched: {},
+      isValid: true
+    }));
+  }, []);
 
   const handleSubmit = useCallback(async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -123,6 +133,7 @@ export const useTypedForm = <T extends Record<string, unknown>>(
     setValue,
     setError,
     resetForm,
+    updateInitialValues,
     handleSubmit,
     validateForm,
     // Helper for getting field props

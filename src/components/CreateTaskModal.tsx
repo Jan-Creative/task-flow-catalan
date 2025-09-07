@@ -77,12 +77,13 @@ const CreateTaskModal = ({ open, onClose, onSubmit, folders, editingTask }: Crea
     }
   });
 
-  // Reset form when dialog opens/closes
+  // Reset form when dialog opens/closes or editingTask changes
   useEffect(() => {
-    if (!open) {
+    if (open) {
+      // When opening, reset form with current editingTask data
       taskForm.resetForm();
     }
-  }, [open, taskForm]);
+  }, [open, editingTask, taskForm.resetForm]);
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>

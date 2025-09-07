@@ -2,7 +2,7 @@
  * Task Form Hook - Encapsula la lògica complexa del formulari de tasques
  */
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { TaskFormData, TaskStatus, TaskPriority } from '@/types/task';
 import { useTypedForm, createRequiredValidator, createLengthValidator } from './useTypedForm';
 import { useProperties } from './useProperties';
@@ -29,14 +29,13 @@ export const useTaskForm = (config: TaskFormConfig) => {
   // Form state with typed validation
   const form = useTypedForm<TaskFormState>({
     initialValues: {
-      title: '',
-      description: '',
-      status: 'pendent' as TaskStatus,
-      priority: 'mitjana' as TaskPriority,
-      folder_id: '',
-      due_date: '',
-      customProperties: [],
-      ...config.initialData
+      title: config.initialData?.title || '',
+      description: config.initialData?.description || '',
+      status: config.initialData?.status || 'pendent' as TaskStatus,
+      priority: config.initialData?.priority || 'mitjana' as TaskPriority,
+      folder_id: config.initialData?.folder_id || '',
+      due_date: config.initialData?.due_date || '',
+      customProperties: config.initialData?.customProperties || [],
     },
     validators: {
       title: [
@@ -125,16 +124,51 @@ export const useTaskForm = (config: TaskFormConfig) => {
     }));
   }, []);
 
-  // Reset form
+  // Update values when initial data changes
+  useEffect(() => {
+    if (config.initialData) {
+      const newValues = {
+        title: config.initialData.title || '',
+        description: config.initialData.description || '',
+        status: config.initialData.status || 'pendent' as TaskStatus,
+        priority: config.initialData.priority || 'mitjana' as TaskPriority,
+        folder_id: config.initialData.folder_id || '',
+        due_date: config.initialData.due_date || '',
+        customProperties: config.initialData.customProperties || [],
+      };
+      
+      form.updateInitialValues(newValues);
+      setUiState(prev => ({
+        ...prev,
+        isDescriptionOpen: Boolean(config.initialData?.description),
+      }));
+    }
+  }, [config.initialData, form.updateInitialValues]);
+
+  // Reset form and update values when config changes
   const resetForm = useCallback(() => {
-    form.resetForm();
+    const newValues = {
+      title: config.initialData?.title || '',
+      description: config.initialData?.description || '',
+      status: config.initialData?.status || 'pendent' as TaskStatus,
+      priority: config.initialData?.priority || 'mitjana' as TaskPriority,
+      folder_id: config.initialData?.folder_id || '',
+      due_date: config.initialData?.due_date || '',
+      customProperties: config.initialData?.customProperties || [],
+    };
+    
+    // Update form values
+    Object.keys(newValues).forEach(key => {
+      form.setValue(key as keyof TaskFormState, newValues[key as keyof TaskFormState]);
+    });
+    
     setUiState({
-      isDescriptionOpen: false,
+      isDescriptionOpen: Boolean(config.initialData?.description),
       isDatePickerOpen: false,
       selectedPropertyId: null,
       propertyDropdownOpen: false
     });
-  }, [form]);
+  }, [form, config.initialData]);
 
   return {
     // Form state and validation

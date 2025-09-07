@@ -213,6 +213,8 @@ const FolderDetailPage = () => {
       setShowCreateTask(false);
     } catch (error) {
       console.error("Error creating/updating task:", error);
+      // Error is already handled by the hook with toast notification
+      // Just ensure dialog stays open for retry
     }
   };
 

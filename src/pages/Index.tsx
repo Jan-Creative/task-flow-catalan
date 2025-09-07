@@ -86,6 +86,8 @@ const Index = () => {
       setShowCreateDialog(false);
     } catch (error) {
       console.error("Error creating/updating task with properties:", error);
+      // Error is already handled by the hook with toast notification
+      // Just ensure dialog stays open for retry
     }
   };
 
