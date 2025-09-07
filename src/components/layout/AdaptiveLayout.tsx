@@ -36,7 +36,7 @@ const AdaptiveLayout = ({ children, sidebarCollapsed = false }: AdaptiveLayoutPr
       default:
         // Mac: Left margin for fixed sidebar
         if (deviceType === 'mac') {
-          return "transition-all duration-300 ease-out min-h-screen ml-80";
+          return "transition-all duration-300 ease-out min-h-screen ml-72";
         }
         // Other Desktop: Full width (top navigation in future)
         return "w-full";
