@@ -10,6 +10,7 @@ import { X, FileText } from "lucide-react";
 import { useTaskForm } from "@/hooks/useTaskForm";
 import { useStableCallback } from "@/hooks/useOptimizedPerformance";
 import { useResponsiveLayout } from "@/hooks/device/useResponsiveLayout";
+import { useKeyboardShortcuts } from "@/contexts/KeyboardShortcutsContext";
 import { 
   AdaptiveFormLayout, 
   FormMainSection, 
@@ -44,6 +45,7 @@ interface CreateTaskModalProps {
 const CreateTaskModal = ({ open, onClose, onSubmit, folders, editingTask }: CreateTaskModalProps) => {
   const { layout, useCompactMode } = useResponsiveLayout();
   const isTabletOrDesktop = layout === 'tablet' || layout === 'desktop';
+  const { setEnabled } = useKeyboardShortcuts();
   
   // Use the optimized task form hook
   const taskForm = useTaskForm({
@@ -77,16 +79,19 @@ const CreateTaskModal = ({ open, onClose, onSubmit, folders, editingTask }: Crea
     }
   });
 
-  // Reset form when dialog opens/closes or editingTask changes
-  useEffect(() => {
-    if (open) {
-      // When opening, reset form with current editingTask data
-      taskForm.resetForm();
-    }
-  }, [open, editingTask, taskForm.resetForm]);
+// Manage global keyboard shortcuts while the modal is open
+useEffect(() => {
+  if (open) {
+    setEnabled(false);
+    console.debug('[CreateTaskModal] opened', { editingTask });
+  } else {
+    setEnabled(true);
+  }
+  return () => setEnabled(true);
+}, [open, setEnabled, editingTask]);
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) handleClose(); }}>
       <DialogContent 
         className={`
           ${isTabletOrDesktop ? 'max-w-5xl' : 'max-w-lg'}
@@ -115,7 +120,7 @@ const CreateTaskModal = ({ open, onClose, onSubmit, folders, editingTask }: Crea
 
         {/* Form Content with Scroll */}
         <div className="flex-1 overflow-y-auto px-6 py-6">
-          <form onSubmit={taskForm.handleSubmit} className="h-full">
+          <form onSubmit={taskForm.handleSubmit} className="h-full" autoComplete="off">
             <AdaptiveFormLayout>
               {/* Main Information Column */}
               <FormMainSection title="Informació Principal">
@@ -228,7 +233,6 @@ const CreateTaskModal = ({ open, onClose, onSubmit, folders, editingTask }: Crea
             </Button>
             <Button
               type="submit"
-              onClick={taskForm.handleSubmit}
               disabled={taskForm.isSubmitting || !taskForm.isValid}
               className="px-6 bg-primary hover:bg-primary/90"
             >

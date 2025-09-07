@@ -145,30 +145,31 @@ export const useTaskForm = (config: TaskFormConfig) => {
     }
   }, [config.initialData, form.updateInitialValues]);
 
-  // Reset form and update values when config changes
-  const resetForm = useCallback(() => {
-    const newValues = {
-      title: config.initialData?.title || '',
-      description: config.initialData?.description || '',
-      status: config.initialData?.status || 'pending' as TaskStatus,
-      priority: config.initialData?.priority || 'medium' as TaskPriority,
-      folder_id: config.initialData?.folder_id || '',
-      due_date: config.initialData?.due_date || '',
-      customProperties: config.initialData?.customProperties || [],
-    };
-    
-    // Update form values
-    Object.keys(newValues).forEach(key => {
-      form.setValue(key as keyof TaskFormState, newValues[key as keyof TaskFormState]);
-    });
-    
-    setUiState({
-      isDescriptionOpen: Boolean(config.initialData?.description),
-      isDatePickerOpen: false,
-      selectedPropertyId: null,
-      propertyDropdownOpen: false
-    });
-  }, [form, config.initialData]);
+// Reset form and update values when config changes
+const resetForm = useCallback(() => {
+  const newValues = {
+    title: config.initialData?.title || '',
+    description: config.initialData?.description || '',
+    status: (config.initialData?.status as TaskStatus) || 'pending',
+    priority: (config.initialData?.priority as TaskPriority) || 'medium',
+    folder_id: config.initialData?.folder_id || '',
+    due_date: config.initialData?.due_date || '',
+    customProperties: config.initialData?.customProperties || [],
+  } as TaskFormState;
+
+  // Batch update initial values to avoid flicker and keep validators clean
+  form.updateInitialValues(newValues);
+
+  setUiState({
+    isDescriptionOpen: Boolean(config.initialData?.description),
+    isDatePickerOpen: false,
+    selectedPropertyId: null,
+    propertyDropdownOpen: false
+  });
+
+  // Debugging aid (temporary)
+  console.debug('[useTaskForm] resetForm', newValues);
+}, [config.initialData, form.updateInitialValues]);
 
   return {
     // Form state and validation
