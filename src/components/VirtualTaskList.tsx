@@ -2,6 +2,7 @@ import React, { memo, useMemo } from 'react';
 import { FixedSizeList as List } from 'react-window';
 import OptimizedTaskItem from '@/components/OptimizedTaskItem';
 import { TaskItemSkeleton } from '@/components/ui/skeleton';
+import { useTasksSubtasksProgress } from '@/hooks/useTasksSubtasksProgress';
 import type { Tasca } from '@/types';
 
 interface VirtualTaskListProps {
@@ -22,11 +23,12 @@ interface TaskRowProps {
     onTaskClick?: (task: Tasca) => void;
     onTaskStatusChange?: (taskId: string, status: Tasca['status']) => void;
     onTaskDelete?: (taskId: string) => void;
+    getTaskProgress: (taskId: string) => any;
   };
 }
 
 const TaskRow = memo<TaskRowProps>(({ index, style, data }) => {
-  const { tasks, onTaskClick, onTaskStatusChange, onTaskDelete } = data;
+  const { tasks, onTaskClick, onTaskStatusChange, onTaskDelete, getTaskProgress } = data;
   const task = tasks[index];
 
   if (!task) {
@@ -44,6 +46,7 @@ const TaskRow = memo<TaskRowProps>(({ index, style, data }) => {
         onEdit={onTaskClick}
         onStatusChange={onTaskStatusChange}
         onDelete={onTaskDelete}
+        taskProgress={getTaskProgress(task.id)}
       />
     </div>
   );
@@ -60,12 +63,17 @@ export const VirtualTaskList = memo<VirtualTaskListProps>(({
   height = 400,
   itemHeight = 120,
 }) => {
+  // Get progress for all visible tasks
+  const taskIds = useMemo(() => tasks.map(task => task.id), [tasks]);
+  const { getTaskProgress } = useTasksSubtasksProgress(taskIds);
+
   const itemData = useMemo(() => ({
     tasks,
     onTaskClick,
     onTaskStatusChange,
     onTaskDelete,
-  }), [tasks, onTaskClick, onTaskStatusChange, onTaskDelete]);
+    getTaskProgress,
+  }), [tasks, onTaskClick, onTaskStatusChange, onTaskDelete, getTaskProgress]);
 
   // Show skeleton loading for empty state
   if (loading && tasks.length === 0) {
@@ -89,6 +97,7 @@ export const VirtualTaskList = memo<VirtualTaskListProps>(({
             onEdit={onTaskClick}
             onStatusChange={onTaskStatusChange}
             onDelete={onTaskDelete}
+            taskProgress={getTaskProgress(task.id)}
           />
         ))}
       </div>

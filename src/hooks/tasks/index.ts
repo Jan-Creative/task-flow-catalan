@@ -14,3 +14,4 @@ export { useTaskCache } from '../useTaskCache';
 export { useTaskBasicContext, useTaskOperationsContext } from '../useTaskContextOptimized';
 export { useOptimisticTasks } from '../useOptimisticTasks';
 export { useOfflineTasks } from '../useOfflineTasks';
+export { useTasksSubtasksProgress } from '../useTasksSubtasksProgress';
