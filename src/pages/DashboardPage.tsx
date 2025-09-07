@@ -11,7 +11,7 @@ import { useDadesApp } from "@/hooks/useDadesApp";
 import { useEvents } from "@/hooks/useEvents";
 import { useOptimizedPropertyLabels } from "@/hooks/useOptimizedPropertyLabels";
 import { usePrepareTomorrowVisibility } from "@/hooks/usePrepareTomorrowVisibility";
-import MiniCalendarCard from "@/components/calendar/MiniCalendarCard";
+import WeeklyCalendarCard from "@/components/calendar/WeeklyCalendarCard";
 import TaskChecklistItem from "@/components/TaskChecklistItem";
 import { cn } from "@/lib/utils";
 import { 
@@ -336,7 +336,7 @@ const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar }: 
             </h3>
           </div>
           <div className="pt-0">
-            <MiniCalendarCard currentDate={selectedDate} onDateSelect={setSelectedDate} />
+            <WeeklyCalendarCard currentDate={selectedDate} onDateSelect={setSelectedDate} />
           </div>
         </div>
       </div>
