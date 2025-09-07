@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useDeviceDetection } from '@/hooks/useDeviceDetection';
+import { useDeviceType } from '@/hooks/device/useDeviceType';
 import AdaptiveBottomNavigation from '@/components/AdaptiveBottomNavigation';
 import IPadSidebar from './iPadSidebar';
 import IPadTopNavigation from './IPadTopNavigation';
+import MacSidebar from './MacSidebar';
 import { useIPadNavigation } from '@/contexts/IPadNavigationContext';
 
 interface AdaptiveNavigationProps {
@@ -21,6 +23,7 @@ const AdaptiveNavigation = ({
   onSidebarCollapseChange
 }: AdaptiveNavigationProps) => {
   const { type } = useDeviceDetection();
+  const { type: deviceType } = useDeviceType();
 
   const toggleSidebarCollapse = () => {
     const newState = !sidebarCollapsed;
@@ -47,6 +50,17 @@ const AdaptiveNavigation = ({
       sidebarCollapsed={sidebarCollapsed}
       onToggleSidebarCollapse={toggleSidebarCollapse}
     />;
+  }
+
+  // Mac: Use Mac sidebar
+  if (deviceType === 'mac') {
+    return (
+      <MacSidebar
+        activeTab={activeTab}
+        onTabChange={onTabChange}
+        onCreateTask={onCreateTask}
+      />
+    );
   }
 
   // Desktop: Use top navigation (placeholder for future implementation)

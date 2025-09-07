@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import { useDeviceDetection } from '@/hooks/useDeviceDetection';
+import { useDeviceType } from '@/hooks/device/useDeviceType';
 import { useIPadNavigation } from '@/contexts/IPadNavigationContext';
 import { cn } from '@/lib/utils';
 
@@ -10,6 +11,7 @@ interface AdaptiveLayoutProps {
 
 const AdaptiveLayout = ({ children, sidebarCollapsed = false }: AdaptiveLayoutProps) => {
   const { type } = useDeviceDetection();
+  const { type: deviceType } = useDeviceType();
   const { navigationMode } = type === 'ipad' ? useIPadNavigation() : { navigationMode: 'sidebar' };
 
   // Calculate layout based on device type
@@ -32,12 +34,16 @@ const AdaptiveLayout = ({ children, sidebarCollapsed = false }: AdaptiveLayoutPr
       
       case 'desktop':
       default:
-        // Desktop: Full width (top navigation in future)
+        // Mac: Left margin for fixed sidebar
+        if (deviceType === 'mac') {
+          return "transition-all duration-300 ease-out min-h-screen ml-80";
+        }
+        // Other Desktop: Full width (top navigation in future)
         return "w-full";
     }
   };
 
-  // Apply specific styles for iPad grid layout
+  // Apply specific styles for iPad and Mac layouts
   const getContentClasses = () => {
     if (type === 'ipad') {
       if (navigationMode === 'topbar') {
@@ -45,6 +51,12 @@ const AdaptiveLayout = ({ children, sidebarCollapsed = false }: AdaptiveLayoutPr
       }
       return "p-6 max-w-none";
     }
+    
+    // Mac: Optimized padding for large screens
+    if (deviceType === 'mac') {
+      return "p-8 max-w-none";
+    }
+    
     return "";
   };
 

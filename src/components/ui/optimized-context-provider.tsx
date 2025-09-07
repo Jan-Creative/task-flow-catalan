@@ -18,6 +18,7 @@ import { PomodoroProvider } from '@/contexts/PomodoroContext';
 import { PropertyDialogProvider } from '@/contexts/PropertyDialogContext';
 import { OfflineProvider } from '@/contexts/OfflineContext';
 import { IPadNavigationProvider } from '@/contexts/IPadNavigationContext';
+import { MacNavigationProvider } from '@/contexts/MacNavigationContext';
 
 import { createOptimizedQueryClient } from '@/lib/optimizedCache';
 
@@ -46,8 +47,10 @@ export const OptimizedAppProvider = ({ children }: OptimizedAppProviderProps) =>
                       <PomodoroProvider>
                         <PropertyDialogProvider>
                           <IPadNavigationProvider>
-                            <Toaster />
-                            {children}
+                            <MacNavigationProvider>
+                              <Toaster />
+                              {children}
+                            </MacNavigationProvider>
                           </IPadNavigationProvider>
                         </PropertyDialogProvider>
                       </PomodoroProvider>
