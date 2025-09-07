@@ -336,7 +336,11 @@ const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar }: 
             </h3>
           </div>
           <div className="pt-0">
-            <WeeklyCalendarCard currentDate={selectedDate} onDateSelect={setSelectedDate} />
+            <WeeklyCalendarCard 
+              currentDate={selectedDate} 
+              onDateSelect={setSelectedDate}
+              tasks={todayTasks}
+            />
           </div>
         </div>
       </div>
