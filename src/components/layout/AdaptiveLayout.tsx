@@ -36,7 +36,7 @@ const AdaptiveLayout = ({ children, sidebarCollapsed = false }: AdaptiveLayoutPr
       default:
         // Mac: Left margin for fixed sidebar
         if (deviceType === 'mac') {
-          return "transition-all duration-300 ease-out min-h-screen ml-72";
+          return "transition-all duration-300 ease-out min-h-screen ml-66";
         }
         // Other Desktop: Full width (top navigation in future)
         return "w-full";
@@ -54,7 +54,7 @@ const AdaptiveLayout = ({ children, sidebarCollapsed = false }: AdaptiveLayoutPr
     
     // Mac: Optimized padding for large screens
     if (deviceType === 'mac') {
-      return "p-8 max-w-none";
+      return "p-6 max-w-none";
     }
     
     return "";
