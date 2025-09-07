@@ -8,7 +8,7 @@ import NotFound from "./pages/NotFound";
 import { PomodoroWidget } from "@/components/pomodoro/PomodoroWidget";
 import { RouteCacheProvider } from "@/components/ui/route-cache";
 import { BackgroundRefresher } from "@/components/ui/navigation-optimizers";
-import { BackgroundRenderer } from "@/components/backgrounds/BackgroundRenderer";
+
 import { NotificationDisplay } from "@/components/NotificationDisplay";
 import { PerformanceMonitor } from "@/components/performance/PerformanceMonitor";
 import { SecurityMonitor } from "@/components/security/SecurityMonitor";
@@ -27,7 +27,6 @@ const App = () => {
 
   return (
     <div className="w-full min-h-screen overflow-x-hidden">
-      <BackgroundRenderer />
       <BrowserRouter>
         <RouteCacheProvider maxAge={15 * 60 * 1000} maxEntries={25}>
           <BackgroundRefresher />

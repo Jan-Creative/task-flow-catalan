@@ -156,6 +156,7 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
     /* Força el tema fosc com a predeterminat */
     color-scheme: dark;
+    overscroll-behavior: contain;
   }
   
   /* Task completion animations - Redesigned for minimal static effect */
