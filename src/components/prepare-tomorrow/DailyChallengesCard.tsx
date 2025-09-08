@@ -140,7 +140,7 @@ export const DailyChallengesCard = () => {
             </div>
             
             {todayChallenges.length === 0 ? (
-              <div className="text-center py-6 text-muted-foreground bg-secondary/20 rounded-xl border border-border/30">
+              <div className="text-center py-6 text-muted-foreground bg-secondary/20 rounded-xl">
                 <Target className="h-8 w-8 mx-auto mb-2 opacity-50" />
                 <p className="text-sm">No tens reptes per avui</p>
                 <p className="text-xs mt-1">Crea el teu primer repte!</p>
@@ -154,8 +154,8 @@ export const DailyChallengesCard = () => {
                       key={challenge.id} 
                       className={`flex items-center gap-3 p-3 rounded-lg transition-all duration-200 ${
                         challenge.is_completed 
-                          ? 'bg-success/5 border border-success/20 opacity-75' 
-                          : 'bg-secondary/20 border border-border/30 hover:bg-secondary/30'
+                          ? 'bg-success/5 opacity-75' 
+                          : 'bg-secondary/20 hover:bg-secondary/30'
                       }`}
                     >
                       <Checkbox
@@ -180,8 +180,8 @@ export const DailyChallengesCard = () => {
                       
                       <Badge 
                         variant="outline" 
-                        className="text-xs bg-transparent border-border/30"
-                        style={{ borderColor: getDifficultyColor(challenge.difficulty), color: getDifficultyColor(challenge.difficulty) }}
+                        className="text-xs bg-transparent"
+                        style={{ color: getDifficultyColor(challenge.difficulty) }}
                       >
                         {getDifficultyLabel(challenge.difficulty)}
                       </Badge>
@@ -219,7 +219,7 @@ export const DailyChallengesCard = () => {
                   return (
                     <div 
                       key={challenge.id} 
-                      className="flex items-center gap-3 p-3 rounded-lg bg-secondary/10 border border-border/20 opacity-75"
+                      className="flex items-center gap-3 p-3 rounded-lg bg-secondary/10 opacity-75"
                     >
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
@@ -234,8 +234,8 @@ export const DailyChallengesCard = () => {
                           </p>
                           <Badge 
                             variant="outline" 
-                            className="text-xs bg-transparent border-border/20 opacity-70"
-                            style={{ borderColor: getDifficultyColor(challenge.difficulty), color: getDifficultyColor(challenge.difficulty) }}
+                            className="text-xs bg-transparent opacity-70"
+                            style={{ color: getDifficultyColor(challenge.difficulty) }}
                           >
                             {getDifficultyLabel(challenge.difficulty)}
                           </Badge>
@@ -250,7 +250,7 @@ export const DailyChallengesCard = () => {
           
           <Button 
             variant="outline" 
-            className="w-full mt-4 bg-secondary/50 hover:bg-secondary/70 border-border/50" 
+            className="w-full mt-4 bg-secondary/50 hover:bg-secondary/70" 
             onClick={() => setShowCreateModal(true)}
           >
             <Plus className="h-4 w-4 mr-2" />
