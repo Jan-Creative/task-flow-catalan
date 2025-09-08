@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import CalendarPage from "./pages/CalendarPage";
 import PrepareTomorrowPage from "./pages/PrepareTomorrowPage";
+import NotesPage from "./pages/NotesPage";
 import { LazyTaskDetailPage, LazyFolderDetailPage } from "@/components/LazyComponents";
 import OfflineDemoPage from "./pages/OfflineDemoPage";
 import NotFound from "./pages/NotFound";
@@ -33,6 +34,7 @@ const App = () => {
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/calendar" element={<CalendarPage />} />
+            <Route path="/notes" element={<NotesPage />} />
             <Route path="/prepare-tomorrow" element={<PrepareTomorrowPage />} />
             <Route path="/task/:taskId" element={<LazyTaskDetailPage />} />
             <Route path="/folder/:folderId" element={<LazyFolderDetailPage />} />
