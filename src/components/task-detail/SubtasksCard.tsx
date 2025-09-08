@@ -66,11 +66,13 @@ export const SubtasksCard = memo(({ taskId: propTaskId }: SubtasksCardProps = {}
         </div>
         {finalData.subtasks.length > 0 && (
           <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span>{finalData.completedCount} de {finalData.subtasks.length} completades</span>
-              <span>{Math.round(finalData.progressPercentage)}%</span>
-            </div>
-            <Progress value={finalData.progressPercentage} className="h-1.5" />
+            <Progress 
+              value={finalData.progressPercentage} 
+              size="sm"
+              showLabel
+              showGlow={finalData.progressPercentage > 70}
+              animated
+            />
           </div>
         )}
       </CardHeader>

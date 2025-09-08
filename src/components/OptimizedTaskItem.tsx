@@ -134,20 +134,15 @@ const OptimizedTaskItem = memo<OptimizedTaskItemProps>(({
                   </p>
                 )}
 
-                {/* Progress Bar for tasks with subtasks */}
+                {/* Enhanced Progress Bar for tasks with subtasks */}
                 {taskProgress && taskProgress.totalSubtasks > 0 && (
                   <div className="mb-2">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-muted-foreground">
-                        {taskProgress.completedSubtasks} de {taskProgress.totalSubtasks} subtasques
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        {taskProgress.progressPercentage}%
-                      </span>
-                    </div>
                     <Progress 
                       value={taskProgress.progressPercentage} 
-                      className="h-1.5"
+                      size="sm"
+                      showLabel
+                      showGlow={taskProgress.progressPercentage > 0}
+                      animated
                     />
                   </div>
                 )}
