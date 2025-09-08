@@ -12,6 +12,7 @@ import { CompletedTasksTodayCard } from '@/components/prepare-tomorrow/Completed
 import { IncompleteTasksCard } from '@/components/prepare-tomorrow/IncompleteTasksCard';
 import { DailyReminderConfigModal } from '@/components/prepare-tomorrow/DailyReminderConfigModal';
 import { DailyReflectionCard } from '@/components/prepare-tomorrow/DailyReflectionCard';
+import { DailyChallengesCard } from '@/components/prepare-tomorrow/DailyChallengesCard';
 import { ArrowLeft, Calendar, Clock, Target, FolderOpen, NotebookPen, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format, addDays } from 'date-fns';
@@ -160,6 +161,11 @@ export default function PrepareTomorrowPage() {
           {/* Daily Reflection Card - 2 columns */}
           <div className="lg:col-span-2">
             <DailyReflectionCard date={new Date()} />
+          </div>
+
+          {/* Daily Challenges Card - 2 columns */}
+          <div className="lg:col-span-2">
+            <DailyChallengesCard />
           </div>
 
           {/* Quick Organization */}
