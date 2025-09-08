@@ -116,7 +116,7 @@ export const DailyChallengesCard = () => {
 
   return (
     <>
-      <Card className="bg-gradient-to-br from-card via-card to-card/80 border-border/50 backdrop-blur-sm">
+      <Card className="bg-gradient-to-br from-card via-card to-card/80 backdrop-blur-sm">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center gap-2">
