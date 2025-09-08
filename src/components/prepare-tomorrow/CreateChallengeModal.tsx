@@ -91,7 +91,7 @@ export const CreateChallengeModal = ({ open, onOpenChange, onChallengeCreated }:
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Preview Card */}
-          <Card className="p-4 bg-muted/50">
+          <Card className="p-4 bg-card/30 border-border/30">
             <div className="flex items-center gap-3">
               {selectedCategory && <selectedCategory.icon className="h-5 w-5" style={{ color: selectedCategory.color }} />}
               <div className="flex-1">

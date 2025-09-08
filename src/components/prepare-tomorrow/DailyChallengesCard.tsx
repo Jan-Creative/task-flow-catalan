@@ -112,11 +112,11 @@ export const DailyChallengesCard = () => {
                 return (
                   <div 
                     key={challenge.id} 
-                    className={`flex items-center gap-3 p-3 rounded-lg border transition-all duration-200 ${
-                      challenge.is_completed 
-                        ? 'bg-success/5 border-success/20 opacity-75' 
-                        : 'bg-background/50 border-border/50 hover:bg-background/80'
-                    }`}
+                     className={`flex items-center gap-3 p-3 rounded-lg border transition-all duration-200 ${
+                       challenge.is_completed 
+                         ? 'bg-success/5 border-success/20 opacity-75' 
+                         : 'bg-card/30 border-border/30 hover:bg-card/50'
+                     }`}
                   >
                     <Checkbox
                       checked={challenge.is_completed}
