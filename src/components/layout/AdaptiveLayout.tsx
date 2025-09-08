@@ -2,6 +2,7 @@ import { ReactNode } from 'react';
 import { useDeviceDetection } from '@/hooks/useDeviceDetection';
 import { useDeviceType } from '@/hooks/device/useDeviceType';
 import { useIPadNavigation } from '@/contexts/IPadNavigationContext';
+import { useMacNavigation } from '@/contexts/MacNavigationContext';
 import { cn } from '@/lib/utils';
 
 interface AdaptiveLayoutProps {
@@ -13,6 +14,7 @@ const AdaptiveLayout = ({ children, sidebarCollapsed = false }: AdaptiveLayoutPr
   const { type } = useDeviceDetection();
   const { type: deviceType } = useDeviceType();
   const { navigationMode } = type === 'ipad' ? useIPadNavigation() : { navigationMode: 'sidebar' };
+  const { isCollapsed: macSidebarCollapsed } = type === 'desktop' && deviceType === 'mac' ? useMacNavigation() : { isCollapsed: false };
 
   // Calculate layout based on device type
   const getLayoutClasses = () => {
@@ -34,9 +36,12 @@ const AdaptiveLayout = ({ children, sidebarCollapsed = false }: AdaptiveLayoutPr
       
       case 'desktop':
       default:
-        // Mac: Left margin for fixed sidebar (w-64 + p-2 = 264px + 12px separation)
+        // Mac: Left margin for fixed sidebar when expanded, full width when collapsed
         if (deviceType === 'mac') {
-          return "transition-all duration-300 ease-out min-h-screen ml-[276px]";
+          return cn(
+            "transition-all duration-300 ease-out min-h-screen",
+            macSidebarCollapsed ? "ml-0" : "ml-[276px]"
+          );
         }
         // Other Desktop: Full width (top navigation in future)
         return "w-full";
