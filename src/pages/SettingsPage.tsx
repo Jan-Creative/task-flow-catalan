@@ -7,7 +7,7 @@ import { SettingsGroup } from "@/components/settings/SettingsGroup";
 import { ThemeSelector } from "@/components/settings/ThemeSelector";
 import { TaskHistorySection } from "@/components/settings/TaskHistorySection";
 import { TaskResetSection } from "@/components/settings/TaskResetSection";
-import { ReflectionHistorySection } from "@/components/settings/ReflectionHistorySection";
+import { PersonalAnalyticsSection } from "@/components/settings/PersonalAnalyticsSection";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -259,7 +259,7 @@ const SettingsPage = () => {
         </Card>
 
         <TaskHistorySection />
-        <ReflectionHistorySection />
+        <PersonalAnalyticsSection />
         <TaskResetSection />
       </div>
     </div>
