@@ -5,63 +5,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Target, Zap, User, Briefcase, Heart, BookOpen, Palette } from "lucide-react";
 import { CreateChallengeModal } from './CreateChallengeModal';
-import type { DailyChallenge, ChallengeDifficulty, ChallengeCategory } from '@/types/challenges';
-
-// Mock data for visual implementation - includes today's and future challenges
-const mockChallenges: DailyChallenge[] = [
-  {
-    id: '1',
-    user_id: 'user1',
-    title: 'Fer 30 minuts d\'exercici',
-    description: 'Rutina matinal d\'exercici cardiovascular',
-    challenge_date: '2024-12-08',
-    created_at: '2024-12-07T10:00:00Z',
-    is_completed: false,
-    difficulty: 'medium',
-    category: 'health',
-    color: 'hsl(var(--success))',
-    icon: 'Heart'
-  },
-  {
-    id: '2',
-    user_id: 'user1',
-    title: 'Llegir 20 pàgines',
-    description: 'Continuar amb el llibre de desenvolupament personal',
-    challenge_date: '2024-12-08',
-    created_at: '2024-12-07T10:00:00Z',
-    is_completed: false,
-    difficulty: 'easy',
-    category: 'learning',
-    color: 'hsl(var(--primary))',
-    icon: 'BookOpen'
-  },
-  {
-    id: '3',
-    user_id: 'user1',
-    title: 'Meditar 15 minuts',
-    description: 'Sessió de mindfulness al matí',
-    challenge_date: '2024-12-09',
-    created_at: '2024-12-07T10:00:00Z',
-    is_completed: false,
-    difficulty: 'easy',
-    category: 'personal',
-    color: 'hsl(var(--primary))',
-    icon: 'User'
-  },
-  {
-    id: '4',
-    user_id: 'user1',
-    title: 'Completar projecte creatiu',
-    description: 'Finalitzar el disseny del logotip',
-    challenge_date: '2024-12-10',
-    created_at: '2024-12-07T10:00:00Z',
-    is_completed: false,
-    difficulty: 'hard',
-    category: 'creativity',
-    color: 'hsl(var(--warning))',
-    icon: 'Palette'
-  }
-];
+import { useDailyChallenges } from '@/hooks/useDailyChallenges';
+import type { ChallengeCategory, ChallengeDifficulty } from '@/types/challenges';
 
 const getCategoryIcon = (category: ChallengeCategory) => {
   const icons = {
@@ -93,26 +38,54 @@ const getDifficultyLabel = (difficulty: ChallengeDifficulty) => {
 };
 
 export const DailyChallengesCard = () => {
-  const [challenges, setChallenges] = useState<DailyChallenge[]>(mockChallenges);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const { 
+    challenges,
+    loading,
+    createChallenge,
+    toggleChallengeComplete,
+    getTodayChallenges,
+    getFutureChallenges 
+  } = useDailyChallenges();
 
-  const handleChallengeComplete = (challengeId: string) => {
-    setChallenges(prev => prev.map(challenge => 
-      challenge.id === challengeId 
-        ? { ...challenge, is_completed: !challenge.is_completed, completed_at: challenge.is_completed ? undefined : new Date().toISOString() }
-        : challenge
-    ));
-  };
-
-  // Get today's date in same format as challenges
-  const today = '2024-12-08'; // In real implementation, use format(new Date(), 'yyyy-MM-dd')
-  
-  // Separate today's and future challenges
-  const todayChallenges = challenges.filter(c => c.challenge_date === today);
-  const futureChallenges = challenges.filter(c => c.challenge_date > today).slice(0, 3);
+  // Get today's and future challenges
+  const todayChallenges = getTodayChallenges();
+  const futureChallenges = getFutureChallenges(3);
   
   const completedToday = todayChallenges.filter(c => c.is_completed).length;
   const totalToday = todayChallenges.length;
+
+  const handleChallengeComplete = async (challengeId: string) => {
+    await toggleChallengeComplete(challengeId);
+  };
+
+  const handleCreateChallenge = async (challengeData: any) => {
+    const newChallenge = await createChallenge(challengeData);
+    if (newChallenge) {
+      setShowCreateModal(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <Card className="bg-gradient-to-br from-card via-card to-card/80 backdrop-blur-sm">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <Target className="h-5 w-5 text-primary" />
+            </div>
+            <span className="text-lg font-semibold">Reptes Diaris</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-6 text-muted-foreground">
+            <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full mx-auto mb-2"></div>
+            <p className="text-sm">Carregant reptes...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <>
@@ -262,10 +235,7 @@ export const DailyChallengesCard = () => {
       <CreateChallengeModal
         open={showCreateModal}
         onOpenChange={setShowCreateModal}
-        onChallengeCreated={(newChallenge) => {
-          setChallenges(prev => [...prev, newChallenge]);
-          setShowCreateModal(false);
-        }}
+        onChallengeCreated={handleCreateChallenge}
       />
     </>
   );

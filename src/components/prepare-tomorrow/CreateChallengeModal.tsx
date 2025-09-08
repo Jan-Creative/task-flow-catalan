@@ -13,7 +13,7 @@ import type { CreateChallengeData, DailyChallenge, ChallengeDifficulty, Challeng
 interface CreateChallengeModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onChallengeCreated: (challenge: DailyChallenge) => void;
+  onChallengeCreated: (challengeData: CreateChallengeData) => Promise<void>;
 }
 
 const categoryOptions = [
@@ -40,38 +40,26 @@ export const CreateChallengeModal = ({ open, onOpenChange, onChallengeCreated }:
     color: 'hsl(var(--primary))'
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.title.trim()) return;
 
-    const selectedCategory = categoryOptions.find(cat => cat.value === formData.category);
-    
-    const newChallenge: DailyChallenge = {
-      id: Date.now().toString(), // Mock ID for visual implementation
-      user_id: 'mock-user',
-      title: formData.title,
-      description: formData.description,
-      challenge_date: formData.challenge_date,
-      created_at: new Date().toISOString(),
-      is_completed: false,
-      difficulty: formData.difficulty,
-      category: formData.category,
-      color: selectedCategory?.color || formData.color,
-      icon: selectedCategory?.icon.name
-    };
-
-    onChallengeCreated(newChallenge);
-    
-    // Reset form
-    setFormData({
-      title: '',
-      description: '',
-      challenge_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      difficulty: 'medium',
-      category: 'personal',
-      color: 'hsl(var(--primary))'
-    });
+    try {
+      await onChallengeCreated(formData);
+      
+      // Reset form
+      setFormData({
+        title: '',
+        description: '',
+        challenge_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        difficulty: 'medium',
+        category: 'personal',
+        color: 'hsl(var(--primary))'
+      });
+    } catch (error) {
+      console.error('Error creating challenge:', error);
+    }
   };
 
   const selectedCategory = categoryOptions.find(cat => cat.value === formData.category);

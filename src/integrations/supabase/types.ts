@@ -44,6 +44,54 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_challenges: {
+        Row: {
+          category: string
+          challenge_date: string
+          color: string
+          completed_at: string | null
+          created_at: string
+          description: string | null
+          difficulty: string
+          icon: string | null
+          id: string
+          is_completed: boolean
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          challenge_date: string
+          color?: string
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          difficulty?: string
+          icon?: string | null
+          id?: string
+          is_completed?: boolean
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          challenge_date?: string
+          color?: string
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          difficulty?: string
+          icon?: string | null
+          id?: string
+          is_completed?: boolean
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       daily_preparations: {
         Row: {
           created_at: string
