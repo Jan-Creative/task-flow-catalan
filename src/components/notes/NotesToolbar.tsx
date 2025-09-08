@@ -22,28 +22,74 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
+import { useNotes } from "@/contexts/NotesContext";
+import { toast } from "@/lib/toastUtils";
 
 interface NotesToolbarProps {
   selectedNoteId: string | null;
+  onNoteDeleted?: () => void;
 }
 
-export const NotesToolbar = ({ selectedNoteId }: NotesToolbarProps) => {
-  const [isStarred, setIsStarred] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
+export const NotesToolbar = ({ selectedNoteId, onNoteDeleted }: NotesToolbarProps) => {
+  const { getNoteById, updateNote, deleteNote, saving } = useNotes();
+  const note = selectedNoteId ? getNoteById(selectedNoteId) : null;
 
-  const handleSave = async () => {
-    setIsSaving(true);
-    // Simulate save
-    await new Promise(resolve => setTimeout(resolve, 500));
-    setIsSaving(false);
+  const handleStar = async () => {
+    if (!note) return;
+    
+    const success = await updateNote(note.id, {
+      is_starred: !note.is_starred
+    });
+    
+    if (success) {
+      toast.success(note.is_starred ? 'Estrella eliminada' : 'Nota marcada amb estrella');
+    }
   };
 
-  const handleStar = () => {
-    setIsStarred(!isStarred);
+  const handleArchive = async () => {
+    if (!note) return;
+    
+    const success = await updateNote(note.id, {
+      is_archived: !note.is_archived
+    });
+    
+    if (success) {
+      toast.success(note.is_archived ? 'Nota desarxivada' : 'Nota arxivada');
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!note) return;
+    
+    const success = await deleteNote(note.id);
+    if (success && onNoteDeleted) {
+      onNoteDeleted();
+    }
   };
 
   const handleAction = (action: string) => {
-    console.log("Action:", action);
+    switch (action) {
+      case 'duplicate':
+        toast.success('Funcionalitat de duplicar pròximament');
+        break;
+      case 'print':
+        window.print();
+        break;
+      case 'download':
+        toast.success('Funcionalitat de descàrrega pròximament');
+        break;
+      case 'share':
+        toast.success('Funcionalitat de compartir pròximament');
+        break;
+      case 'attach':
+        toast.success('Funcionalitat d\'adjuntar pròximament');
+        break;
+      case 'link':
+        toast.success('Funcionalitat d\'enllaçar pròximament');
+        break;
+      default:
+        console.log("Action:", action);
+    }
   };
 
   if (!selectedNoteId) {
@@ -62,24 +108,13 @@ export const NotesToolbar = ({ selectedNoteId }: NotesToolbarProps) => {
         {/* Left Side - Primary Actions */}
         <div className="flex items-center gap-2">
           <Button
-            onClick={handleSave}
-            disabled={isSaving}
-            size="sm"
-            className="bg-gradient-primary"
-          >
-            <Save className="h-4 w-4 mr-2" />
-            {isSaving ? "Desant..." : "Desar"}
-          </Button>
-          
-          <Separator orientation="vertical" className="h-6" />
-          
-          <Button
             variant="ghost"
             size="sm"
             onClick={handleStar}
-            className={isStarred ? "text-yellow-500" : ""}
+            className={note?.is_starred ? "text-yellow-500" : ""}
+            title={note?.is_starred ? "Eliminar estrella" : "Marcar amb estrella"}
           >
-            <Star className={`h-4 w-4 ${isStarred ? "fill-current" : ""}`} />
+            <Star className={`h-4 w-4 ${note?.is_starred ? "fill-current" : ""}`} />
           </Button>
           
           <Button variant="ghost" size="sm" onClick={() => handleAction("attach")}>
@@ -94,8 +129,20 @@ export const NotesToolbar = ({ selectedNoteId }: NotesToolbarProps) => {
         {/* Center - Status Indicators */}
         <div className="flex items-center gap-2">
           <Badge variant="secondary" className="h-6">
-            Desat automàticament
+            {saving ? "Desant..." : "Desat automàticament"}
           </Badge>
+          {note?.is_starred && (
+            <Badge variant="outline" className="h-6 text-yellow-600">
+              <Star className="h-3 w-3 mr-1 fill-current" />
+              Favorita
+            </Badge>
+          )}
+          {note?.is_archived && (
+            <Badge variant="outline" className="h-6 text-muted-foreground">
+              <Archive className="h-3 w-3 mr-1" />
+              Arxivada
+            </Badge>
+          )}
         </div>
 
         {/* Right Side - Secondary Actions */}
@@ -126,15 +173,15 @@ export const NotesToolbar = ({ selectedNoteId }: NotesToolbarProps) => {
               
               <DropdownMenuSeparator />
               
-              <DropdownMenuItem onClick={() => handleAction("archive")}>
+              <DropdownMenuItem onClick={handleArchive}>
                 <Archive className="h-4 w-4 mr-2" />
-                Arxivar nota
+                {note?.is_archived ? 'Desarxivar nota' : 'Arxivar nota'}
               </DropdownMenuItem>
               
               <DropdownMenuSeparator />
               
               <DropdownMenuItem 
-                onClick={() => handleAction("delete")}
+                onClick={handleDelete}
                 className="text-destructive focus:text-destructive"
               >
                 <Trash2 className="h-4 w-4 mr-2" />

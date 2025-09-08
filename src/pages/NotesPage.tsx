@@ -8,14 +8,24 @@ import { NoteEditor } from "@/components/notes/NoteEditor";
 import { NoteMetadataPanel } from "@/components/notes/NoteMetadataPanel";
 import { NotesToolbar } from "@/components/notes/NotesToolbar";
 import { CreateNoteModal } from "@/components/notes/CreateNoteModal";
+import { NotesProvider } from "@/contexts/NotesContext";
 
 const NotesPage = () => {
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
 
+  const handleNoteCreated = (noteId: string) => {
+    setSelectedNoteId(noteId);
+  };
+
+  const handleNoteDeleted = () => {
+    setSelectedNoteId(null);
+  };
+
   return (
-    <div className="min-h-screen bg-background">
+    <NotesProvider>
+      <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
         <div className="flex items-center justify-between p-4">
@@ -44,7 +54,7 @@ const NotesPage = () => {
               </Button>
             </div>
             
-            <CreateNoteModal onNoteCreated={setSelectedNoteId} />
+            <CreateNoteModal onNoteCreated={handleNoteCreated} />
           </div>
         </div>
       </div>
@@ -64,7 +74,7 @@ const NotesPage = () => {
         {/* Main Content - Editor */}
         <div className="flex-1 flex flex-col">
           {/* Toolbar */}
-          <NotesToolbar selectedNoteId={selectedNoteId} />
+          <NotesToolbar selectedNoteId={selectedNoteId} onNoteDeleted={handleNoteDeleted} />
           
           {/* Editor */}
           <div className="flex-1 p-6">
@@ -81,7 +91,7 @@ const NotesPage = () => {
                     Tria una nota de la llista o crea'n una de nova per començar
                   </p>
                   <CreateNoteModal 
-                    onNoteCreated={setSelectedNoteId}
+                    onNoteCreated={handleNoteCreated}
                     trigger={
                       <Button className="bg-gradient-primary">
                         <Plus className="h-4 w-4 mr-2" />
@@ -103,6 +113,7 @@ const NotesPage = () => {
         )}
       </div>
     </div>
+    </NotesProvider>
   );
 };
 

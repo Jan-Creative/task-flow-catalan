@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { useNotes } from "@/hooks/useNotes";
+import { useNotes } from "@/contexts/NotesContext";
 import { toast } from "@/lib/toastUtils";
 
 interface NoteEditorProps {
@@ -23,7 +23,7 @@ const formatToolbarButtons = [
 ];
 
 export const NoteEditor = ({ noteId }: NoteEditorProps) => {
-  const { getNoteById, updateNote, saving } = useNotes();
+  const { getNoteById, updateNote, flushSaveNote, saving } = useNotes();
   const note = getNoteById(noteId);
   
   const [title, setTitle] = useState("");
@@ -33,6 +33,24 @@ export const NoteEditor = ({ noteId }: NoteEditorProps) => {
   
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout>();
   const isInitializedRef = useRef(false);
+  const previousNoteIdRef = useRef<string | null>(null);
+
+  // Flush save when switching notes
+  useEffect(() => {
+    const flushSave = async () => {
+      if (previousNoteIdRef.current && isModified && isInitializedRef.current) {
+        await flushSaveNote(previousNoteIdRef.current, {
+          title: title.trim() || "Sense títol",
+          content: content.trim(),
+        });
+      }
+    };
+
+    if (noteId !== previousNoteIdRef.current) {
+      flushSave();
+      previousNoteIdRef.current = noteId;
+    }
+  }, [noteId, title, content, isModified, flushSaveNote]);
 
   // Initialize editor with note data
   useEffect(() => {
@@ -44,6 +62,18 @@ export const NoteEditor = ({ noteId }: NoteEditorProps) => {
       isInitializedRef.current = true;
     }
   }, [note]);
+
+  // Cleanup on unmount - flush save
+  useEffect(() => {
+    return () => {
+      if (noteId && isModified && isInitializedRef.current) {
+        flushSaveNote(noteId, {
+          title: title.trim() || "Sense títol",
+          content: content.trim(),
+        });
+      }
+    };
+  }, []);
 
   // Auto-save functionality
   const saveNote = useCallback(async () => {
@@ -93,6 +123,19 @@ export const NoteEditor = ({ noteId }: NoteEditorProps) => {
     }
   };
 
+  // Save on blur for better UX
+  const handleTitleBlur = () => {
+    if (isModified) {
+      saveNote();
+    }
+  };
+
+  const handleContentBlur = () => {
+    if (isModified) {
+      saveNote();
+    }
+  };
+
   const handleManualSave = () => {
     if (isModified) {
       saveNote();
@@ -138,12 +181,13 @@ export const NoteEditor = ({ noteId }: NoteEditorProps) => {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <Input
-            value={title}
-            onChange={handleTitleChange}
-            placeholder="Títol de la nota..."
-            className="text-2xl font-bold border-none shadow-none p-0 focus-visible:ring-0 bg-transparent"
-          />
+            <Input
+              value={title}
+              onChange={handleTitleChange}
+              onBlur={handleTitleBlur}
+              placeholder="Títol de la nota..."
+              className="text-2xl font-bold border-none shadow-none p-0 focus-visible:ring-0 bg-transparent"
+            />
           {note.is_starred && (
             <Star className="h-5 w-5 text-yellow-500 fill-current" />
           )}
@@ -213,6 +257,7 @@ export const NoteEditor = ({ noteId }: NoteEditorProps) => {
         <Textarea
           value={content}
           onChange={handleContentChange}
+          onBlur={handleContentBlur}
           placeholder="Comença a escriure la teva nota..."
           className="h-full min-h-[400px] resize-none border-none shadow-none focus-visible:ring-0 text-base leading-relaxed"
         />
