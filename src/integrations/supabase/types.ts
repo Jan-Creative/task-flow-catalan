@@ -317,6 +317,42 @@ export type Database = {
         }
         Relationships: []
       }
+      notes: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_archived: boolean
+          is_starred: boolean
+          tags: string[] | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_archived?: boolean
+          is_starred?: boolean
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_archived?: boolean
+          is_starred?: boolean
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notification_blocks: {
         Row: {
           created_at: string

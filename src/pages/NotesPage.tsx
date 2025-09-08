@@ -7,6 +7,7 @@ import { NotesListSidebar } from "@/components/notes/NotesListSidebar";
 import { NoteEditor } from "@/components/notes/NoteEditor";
 import { NoteMetadataPanel } from "@/components/notes/NoteMetadataPanel";
 import { NotesToolbar } from "@/components/notes/NotesToolbar";
+import { CreateNoteModal } from "@/components/notes/CreateNoteModal";
 
 const NotesPage = () => {
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
@@ -43,10 +44,7 @@ const NotesPage = () => {
               </Button>
             </div>
             
-            <Button className="bg-gradient-primary hover:scale-105 transition-transform">
-              <Plus className="h-4 w-4 mr-2" />
-              Nova nota
-            </Button>
+            <CreateNoteModal onNoteCreated={setSelectedNoteId} />
           </div>
         </div>
       </div>
@@ -82,10 +80,15 @@ const NotesPage = () => {
                   <p className="text-muted-foreground/80 mb-4">
                     Tria una nota de la llista o crea'n una de nova per començar
                   </p>
-                  <Button className="bg-gradient-primary">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Crear primera nota
-                  </Button>
+                  <CreateNoteModal 
+                    onNoteCreated={setSelectedNoteId}
+                    trigger={
+                      <Button className="bg-gradient-primary">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Crear primera nota
+                      </Button>
+                    }
+                  />
                 </div>
               </div>
             )}
