@@ -34,9 +34,9 @@ const AdaptiveLayout = ({ children, sidebarCollapsed = false }: AdaptiveLayoutPr
       
       case 'desktop':
       default:
-        // Mac: Left margin for fixed sidebar (w-64 + p-2 = 272px)
+        // Mac: Left margin for fixed sidebar (w-64 + p-2 = 264px + 12px separation)
         if (deviceType === 'mac') {
-          return "transition-all duration-300 ease-out min-h-screen ml-[284px]";
+          return "transition-all duration-300 ease-out min-h-screen ml-[276px]";
         }
         // Other Desktop: Full width (top navigation in future)
         return "w-full";
