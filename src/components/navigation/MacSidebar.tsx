@@ -1,4 +1,4 @@
-import { Calendar, Folder, Settings, Bell, Home, CheckSquare, Sunrise, Plus } from "lucide-react";
+import { Calendar, Folder, Settings, Bell, Home, CheckSquare, Sunrise, Plus, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
@@ -36,6 +36,7 @@ const MacSidebar = ({
       title: "Organització",
       items: [
         { id: "carpetes", label: "Carpetes", icon: Folder },
+        { id: "notes", label: "Notes", icon: FileText },
         { id: "calendar", label: "Calendari", icon: Calendar },
       ]
     },
