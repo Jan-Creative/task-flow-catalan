@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Save, Bold, Italic, Underline, List, Code, Link, Image, MoreHorizontal, Clock, Star } from "lucide-react";
+import ReactMarkdown from 'react-markdown';
+import { Save, Bold, Italic, Underline, List, Code, Link, Image, MoreHorizontal, Clock, Star, Eye, Edit3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -31,6 +32,7 @@ export const NoteEditor = ({ noteId }: NoteEditorProps) => {
   const [content, setContent] = useState("");
   const [isModified, setIsModified] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
   
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout>();
   const isInitializedRef = useRef(false);
@@ -248,43 +250,75 @@ export const NoteEditor = ({ noteId }: NoteEditorProps) => {
         </span>
       </div>
 
-      {/* Formatting Toolbar */}
-      <div className="flex items-center gap-2 p-3 bg-muted/30 rounded-lg mb-4">
-        {formatToolbarButtons.map((button, index) => (
+      {/* Mode Toggle and Formatting Toolbar */}
+      <div className="flex items-center justify-between gap-4 mb-4">
+        <div className="flex items-center gap-2 p-3 bg-muted/30 rounded-lg">
+          {!isPreviewMode && formatToolbarButtons.map((button, index) => (
+            <Button
+              key={index}
+              variant="ghost"
+              size="sm"
+              onClick={() => handleFormatClick(button.action)}
+              className="h-8 w-8 p-0"
+              title={button.tooltip}
+            >
+              <button.icon className="h-4 w-4" />
+            </Button>
+          ))}
+          
+          {!isPreviewMode && <Separator orientation="vertical" className="h-6 mx-2" />}
+          
+          {!isPreviewMode && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0"
+              title="Més opcions"
+            >
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+        
+        {/* Edit/Preview Toggle */}
+        <div className="flex items-center gap-1 bg-muted/30 rounded-lg p-1">
           <Button
-            key={index}
-            variant="ghost"
+            variant={!isPreviewMode ? "secondary" : "ghost"}
             size="sm"
-            onClick={() => handleFormatClick(button.action)}
-            className="h-8 w-8 p-0"
-            title={button.tooltip}
+            className="h-8 px-3"
+            onClick={() => setIsPreviewMode(false)}
           >
-            <button.icon className="h-4 w-4" />
+            <Edit3 className="h-4 w-4 mr-1" />
+            Editar
           </Button>
-        ))}
-        
-        <Separator orientation="vertical" className="h-6 mx-2" />
-        
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-8 w-8 p-0"
-          title="Més opcions"
-        >
-          <MoreHorizontal className="h-4 w-4" />
-        </Button>
+          <Button
+            variant={isPreviewMode ? "secondary" : "ghost"}
+            size="sm"
+            className="h-8 px-3"
+            onClick={() => setIsPreviewMode(true)}
+          >
+            <Eye className="h-4 w-4 mr-1" />
+            Vista prèvia
+          </Button>
+        </div>
       </div>
 
-      {/* Content Editor */}
+      {/* Content Editor/Preview */}
       <div className="flex-1">
-        <Textarea
-          ref={textareaRef}
-          value={content}
-          onChange={handleContentChange}
-          onBlur={handleContentBlur}
-          placeholder="Comença a escriure la teva nota..."
-          className="h-full min-h-[400px] resize-none border-none shadow-none focus-visible:ring-0 text-base leading-relaxed"
-        />
+        {isPreviewMode ? (
+          <div className="h-full min-h-[400px] p-4 bg-background rounded-lg border prose prose-sm max-w-none dark:prose-invert prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-em:text-foreground prose-code:text-foreground prose-pre:bg-muted prose-blockquote:text-muted-foreground">
+            <ReactMarkdown>{content || '*No hi ha contingut per mostrar a la vista prèvia*'}</ReactMarkdown>
+          </div>
+        ) : (
+          <Textarea
+            ref={textareaRef}
+            value={content}
+            onChange={handleContentChange}
+            onBlur={handleContentBlur}
+            placeholder="Comença a escriure la teva nota..."
+            className="h-full min-h-[400px] resize-none border-none shadow-none focus-visible:ring-0 text-base leading-relaxed"
+          />
+        )}
       </div>
 
       {/* Tags Display */}
