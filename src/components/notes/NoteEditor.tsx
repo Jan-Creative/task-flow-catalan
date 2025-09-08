@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useNotes } from "@/contexts/NotesContext";
 import { toast } from "@/lib/toastUtils";
+import { formatters, getTextSelection } from "@/lib/textFormatting";
 
 interface NoteEditorProps {
   noteId: string;
@@ -34,6 +35,7 @@ export const NoteEditor = ({ noteId }: NoteEditorProps) => {
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout>();
   const isInitializedRef = useRef(false);
   const previousNoteIdRef = useRef<string | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Flush save when switching notes
   useEffect(() => {
@@ -143,9 +145,30 @@ export const NoteEditor = ({ noteId }: NoteEditorProps) => {
   };
 
   const handleFormatClick = (action: string) => {
-    // Placeholder for rich text formatting
-    console.log(`Format action: ${action}`);
-    toast.success(`Format ${action} aplicat`);
+    if (!textareaRef.current) return;
+    
+    const textarea = textareaRef.current;
+    const selection = getTextSelection(textarea);
+    const formatter = formatters[action as keyof typeof formatters];
+    
+    if (formatter) {
+      const result = formatter(content, selection);
+      setContent(result.newContent);
+      setIsModified(true);
+      
+      // Restore cursor position after state update
+      setTimeout(() => {
+        if (textareaRef.current) {
+          textareaRef.current.setSelectionRange(
+            result.newCursorPosition,
+            result.newCursorPosition
+          );
+          textareaRef.current.focus();
+        }
+      }, 0);
+      
+      toast.success(`Format ${action} aplicat`);
+    }
   };
 
   const formatLastSaved = () => {
@@ -255,6 +278,7 @@ export const NoteEditor = ({ noteId }: NoteEditorProps) => {
       {/* Content Editor */}
       <div className="flex-1">
         <Textarea
+          ref={textareaRef}
           value={content}
           onChange={handleContentChange}
           onBlur={handleContentBlur}
