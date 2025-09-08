@@ -36,7 +36,7 @@ const AdaptiveLayout = ({ children, sidebarCollapsed = false }: AdaptiveLayoutPr
       default:
         // Mac: Left margin for fixed sidebar (w-64 + p-2 = 272px)
         if (deviceType === 'mac') {
-          return "transition-all duration-300 ease-out min-h-screen ml-68";
+          return "transition-all duration-300 ease-out min-h-screen ml-[284px]";
         }
         // Other Desktop: Full width (top navigation in future)
         return "w-full";
@@ -47,17 +47,17 @@ const AdaptiveLayout = ({ children, sidebarCollapsed = false }: AdaptiveLayoutPr
   const getContentClasses = () => {
     if (type === 'ipad') {
       if (navigationMode === 'topbar') {
-        return "p-6 max-w-none";
+        return "relative z-0 p-6 max-w-none";
       }
-      return "p-6 max-w-none";
+       return "relative z-0 p-6 max-w-none";
     }
     
     // Mac: Optimized padding for large screens
     if (deviceType === 'mac') {
-      return "p-6 max-w-none";
+      return "relative z-0 p-6 max-w-none";
     }
     
-    return "";
+    return "relative z-0";
   };
 
   return (
