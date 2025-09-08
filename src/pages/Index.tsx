@@ -9,6 +9,7 @@ import CalendarPage from "@/pages/CalendarPage";
 import DashboardPage from "@/pages/DashboardPage";
 import AuthPage from "@/pages/AuthPage";
 import PrepareTomorrowPage from "@/pages/PrepareTomorrowPage";
+import NotesPage from "@/pages/NotesPage";
 import { useDadesApp } from "@/hooks/useDadesApp";
 import { useTaskOperations } from "@/hooks/useTaskOperations";
 import { usePerformanceMonitor, useCacheOptimization, useMemoryCleanup } from "@/hooks/usePerformanceOptimization";
@@ -139,6 +140,12 @@ const Index = () => {
       <TabPage tabId="preparar-dema" activeTab={activeTab}>
         <LazyPage pageName="Preparar demà">
           <PrepareTomorrowPage />
+        </LazyPage>
+      </TabPage>
+      
+      <TabPage tabId="notes" activeTab={activeTab}>
+        <LazyPage pageName="Notes">
+          <NotesPage />
         </LazyPage>
       </TabPage>
       
