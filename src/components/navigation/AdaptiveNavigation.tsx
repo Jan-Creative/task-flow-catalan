@@ -5,7 +5,9 @@ import AdaptiveBottomNavigation from '@/components/AdaptiveBottomNavigation';
 import IPadSidebar from './iPadSidebar';
 import IPadTopNavigation from './IPadTopNavigation';
 import MacSidebar from './MacSidebar';
+import MacFloatingRestoreButton from './MacFloatingRestoreButton';
 import { useIPadNavigation } from '@/contexts/IPadNavigationContext';
+import { MacNavigationProvider } from '@/contexts/MacNavigationContext';
 
 interface AdaptiveNavigationProps {
   activeTab: string;
@@ -52,14 +54,17 @@ const AdaptiveNavigation = ({
     />;
   }
 
-  // Mac: Use Mac sidebar
+  // Mac: Use Mac sidebar with context
   if (deviceType === 'mac') {
     return (
-      <MacSidebar
-        activeTab={activeTab}
-        onTabChange={onTabChange}
-        onCreateTask={onCreateTask}
-      />
+      <MacNavigationProvider>
+        <MacSidebar
+          activeTab={activeTab}
+          onTabChange={onTabChange}
+          onCreateTask={onCreateTask}
+        />
+        <MacFloatingRestoreButton />
+      </MacNavigationProvider>
     );
   }
 
