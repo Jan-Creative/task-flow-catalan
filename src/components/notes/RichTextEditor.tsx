@@ -3,11 +3,13 @@ import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import { TextStyle } from '@tiptap/extension-text-style';
 import Heading from '@tiptap/extension-heading';
+import Placeholder from '@tiptap/extension-placeholder';
 import { forwardRef, useImperativeHandle, useEffect, useCallback, useState, useRef, useMemo } from 'react';
 import { Bold, Italic, Underline as UnderlineIcon, List, Code, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { TextLevelSelector } from './TextLevelSelector';
+import { TextSizeSelector } from './TextSizeSelector';
 
 interface RichTextEditorProps {
   value: string;
@@ -46,21 +48,12 @@ const ToolbarButton = ({ editor, format, icon: Icon, title }: ToolbarButtonProps
 
   const handleClick = useCallback(() => {
     if (!editor) return;
-    
     setIsPressed(true);
-    
-    // Store current selection to restore it after command
-    const { from, to } = editor.state.selection;
-    const hasSelection = from !== to;
-    
+
     const success = commands[format as keyof typeof commands]?.();
-    
-    // Optimize selection restoration
+
     if (success) {
       requestAnimationFrame(() => {
-        if (hasSelection) {
-          editor.commands.setTextSelection({ from, to });
-        }
         editor.commands.focus();
         setIsPressed(false);
       });
@@ -97,6 +90,7 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
     const [isUpdating, setIsUpdating] = useState(false);
     const initializedRef = useRef(false);
     const lastValueRef = useRef(value);
+    const updateTimeout = useRef<number | null>(null);
     
     // Memoized debounced onChange to prevent autosave interference and unnecessary recreations
     const debouncedOnChange = useCallback((newValue: string) => {
@@ -128,13 +122,19 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
         }),
         Underline,
         TextStyle,
+        Placeholder.configure({
+          placeholder,
+          includeChildren: true,
+        }),
       ],
       content: value,
       onUpdate: ({ editor }: { editor: any }) => {
-        if (!isUpdating) {
+        if (isUpdating) return;
+        if (updateTimeout.current) window.clearTimeout(updateTimeout.current);
+        updateTimeout.current = window.setTimeout(() => {
           const html = editor.getHTML();
           debouncedOnChange(html);
-        }
+        }, 120);
       },
       onSelectionUpdate: () => {
         // Force re-render of toolbar buttons when selection changes
@@ -145,10 +145,10 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
       },
       editorProps: {
         attributes: {
-          class: 'rich-text-editor-content prose prose-sm max-w-none dark:prose-invert focus:outline-none min-h-[400px] p-4',
+          class: 'rich-text-editor-content focus:outline-none min-h-[400px] p-4',
         },
       },
-    }), [value, isUpdating, debouncedOnChange, onBlur]);
+    }), [value, isUpdating, debouncedOnChange, onBlur, placeholder]);
 
     const editor = useEditor(editorConfig);
 
@@ -203,6 +203,9 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
         <div className="flex items-center gap-1 p-2 bg-gradient-to-r from-muted/40 to-muted/30 rounded-lg mb-4 border border-border/50 shadow-sm">
           {/* Text Level Selector */}
           <TextLevelSelector editor={editor} />
+          <Separator orientation="vertical" className="h-6 mx-1" />
+          {/* Text Size Selector */}
+          <TextSizeSelector editor={editor} />
           
           <Separator orientation="vertical" className="h-6 mx-1" />
           
@@ -258,8 +261,7 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
         {/* Editor Content */}
         <div className="rounded-lg border bg-background min-h-[400px]">
           <EditorContent 
-            editor={editor} 
-            placeholder={placeholder}
+            editor={editor}
           />
         </div>
       </div>

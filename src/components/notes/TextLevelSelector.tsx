@@ -80,21 +80,8 @@ export const TextLevelSelector = ({ editor }: TextLevelSelectorProps) => {
 
   const handleLevelChange = useCallback((level: TextLevel) => {
     if (!editor) return;
-    
-    // Store current selection
-    const { from, to } = editor.state.selection;
-    const hasSelection = from !== to;
-    
-    // Execute command
     level.command();
-    
-    // Restore selection and focus
-    requestAnimationFrame(() => {
-      if (hasSelection) {
-        editor.commands.setTextSelection({ from, to });
-      }
-      editor.commands.focus();
-    });
+    requestAnimationFrame(() => editor.commands.focus());
   }, [editor]);
 
   if (!editor) return null;
