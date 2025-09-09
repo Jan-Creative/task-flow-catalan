@@ -2,10 +2,12 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import { TextStyle } from '@tiptap/extension-text-style';
+import Heading from '@tiptap/extension-heading';
 import { forwardRef, useImperativeHandle, useEffect, useCallback, useState, useRef, useMemo } from 'react';
 import { Bold, Italic, Underline as UnderlineIcon, List, Code, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { TextLevelSelector } from './TextLevelSelector';
 
 interface RichTextEditorProps {
   value: string;
@@ -108,6 +110,7 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
     const editorConfig = useMemo(() => ({
       extensions: [
         StarterKit.configure({
+          heading: false, // Disable heading from StarterKit to use custom Heading extension
           bulletList: {
             keepMarks: true,
             keepAttributes: false,
@@ -115,6 +118,12 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
           orderedList: {
             keepMarks: true,
             keepAttributes: false,
+          },
+        }),
+        Heading.configure({
+          levels: [1, 2, 3],
+          HTMLAttributes: {
+            class: 'heading-element',
           },
         }),
         Underline,
@@ -136,7 +145,7 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
       },
       editorProps: {
         attributes: {
-          class: 'prose prose-sm max-w-none dark:prose-invert prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-em:text-foreground prose-code:text-foreground prose-pre:bg-muted prose-blockquote:text-muted-foreground focus:outline-none min-h-[400px] p-4',
+          class: 'prose prose-sm max-w-none dark:prose-invert prose-headings:text-foreground prose-h1:text-2xl prose-h1:font-bold prose-h1:mt-6 prose-h1:mb-4 prose-h2:text-xl prose-h2:font-semibold prose-h2:mt-5 prose-h2:mb-3 prose-h3:text-lg prose-h3:font-medium prose-h3:mt-4 prose-h3:mb-2 prose-p:text-foreground prose-strong:text-foreground prose-em:text-foreground prose-code:text-foreground prose-pre:bg-muted prose-blockquote:text-muted-foreground focus:outline-none min-h-[400px] p-4',
         },
       },
     }), [value, isUpdating, debouncedOnChange, onBlur]);
@@ -192,6 +201,11 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
       <div className={className}>
         {/* Enhanced Formatting Toolbar */}
         <div className="flex items-center gap-1 p-2 bg-gradient-to-r from-muted/40 to-muted/30 rounded-lg mb-4 border border-border/50 shadow-sm">
+          {/* Text Level Selector */}
+          <TextLevelSelector editor={editor} />
+          
+          <Separator orientation="vertical" className="h-6 mx-1" />
+          
           <ToolbarButton
             editor={editor}
             format="bold"
