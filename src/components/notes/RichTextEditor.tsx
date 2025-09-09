@@ -123,7 +123,7 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
         Heading.configure({
           levels: [1, 2, 3],
           HTMLAttributes: {
-            class: 'heading-element',
+            class: 'rich-text-heading',
           },
         }),
         Underline,
@@ -145,7 +145,7 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
       },
       editorProps: {
         attributes: {
-          class: 'prose prose-sm max-w-none dark:prose-invert prose-headings:text-foreground prose-h1:text-2xl prose-h1:font-bold prose-h1:mt-6 prose-h1:mb-4 prose-h2:text-xl prose-h2:font-semibold prose-h2:mt-5 prose-h2:mb-3 prose-h3:text-lg prose-h3:font-medium prose-h3:mt-4 prose-h3:mb-2 prose-p:text-foreground prose-strong:text-foreground prose-em:text-foreground prose-code:text-foreground prose-pre:bg-muted prose-blockquote:text-muted-foreground focus:outline-none min-h-[400px] p-4',
+          class: 'rich-text-editor-content prose prose-sm max-w-none dark:prose-invert focus:outline-none min-h-[400px] p-4',
         },
       },
     }), [value, isUpdating, debouncedOnChange, onBlur]);
