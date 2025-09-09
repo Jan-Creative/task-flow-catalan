@@ -1,28 +1,16 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import ReactMarkdown from 'react-markdown';
-import { Save, Bold, Italic, Underline, List, Code, Link, Image, MoreHorizontal, Clock, Star, Eye, Edit3 } from "lucide-react";
+import { Save, Clock, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { useNotes } from "@/contexts/NotesContext";
 import { toast } from "@/lib/toastUtils";
-import { formatters, getTextSelection } from "@/lib/textFormatting";
+import { RichTextEditor, RichTextEditorRef } from "./RichTextEditor";
 
 interface NoteEditorProps {
   noteId: string;
 }
 
-const formatToolbarButtons = [
-  { icon: Bold, tooltip: "Negreta", action: "bold" },
-  { icon: Italic, tooltip: "Cursiva", action: "italic" },
-  { icon: Underline, tooltip: "Subratllat", action: "underline" },
-  { icon: List, tooltip: "Llista", action: "list" },
-  { icon: Code, tooltip: "Codi", action: "code" },
-  { icon: Link, tooltip: "Enllaç", action: "link" },
-  { icon: Image, tooltip: "Imatge", action: "image" },
-];
 
 export const NoteEditor = ({ noteId }: NoteEditorProps) => {
   const { getNoteById, updateNote, flushSaveNote, saving } = useNotes();
@@ -32,12 +20,11 @@ export const NoteEditor = ({ noteId }: NoteEditorProps) => {
   const [content, setContent] = useState("");
   const [isModified, setIsModified] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
-  const [isPreviewMode, setIsPreviewMode] = useState(false);
   
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout>();
   const isInitializedRef = useRef(false);
   const previousNoteIdRef = useRef<string | null>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const editorRef = useRef<RichTextEditorRef>(null);
 
   // Flush save when switching notes
   useEffect(() => {
@@ -120,8 +107,8 @@ export const NoteEditor = ({ noteId }: NoteEditorProps) => {
     }
   };
 
-  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setContent(e.target.value);
+  const handleContentChange = (value: string) => {
+    setContent(value);
     if (isInitializedRef.current) {
       setIsModified(true);
     }
@@ -146,32 +133,6 @@ export const NoteEditor = ({ noteId }: NoteEditorProps) => {
     }
   };
 
-  const handleFormatClick = (action: string) => {
-    if (!textareaRef.current) return;
-    
-    const textarea = textareaRef.current;
-    const selection = getTextSelection(textarea);
-    const formatter = formatters[action as keyof typeof formatters];
-    
-    if (formatter) {
-      const result = formatter(content, selection);
-      setContent(result.newContent);
-      setIsModified(true);
-      
-      // Restore cursor position after state update
-      setTimeout(() => {
-        if (textareaRef.current) {
-          textareaRef.current.setSelectionRange(
-            result.newCursorPosition,
-            result.newCursorPosition
-          );
-          textareaRef.current.focus();
-        }
-      }, 0);
-      
-      toast.success(`Format ${action} aplicat`);
-    }
-  };
 
   const formatLastSaved = () => {
     if (!lastSaved) return "";
@@ -250,75 +211,15 @@ export const NoteEditor = ({ noteId }: NoteEditorProps) => {
         </span>
       </div>
 
-      {/* Mode Toggle and Formatting Toolbar */}
-      <div className="flex items-center justify-between gap-4 mb-4">
-        <div className="flex items-center gap-2 p-3 bg-muted/30 rounded-lg">
-          {!isPreviewMode && formatToolbarButtons.map((button, index) => (
-            <Button
-              key={index}
-              variant="ghost"
-              size="sm"
-              onClick={() => handleFormatClick(button.action)}
-              className="h-8 w-8 p-0"
-              title={button.tooltip}
-            >
-              <button.icon className="h-4 w-4" />
-            </Button>
-          ))}
-          
-          {!isPreviewMode && <Separator orientation="vertical" className="h-6 mx-2" />}
-          
-          {!isPreviewMode && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0"
-              title="Més opcions"
-            >
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
-        
-        {/* Edit/Preview Toggle */}
-        <div className="flex items-center gap-1 bg-muted/30 rounded-lg p-1">
-          <Button
-            variant={!isPreviewMode ? "secondary" : "ghost"}
-            size="sm"
-            className="h-8 px-3"
-            onClick={() => setIsPreviewMode(false)}
-          >
-            <Edit3 className="h-4 w-4 mr-1" />
-            Editar
-          </Button>
-          <Button
-            variant={isPreviewMode ? "secondary" : "ghost"}
-            size="sm"
-            className="h-8 px-3"
-            onClick={() => setIsPreviewMode(true)}
-          >
-            <Eye className="h-4 w-4 mr-1" />
-            Vista prèvia
-          </Button>
-        </div>
-      </div>
-
-      {/* Content Editor/Preview */}
+      {/* Rich Text Editor */}
       <div className="flex-1">
-        {isPreviewMode ? (
-          <div className="h-full min-h-[400px] p-4 bg-background rounded-lg border prose prose-sm max-w-none dark:prose-invert prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-em:text-foreground prose-code:text-foreground prose-pre:bg-muted prose-blockquote:text-muted-foreground">
-            <ReactMarkdown>{content || '*No hi ha contingut per mostrar a la vista prèvia*'}</ReactMarkdown>
-          </div>
-        ) : (
-          <Textarea
-            ref={textareaRef}
-            value={content}
-            onChange={handleContentChange}
-            onBlur={handleContentBlur}
-            placeholder="Comença a escriure la teva nota..."
-            className="h-full min-h-[400px] resize-none border-none shadow-none focus-visible:ring-0 text-base leading-relaxed"
-          />
-        )}
+        <RichTextEditor
+          ref={editorRef}
+          value={content}
+          onChange={handleContentChange}
+          onBlur={handleContentBlur}
+          placeholder="Comença a escriure la teva nota..."
+        />
       </div>
 
       {/* Tags Display */}
