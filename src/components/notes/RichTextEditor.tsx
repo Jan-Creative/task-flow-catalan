@@ -2,7 +2,7 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import { TextStyle } from '@tiptap/extension-text-style';
-import { forwardRef, useImperativeHandle, useEffect, useCallback, useState, useRef } from 'react';
+import { forwardRef, useImperativeHandle, useEffect, useCallback, useState, useRef, useMemo } from 'react';
 import { Bold, Italic, Underline as UnderlineIcon, List, Code, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -29,7 +29,18 @@ interface ToolbarButtonProps {
 
 const ToolbarButton = ({ editor, format, icon: Icon, title }: ToolbarButtonProps) => {
   const [isPressed, setIsPressed] = useState(false);
-  const isActive = editor?.isActive(format) || false;
+  
+  // Memoize active state to prevent unnecessary re-renders
+  const isActive = useMemo(() => editor?.isActive(format) || false, [editor, format]);
+  
+  // Memoize commands object to prevent recreation on each render
+  const commands = useMemo(() => ({
+    bold: () => editor?.chain().focus().toggleBold().run(),
+    italic: () => editor?.chain().focus().toggleItalic().run(),
+    underline: () => editor?.chain().focus().toggleUnderline().run(),
+    code: () => editor?.chain().focus().toggleCode().run(),
+    bulletList: () => editor?.chain().focus().toggleBulletList().run(),
+  }), [editor]);
 
   const handleClick = useCallback(() => {
     if (!editor) return;
@@ -38,37 +49,39 @@ const ToolbarButton = ({ editor, format, icon: Icon, title }: ToolbarButtonProps
     
     // Store current selection to restore it after command
     const { from, to } = editor.state.selection;
-    
-    const commands = {
-      bold: () => editor.chain().focus().toggleBold().run(),
-      italic: () => editor.chain().focus().toggleItalic().run(),
-      underline: () => editor.chain().focus().toggleUnderline().run(),
-      code: () => editor.chain().focus().toggleCode().run(),
-      bulletList: () => editor.chain().focus().toggleBulletList().run(),
-    };
+    const hasSelection = from !== to;
     
     const success = commands[format as keyof typeof commands]?.();
     
-    // Restore selection if needed and ensure focus
-    setTimeout(() => {
-      if (success && from !== to) {
-        editor.commands.setTextSelection({ from, to });
-      }
-      editor.commands.focus();
+    // Optimize selection restoration
+    if (success) {
+      requestAnimationFrame(() => {
+        if (hasSelection) {
+          editor.commands.setTextSelection({ from, to });
+        }
+        editor.commands.focus();
+        setIsPressed(false);
+      });
+    } else {
       setIsPressed(false);
-    }, 10);
-  }, [editor, format]);
+    }
+  }, [editor, format, commands]);
+
+  // Memoize button className to prevent recreation
+  const buttonClassName = useMemo(() => {
+    return `h-8 w-8 p-0 transition-all duration-150 ${
+      isActive 
+        ? "bg-secondary text-secondary-foreground shadow-sm" 
+        : "hover:bg-accent hover:text-accent-foreground"
+    } ${isPressed ? "scale-95" : ""}`;
+  }, [isActive, isPressed]);
 
   return (
     <Button
       variant={isActive ? "secondary" : "ghost"}
       size="sm"
       onClick={handleClick}
-      className={`h-8 w-8 p-0 transition-all duration-150 ${
-        isActive 
-          ? "bg-secondary text-secondary-foreground shadow-sm" 
-          : "hover:bg-accent hover:text-accent-foreground"
-      } ${isPressed ? "scale-95" : ""}`}
+      className={buttonClassName}
       title={title}
       disabled={!editor}
     >
@@ -83,7 +96,7 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
     const initializedRef = useRef(false);
     const lastValueRef = useRef(value);
     
-    // Debounced onChange to prevent autosave interference
+    // Memoized debounced onChange to prevent autosave interference and unnecessary recreations
     const debouncedOnChange = useCallback((newValue: string) => {
       if (lastValueRef.current !== newValue) {
         lastValueRef.current = newValue;
@@ -91,7 +104,8 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
       }
     }, [onChange]);
 
-    const editor = useEditor({
+    // Memoized editor configuration to prevent recreation
+    const editorConfig = useMemo(() => ({
       extensions: [
         StarterKit.configure({
           bulletList: {
@@ -107,7 +121,7 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
         TextStyle,
       ],
       content: value,
-      onUpdate: ({ editor }) => {
+      onUpdate: ({ editor }: { editor: any }) => {
         if (!isUpdating) {
           const html = editor.getHTML();
           debouncedOnChange(html);
@@ -125,9 +139,12 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
           class: 'prose prose-sm max-w-none dark:prose-invert prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-em:text-foreground prose-code:text-foreground prose-pre:bg-muted prose-blockquote:text-muted-foreground focus:outline-none min-h-[400px] p-4',
         },
       },
-    });
+    }), [value, isUpdating, debouncedOnChange, onBlur]);
 
-    useImperativeHandle(ref, () => ({
+    const editor = useEditor(editorConfig);
+
+    // Memoized imperative handle to prevent recreation
+    const imperativeHandle = useMemo(() => ({
       focus: () => {
         editor?.commands.focus();
       },
@@ -137,21 +154,24 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
         const selectedText = editor.state.doc.textBetween(from, to);
         return { start: from, end: to, selectedText };
       },
-    }));
+    }), [editor]);
 
-    // Smart content synchronization - only update if content is significantly different
+    useImperativeHandle(ref, () => imperativeHandle, [imperativeHandle]);
+
+    // Optimized content synchronization with better change detection
     useEffect(() => {
       if (editor && !initializedRef.current) {
         initializedRef.current = true;
         if (value && value !== editor.getHTML()) {
           setIsUpdating(true);
           editor.commands.setContent(value);
-          setTimeout(() => setIsUpdating(false), 50);
+          // Use requestAnimationFrame for smoother updates
+          requestAnimationFrame(() => setIsUpdating(false));
         }
       }
     }, [editor, value]);
 
-    // Handle external value changes (like when switching notes)
+    // Handle external value changes with improved performance
     useEffect(() => {
       if (editor && initializedRef.current && value !== lastValueRef.current) {
         const currentContent = editor.getHTML();
@@ -159,7 +179,7 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
           setIsUpdating(true);
           editor.commands.setContent(value);
           lastValueRef.current = value;
-          setTimeout(() => setIsUpdating(false), 50);
+          requestAnimationFrame(() => setIsUpdating(false));
         }
       }
     }, [value, editor]);
