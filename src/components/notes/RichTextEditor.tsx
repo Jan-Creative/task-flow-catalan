@@ -28,7 +28,17 @@ interface ToolbarButtonProps {
 }
 
 const ToolbarButton = ({ editor, format, icon: Icon, title }: ToolbarButtonProps) => {
+  const [isPressed, setIsPressed] = useState(false);
+  const isActive = editor?.isActive(format) || false;
+
   const handleClick = useCallback(() => {
+    if (!editor) return;
+    
+    setIsPressed(true);
+    
+    // Store current selection to restore it after command
+    const { from, to } = editor.state.selection;
+    
     const commands = {
       bold: () => editor.chain().focus().toggleBold().run(),
       italic: () => editor.chain().focus().toggleItalic().run(),
@@ -37,16 +47,30 @@ const ToolbarButton = ({ editor, format, icon: Icon, title }: ToolbarButtonProps
       bulletList: () => editor.chain().focus().toggleBulletList().run(),
     };
     
-    commands[format as keyof typeof commands]?.();
+    const success = commands[format as keyof typeof commands]?.();
+    
+    // Restore selection if needed and ensure focus
+    setTimeout(() => {
+      if (success && from !== to) {
+        editor.commands.setTextSelection({ from, to });
+      }
+      editor.commands.focus();
+      setIsPressed(false);
+    }, 10);
   }, [editor, format]);
 
   return (
     <Button
-      variant={editor.isActive(format) ? "secondary" : "ghost"}
+      variant={isActive ? "secondary" : "ghost"}
       size="sm"
       onClick={handleClick}
-      className="h-8 w-8 p-0"
+      className={`h-8 w-8 p-0 transition-all duration-150 ${
+        isActive 
+          ? "bg-secondary text-secondary-foreground shadow-sm" 
+          : "hover:bg-accent hover:text-accent-foreground"
+      } ${isPressed ? "scale-95" : ""}`}
       title={title}
+      disabled={!editor}
     >
       <Icon className="h-4 w-4" />
     </Button>
@@ -146,8 +170,8 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
 
     return (
       <div className={className}>
-        {/* Formatting Toolbar */}
-        <div className="flex items-center gap-2 p-3 bg-muted/30 rounded-lg mb-4">
+        {/* Enhanced Formatting Toolbar */}
+        <div className="flex items-center gap-1 p-2 bg-gradient-to-r from-muted/40 to-muted/30 rounded-lg mb-4 border border-border/50 shadow-sm">
           <ToolbarButton
             editor={editor}
             format="bold"
@@ -176,7 +200,7 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
             title="Codi"
           />
           
-          <Separator orientation="vertical" className="h-6 mx-2" />
+          <Separator orientation="vertical" className="h-6 mx-1" />
           
           <ToolbarButton
             editor={editor}
@@ -185,12 +209,12 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
             title="Llista amb bullets"
           />
           
-          <Separator orientation="vertical" className="h-6 mx-2" />
+          <Separator orientation="vertical" className="h-6 mx-1" />
           
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 w-8 p-0"
+            className="h-8 w-8 p-0 hover:bg-accent hover:text-accent-foreground transition-colors"
             title="Més opcions"
           >
             <MoreHorizontal className="h-4 w-4" />
