@@ -10,7 +10,9 @@ import { X, FileText } from "lucide-react";
 import { useTaskForm } from "@/hooks/useTaskForm";
 import { useStableCallback } from "@/hooks/useOptimizedPerformance";
 import { useResponsiveLayout } from "@/hooks/device/useResponsiveLayout";
+import { useDeviceType } from "@/hooks/device/useDeviceType";
 import { useKeyboardShortcuts } from "@/contexts/KeyboardShortcutsContext";
+import MacTaskFormModal from "@/components/task-form/MacTaskFormModal";
 import { 
   AdaptiveFormLayout, 
   FormMainSection, 
@@ -44,8 +46,22 @@ interface CreateTaskModalProps {
 
 const CreateTaskModal = ({ open, onClose, onSubmit, folders, editingTask }: CreateTaskModalProps) => {
   const { layout, useCompactMode } = useResponsiveLayout();
+  const { type: deviceType } = useDeviceType();
   const isTabletOrDesktop = layout === 'tablet' || layout === 'desktop';
   const { setEnabled } = useKeyboardShortcuts();
+  
+  // Use Mac-specific form for Mac users
+  if (deviceType === 'mac') {
+    return (
+      <MacTaskFormModal
+        open={open}
+        onClose={onClose}
+        onSubmit={onSubmit}
+        folders={folders}
+        editingTask={editingTask}
+      />
+    );
+  }
   
   // Use the optimized task form hook
   const taskForm = useTaskForm({
