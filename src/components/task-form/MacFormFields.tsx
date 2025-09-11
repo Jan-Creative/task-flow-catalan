@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { 
   Plus, 
   X, 
@@ -285,7 +286,7 @@ const FolderSelector: React.FC<{
   </FieldWrapper>
 );
 
-// Reminders Field
+// Enhanced Reminders Field with Custom Date/Time Support
 const RemindersField: React.FC<{
   reminders: Array<{ id: string; datetime: string; message: string }>;
   onAdd: (reminder: { datetime: string; message: string }) => void;
@@ -293,42 +294,234 @@ const RemindersField: React.FC<{
   onUpdate?: (id: string, reminder: { datetime: string; message: string }) => void;
   simplified?: boolean;
   disabled?: boolean;
-}> = ({ reminders, onAdd, onRemove, simplified = false, disabled }) => (
-  <FieldWrapper label="Recordatoris">
-    <div className="space-y-3">
-      {reminders.map((reminder) => (
-        <div key={reminder.id} className="flex items-center gap-2 p-3 bg-[hsl(var(--input-form-secondary))] rounded-lg">
-          <Bell className="h-4 w-4 text-muted-foreground" />
-          <div className="flex-1 text-sm">
-            <div className="font-medium">{format(new Date(reminder.datetime), 'PPp')}</div>
-            {reminder.message && <div className="text-muted-foreground">{reminder.message}</div>}
+}> = ({ reminders, onAdd, onRemove, simplified = false, disabled }) => {
+  const [selectedQuickReminder, setSelectedQuickReminder] = React.useState("");
+  const [customDate, setCustomDate] = React.useState("");
+  const [customTime, setCustomTime] = React.useState("");
+  const [reminderMessage, setReminderMessage] = React.useState("");
+  const [showCustomForm, setShowCustomForm] = React.useState(false);
+
+  const QUICK_REMINDERS = [
+    { label: "15 minuts abans", value: "15min" },
+    { label: "30 minuts abans", value: "30min" },
+    { label: "1 hora abans", value: "1h" },
+    { label: "2 hores abans", value: "2h" },
+    { label: "1 dia abans", value: "1d" },
+    { label: "1 setmana abans", value: "1w" },
+  ];
+
+  const calculateScheduledDate = (quickValue: string): Date => {
+    const now = new Date();
+    const minutes = {
+      "15min": 15,
+      "30min": 30,
+      "1h": 60,
+      "2h": 120,
+      "1d": 1440,
+      "1w": 10080
+    }[quickValue] || 15;
+    
+    return new Date(now.getTime() + minutes * 60 * 1000);
+  };
+
+  const getScheduledDate = (): Date | null => {
+    if (selectedQuickReminder) {
+      return calculateScheduledDate(selectedQuickReminder);
+    }
+    if (customDate && customTime) {
+      return new Date(`${customDate}T${customTime}`);
+    }
+    return null;
+  };
+
+  const handleAddReminder = () => {
+    const scheduledDate = getScheduledDate();
+    if (!scheduledDate || scheduledDate <= new Date()) return;
+
+    onAdd({
+      datetime: scheduledDate.toISOString(),
+      message: reminderMessage || ''
+    });
+
+    // Reset form
+    setSelectedQuickReminder("");
+    setCustomDate("");
+    setCustomTime("");
+    setReminderMessage("");
+    setShowCustomForm(false);
+  };
+
+  const isFormValid = () => {
+    const scheduledDate = getScheduledDate();
+    return scheduledDate && scheduledDate > new Date();
+  };
+
+  return (
+    <FieldWrapper label={simplified ? "Recordatori ràpid" : "Recordatoris"}>
+      <div className="space-y-3">
+        {/* Existing reminders */}
+        {reminders.map((reminder) => (
+          <div key={reminder.id} className="flex items-center gap-2 p-3 bg-[hsl(var(--input-form-secondary))] rounded-lg">
+            <Bell className="h-4 w-4 text-muted-foreground" />
+            <div className="flex-1 text-sm">
+              <div className="font-medium">{format(new Date(reminder.datetime), 'PPp')}</div>
+              {reminder.message && <div className="text-muted-foreground">{reminder.message}</div>}
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => onRemove(reminder.id)}
+              disabled={disabled}
+              className="h-6 w-6 p-0"
+            >
+              <X className="h-3 w-3" />
+            </Button>
           </div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => onRemove(reminder.id)}
+        ))}
+
+        {/* Add reminder form */}
+        {!simplified && (
+          <div className="space-y-3 p-3 bg-[hsl(var(--input-form-secondary))]/50 rounded-lg border border-dashed border-border/50">
+            {/* Quick reminders */}
+            <div>
+              <Label className="text-xs text-muted-foreground">Recordatori ràpid</Label>
+              <Select 
+                value={selectedQuickReminder} 
+                onValueChange={(value) => {
+                  setSelectedQuickReminder(value);
+                  setCustomDate("");
+                  setCustomTime("");
+                }}
+                disabled={disabled}
+              >
+                <SelectTrigger className="h-9 mt-1">
+                  <SelectValue placeholder="Selecciona un temps" />
+                </SelectTrigger>
+                <SelectContent>
+                  {QUICK_REMINDERS.map((reminder) => (
+                    <SelectItem key={reminder.value} value={reminder.value}>
+                      {reminder.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Custom date/time toggle */}
+            <div className="flex items-center justify-between">
+              <Label className="text-xs text-muted-foreground">Data personalitzada</Label>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setShowCustomForm(!showCustomForm);
+                  if (!showCustomForm) {
+                    setSelectedQuickReminder("");
+                  }
+                }}
+                disabled={disabled}
+                className="h-6 text-xs"
+              >
+                {showCustomForm ? "Amagar" : "Mostrar"}
+              </Button>
+            </div>
+
+            {/* Custom date/time inputs */}
+            {showCustomForm && (
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Input
+                    type="date"
+                    value={customDate}
+                    onChange={(e) => {
+                      setCustomDate(e.target.value);
+                      setSelectedQuickReminder("");
+                    }}
+                    disabled={disabled}
+                    className="h-9"
+                    min={format(new Date(), 'yyyy-MM-dd')}
+                  />
+                </div>
+                <div>
+                  <Input
+                    type="time"
+                    value={customTime}
+                    onChange={(e) => {
+                      setCustomTime(e.target.value);
+                      setSelectedQuickReminder("");
+                    }}
+                    disabled={disabled}
+                    className="h-9"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Message input */}
+            <div>
+              <Input
+                placeholder="Missatge personalitzat (opcional)"
+                value={reminderMessage}
+                onChange={(e) => setReminderMessage(e.target.value)}
+                disabled={disabled}
+                className="h-9"
+              />
+            </div>
+
+            {/* Preview */}
+            {isFormValid() && (
+              <div className="text-xs text-muted-foreground bg-[hsl(var(--input-form-secondary))] p-2 rounded border-l-2 border-primary/50">
+                Recordatori programat per: {format(getScheduledDate()!, 'PPp')}
+              </div>
+            )}
+
+            {/* Add button */}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleAddReminder}
+              disabled={disabled || !isFormValid()}
+              className="w-full h-9"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Afegir recordatori
+            </Button>
+          </div>
+        )}
+
+        {/* Simplified mode - just quick add */}
+        {simplified && (
+          <Select 
+            value={selectedQuickReminder} 
+            onValueChange={(value) => {
+              const scheduledDate = calculateScheduledDate(value);
+              onAdd({
+                datetime: scheduledDate.toISOString(),
+                message: ''
+              });
+              setSelectedQuickReminder("");
+            }}
             disabled={disabled}
-            className="h-6 w-6 p-0"
           >
-            <X className="h-3 w-3" />
-          </Button>
-        </div>
-      ))}
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={() => onAdd({ datetime: new Date().toISOString(), message: '' })}
-        disabled={disabled}
-        className="w-full h-10 border-dashed bg-[hsl(var(--input-form-secondary))] border-0 hover:bg-[hsl(var(--input-form-hover))] transition-all duration-200"
-      >
-        <Plus className="h-4 w-4 mr-2" />
-        Afegir recordatori
-      </Button>
-    </div>
-  </FieldWrapper>
-);
+            <SelectTrigger className="h-10 border-dashed bg-[hsl(var(--input-form-secondary))] border-0 hover:bg-[hsl(var(--input-form-hover))] transition-all duration-200">
+              <SelectValue placeholder="Afegir recordatori ràpid" />
+            </SelectTrigger>
+            <SelectContent>
+              {QUICK_REMINDERS.map((reminder) => (
+                <SelectItem key={reminder.value} value={reminder.value}>
+                  {reminder.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+      </div>
+    </FieldWrapper>
+  );
+};
 
 // Tags Field
 const TagsField: React.FC<{

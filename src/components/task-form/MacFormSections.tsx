@@ -50,7 +50,7 @@ export const MacFormSections: React.FC<MacFormSectionsProps> = ({ form, folders 
           />
         </div>
 
-        {/* Quick Reminder - Centered */}
+        {/* Quick Reminder - Positioned after dates */}
         <div className="max-w-md mx-auto">
           <MacFormFields.RemindersField
             reminders={form.values.reminders}
