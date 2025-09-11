@@ -112,11 +112,11 @@ const MacTaskFormModal = ({ open, onClose, onSubmit, folders, editingTask }: Mac
   return (
     <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) handleClose(); }}>
       <DialogContent 
-        className="max-w-7xl max-h-[90vh] overflow-hidden p-0 gap-0 bg-background/98 backdrop-blur-xl border border-border/50"
+        className="max-w-7xl max-h-[90vh] overflow-hidden p-0 gap-0 bg-background/20 backdrop-blur-xl border border-border/10 shadow-2xl"
         onKeyDown={handleKeyDown}
       >
         {/* Mac-style Header */}
-        <div className="flex items-center justify-between px-8 py-6 border-b border-border/30 bg-gradient-to-r from-background/50 to-muted/20">
+        <div className="flex items-center justify-between px-8 py-6 border-b border-border/10 bg-gradient-to-r from-background/20 to-background/5 backdrop-blur-md">
           <div className="flex items-center gap-4">
             <div className="h-10 w-2 bg-gradient-to-b from-primary to-primary/60 rounded-full shadow-sm"></div>
             <div>
@@ -158,7 +158,7 @@ const MacTaskFormModal = ({ open, onClose, onSubmit, folders, editingTask }: Mac
         </div>
 
         {/* Mac-style Footer */}
-        <div className="px-8 py-6 border-t border-border/30 bg-gradient-to-r from-background/50 to-muted/20">
+        <div className="px-8 py-6 border-t border-border/10 bg-gradient-to-r from-background/20 to-background/5 backdrop-blur-md">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <div className="flex items-center gap-1">
@@ -180,7 +180,7 @@ const MacTaskFormModal = ({ open, onClose, onSubmit, folders, editingTask }: Mac
                 variant="outline"
                 onClick={handleClose}
                 disabled={macForm.isSubmitting}
-                className="px-8 h-11 rounded-lg border-border/50 hover:bg-muted/60"
+                className="px-8 h-11 rounded-lg border-border/20 hover:bg-card/60 backdrop-blur-sm"
               >
                 Cancel·lar
               </Button>

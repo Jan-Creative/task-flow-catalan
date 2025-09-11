@@ -61,7 +61,7 @@ const TitleField = forwardRef<HTMLInputElement, {
       value={value}
       onChange={(e) => onChange(e.target.value)}
       disabled={disabled}
-      className="h-12 text-lg font-medium border-border/50 focus:border-primary"
+      className="h-12 text-lg font-medium bg-background/40 backdrop-blur-sm border border-border/30 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all duration-200"
       autoFocus
     />
   </FieldWrapper>
@@ -81,7 +81,7 @@ const DescriptionField = forwardRef<HTMLTextAreaElement, {
       value={value}
       onChange={(e) => onChange(e.target.value)}
       disabled={disabled}
-      className="min-h-[120px] border-border/50 focus:border-primary resize-none"
+      className="min-h-[120px] bg-background/40 backdrop-blur-sm border border-border/30 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all duration-200 resize-none"
       maxLength={2000}
     />
     <div className="flex justify-between text-xs text-muted-foreground">
@@ -103,7 +103,7 @@ const NotesField: React.FC<{
       value={value}
       onChange={(e) => onChange(e.target.value)}
       disabled={disabled}
-      className="min-h-[80px] border-border/50 focus:border-primary resize-none"
+      className="min-h-[80px] bg-background/40 backdrop-blur-sm border border-border/30 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all duration-200 resize-none"
       maxLength={500}
     />
   </FieldWrapper>
@@ -118,7 +118,7 @@ const StatusField: React.FC<{
 }> = ({ value, options, onChange, disabled }) => (
   <FieldWrapper label="Estat">
     <Select value={value} onValueChange={(val) => onChange(val as TaskStatus)} disabled={disabled}>
-      <SelectTrigger className="h-11 border-border/50">
+      <SelectTrigger className="h-11 bg-background/40 backdrop-blur-sm border border-border/30 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all duration-200">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
@@ -144,7 +144,7 @@ const PriorityField: React.FC<{
 }> = ({ value, options, onChange, disabled }) => (
   <FieldWrapper label="Prioritat">
     <Select value={value} onValueChange={(val) => onChange(val as TaskPriority)} disabled={disabled}>
-      <SelectTrigger className="h-11 border-border/50">
+      <SelectTrigger className="h-11 bg-background/40 backdrop-blur-sm border border-border/30 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all duration-200">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
