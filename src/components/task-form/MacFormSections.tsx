@@ -57,6 +57,7 @@ export const MacFormSections: React.FC<MacFormSectionsProps> = ({ form, folders 
             onAdd={(reminder) => form.addReminder(reminder)}
             onRemove={(id) => form.removeReminder(id)}
             dueDate={form.values.due_date}
+            startDate={form.values.start_date}
             simplified={true}
           />
         </div>
@@ -145,6 +146,7 @@ export const MacFormSections: React.FC<MacFormSectionsProps> = ({ form, folders 
                     onAdd={(reminder) => form.addReminder(reminder)}
                     onRemove={(id) => form.removeReminder(id)}
                     dueDate={form.values.due_date}
+                    startDate={form.values.start_date}
                     simplified={false}
                   />
                 </div>

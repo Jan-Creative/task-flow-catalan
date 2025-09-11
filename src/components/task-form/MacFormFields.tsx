@@ -22,7 +22,8 @@ import {
   Tag, 
   CheckSquare,
   Hash,
-  Circle
+  Circle,
+  AlertTriangle
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -286,7 +287,7 @@ const FolderSelector: React.FC<{
   </FieldWrapper>
 );
 
-// Enhanced Reminders Field with Custom Date/Time Support
+// Enhanced Reminders Field with Custom Date/Time Support and Dual Context
 const RemindersField: React.FC<{
   reminders: Array<{ id: string; datetime: string; message: string }>;
   onAdd: (reminder: { datetime: string; message: string }) => void;
@@ -295,33 +296,61 @@ const RemindersField: React.FC<{
   simplified?: boolean;
   disabled?: boolean;
   dueDate?: string; // Task's due date for intelligent reminders
-}> = ({ reminders, onAdd, onRemove, simplified = false, disabled, dueDate }) => {
+  startDate?: string; // Task's start date for start-based reminders
+}> = ({ reminders, onAdd, onRemove, simplified = false, disabled, dueDate, startDate }) => {
   const [selectedQuickReminder, setSelectedQuickReminder] = React.useState("");
   const [customDate, setCustomDate] = React.useState("");
   const [customTime, setCustomTime] = React.useState("");
   const [reminderMessage, setReminderMessage] = React.useState("");
   const [showCustomForm, setShowCustomForm] = React.useState(false);
+  const [reminderType, setReminderType] = React.useState<'start' | 'due' | 'custom'>('custom');
 
-  const QUICK_REMINDERS = [
-    { label: "15 minuts abans", value: "15min" },
-    { label: "30 minuts abans", value: "30min" },
-    { label: "1 hora abans", value: "1h" },
-    { label: "2 hores abans", value: "2h" },
-    { label: "1 dia abans", value: "1d" },
-    { label: "1 setmana abans", value: "1w" },
-  ];
+  // Quick reminders based on context
+  const getQuickReminders = () => {
+    if (reminderType === 'start' && startDate) {
+      return [
+        { label: "5 minuts abans d'iniciar", value: "start_5min", baseDate: startDate },
+        { label: "10 minuts abans d'iniciar", value: "start_10min", baseDate: startDate },
+        { label: "15 minuts abans d'iniciar", value: "start_15min", baseDate: startDate },
+        { label: "30 minuts abans d'iniciar", value: "start_30min", baseDate: startDate },
+        { label: "1 hora abans d'iniciar", value: "start_1h", baseDate: startDate },
+      ];
+    } else if (reminderType === 'due' && dueDate) {
+      return [
+        { label: "15 minuts abans del venciment", value: "due_15min", baseDate: dueDate },
+        { label: "30 minuts abans del venciment", value: "due_30min", baseDate: dueDate },
+        { label: "1 hora abans del venciment", value: "due_1h", baseDate: dueDate },
+        { label: "2 hores abans del venciment", value: "due_2h", baseDate: dueDate },
+        { label: "1 dia abans del venciment", value: "due_1d", baseDate: dueDate },
+        { label: "1 setmana abans del venciment", value: "due_1w", baseDate: dueDate },
+      ];
+    }
+    return [];
+  };
 
   const calculateScheduledDate = (quickValue: string): Date => {
-    // Use task's due date if available, otherwise use current time + 1 hour as default
-    const baseDate = dueDate ? new Date(dueDate) : new Date(Date.now() + 60 * 60 * 1000);
+    const [type, duration] = quickValue.split('_');
+    
+    let baseDate: Date;
+    if (type === 'start' && startDate) {
+      baseDate = new Date(startDate);
+    } else if (type === 'due' && dueDate) {
+      baseDate = new Date(dueDate);
+    } else {
+      // Fallback for old format
+      baseDate = dueDate ? new Date(dueDate) : new Date(Date.now() + 60 * 60 * 1000);
+    }
+    
     const minutes = {
+      "5min": 5,
+      "10min": 10,
       "15min": 15,
       "30min": 30,
       "1h": 60,
       "2h": 120,
       "1d": 1440,
       "1w": 10080
-    }[quickValue] || 15;
+    }[duration] || 15;
     
     return new Date(baseDate.getTime() - minutes * 60 * 1000);
   };
@@ -395,54 +424,127 @@ const RemindersField: React.FC<{
         {/* Add reminder form */}
         {!simplified && (
           <div className="space-y-3 p-3 bg-[hsl(var(--input-form-secondary))]/50 rounded-lg border border-dashed border-border/50">
+            {/* Reminder type selector */}
+            {(startDate || dueDate) && (
+              <div>
+                <Label className="text-xs text-muted-foreground">Tipus de recordatori</Label>
+                <div className="flex gap-1 mt-1">
+                  {startDate && (
+                    <Button
+                      type="button"
+                      variant={reminderType === 'start' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => {
+                        setReminderType('start');
+                        setSelectedQuickReminder("");
+                        setCustomDate("");
+                        setCustomTime("");
+                      }}
+                      disabled={disabled}
+                      className="h-7 text-xs flex-1"
+                    >
+                      <Clock className="h-3 w-3 mr-1" />
+                      Abans d'iniciar
+                    </Button>
+                  )}
+                  {dueDate && (
+                    <Button
+                      type="button"
+                      variant={reminderType === 'due' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => {
+                        setReminderType('due');
+                        setSelectedQuickReminder("");
+                        setCustomDate("");
+                        setCustomTime("");
+                      }}
+                      disabled={disabled}
+                      className="h-7 text-xs flex-1"
+                    >
+                      <AlertTriangle className="h-3 w-3 mr-1" />
+                      Abans del venciment
+                    </Button>
+                  )}
+                  <Button
+                    type="button"
+                    variant={reminderType === 'custom' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => {
+                      setReminderType('custom');
+                      setSelectedQuickReminder("");
+                    }}
+                    disabled={disabled}
+                    className="h-7 text-xs flex-1"
+                  >
+                    <Calendar className="h-3 w-3 mr-1" />
+                    Personalitzat
+                  </Button>
+                </div>
+              </div>
+            )}
+
             {/* Quick reminders */}
-            <div>
-              <Label className="text-xs text-muted-foreground">Recordatori ràpid</Label>
-              <Select 
-                value={selectedQuickReminder} 
-                onValueChange={(value) => {
-                  setSelectedQuickReminder(value);
-                  setCustomDate("");
-                  setCustomTime("");
-                }}
-                disabled={disabled}
-              >
-                <SelectTrigger className="h-9 mt-1">
-                  <SelectValue placeholder="Selecciona un temps" />
-                </SelectTrigger>
-                <SelectContent>
-                  {QUICK_REMINDERS.map((reminder) => (
-                    <SelectItem key={reminder.value} value={reminder.value}>
-                      {reminder.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {reminderType !== 'custom' && (
+              <div>
+                <Label className="text-xs text-muted-foreground">
+                  {reminderType === 'start' ? 'Recordatori abans d\'iniciar' : 'Recordatori abans del venciment'}
+                </Label>
+                <Select 
+                  value={selectedQuickReminder} 
+                  onValueChange={(value) => {
+                    setSelectedQuickReminder(value);
+                    setCustomDate("");
+                    setCustomTime("");
+                  }}
+                  disabled={disabled}
+                >
+                  <SelectTrigger className="h-9 mt-1">
+                    <SelectValue placeholder="Selecciona un temps" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {getQuickReminders().map((reminder) => (
+                      <SelectItem key={reminder.value} value={reminder.value}>
+                        {reminder.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {reminderType === 'start' && startDate && (
+                  <div className="text-xs text-muted-foreground mt-1 p-2 bg-blue-500/10 rounded border-l-2 border-blue-500/50">
+                    📅 Basant-se en l'hora d'inici: {format(new Date(startDate), 'PPp')}
+                  </div>
+                )}
+                {reminderType === 'due' && dueDate && (
+                  <div className="text-xs text-muted-foreground mt-1 p-2 bg-orange-500/10 rounded border-l-2 border-orange-500/50">
+                    ⏰ Basant-se en la data límit: {format(new Date(dueDate), 'PPp')}
+                  </div>
+                )}
+              </div>
+            )}
 
-            {/* Custom date/time toggle */}
-            <div className="flex items-center justify-between">
-              <Label className="text-xs text-muted-foreground">Data personalitzada</Label>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setShowCustomForm(!showCustomForm);
-                  if (!showCustomForm) {
-                    setSelectedQuickReminder("");
-                  }
-                }}
-                disabled={disabled}
-                className="h-6 text-xs"
-              >
-                {showCustomForm ? "Amagar" : "Mostrar"}
-              </Button>
-            </div>
-
-            {/* Custom date/time inputs */}
-            {showCustomForm && (
-              <div className="space-y-2">
+            {/* Custom date/time inputs for custom reminders */}
+            {reminderType === 'custom' && (
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <Label className="text-xs text-muted-foreground">Data i hora específica</Label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setShowCustomForm(!showCustomForm);
+                      if (!showCustomForm) {
+                        setSelectedQuickReminder("");
+                      }
+                    }}
+                    disabled={disabled}
+                    className="h-6 text-xs"
+                  >
+                    {showCustomForm ? "Amagar" : "Mostrar"}
+                  </Button>
+                </div>
+                {showCustomForm && (
+                  <div className="space-y-2">
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <Label className="text-xs text-muted-foreground">Data</Label>
@@ -473,9 +575,13 @@ const RemindersField: React.FC<{
                     />
                   </div>
                 </div>
-                {dueDate && (
-                  <div className="text-xs text-muted-foreground bg-[hsl(var(--input-form-secondary))] p-2 rounded border-l-2 border-blue-500/50">
-                    💡 El recordatori ha de ser abans de la data límit: {format(new Date(dueDate), 'PPp')}
+                  {(dueDate || startDate) && (
+                    <div className="text-xs text-muted-foreground bg-[hsl(var(--input-form-secondary))] p-2 rounded border-l-2 border-blue-500/50">
+                      💡 El recordatori ha de ser en el futur
+                      {dueDate && ` i abans de la data límit: ${format(new Date(dueDate), 'PPp')}`}
+                      {startDate && ` (data d'inici: ${format(new Date(startDate), 'PPp')})`}
+                    </div>
+                  )}
                   </div>
                 )}
               </div>
@@ -523,31 +629,80 @@ const RemindersField: React.FC<{
           </div>
         )}
 
-        {/* Simplified mode - just quick add */}
+            {/* Simplified mode - intelligent quick add */}
         {simplified && (
-          <Select 
-            value={selectedQuickReminder} 
-            onValueChange={(value) => {
-              const scheduledDate = calculateScheduledDate(value);
-              onAdd({
-                datetime: scheduledDate.toISOString(),
-                message: ''
-              });
-              setSelectedQuickReminder("");
-            }}
-            disabled={disabled}
-          >
-            <SelectTrigger className="h-10 border-dashed bg-[hsl(var(--input-form-secondary))] border-0 hover:bg-[hsl(var(--input-form-hover))] transition-all duration-200">
-              <SelectValue placeholder="Afegir recordatori ràpid" />
-            </SelectTrigger>
-            <SelectContent>
-              {QUICK_REMINDERS.map((reminder) => (
-                <SelectItem key={reminder.value} value={reminder.value}>
-                  {reminder.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="space-y-2">
+            {/* Smart reminder type detection */}
+            {startDate && (
+              <Select 
+                value={selectedQuickReminder} 
+                onValueChange={(value) => {
+                  const scheduledDate = calculateScheduledDate(value);
+                  onAdd({
+                    datetime: scheduledDate.toISOString(),
+                    message: `Recordatori per ${value.includes('start') ? 'l\'inici' : 'el venciment'} de la tasca`
+                  });
+                  setSelectedQuickReminder("");
+                }}
+                disabled={disabled}
+              >
+                <SelectTrigger className="h-10 border-dashed bg-[hsl(var(--input-form-secondary))] border-0 hover:bg-[hsl(var(--input-form-hover))] transition-all duration-200">
+                  <SelectValue placeholder="🕐 Recordatori d'inici" />
+                </SelectTrigger>
+                <SelectContent>
+                  {getQuickReminders().filter(r => r.value.includes('start')).map((reminder) => (
+                    <SelectItem key={reminder.value} value={reminder.value}>
+                      {reminder.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            
+            {dueDate && (
+              <Select 
+                value={selectedQuickReminder} 
+                onValueChange={(value) => {
+                  const scheduledDate = calculateScheduledDate(value);
+                  onAdd({
+                    datetime: scheduledDate.toISOString(),
+                    message: `Recordatori per ${value.includes('start') ? 'l\'inici' : 'el venciment'} de la tasca`
+                  });
+                  setSelectedQuickReminder("");
+                }}
+                disabled={disabled}
+              >
+                <SelectTrigger className="h-10 border-dashed bg-[hsl(var(--input-form-secondary))] border-0 hover:bg-[hsl(var(--input-form-hover))] transition-all duration-200">
+                  <SelectValue placeholder="⏰ Recordatori de venciment" />
+                </SelectTrigger>
+                <SelectContent>
+                  {getQuickReminders().filter(r => r.value.includes('due')).map((reminder) => (
+                    <SelectItem key={reminder.value} value={reminder.value}>
+                      {reminder.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            
+            {/* Fallback custom reminder for simplified mode */}
+            {(!startDate && !dueDate) && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setReminderType('custom');
+                  setShowCustomForm(true);
+                }}
+                disabled={disabled}
+                className="w-full h-10 border-dashed bg-[hsl(var(--input-form-secondary))] border-0 hover:bg-[hsl(var(--input-form-hover))] transition-all duration-200"
+              >
+                <Calendar className="h-4 w-4 mr-2" />
+                Afegir recordatori personalitzat
+              </Button>
+            )}
+          </div>
         )}
       </div>
     </FieldWrapper>
