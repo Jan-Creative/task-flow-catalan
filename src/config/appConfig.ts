@@ -143,7 +143,9 @@ function determineBuildMode(): AppEnvironment['BUILD_MODE'] {
     const hostname = window.location.hostname;
     
     // Check if we're on a Lovable preview URL (sandbox domains)
-    if (hostname.includes('sandbox.lovable.dev') || hostname.includes('lovable.app')) {
+    if (hostname.includes('sandbox.lovable.dev') || 
+        hostname.includes('lovable.app') || 
+        hostname.includes('lovableproject.com')) {
       return 'preview';
     }
     
@@ -217,9 +219,15 @@ export const config = createAppConfig();
 // Validate configuration on startup - only throw error for critical issues
 const validation = validateConfig(config);
 if (!validation.valid) {
-  const criticalErrors = validation.errors.filter(error => 
-    !error.includes('Debug logging should be disabled') || config.environment.BUILD_MODE === 'production'
-  );
+  // Filter out debug logging warnings for non-production environments
+  const criticalErrors = validation.errors.filter(error => {
+    // Allow debug logging in preview and development environments
+    if (error.includes('Debug logging should be disabled') && 
+        config.environment.BUILD_MODE !== 'production') {
+      return false;
+    }
+    return true;
+  });
   
   if (criticalErrors.length > 0) {
     logger.error('Critical configuration validation failed', { errors: criticalErrors });
