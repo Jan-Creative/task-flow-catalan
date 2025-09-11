@@ -113,7 +113,7 @@ const MacTaskFormModal = ({ open, onClose, onSubmit, folders, editingTask }: Mac
     <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) handleClose(); }}>
       <DialogContent 
         className="max-w-4xl max-h-[90vh] overflow-hidden p-0 gap-0 bg-background/5 backdrop-blur-xl backdrop-saturate-150 backdrop-brightness-110 border border-white/5 rounded-2xl shadow-lg/10"
-        overlayClassName="bg-black/20"
+        overlayClassName="bg-transparent"
         onKeyDown={handleKeyDown}
       >
         {/* Mac-style Header */}
