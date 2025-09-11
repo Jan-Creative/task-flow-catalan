@@ -112,18 +112,18 @@ const MacTaskFormModal = ({ open, onClose, onSubmit, folders, editingTask }: Mac
   return (
     <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) handleClose(); }}>
       <DialogContent 
-        className="max-w-7xl max-h-[90vh] overflow-hidden p-0 gap-0 bg-background/20 backdrop-blur-xl border border-border/10 shadow-2xl"
+        className="max-w-7xl max-h-[90vh] overflow-hidden p-0 gap-0 bg-[hsl(var(--input-form-secondary))] backdrop-blur-xl border-0 shadow-2xl"
         onKeyDown={handleKeyDown}
       >
         {/* Mac-style Header */}
-        <div className="flex items-center justify-between px-8 py-6 border-b border-border/10 bg-gradient-to-r from-background/20 to-background/5 backdrop-blur-md">
+        <div className="flex items-center justify-between px-8 py-6 border-0 bg-[hsl(var(--input-form-primary))] backdrop-blur-md">
           <div className="flex items-center gap-4">
-            <div className="h-10 w-2 bg-gradient-to-b from-primary to-primary/60 rounded-full shadow-sm"></div>
+            <div className="h-10 w-2 bg-gradient-to-b from-primary to-primary/60 rounded-full"></div>
             <div>
               <h2 className="text-2xl font-semibold tracking-tight text-foreground">
                 {macForm.isEditMode ? 'Editar Tasca' : 'Nova Tasca'}
               </h2>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-sm text-muted-foreground/70 mt-1">
                 Configura tots els detalls de la teva tasca
               </p>
             </div>
@@ -131,16 +131,16 @@ const MacTaskFormModal = ({ open, onClose, onSubmit, folders, editingTask }: Mac
           
           <div className="flex items-center gap-3">
             {/* Mac shortcut hint */}
-            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-muted/50 rounded-lg border">
-              <Command className="h-3.5 w-3.5 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">Return per guardar</span>
+            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-[hsl(var(--input-form-hover))] rounded-lg border-0">
+              <Command className="h-3.5 w-3.5 text-muted-foreground/70" />
+              <span className="text-xs text-muted-foreground/70">Return per guardar</span>
             </div>
             
             <Button
               variant="ghost"
               size="sm"
               onClick={handleClose}
-              className="h-9 w-9 p-0 hover:bg-muted/60 rounded-lg transition-all duration-200"
+              className="h-9 w-9 p-0 hover:bg-[hsl(var(--input-form-hover))] rounded-lg transition-all duration-200"
             >
               <X className="h-4 w-4" />
             </Button>
@@ -158,7 +158,7 @@ const MacTaskFormModal = ({ open, onClose, onSubmit, folders, editingTask }: Mac
         </div>
 
         {/* Mac-style Footer */}
-        <div className="px-8 py-6 border-t border-border/10 bg-gradient-to-r from-background/20 to-background/5 backdrop-blur-md">
+        <div className="px-8 py-6 border-0 bg-[hsl(var(--input-form-primary))] backdrop-blur-md">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <div className="flex items-center gap-1">
@@ -180,7 +180,7 @@ const MacTaskFormModal = ({ open, onClose, onSubmit, folders, editingTask }: Mac
                 variant="outline"
                 onClick={handleClose}
                 disabled={macForm.isSubmitting}
-                className="px-8 h-11 rounded-lg border-border/20 hover:bg-card/60 backdrop-blur-sm"
+                className="px-8 h-11 rounded-lg bg-[hsl(var(--input-form-secondary))] border-0 hover:bg-[hsl(var(--input-form-hover))] backdrop-blur-sm transition-all duration-200"
               >
                 Cancel·lar
               </Button>

@@ -16,13 +16,13 @@ export const MacFormSections: React.FC<MacFormSectionsProps> = ({ form, folders 
     <div className="grid grid-cols-12 gap-8 p-8 min-h-full">
       {/* Column 1: Main Information (40% width) */}
       <div className="col-span-5 space-y-8">
-        <div className="space-y-6 p-6 bg-card/20 backdrop-blur-sm rounded-xl border border-border/10">
+        <div className="space-y-6 p-6 bg-[hsl(var(--input-form-secondary))] backdrop-blur-md rounded-xl border-0">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
-              <div className="h-6 w-1 bg-gradient-to-b from-primary to-primary/60 rounded-full shadow-sm"></div>
+              <div className="h-6 w-1 bg-gradient-to-b from-primary to-primary/60 rounded-full"></div>
               <h3 className="text-lg font-semibold text-foreground">Informació Principal</h3>
             </div>
-            <p className="text-sm text-muted-foreground/80">Detalls fonamentals de la tasca</p>
+            <p className="text-sm text-muted-foreground/70">Detalls fonamentals de la tasca</p>
           </div>
 
           <div className="space-y-6">
@@ -53,13 +53,13 @@ export const MacFormSections: React.FC<MacFormSectionsProps> = ({ form, folders 
 
       {/* Column 2: Core Metadata (30% width) */}
       <div className="col-span-4 space-y-8">
-        <div className="space-y-6 p-6 bg-card/20 backdrop-blur-sm rounded-xl border border-border/10">
+        <div className="space-y-6 p-6 bg-[hsl(var(--input-form-secondary))] backdrop-blur-md rounded-xl border-0">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
-              <div className="h-6 w-1 bg-gradient-to-b from-secondary to-secondary/60 rounded-full shadow-sm"></div>
+              <div className="h-6 w-1 bg-gradient-to-b from-secondary to-secondary/60 rounded-full"></div>
               <h3 className="text-lg font-semibold text-foreground">Metadades</h3>
             </div>
-            <p className="text-sm text-muted-foreground/80">Estats i planificació temporal</p>
+            <p className="text-sm text-muted-foreground/70">Estats i planificació temporal</p>
           </div>
 
           <div className="space-y-6">
@@ -106,13 +106,13 @@ export const MacFormSections: React.FC<MacFormSectionsProps> = ({ form, folders 
 
       {/* Column 3: Advanced Configuration (30% width) */}
       <div className="col-span-3 space-y-8">
-        <div className="space-y-6 p-6 bg-card/20 backdrop-blur-sm rounded-xl border border-border/10">
+        <div className="space-y-6 p-6 bg-[hsl(var(--input-form-secondary))] backdrop-blur-md rounded-xl border-0">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
-              <div className="h-6 w-1 bg-gradient-to-b from-accent to-accent/60 rounded-full shadow-sm"></div>
+              <div className="h-6 w-1 bg-gradient-to-b from-accent to-accent/60 rounded-full"></div>
               <h3 className="text-lg font-semibold text-foreground">Configuració Avançada</h3>
             </div>
-            <p className="text-sm text-muted-foreground/80">Recordatoris i propietats personalitzades</p>
+            <p className="text-sm text-muted-foreground/70">Recordatoris i propietats personalitzades</p>
           </div>
 
           <div className="space-y-6">
