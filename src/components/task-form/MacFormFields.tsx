@@ -290,8 +290,10 @@ const RemindersField: React.FC<{
   reminders: Array<{ id: string; datetime: string; message: string }>;
   onAdd: (reminder: { datetime: string; message: string }) => void;
   onRemove: (id: string) => void;
+  onUpdate?: (id: string, reminder: { datetime: string; message: string }) => void;
+  simplified?: boolean;
   disabled?: boolean;
-}> = ({ reminders, onAdd, onRemove, disabled }) => (
+}> = ({ reminders, onAdd, onRemove, simplified = false, disabled }) => (
   <FieldWrapper label="Recordatoris">
     <div className="space-y-3">
       {reminders.map((reminder) => (
@@ -333,15 +335,14 @@ const TagsField: React.FC<{
   tags: string[];
   availableTags: string[];
   onAdd: (tag: string) => void;
-  onRemove: (tag: string) => void;
-  onCreateNew: (tag: string) => void;
+  onRemove: (index: number) => void;
   disabled?: boolean;
-}> = ({ tags, availableTags, onAdd, onRemove, onCreateNew, disabled }) => (
+}> = ({ tags, availableTags, onAdd, onRemove, disabled }) => (
   <FieldWrapper label="Etiquetes">
     <div className="space-y-3">
       {tags.length > 0 && (
         <div className="flex flex-wrap gap-2">
-          {tags.map((tag) => (
+          {tags.map((tag, index) => (
             <Badge key={tag} variant="secondary" className="gap-1">
               <Hash className="h-3 w-3" />
               {tag}
@@ -349,7 +350,7 @@ const TagsField: React.FC<{
                 type="button"
                 variant="ghost"
                 size="sm"
-                onClick={() => onRemove(tag)}
+                onClick={() => onRemove(index)}
                 disabled={disabled}
                 className="h-4 w-4 p-0 ml-1 hover:bg-destructive/20"
               >

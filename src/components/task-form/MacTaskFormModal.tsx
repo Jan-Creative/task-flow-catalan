@@ -112,11 +112,11 @@ const MacTaskFormModal = ({ open, onClose, onSubmit, folders, editingTask }: Mac
   return (
     <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) handleClose(); }}>
       <DialogContent 
-        className="max-w-7xl max-h-[90vh] overflow-hidden p-0 gap-0 bg-[hsl(var(--input-form-secondary))] backdrop-blur-xl border-0 shadow-2xl"
+        className="max-w-4xl max-h-[90vh] overflow-hidden p-0 gap-0 bg-background/10 backdrop-blur-3xl border-0 shadow-2xl"
         onKeyDown={handleKeyDown}
       >
         {/* Mac-style Header */}
-        <div className="flex items-center justify-between px-8 py-6 border-0 bg-[hsl(var(--input-form-primary))] backdrop-blur-md">
+        <div className="flex items-center justify-between px-6 py-4 border-0 bg-background/5 backdrop-blur-2xl">
           <div className="flex items-center gap-4">
             <div className="h-10 w-2 bg-gradient-to-b from-primary to-primary/60 rounded-full"></div>
             <div>
@@ -158,7 +158,7 @@ const MacTaskFormModal = ({ open, onClose, onSubmit, folders, editingTask }: Mac
         </div>
 
         {/* Mac-style Footer */}
-        <div className="px-8 py-6 border-0 bg-[hsl(var(--input-form-primary))] backdrop-blur-md">
+        <div className="px-6 py-4 border-0 bg-background/5 backdrop-blur-2xl">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <div className="flex items-center gap-1">
@@ -180,14 +180,14 @@ const MacTaskFormModal = ({ open, onClose, onSubmit, folders, editingTask }: Mac
                 variant="outline"
                 onClick={handleClose}
                 disabled={macForm.isSubmitting}
-                className="px-8 h-11 rounded-lg bg-[hsl(var(--input-form-secondary))] border-0 hover:bg-[hsl(var(--input-form-hover))] backdrop-blur-sm transition-all duration-200"
+                className="px-6 h-9 rounded-lg bg-background/10 border-0 hover:bg-background/20 backdrop-blur-sm transition-all duration-200"
               >
                 Cancel·lar
               </Button>
               <Button
                 type="submit"
                 disabled={macForm.isSubmitting || !macForm.isValid}
-                className="px-8 h-11 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-medium shadow-lg hover:shadow-xl transition-all duration-200"
+                className="px-6 h-9 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-medium shadow-lg hover:shadow-xl transition-all duration-200"
               >
                 {macForm.isSubmitting ? 'Guardant...' : (macForm.isEditMode ? 'Actualitzar Tasca' : 'Crear Tasca')}
               </Button>
