@@ -112,13 +112,11 @@ const MacTaskFormModal = ({ open, onClose, onSubmit, folders, editingTask }: Mac
   return (
     <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) handleClose(); }}>
       <DialogContent 
-        className="max-w-4xl max-h-[90vh] overflow-hidden p-0 gap-0 bg-background/5 backdrop-blur-xl backdrop-saturate-150 backdrop-brightness-110 border border-white/5 shadow-2xl"
+        className="max-w-4xl max-h-[90vh] overflow-hidden p-0 gap-0 bg-background/5 backdrop-blur-xl backdrop-saturate-150 backdrop-brightness-110 border border-white/5 rounded-2xl shadow-lg/10"
         onKeyDown={handleKeyDown}
       >
-        {/* Glassmorphism overlay */}
-        <div className="absolute inset-0 bg-gradient-glass rounded-xl" />
         {/* Mac-style Header */}
-        <div className="relative flex items-center justify-between px-6 py-4 border-0 bg-white/5 backdrop-blur-xl backdrop-saturate-150 backdrop-brightness-110">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
           <div className="flex items-center gap-4">
             <div className="h-10 w-2 bg-gradient-to-b from-primary to-primary/60 rounded-full"></div>
             <div>
@@ -150,7 +148,7 @@ const MacTaskFormModal = ({ open, onClose, onSubmit, folders, editingTask }: Mac
         </div>
 
         {/* Mac 3-Column Form Layout */}
-        <div className="relative flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto">
           <form onSubmit={macForm.handleSubmit} className="h-full" autoComplete="off">
             <MacFormSections 
               form={macForm}
@@ -160,7 +158,7 @@ const MacTaskFormModal = ({ open, onClose, onSubmit, folders, editingTask }: Mac
         </div>
 
         {/* Mac-style Footer */}
-        <div className="relative px-6 py-4 border-0 bg-white/5 backdrop-blur-xl backdrop-saturate-150 backdrop-brightness-110">
+        <div className="px-6 py-4 border-t border-white/5">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <div className="flex items-center gap-1">
