@@ -112,11 +112,13 @@ const MacTaskFormModal = ({ open, onClose, onSubmit, folders, editingTask }: Mac
   return (
     <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) handleClose(); }}>
       <DialogContent 
-        className="max-w-4xl max-h-[90vh] overflow-hidden p-0 gap-0 bg-background/10 backdrop-blur-3xl border-0 shadow-2xl"
+        className="max-w-4xl max-h-[90vh] overflow-hidden p-0 gap-0 bg-background/5 backdrop-blur-xl backdrop-saturate-150 backdrop-brightness-110 border border-white/5 shadow-2xl"
         onKeyDown={handleKeyDown}
       >
+        {/* Glassmorphism overlay */}
+        <div className="absolute inset-0 bg-gradient-glass rounded-xl" />
         {/* Mac-style Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-0 bg-background/5 backdrop-blur-2xl">
+        <div className="relative flex items-center justify-between px-6 py-4 border-0 bg-white/5 backdrop-blur-xl backdrop-saturate-150 backdrop-brightness-110">
           <div className="flex items-center gap-4">
             <div className="h-10 w-2 bg-gradient-to-b from-primary to-primary/60 rounded-full"></div>
             <div>
@@ -131,7 +133,7 @@ const MacTaskFormModal = ({ open, onClose, onSubmit, folders, editingTask }: Mac
           
           <div className="flex items-center gap-3">
             {/* Mac shortcut hint */}
-            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-[hsl(var(--input-form-hover))] rounded-lg border-0">
+            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-white/10 backdrop-blur-sm rounded-lg border border-white/10">
               <Command className="h-3.5 w-3.5 text-muted-foreground/70" />
               <span className="text-xs text-muted-foreground/70">Return per guardar</span>
             </div>
@@ -140,7 +142,7 @@ const MacTaskFormModal = ({ open, onClose, onSubmit, folders, editingTask }: Mac
               variant="ghost"
               size="sm"
               onClick={handleClose}
-              className="h-9 w-9 p-0 hover:bg-[hsl(var(--input-form-hover))] rounded-lg transition-all duration-200"
+              className="h-9 w-9 p-0 hover:bg-white/15 backdrop-blur-sm rounded-lg transition-all duration-200 border border-white/10"
             >
               <X className="h-4 w-4" />
             </Button>
@@ -148,7 +150,7 @@ const MacTaskFormModal = ({ open, onClose, onSubmit, folders, editingTask }: Mac
         </div>
 
         {/* Mac 3-Column Form Layout */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="relative flex-1 overflow-y-auto">
           <form onSubmit={macForm.handleSubmit} className="h-full" autoComplete="off">
             <MacFormSections 
               form={macForm}
@@ -158,7 +160,7 @@ const MacTaskFormModal = ({ open, onClose, onSubmit, folders, editingTask }: Mac
         </div>
 
         {/* Mac-style Footer */}
-        <div className="px-6 py-4 border-0 bg-background/5 backdrop-blur-2xl">
+        <div className="relative px-6 py-4 border-0 bg-white/5 backdrop-blur-xl backdrop-saturate-150 backdrop-brightness-110">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <div className="flex items-center gap-1">
@@ -180,14 +182,14 @@ const MacTaskFormModal = ({ open, onClose, onSubmit, folders, editingTask }: Mac
                 variant="outline"
                 onClick={handleClose}
                 disabled={macForm.isSubmitting}
-                className="px-6 h-9 rounded-lg bg-background/10 border-0 hover:bg-background/20 backdrop-blur-sm transition-all duration-200"
+                className="px-6 h-9 rounded-lg bg-white/10 border border-white/10 hover:bg-white/20 backdrop-blur-sm transition-all duration-200"
               >
                 Cancel·lar
               </Button>
               <Button
                 type="submit"
                 disabled={macForm.isSubmitting || !macForm.isValid}
-                className="px-6 h-9 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-medium shadow-lg hover:shadow-xl transition-all duration-200"
+                className="px-6 h-9 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-medium shadow-lg hover:shadow-xl backdrop-blur-sm transition-all duration-200"
               >
                 {macForm.isSubmitting ? 'Guardant...' : (macForm.isEditMode ? 'Actualitzar Tasca' : 'Crear Tasca')}
               </Button>
