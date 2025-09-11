@@ -50,20 +50,7 @@ const CreateTaskModal = ({ open, onClose, onSubmit, folders, editingTask }: Crea
   const isTabletOrDesktop = layout === 'tablet' || layout === 'desktop';
   const { setEnabled } = useKeyboardShortcuts();
   
-  // Use Mac-specific form for Mac users
-  if (deviceType === 'mac') {
-    return (
-      <MacTaskFormModal
-        open={open}
-        onClose={onClose}
-        onSubmit={onSubmit}
-        folders={folders}
-        editingTask={editingTask}
-      />
-    );
-  }
-  
-  // Use the optimized task form hook
+  // Use the optimized task form hook - ALWAYS call hooks before any conditional returns
   const taskForm = useTaskForm({
     initialData: editingTask ? {
       title: editingTask.title,
@@ -111,6 +98,19 @@ useEffect(() => {
   }
   return () => setEnabled(true);
 }, [open, setEnabled, editingTask]);
+
+  // Use Mac-specific form for Mac users - AFTER all hooks are called
+  if (deviceType === 'mac') {
+    return (
+      <MacTaskFormModal
+        open={open}
+        onClose={onClose}
+        onSubmit={onSubmit}
+        folders={folders}
+        editingTask={editingTask}
+      />
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) handleClose(); }}>
