@@ -294,7 +294,8 @@ const RemindersField: React.FC<{
   onUpdate?: (id: string, reminder: { datetime: string; message: string }) => void;
   simplified?: boolean;
   disabled?: boolean;
-}> = ({ reminders, onAdd, onRemove, simplified = false, disabled }) => {
+  dueDate?: string; // Task's due date for intelligent reminders
+}> = ({ reminders, onAdd, onRemove, simplified = false, disabled, dueDate }) => {
   const [selectedQuickReminder, setSelectedQuickReminder] = React.useState("");
   const [customDate, setCustomDate] = React.useState("");
   const [customTime, setCustomTime] = React.useState("");
@@ -311,7 +312,8 @@ const RemindersField: React.FC<{
   ];
 
   const calculateScheduledDate = (quickValue: string): Date => {
-    const now = new Date();
+    // Use task's due date if available, otherwise use current time + 1 hour as default
+    const baseDate = dueDate ? new Date(dueDate) : new Date(Date.now() + 60 * 60 * 1000);
     const minutes = {
       "15min": 15,
       "30min": 30,
@@ -321,7 +323,7 @@ const RemindersField: React.FC<{
       "1w": 10080
     }[quickValue] || 15;
     
-    return new Date(now.getTime() + minutes * 60 * 1000);
+    return new Date(baseDate.getTime() - minutes * 60 * 1000);
   };
 
   const getScheduledDate = (): Date | null => {
@@ -338,6 +340,11 @@ const RemindersField: React.FC<{
     const scheduledDate = getScheduledDate();
     if (!scheduledDate || scheduledDate <= new Date()) return;
 
+    // Validate that reminder is before due date if due date exists
+    if (dueDate && scheduledDate > new Date(dueDate)) {
+      return; // Can't schedule reminder after task due date
+    }
+
     onAdd({
       datetime: scheduledDate.toISOString(),
       message: reminderMessage || ''
@@ -353,7 +360,12 @@ const RemindersField: React.FC<{
 
   const isFormValid = () => {
     const scheduledDate = getScheduledDate();
-    return scheduledDate && scheduledDate > new Date();
+    if (!scheduledDate || scheduledDate <= new Date()) return false;
+    
+    // Check that reminder is before due date if due date exists
+    if (dueDate && scheduledDate > new Date(dueDate)) return false;
+    
+    return true;
   };
 
   return (
@@ -430,32 +442,42 @@ const RemindersField: React.FC<{
 
             {/* Custom date/time inputs */}
             {showCustomForm && (
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <Input
-                    type="date"
-                    value={customDate}
-                    onChange={(e) => {
-                      setCustomDate(e.target.value);
-                      setSelectedQuickReminder("");
-                    }}
-                    disabled={disabled}
-                    className="h-9"
-                    min={format(new Date(), 'yyyy-MM-dd')}
-                  />
+              <div className="space-y-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Data</Label>
+                    <Input
+                      type="date"
+                      value={customDate}
+                      onChange={(e) => {
+                        setCustomDate(e.target.value);
+                        setSelectedQuickReminder("");
+                      }}
+                      disabled={disabled}
+                      className="h-9 mt-1"
+                      min={format(new Date(), 'yyyy-MM-dd')}
+                      max={dueDate ? format(new Date(dueDate), 'yyyy-MM-dd') : undefined}
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Hora</Label>
+                    <Input
+                      type="time"
+                      value={customTime}
+                      onChange={(e) => {
+                        setCustomTime(e.target.value);
+                        setSelectedQuickReminder("");
+                      }}
+                      disabled={disabled}
+                      className="h-9 mt-1"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <Input
-                    type="time"
-                    value={customTime}
-                    onChange={(e) => {
-                      setCustomTime(e.target.value);
-                      setSelectedQuickReminder("");
-                    }}
-                    disabled={disabled}
-                    className="h-9"
-                  />
-                </div>
+                {dueDate && (
+                  <div className="text-xs text-muted-foreground bg-[hsl(var(--input-form-secondary))] p-2 rounded border-l-2 border-blue-500/50">
+                    💡 El recordatori ha de ser abans de la data límit: {format(new Date(dueDate), 'PPp')}
+                  </div>
+                )}
               </div>
             )}
 
@@ -472,8 +494,17 @@ const RemindersField: React.FC<{
 
             {/* Preview */}
             {isFormValid() && (
-              <div className="text-xs text-muted-foreground bg-[hsl(var(--input-form-secondary))] p-2 rounded border-l-2 border-primary/50">
-                Recordatori programat per: {format(getScheduledDate()!, 'PPp')}
+              <div className="text-xs text-muted-foreground bg-[hsl(var(--input-form-secondary))] p-2 rounded border-l-2 border-green-500/50">
+                ✅ Recordatori programat per: {format(getScheduledDate()!, 'PPp')}
+              </div>
+            )}
+            
+            {/* Warning for invalid reminder */}
+            {getScheduledDate() && !isFormValid() && (
+              <div className="text-xs text-red-400 bg-red-500/10 p-2 rounded border-l-2 border-red-500/50">
+                ⚠️ {getScheduledDate()! <= new Date() 
+                    ? "El recordatori ha de ser en el futur" 
+                    : "El recordatori ha de ser abans de la data límit"}
               </div>
             )}
 
