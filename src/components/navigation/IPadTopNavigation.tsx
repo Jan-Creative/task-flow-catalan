@@ -21,7 +21,7 @@ const IPadTopNavigation = ({
   // Main navigation items for top bar
   const navigationItems = [
     { id: "inici", label: "Inici", icon: Home },
-    { id: "avui", label: "Avui", icon: CheckSquare },
+    { id: "avui", label: "Tasques", icon: CheckSquare },
     { id: "carpetes", label: "Carpetes", icon: Folder },
     { id: "calendar", label: "Calendari", icon: Calendar },
     { id: "notificacions", label: "Notificacions", icon: Bell },

@@ -111,7 +111,7 @@ const Index = () => {
       </TabPage>
       
       <TabPage tabId="avui" activeTab={activeTab}>
-        <LazyPage pageName="Avui">
+        <LazyPage pageName="Tasques">
           <TodayPageLazy 
             onEditTask={handleEditTaskClick} 
             onNavigateToSettings={() => setActiveTab("configuracio")} 

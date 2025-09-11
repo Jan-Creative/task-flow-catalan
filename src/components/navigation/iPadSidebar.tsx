@@ -29,7 +29,7 @@ const iPadSidebar = ({
       title: "Principal",
       items: [
         { id: "inici", label: "Inici", icon: Home },
-        { id: "avui", label: "Avui", icon: CheckSquare },
+        { id: "avui", label: "Tasques", icon: CheckSquare },
       ]
     },
     {
