@@ -208,7 +208,7 @@ const TodayPage = React.memo(({ onEditTask, onNavigateToSettings }: TodayPagePro
     <div className="w-full max-w-full p-4 pb-24 space-y-6 overflow-x-hidden">
       {/* Header */}
       <div className="space-y-4">
-        <h1 className="text-3xl font-bold text-foreground">Avui</h1>
+        <h1 className="text-3xl font-bold text-foreground">Tasques</h1>
         
         
         {/* Quick stats */}
