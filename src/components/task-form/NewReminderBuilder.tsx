@@ -198,11 +198,11 @@ export const NewReminderBuilder: React.FC<NewReminderBuilderProps> = ({
 
       {/* Quick options */}
       {(startDate || dueDate) && (
-        <div className="space-y-3">
+        <div className="space-y-2">
           <Label className="text-sm font-medium">Opcions ràpides</Label>
           
-          {/* Type selector for quick options */}
-          <div className="flex gap-2">
+          {/* Compact type selector */}
+          <div className="flex gap-1">
             {startDate && (
               <Button
                 type="button"
@@ -210,9 +210,8 @@ export const NewReminderBuilder: React.FC<NewReminderBuilderProps> = ({
                 size="sm"
                 onClick={() => setRelativeType('start')}
                 disabled={disabled}
-                className="flex-1"
+                className="text-xs px-2 py-1 h-7"
               >
-                <Clock className="h-4 w-4 mr-2" />
                 Inici
               </Button>
             )}
@@ -223,16 +222,15 @@ export const NewReminderBuilder: React.FC<NewReminderBuilderProps> = ({
                 size="sm"
                 onClick={() => setRelativeType('due')}
                 disabled={disabled}
-                className="flex-1"
+                className="text-xs px-2 py-1 h-7"
               >
-                <AlertTriangle className="h-4 w-4 mr-2" />
                 Venciment
               </Button>
             )}
           </div>
 
-          {/* Quick buttons */}
-          <div className="grid grid-cols-2 gap-2">
+          {/* Compact quick buttons */}
+          <div className="flex flex-wrap gap-1">
             {quickOptions[relativeType]?.map((option, index) => (
               <Button
                 key={index}
@@ -241,14 +239,9 @@ export const NewReminderBuilder: React.FC<NewReminderBuilderProps> = ({
                 size="sm"
                 onClick={() => handleQuickAdd(option)}
                 disabled={disabled}
-                className="h-auto py-2 px-3 text-left justify-start"
+                className="text-xs px-2 py-1 h-7"
               >
-                <div className="text-xs">
-                  <div className="font-medium">{option.label}</div>
-                  <div className="text-muted-foreground">
-                    del {relativeType === 'start' ? 'inici' : 'venciment'}
-                  </div>
-                </div>
+                {option.label}
               </Button>
             ))}
           </div>
@@ -256,20 +249,19 @@ export const NewReminderBuilder: React.FC<NewReminderBuilderProps> = ({
       )}
 
       {/* Advanced reminder builder */}
-      <div className="space-y-3 p-4 border rounded-lg bg-muted/20">
+      <div className="space-y-3">
         <Label className="text-sm font-medium">Crear recordatori personalitzat</Label>
         
-        {/* Type selector */}
-        <div className="flex gap-2">
+        {/* Compact type selector */}
+        <div className="flex gap-1">
           <Button
             type="button"
             variant={reminderType === 'exact' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setReminderType('exact')}
             disabled={disabled}
-            className="flex-1"
+            className="text-xs px-2 py-1 h-7"
           >
-            <Calendar className="h-4 w-4 mr-2" />
             Data exacta
           </Button>
           {(startDate || dueDate) && (
@@ -279,120 +271,108 @@ export const NewReminderBuilder: React.FC<NewReminderBuilderProps> = ({
               size="sm"
               onClick={() => setReminderType('relative')}
               disabled={disabled}
-              className="flex-1"
+              className="text-xs px-2 py-1 h-7"
             >
-              <Clock className="h-4 w-4 mr-2" />
               Relatiu
             </Button>
           )}
         </div>
 
-        {/* Exact date picker */}
+        {/* Compact exact date picker */}
         {reminderType === 'exact' && (
-          <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="text-xs text-muted-foreground">Data</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !exactDate && "text-muted-foreground"
-                      )}
-                      disabled={disabled}
-                    >
-                      <Calendar className="mr-2 h-4 w-4" />
-                      {exactDate ? format(exactDate, "PPP") : "Selecciona data"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 bg-background/95 backdrop-blur-sm border" align="start">
-                    <CalendarComponent
-                      mode="single"
-                      selected={exactDate}
-                      onSelect={setExactDate}
-                      disabled={(date) => date < new Date()}
-                      initialFocus
-                      className="pointer-events-auto"
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-              
-              <div>
-                <Label className="text-xs text-muted-foreground">Hora</Label>
-                <Input
-                  type="time"
-                  value={exactTime}
-                  onChange={(e) => setExactTime(e.target.value)}
+          <div className="grid grid-cols-2 gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className={cn(
+                    "justify-start text-left font-normal text-xs h-8",
+                    !exactDate && "text-muted-foreground"
+                  )}
                   disabled={disabled}
-                  className="w-full"
+                >
+                  <Calendar className="mr-1 h-3 w-3" />
+                  {exactDate ? format(exactDate, "dd/MM") : "Data"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0 bg-background/95 backdrop-blur-sm border" align="start">
+                <CalendarComponent
+                  mode="single"
+                  selected={exactDate}
+                  onSelect={setExactDate}
+                  disabled={(date) => date < new Date()}
+                  initialFocus
+                  className="pointer-events-auto"
                 />
-              </div>
-            </div>
+              </PopoverContent>
+            </Popover>
+            
+            <Input
+              type="time"
+              value={exactTime}
+              onChange={(e) => setExactTime(e.target.value)}
+              disabled={disabled}
+              className="text-xs h-8"
+            />
           </div>
         )}
 
-        {/* Relative time builder */}
+        {/* Compact relative time builder */}
         {reminderType === 'relative' && (startDate || dueDate) && (
-          <div className="space-y-3">
-            <div className="grid grid-cols-4 gap-2">
-              <Input
-                type="number"
-                value={relativeAmount}
-                onChange={(e) => setRelativeAmount(e.target.value)}
-                placeholder="15"
-                min="1"
-                disabled={disabled}
-              />
-              
-              <Select value={relativeUnit} onValueChange={setRelativeUnit} disabled={disabled}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-background/95 backdrop-blur-sm border">
-                  <SelectItem value="minutes">min</SelectItem>
-                  <SelectItem value="hours">hores</SelectItem>
-                  <SelectItem value="days">dies</SelectItem>
-                  <SelectItem value="weeks">setm</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <Select value={relativeBefore ? 'before' : 'after'} onValueChange={(value) => setRelativeBefore(value === 'before')} disabled={disabled}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-background/95 backdrop-blur-sm border">
-                  <SelectItem value="before">abans</SelectItem>
-                  <SelectItem value="after">després</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <Select value={relativeType} onValueChange={(value: 'start' | 'due') => setRelativeType(value)} disabled={disabled}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-background/95 backdrop-blur-sm border">
-                  {startDate && <SelectItem value="start">inici</SelectItem>}
-                  {dueDate && <SelectItem value="due">venciment</SelectItem>}
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="grid grid-cols-4 gap-1">
+            <Input
+              type="number"
+              value={relativeAmount}
+              onChange={(e) => setRelativeAmount(e.target.value)}
+              placeholder="15"
+              min="1"
+              disabled={disabled}
+              className="text-xs h-8"
+            />
+            
+            <Select value={relativeUnit} onValueChange={setRelativeUnit} disabled={disabled}>
+              <SelectTrigger className="text-xs h-8">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-background/95 backdrop-blur-sm border">
+                <SelectItem value="minutes">min</SelectItem>
+                <SelectItem value="hours">hores</SelectItem>
+                <SelectItem value="days">dies</SelectItem>
+                <SelectItem value="weeks">setm</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            <Select value={relativeBefore ? 'before' : 'after'} onValueChange={(value) => setRelativeBefore(value === 'before')} disabled={disabled}>
+              <SelectTrigger className="text-xs h-8">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-background/95 backdrop-blur-sm border">
+                <SelectItem value="before">abans</SelectItem>
+                <SelectItem value="after">després</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            <Select value={relativeType} onValueChange={(value: 'start' | 'due') => setRelativeType(value)} disabled={disabled}>
+              <SelectTrigger className="text-xs h-8">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-background/95 backdrop-blur-sm border">
+                {startDate && <SelectItem value="start">inici</SelectItem>}
+                {dueDate && <SelectItem value="due">venciment</SelectItem>}
+              </SelectContent>
+            </Select>
           </div>
         )}
 
-        {/* Message input */}
-        <div>
-          <Label className="text-xs text-muted-foreground">Missatge (opcional)</Label>
-          <Input
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder="Recordatori personalitzat..."
-            disabled={disabled}
-            className="mt-1"
-          />
-        </div>
+        {/* Compact message input */}
+        <Input
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          placeholder="Missatge (opcional)"
+          disabled={disabled}
+          className="text-xs h-8"
+        />
 
         {/* Preview */}
         {getCalculatedDate() && (
@@ -409,16 +389,16 @@ export const NewReminderBuilder: React.FC<NewReminderBuilderProps> = ({
           </div>
         )}
 
-        {/* Add button */}
+        {/* Compact add button */}
         <Button
           type="button"
           onClick={handleAddReminder}
           disabled={disabled || !isValidReminder()}
-          className="w-full"
+          className="w-full text-xs h-8"
           size="sm"
         >
-          <Plus className="h-4 w-4 mr-2" />
-          Afegir recordatori
+          <Plus className="h-3 w-3 mr-1" />
+          Afegir
         </Button>
       </div>
     </div>
