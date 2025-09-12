@@ -28,9 +28,9 @@ export const MacFormSections: React.FC<MacFormSectionsProps> = ({ form, folders 
           />
         </div>
 
-        {/* Organized 2x2 Layout */}
+        {/* Organized 2x3 Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Left Column: Status & Priority */}
+          {/* Left Column: Status, Priority & Folder */}
           <div className="space-y-4">
             <MacFormFields.StatusField
               value={form.values.status}
@@ -42,6 +42,13 @@ export const MacFormSections: React.FC<MacFormSectionsProps> = ({ form, folders 
               value={form.values.priority}
               onChange={(value) => form.setValue('priority', value)}
               options={form.priorityOptions}
+            />
+
+            <MacFormFields.FolderSelector
+              value={form.values.folder_id}
+              onChange={(value) => form.setValue('folder_id', value)}
+              onCreateNew={form.createNewFolder}
+              folders={folders}
             />
           </div>
 
@@ -77,7 +84,7 @@ export const MacFormSections: React.FC<MacFormSectionsProps> = ({ form, folders 
                 </div>
                 <div className="text-left">
                   <div className="font-medium text-foreground">Configuració Avançada</div>
-                  <div className="text-xs text-muted-foreground">Descripció, dates, carpeta, tags i més</div>
+                  <div className="text-xs text-muted-foreground">Descripció, estimació, tags, subtasques i més</div>
                 </div>
               </div>
             </AccordionTrigger>
@@ -102,15 +109,6 @@ export const MacFormSections: React.FC<MacFormSectionsProps> = ({ form, folders 
                   />
                 </div>
 
-                {/* Folder */}
-                <div>
-                  <MacFormFields.FolderSelector
-                    value={form.values.folder_id}
-                    onChange={(value) => form.setValue('folder_id', value)}
-                    onCreateNew={form.createNewFolder}
-                    folders={folders}
-                  />
-                </div>
 
                 {/* Tags */}
                 <div>
