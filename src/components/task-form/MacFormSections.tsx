@@ -28,38 +28,41 @@ export const MacFormSections: React.FC<MacFormSectionsProps> = ({ form, folders 
           />
         </div>
 
-        {/* Status, Priority, Date - Three Columns */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <MacFormFields.StatusField
-            value={form.values.status}
-            onChange={(value) => form.setValue('status', value)}
-            options={form.statusOptions}
-          />
-          
-          <MacFormFields.PriorityField
-            value={form.values.priority}
-            onChange={(value) => form.setValue('priority', value)}
-            options={form.priorityOptions}
-          />
-          
-          <MacFormFields.DateRangeField
-            startDate={form.values.start_date || ''}
-            dueDate={form.values.due_date || ''}
-            onStartDateChange={(value) => form.setValue('start_date', value)}
-            onDueDateChange={(value) => form.setValue('due_date', value)}
-          />
-        </div>
+        {/* Organized 2x2 Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Left Column: Status & Priority */}
+          <div className="space-y-4">
+            <MacFormFields.StatusField
+              value={form.values.status}
+              onChange={(value) => form.setValue('status', value)}
+              options={form.statusOptions}
+            />
+            
+            <MacFormFields.PriorityField
+              value={form.values.priority}
+              onChange={(value) => form.setValue('priority', value)}
+              options={form.priorityOptions}
+            />
+          </div>
 
-        {/* Quick Reminder - Positioned after dates */}
-        <div className="max-w-md mx-auto">
-          <MacFormFields.RemindersField
-            reminders={form.values.reminders}
-            onAdd={(reminder) => form.addReminder(reminder)}
-            onRemove={(id) => form.removeReminder(id)}
-            dueDate={form.values.due_date}
-            startDate={form.values.start_date}
-            simplified={true}
-          />
+          {/* Right Column: Dates & Reminders */}
+          <div className="space-y-4">
+            <MacFormFields.DateRangeField
+              startDate={form.values.start_date || ''}
+              dueDate={form.values.due_date || ''}
+              onStartDateChange={(value) => form.setValue('start_date', value)}
+              onDueDateChange={(value) => form.setValue('due_date', value)}
+            />
+            
+            <MacFormFields.RemindersField
+              reminders={form.values.reminders}
+              onAdd={(reminder) => form.addReminder(reminder)}
+              onRemove={(id) => form.removeReminder(id)}
+              dueDate={form.values.due_date}
+              startDate={form.values.start_date}
+              simplified={true}
+            />
+          </div>
         </div>
       </div>
 
