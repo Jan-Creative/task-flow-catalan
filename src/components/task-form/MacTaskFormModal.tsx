@@ -77,7 +77,15 @@ const MacTaskFormModal = ({ open, onClose, onSubmit, folders, editingTask }: Mac
       handleClose();
     }
     
-    // Cmd+Return to save (Mac convention)
+    // Return to save (simple Return key)
+    if (e.key === 'Enter' && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey) {
+      e.preventDefault();
+      if (macForm.isValid && !macForm.isSubmitting) {
+        macForm.handleSubmit();
+      }
+    }
+    
+    // Cmd+Return to save (Mac convention - maintained for compatibility)
     if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
       e.preventDefault();
       if (macForm.isValid && !macForm.isSubmitting) {
@@ -148,53 +156,55 @@ const MacTaskFormModal = ({ open, onClose, onSubmit, folders, editingTask }: Mac
           </div>
         </div>
 
-        {/* Mac 3-Column Form Layout */}
-        <div className="flex-1 overflow-y-auto">
-          <form onSubmit={macForm.handleSubmit} className="h-full" autoComplete="off">
+        {/* Mac Form Layout with Submit within Form */}
+        <form onSubmit={macForm.handleSubmit} className="flex-1 overflow-hidden flex flex-col" autoComplete="off">
+          <div className="flex-1 overflow-y-auto">
             <MacFormSections 
               form={macForm}
               folders={folders}
             />
-          </form>
-        </div>
+          </div>
 
-        {/* Mac-style Footer */}
-        <div className="px-6 py-4 border-t border-white/5">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <Command className="h-3 w-3" />
-                <span>T</span>
+          {/* Mac-style Footer - Now inside form */}
+          <div className="px-6 py-4 border-t border-white/5">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <div className="flex items-center gap-1">
+                  <Command className="h-3 w-3" />
+                  <span>T</span>
+                </div>
+                <span>Títol</span>
+                <span>•</span>
+                <div className="flex items-center gap-1">
+                  <Command className="h-3 w-3" />
+                  <span>D</span>
+                </div>
+                <span>Descripció</span>
+                <span>•</span>
+                <span>Return per guardar</span>
               </div>
-              <span>Títol</span>
-              <span>•</span>
-              <div className="flex items-center gap-1">
-                <Command className="h-3 w-3" />
-                <span>D</span>
+              
+              <div className="flex gap-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleClose}
+                  disabled={macForm.isSubmitting}
+                  className="px-6 h-9 rounded-lg bg-white/10 border border-white/10 hover:bg-white/20 backdrop-blur-sm transition-all duration-200"
+                >
+                  Cancel·lar
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={macForm.isSubmitting || !macForm.isValid}
+                  className="px-6 h-9 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-medium shadow-lg hover:shadow-xl backdrop-blur-sm transition-all duration-200"
+                >
+                  {macForm.isSubmitting ? 'Guardant...' : (macForm.isEditMode ? 'Actualitzar Tasca' : 'Crear Tasca')}
+                </Button>
               </div>
-              <span>Descripció</span>
-            </div>
-            
-            <div className="flex gap-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleClose}
-                disabled={macForm.isSubmitting}
-                className="px-6 h-9 rounded-lg bg-white/10 border border-white/10 hover:bg-white/20 backdrop-blur-sm transition-all duration-200"
-              >
-                Cancel·lar
-              </Button>
-              <Button
-                type="submit"
-                disabled={macForm.isSubmitting || !macForm.isValid}
-                className="px-6 h-9 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-medium shadow-lg hover:shadow-xl backdrop-blur-sm transition-all duration-200"
-              >
-                {macForm.isSubmitting ? 'Guardant...' : (macForm.isEditMode ? 'Actualitzar Tasca' : 'Crear Tasca')}
-              </Button>
             </div>
           </div>
-        </div>
+        </form>
       </DialogContent>
     </Dialog>
   );
