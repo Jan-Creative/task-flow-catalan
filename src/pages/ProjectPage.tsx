@@ -2,6 +2,7 @@ import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Briefcase } from "lucide-react";
+import ProjectDashboard from "@/components/dashboard/ProjectDashboard";
 const ProjectPage = () => {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
@@ -9,6 +10,24 @@ const ProjectPage = () => {
   const handleBack = () => {
     navigate("/?tab=carpetes");
   };
+
+  const handleEditTask = (task: any) => {
+    // TODO: Implement task editing for projects
+    console.log('Edit task:', task);
+  };
+
+  const handleNavigateToTasks = () => {
+    // TODO: Navigate to project tasks view
+    console.log('Navigate to project tasks');
+  };
+
+  if (!projectId) {
+    return (
+      <div className="w-full min-h-screen bg-background flex items-center justify-center">
+        <p className="text-muted-foreground">ID del projecte no vàlid</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -38,23 +57,12 @@ const ProjectPage = () => {
         </div>
       </div>
 
-      {/* Main Content - Dashboard Placeholder */}
-      <div className="flex items-center justify-center h-[calc(100vh-120px)]">
-        <div className="text-center space-y-4 max-w-md">
-          <div className="w-24 h-24 rounded-full bg-gradient-primary mx-auto flex items-center justify-center">
-            <Briefcase className="h-12 w-12 text-white" />
-          </div>
-          <h2 className="text-2xl font-bold text-foreground">Dashboard del Projecte</h2>
-          <p className="text-muted-foreground">
-            Aquí es desenvoluparà el dashboard intel·ligent del projecte amb mètriques, 
-            timeline de tasques i eines especialitzades per completar els objectius.
-          </p>
-          <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-            <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
-            <span>En desenvolupament - Fase 2</span>
-          </div>
-        </div>
-      </div>
+      {/* Project Dashboard */}
+      <ProjectDashboard 
+        projectId={projectId}
+        onEditTask={handleEditTask}
+        onNavigateToTasks={handleNavigateToTasks}
+      />
     </div>
   );
 };
