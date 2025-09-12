@@ -161,7 +161,8 @@ export const iPadTaskFormModal: React.FC<iPadTaskFormModalProps> = ({
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent 
-        className="max-w-4xl h-[85vh] p-0 gap-0 bg-gradient-to-br from-background/95 to-background/80 backdrop-blur-2xl border border-white/10 shadow-2xl rounded-2xl overflow-hidden"
+        className="max-w-4xl h-[85vh] p-0 gap-0 bg-background/5 backdrop-blur-xl backdrop-saturate-150 backdrop-brightness-110 border border-white/5 rounded-2xl shadow-lg/10 overflow-hidden"
+        overlayClassName="bg-transparent"
         onPointerDownOutside={(e) => e.preventDefault()}
       >
         {/* iPad-style Header */}
