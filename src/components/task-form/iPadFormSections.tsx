@@ -24,7 +24,7 @@ interface iPadFormSectionsProps {
   folders: Array<{ id: string; name: string; }>;
 }
 
-export const iPadFormSections: React.FC<iPadFormSectionsProps> = ({ form, folders }) => {
+export const IPadFormSections: React.FC<iPadFormSectionsProps> = ({ form, folders }) => {
   const { uiState } = form;
   const isLandscape = uiState.orientation === 'landscape';
   

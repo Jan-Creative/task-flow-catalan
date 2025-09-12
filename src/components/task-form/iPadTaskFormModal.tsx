@@ -6,7 +6,7 @@ import React, { useEffect } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { X, Command, Save, Sparkles } from 'lucide-react';
-import { iPadFormSections } from './iPadFormSections';
+import { IPadFormSections } from './iPadFormSections';
 import { useiPadTaskForm, type iPadTaskFormReturn } from '@/hooks/tasks/useiPadTaskForm';
 import { useStableCallback } from '@/hooks/performance';
 import { useKeyboardShortcuts } from '@/contexts/KeyboardShortcutsContext';
@@ -181,7 +181,7 @@ export const iPadTaskFormModal: React.FC<iPadTaskFormModalProps> = ({
         {/* iPad Form Layout */}
         <form onSubmit={iPadForm.handleSubmit} className="flex-1 overflow-hidden flex flex-col">
           <div className="flex-1 overflow-y-auto">
-            <iPadFormSections
+            <IPadFormSections
               form={iPadForm}
               folders={folders}
             />
