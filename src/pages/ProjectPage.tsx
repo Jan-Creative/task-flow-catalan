@@ -1,11 +1,14 @@
-import React from "react";
+import React, { useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Briefcase } from "lucide-react";
 import ProjectDashboard from "@/components/dashboard/ProjectDashboard";
+import CreateProjectModal from "@/components/projects/CreateProjectModal";
 const ProjectPage = () => {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
+  const isTemp = useMemo(() => (projectId?.startsWith("temp-") ?? false), [projectId]);
+  const [showCreateProject, setShowCreateProject] = useState<boolean>(isTemp);
 
   const handleBack = () => {
     navigate("/?tab=carpetes");
@@ -58,10 +61,27 @@ const ProjectPage = () => {
       </div>
 
       {/* Project Dashboard */}
-      <ProjectDashboard 
-        projectId={projectId}
-        onEditTask={handleEditTask}
-        onNavigateToTasks={handleNavigateToTasks}
+      {projectId && (
+        <ProjectDashboard 
+          projectId={projectId}
+          onEditTask={handleEditTask}
+          onNavigateToTasks={handleNavigateToTasks}
+        />
+      )}
+
+      {/* Create project modal for temp routes */}
+      <CreateProjectModal
+        open={showCreateProject}
+        onOpenChange={(open) => {
+          setShowCreateProject(open);
+          if (!open && isTemp) {
+            navigate("/?tab=carpetes");
+          }
+        }}
+        onCreated={(id) => {
+          setShowCreateProject(false);
+          navigate(`/project/${id}`);
+        }}
       />
     </div>
   );

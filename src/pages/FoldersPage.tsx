@@ -8,6 +8,7 @@ import { FolderPlus, Briefcase } from "lucide-react";
 import { FolderItem } from "@/components/FolderItem";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import CreateProjectModal from "@/components/projects/CreateProjectModal";
 
 const FoldersPage = React.memo(() => {
   const { tasks, folders, createFolder, updateFolder, deleteFolder, loading } = useDadesApp();
@@ -86,10 +87,10 @@ const FoldersPage = React.memo(() => {
     // Navigation will be implemented in future versions
   };
 
+  const [showCreateProject, setShowCreateProject] = useState(false);
+
   const handleCreateProject = () => {
-    // Generate a temporary ID for the new project
-    const tempProjectId = `temp-${Date.now()}`;
-    navigate(`/project/${tempProjectId}`);
+    setShowCreateProject(true);
   };
 
   if (loading) {
@@ -108,7 +109,7 @@ const FoldersPage = React.memo(() => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-foreground">Carpetes</h1>
-        <div className="flex gap-3">
+         <div className="flex gap-3">
           <Button 
             onClick={handleCreateProject}
             className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white shadow-lg"
@@ -266,6 +267,13 @@ const FoldersPage = React.memo(() => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Create project modal */}
+      <CreateProjectModal
+        open={showCreateProject}
+        onOpenChange={setShowCreateProject}
+        onCreated={(id) => navigate(`/project/${id}`)}
+      />
 
       {/* Delete folder confirmation dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>

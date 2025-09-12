@@ -32,12 +32,12 @@ export const useProject = (projectId: string) => {
         .select("*")
         .eq("id", projectId)
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
-      return data as Project;
+      return (data as Project) || null;
     },
-    enabled: !!user && !!projectId,
+    enabled: !!user && !!projectId && !projectId.startsWith("temp-"),
     staleTime: 1000 * 60 * 15, // 15 minutes
     gcTime: 1000 * 60 * 30, // 30 minutes
   });
