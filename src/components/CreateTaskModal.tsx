@@ -13,6 +13,7 @@ import { useResponsiveLayout } from "@/hooks/device/useResponsiveLayout";
 import { useDeviceType } from "@/hooks/device/useDeviceType";
 import { useKeyboardShortcuts } from "@/contexts/KeyboardShortcutsContext";
 import MacTaskFormModal from "@/components/task-form/MacTaskFormModal";
+import { iPadTaskFormModal as IPadTaskFormModal } from "@/components/task-form/iPadTaskFormModal";
 import { 
   AdaptiveFormLayout, 
   FormMainSection, 
@@ -99,10 +100,22 @@ useEffect(() => {
   return () => setEnabled(true);
 }, [open, setEnabled, editingTask]);
 
-  // Use Mac-specific form for Mac users - AFTER all hooks are called
+  // Use device-specific forms - AFTER all hooks are called
   if (deviceType === 'mac') {
     return (
       <MacTaskFormModal
+        open={open}
+        onClose={onClose}
+        onSubmit={onSubmit}
+        folders={folders}
+        editingTask={editingTask}
+      />
+    );
+  }
+
+  if (deviceType === 'ipad') {
+    return (
+      <IPadTaskFormModal
         open={open}
         onClose={onClose}
         onSubmit={onSubmit}

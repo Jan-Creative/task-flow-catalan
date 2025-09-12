@@ -15,7 +15,17 @@ import type { Tasca } from '@/types';
 interface iPadTaskFormModalProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (taskData: any) => Promise<void>;
+  onSubmit: (task: {
+    title: string;
+    description?: string;
+    status: string;
+    priority: string;
+    due_date?: string;
+    folder_id?: string;
+  }, customProperties?: Array<{
+    propertyId: string;
+    optionId: string;
+  }>) => void;
   folders: Array<{ id: string; name: string }>;
   editingTask?: Tasca | null;
 }
@@ -46,7 +56,13 @@ export const iPadTaskFormModal: React.FC<iPadTaskFormModalProps> = ({
       reminders: [],
     } : {},
     onSubmit: async (data) => {
-      await onSubmit(data);
+      const { customProperties, ...taskData } = data;
+      try {
+        onSubmit(taskData, customProperties);
+        handleClose();
+      } catch (error) {
+        console.error('[iPadTaskFormModal] Submit failed:', error);
+      }
     },
     mode: editingTask ? 'edit' : 'create',
     folders
