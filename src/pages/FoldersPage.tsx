@@ -4,12 +4,14 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useDadesApp } from "@/hooks/useDadesApp";
-import { FolderPlus } from "lucide-react";
+import { FolderPlus, Briefcase } from "lucide-react";
 import { FolderItem } from "@/components/FolderItem";
+import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 const FoldersPage = React.memo(() => {
   const { tasks, folders, createFolder, updateFolder, deleteFolder, loading } = useDadesApp();
+  const navigate = useNavigate();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
   
@@ -84,6 +86,12 @@ const FoldersPage = React.memo(() => {
     // Navigation will be implemented in future versions
   };
 
+  const handleCreateProject = () => {
+    // Generate a temporary ID for the new project
+    const tempProjectId = `temp-${Date.now()}`;
+    navigate(`/project/${tempProjectId}`);
+  };
+
   if (loading) {
     return (
       <div className="p-6 pb-24">
@@ -100,14 +108,22 @@ const FoldersPage = React.memo(() => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-foreground">Carpetes</h1>
-        <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-          <DialogTrigger asChild>
-            <Button className="bg-primary hover:bg-primary/90">
-              <FolderPlus className="mr-2 h-4 w-4" />
-              Nova carpeta
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="bg-card/95 backdrop-blur-glass border-border/50 shadow-elevated sm:max-w-md">
+        <div className="flex gap-3">
+          <Button 
+            onClick={handleCreateProject}
+            className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white shadow-lg"
+          >
+            <Briefcase className="mr-2 h-4 w-4" />
+            Nou Projecte
+          </Button>
+          <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="border-primary/20 hover:bg-primary/5">
+                <FolderPlus className="mr-2 h-4 w-4" />
+                Nova carpeta
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="bg-card/95 backdrop-blur-glass border-border/50 shadow-elevated sm:max-w-md">
             <DialogHeader>
               <DialogTitle className="text-foreground">Nova Carpeta</DialogTitle>
             </DialogHeader>
@@ -144,8 +160,9 @@ const FoldersPage = React.memo(() => {
                 </Button>
               </div>
             </div>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {/* Bustia (Inbox) */}

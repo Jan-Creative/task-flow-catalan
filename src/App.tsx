@@ -5,6 +5,7 @@ import PrepareTomorrowPage from "./pages/PrepareTomorrowPage";
 import NotesPage from "./pages/NotesPage";
 import { LazyTaskDetailPage, LazyFolderDetailPage } from "@/components/LazyComponents";
 import OfflineDemoPage from "./pages/OfflineDemoPage";
+import ProjectPage from "./pages/ProjectPage";
 import NotFound from "./pages/NotFound";
 import { PomodoroWidget } from "@/components/pomodoro/PomodoroWidget";
 import { RouteCacheProvider } from "@/components/ui/route-cache";
@@ -38,6 +39,7 @@ const App = () => {
             <Route path="/prepare-tomorrow" element={<PrepareTomorrowPage />} />
             <Route path="/task/:taskId" element={<LazyTaskDetailPage />} />
             <Route path="/folder/:folderId" element={<LazyFolderDetailPage />} />
+            <Route path="/project/:projectId" element={<ProjectPage />} />
             <Route path="/offline-demo" element={<OfflineDemoPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

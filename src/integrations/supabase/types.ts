@@ -613,6 +613,48 @@ export type Database = {
         }
         Relationships: []
       }
+      projects: {
+        Row: {
+          color: string
+          created_at: string
+          dashboard_config: Json | null
+          description: string | null
+          icon: string | null
+          id: string
+          is_active: boolean
+          name: string
+          objective: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          dashboard_config?: Json | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          objective?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          dashboard_config?: Json | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          objective?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       property_definitions: {
         Row: {
           created_at: string
