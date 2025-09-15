@@ -290,8 +290,10 @@ export type Database = {
           created_at: string
           icon: string | null
           id: string
+          is_smart: boolean
           is_system: boolean | null
           name: string
+          smart_rules: Json | null
           updated_at: string
           user_id: string | null
         }
@@ -300,8 +302,10 @@ export type Database = {
           created_at?: string
           icon?: string | null
           id?: string
+          is_smart?: boolean
           is_system?: boolean | null
           name: string
+          smart_rules?: Json | null
           updated_at?: string
           user_id?: string | null
         }
@@ -310,8 +314,10 @@ export type Database = {
           created_at?: string
           icon?: string | null
           id?: string
+          is_smart?: boolean
           is_system?: boolean | null
           name?: string
+          smart_rules?: Json | null
           updated_at?: string
           user_id?: string | null
         }
@@ -992,6 +998,14 @@ export type Database = {
       cleanup_old_pomodoro_sessions: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      evaluate_smart_folder_match: {
+        Args: {
+          folder_rules: Json
+          task_description: string
+          task_title: string
+        }
+        Returns: boolean
       }
     }
     Enums: {
