@@ -47,7 +47,7 @@ export const useDadesApp = () => {
           .order("created_at", { ascending: false }),
         supabase
           .from("folders")
-          .select("id, name, color, is_system, icon")
+          .select("id, name, color, is_system, icon, is_smart, smart_rules")
           .eq("user_id", user.id)
           .order("is_system", { ascending: false })
       ]);

@@ -31,7 +31,9 @@ export const useSmartFolders = () => {
       }
 
       const folderData = {
-        ...data,
+        name: data.name,
+        color: data.color,
+        icon: data.icon,
         is_smart: true,
         smart_rules: {
           ...data.smart_rules,
@@ -39,7 +41,7 @@ export const useSmartFolders = () => {
         }
       };
 
-      await createFolder(folderData as any);
+      await createFolder(folderData);
       toast.success(`Carpeta intel·ligent "${data.name}" creada correctament`);
       
       // Refresh to get updated data with triggers applied
