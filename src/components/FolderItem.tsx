@@ -1,4 +1,4 @@
-import { FolderOpen, MoreVertical, Edit2, Trash2 } from "lucide-react";
+import { FolderOpen, MoreVertical, Edit2, Trash2, Brain, Sparkles } from "lucide-react";
 import { getIconByName } from "@/lib/iconLibrary";
 import { useNavigate } from "react-router-dom";
 import {
@@ -16,6 +16,11 @@ interface Folder {
   color: string;
   is_system?: boolean;
   icon?: string;
+  is_smart?: boolean;
+  smart_rules?: {
+    keywords: string[];
+    enabled: boolean;
+  };
 }
 
 interface FolderItemProps {
@@ -58,7 +63,7 @@ export function FolderItem({
       >
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <div 
-            className="flex-shrink-0 p-2 rounded-lg backdrop-blur-sm"
+            className="flex-shrink-0 p-2 rounded-lg backdrop-blur-sm relative"
             style={{ 
               backgroundColor: `${folder.color}20`
             }}
@@ -72,14 +77,27 @@ export function FolderItem({
               }
               return <FolderOpen className="h-5 w-5" style={{ color: folder.color }} />;
             })()}
+            {folder.is_smart && (
+              <div className="absolute -top-1 -right-1 p-0.5 bg-blue-500 rounded-full">
+                <Brain size={8} className="text-white" />
+              </div>
+            )}
           </div>
           
           <div className="flex-1 min-w-0">
-            <h3 className="font-medium text-foreground truncate">
-              {folder.name}
-            </h3>
+            <div className="flex items-center gap-2">
+              <h3 className="font-medium text-foreground truncate">
+                {folder.name}
+              </h3>
+              {folder.is_smart && folder.smart_rules?.enabled && (
+                <Sparkles size={12} className="text-blue-500 flex-shrink-0" />
+              )}
+            </div>
             <p className="text-sm text-muted-foreground">
               {taskCount} {taskCount === 1 ? 'tasca' : 'tasques'}
+              {folder.is_smart && (
+                <span className="ml-1 text-blue-600 dark:text-blue-400">• Intel·ligent</span>
+              )}
             </p>
           </div>
         </div>

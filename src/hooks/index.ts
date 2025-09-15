@@ -23,6 +23,7 @@ export { useServiceWorkerStatus } from './useServiceWorkerStatus';
 // Task Management
 export { useTaskManager } from './useTaskManager';
 export { useOptimizedTaskManager } from './useOptimizedTaskManager';
+export { useSmartFolders } from './useSmartFolders';
 
 // Performance & Optimization
 export { useErrorRecovery } from './useErrorRecovery';

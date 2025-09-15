@@ -3,15 +3,24 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useDadesApp } from "@/hooks/useDadesApp";
-import { FolderPlus, Briefcase } from "lucide-react";
+import { useSmartFolders } from "@/hooks/useSmartFolders";
+import { FolderPlus, Briefcase, Folder, Brain, Sparkles } from "lucide-react";
 import { FolderItem } from "@/components/FolderItem";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import CreateProjectModal from "@/components/projects/CreateProjectModal";
+import { SimpleSmartFolderModal } from "@/components/folders/SimpleSmartFolderModal";
 
 const FoldersPage = React.memo(() => {
   const { tasks, folders, createFolder, updateFolder, deleteFolder, loading } = useDadesApp();
+  const { createSmartFolder, smartFolderStats } = useSmartFolders();
   const navigate = useNavigate();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
@@ -88,6 +97,7 @@ const FoldersPage = React.memo(() => {
   };
 
   const [showCreateProject, setShowCreateProject] = useState(false);
+  const [showSmartFolderModal, setShowSmartFolderModal] = useState(false);
 
   const handleCreateProject = () => {
     setShowCreateProject(true);
@@ -108,7 +118,18 @@ const FoldersPage = React.memo(() => {
     <div className="p-6 pb-24 space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-foreground">Carpetes</h1>
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Carpetes</h1>
+          {smartFolderStats.total > 0 && (
+            <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
+              <Sparkles className="h-4 w-4 text-blue-500" />
+              <span>
+                {smartFolderStats.active} carpetes intel·ligents actives • 
+                {smartFolderStats.tasksAutoAssigned} tasques automatitzades
+              </span>
+            </div>
+          )}
+        </div>
          <div className="flex gap-3">
           <Button 
             onClick={handleCreateProject}
@@ -117,13 +138,25 @@ const FoldersPage = React.memo(() => {
             <Briefcase className="mr-2 h-4 w-4" />
             Nou Projecte
           </Button>
-          <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-            <DialogTrigger asChild>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
               <Button variant="outline" className="border-primary/20 hover:bg-primary/5">
                 <FolderPlus className="mr-2 h-4 w-4" />
                 Nova carpeta
               </Button>
-            </DialogTrigger>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56">
+              <DropdownMenuItem onClick={() => setShowCreateDialog(true)}>
+                <Folder className="h-4 w-4 mr-2" />
+                Carpeta Normal
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setShowSmartFolderModal(true)}>
+                <Brain className="h-4 w-4 mr-2" />
+                Carpeta Intel·ligent
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
             <DialogContent className="bg-card/95 backdrop-blur-glass border-border/50 shadow-elevated sm:max-w-md">
             <DialogHeader>
               <DialogTitle className="text-foreground">Nova Carpeta</DialogTitle>
@@ -273,6 +306,12 @@ const FoldersPage = React.memo(() => {
         open={showCreateProject}
         onOpenChange={setShowCreateProject}
         onCreated={(id) => navigate(`/project/${id}`)}
+      />
+
+      <SimpleSmartFolderModal
+        open={showSmartFolderModal}
+        onClose={() => setShowSmartFolderModal(false)}
+        onSubmit={createSmartFolder}
       />
 
       {/* Delete folder confirmation dialog */}
