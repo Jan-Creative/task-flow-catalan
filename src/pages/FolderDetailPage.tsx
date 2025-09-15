@@ -168,6 +168,29 @@ const FolderDetailPage = () => {
       return matchesStatus && matchesPriority;
     });
 
+    // Apply sorting
+    if (sortBy !== "none") {
+      filteredTasks.sort((a, b) => {
+        let aValue, bValue;
+        
+        if (sortBy === "created_at") {
+          aValue = new Date(a.created_at || 0).getTime();
+          bValue = new Date(b.created_at || 0).getTime();
+        } else if (sortBy === "due_date") {
+          // Handle null due_date values - push them to the end
+          if (!a.due_date && !b.due_date) return 0;
+          if (!a.due_date) return 1;
+          if (!b.due_date) return -1;
+          aValue = new Date(a.due_date).getTime();
+          bValue = new Date(b.due_date).getTime();
+        } else {
+          return 0;
+        }
+        
+        return sortOrder === "asc" ? aValue - bValue : bValue - aValue;
+      });
+    }
+
     return filteredTasks;
   })();
 
@@ -268,12 +291,7 @@ const FolderDetailPage = () => {
     setSelectionMode(false);
   };
 
-  // Handle selection mode changes
-  useEffect(() => {
-    if (selectedTasks.length === 0 && selectionMode) {
-      setSelectionMode(false);
-    }
-  }, [selectedTasks.length, selectionMode]);
+  // Note: Removed useEffect that auto-disabled selection mode to prevent interference with user actions
 
   // Check if current folder is inbox
   const isInboxFolder = folderId === 'inbox' || 
@@ -385,6 +403,12 @@ const FolderDetailPage = () => {
           onFilterStatusChange={setFilterStatus}
           filterPriority={filterPriority}
           onFilterPriorityChange={setFilterPriority}
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          onSortChange={(newSortBy, newSortOrder) => {
+            setSortBy(newSortBy);
+            setSortOrder(newSortOrder);
+          }}
           onNavigateToSettings={() => navigate('/settings')}
           onCreateTask={() => setShowCreateTask(true)}
           tasks={folderTasks}

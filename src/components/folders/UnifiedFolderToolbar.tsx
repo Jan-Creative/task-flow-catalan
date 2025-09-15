@@ -319,10 +319,10 @@ export const UnifiedFolderToolbar = ({
         {!selectionMode && (
           <div className="flex items-center gap-1">
             {/* Filter */}
-            <Popover open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-              <PopoverTrigger asChild>
-                <Tooltip>
-                  <TooltipTrigger asChild>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Popover open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+                  <PopoverTrigger asChild>
                     <Button 
                       variant="ghost" 
                       size="sm" 
@@ -333,10 +333,7 @@ export const UnifiedFolderToolbar = ({
                         <div className="absolute -top-1 -right-1 h-2 w-2 bg-primary rounded-full" />
                       )}
                     </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Filtres</TooltipContent>
-                </Tooltip>
-              </PopoverTrigger>
+                  </PopoverTrigger>
               <PopoverContent className="w-64 p-3 bg-background/95 backdrop-blur-md border-border/60" align="center">
                 <div className="space-y-3">
                   <div className="space-y-1.5">
@@ -372,13 +369,16 @@ export const UnifiedFolderToolbar = ({
                   </div>
                 </div>
               </PopoverContent>
-            </Popover>
+                </Popover>
+              </TooltipTrigger>
+              <TooltipContent>Filtres</TooltipContent>
+            </Tooltip>
 
             {/* Sort */}
-            <Popover open={isSortOpen} onOpenChange={setIsSortOpen}>
-              <PopoverTrigger asChild>
-                <Tooltip>
-                  <TooltipTrigger asChild>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Popover open={isSortOpen} onOpenChange={setIsSortOpen}>
+                  <PopoverTrigger asChild>
                     <Button 
                       variant="ghost" 
                       size="sm" 
@@ -389,10 +389,7 @@ export const UnifiedFolderToolbar = ({
                         <div className="absolute -top-1 -right-1 h-2 w-2 bg-primary rounded-full" />
                       )}
                     </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Ordenar</TooltipContent>
-                </Tooltip>
-              </PopoverTrigger>
+                  </PopoverTrigger>
               <PopoverContent className="w-48 p-2 bg-background/95 backdrop-blur-md border-border/60" align="center">
                 <div className="space-y-1">
                   <Button
@@ -430,7 +427,10 @@ export const UnifiedFolderToolbar = ({
                   </Button>
                 </div>
               </PopoverContent>
-            </Popover>
+                </Popover>
+              </TooltipTrigger>
+              <TooltipContent>Ordenar</TooltipContent>
+            </Tooltip>
           </div>
         )}
 
