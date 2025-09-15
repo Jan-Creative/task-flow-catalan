@@ -32,8 +32,8 @@ import type { Task } from '@/types';
 
 interface UnifiedFolderToolbarProps {
   // Basic toolbar props
-  viewMode: "list" | "kanban";
-  onViewModeChange: (mode: "list" | "kanban") => void;
+  viewMode: "list" | "kanban" | "organize";
+  onViewModeChange: (mode: "list" | "kanban" | "organize") => void;
   filterStatus: string;
   onFilterStatusChange: (status: string) => void;
   filterPriority: string;
@@ -56,6 +56,7 @@ interface UnifiedFolderToolbarProps {
   // Inbox-specific props
   isInboxFolder?: boolean;
   inboxTaskCount?: number;
+  unscheduledTasksCount?: number;
 }
 
 export const UnifiedFolderToolbar = ({
@@ -78,7 +79,8 @@ export const UnifiedFolderToolbar = ({
   selectionMode,
   onToggleSelectionMode,
   isInboxFolder = false,
-  inboxTaskCount = 0
+  inboxTaskCount = 0,
+  unscheduledTasksCount = 0
 }: UnifiedFolderToolbarProps) => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isSortOpen, setIsSortOpen] = useState(false);
@@ -289,6 +291,36 @@ export const UnifiedFolderToolbar = ({
                   </TooltipTrigger>
                   <TooltipContent>Tauler</TooltipContent>
                 </Tooltip>
+                
+                {/* Organize view button - only show when there are unscheduled tasks */}
+                {unscheduledTasksCount > 0 && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => onViewModeChange("organize")} 
+                        className={cn(
+                          "h-7 px-2 text-xs transition-all relative",
+                          viewMode === "organize" 
+                            ? "bg-amber-500/10 text-amber-600" 
+                            : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                        )}
+                      >
+                        <Clock className="h-3.5 w-3.5" />
+                        {unscheduledTasksCount > 0 && (
+                          <Badge 
+                            variant="secondary" 
+                            className="absolute -top-1 -right-1 h-4 w-4 p-0 text-xs flex items-center justify-center bg-amber-500 text-white border-0"
+                          >
+                            {unscheduledTasksCount}
+                          </Badge>
+                        )}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Organitzar ({unscheduledTasksCount})</TooltipContent>
+                  </Tooltip>
+                )}
               </div>
               
               {/* Selection mode toggle */}

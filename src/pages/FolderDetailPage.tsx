@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, FolderOpen, Plus } from "lucide-react";
+import { ArrowLeft, FolderOpen, Plus, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useDadesApp } from "@/hooks/useDadesApp";
@@ -23,7 +23,7 @@ const FolderDetailPage = () => {
   const { handleCreateTask, handleEditTask: handleEditTaskOp } = useTaskOperations();
   const [showCreateTask, setShowCreateTask] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
+  const [viewMode, setViewMode] = useState<"list" | "kanban" | "organize">("list");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterPriority, setFilterPriority] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("none");
@@ -112,32 +112,46 @@ const FolderDetailPage = () => {
     }
   };
 
-  // Filter tasks for this folder with view mode logic
-  const folderTasks = (() => {
-    // If still loading or no data, return empty array
+  // Get base tasks for this folder
+  const baseFolderTasks = (() => {
     if (loading || tasks.length === 0) {
       return [];
     }
 
-    // First get all tasks for this folder
-    let baseTasks = [];
     if (folderId === 'inbox') {
-      // For inbox, show tasks assigned to the real inbox folder
-      // OR tasks without folder_id (legacy compatibility)
-      baseTasks = tasks.filter(task => {
+      return tasks.filter(task => {
         if (realInboxFolder) {
           return task.folder_id === realInboxFolder.id || !task.folder_id;
         }
-        // Fallback: if no real inbox folder found, show tasks without folder_id
         return !task.folder_id;
       });
     } else {
-      // For other folders, show tasks with matching folder_id
-      baseTasks = tasks.filter(task => task.folder_id === folderId);
+      return tasks.filter(task => task.folder_id === folderId);
+    }
+  })();
+
+  // Get unscheduled tasks (for organize view detection)
+  const unscheduledTasks = baseFolderTasks.filter(task => 
+    !task.due_date && task.status !== 'completat'
+  );
+
+  // Filter tasks for this folder with view mode logic
+  const folderTasks = (() => {
+    if (loading || tasks.length === 0) {
+      return [];
     }
 
-    // Apply view mode logic
-    const filteredTasks = baseTasks.filter(task => {
+    // In organize mode, only show unscheduled tasks
+    if (viewMode === 'organize') {
+      return unscheduledTasks.filter(task => {
+        let matchesStatus = filterStatus === "all" || task.status === filterStatus;
+        let matchesPriority = filterPriority === "all" || task.priority === filterPriority;
+        return matchesStatus && matchesPriority;
+      });
+    }
+
+    // Apply view mode logic for list/kanban
+    const filteredTasks = baseFolderTasks.filter(task => {
       // Always show tasks that are in completing state
       if (completingTasks.has(task.id)) {
         return true;
@@ -425,6 +439,7 @@ const FolderDetailPage = () => {
           }}
           isInboxFolder={isInboxFolder}
           inboxTaskCount={folderTasks.length}
+          unscheduledTasksCount={unscheduledTasks.length}
         />
 
         {/* Tasks content */}
@@ -460,6 +475,52 @@ const FolderDetailPage = () => {
             </div>
           ) : (
             <>
+              {viewMode === "organize" && (
+                <div className="space-y-3">
+                  <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-4 backdrop-blur-sm">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="bg-amber-500/10 p-2 rounded-lg">
+                        <Clock className="h-5 w-5 text-amber-600" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-medium text-amber-700 dark:text-amber-300">
+                          Tasques per organitzar
+                        </h3>
+                        <p className="text-sm text-amber-600/80">
+                          {folderTasks.length} tasques necessiten una data programada
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    {folderTasks.map((task) => (
+                      <div key={task.id} className="group relative">
+                        {selectionMode && (
+                          <div className="absolute left-2 top-1/2 -translate-y-1/2 z-10">
+                            <input
+                              type="checkbox"
+                              checked={selectedTasks.includes(task.id)}
+                              onChange={() => handleSelectTask(task.id)}
+                              className="h-4 w-4 rounded border-border/60 bg-background/80 text-primary focus:ring-primary/50"
+                            />
+                          </div>
+                        )}
+                        <div className={selectionMode ? "ml-8" : ""}>
+                          <TaskChecklistItem
+                            task={task}
+                            onStatusChange={handleStatusChange}
+                            onEdit={handleEditTask}
+                            onDelete={deleteTask}
+                            completingTasks={completingTasks}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {viewMode === "list" && (
                 <div className="space-y-2">
                   {folderTasks.map((task) => (
