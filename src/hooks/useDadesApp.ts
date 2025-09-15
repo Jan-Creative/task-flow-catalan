@@ -386,15 +386,30 @@ export const useDadesApp = () => {
     }
   }, [user?.id, queryClient, toast, handleError]);
 
-  // Folder creation with optimistic updates
-  const crearCarpeta = useCallback(async (name: string, color: string = "#6366f1") => {
+  // Folder creation with optimistic updates - supports both regular and smart folders
+  const crearCarpeta = useCallback(async (carpetaData: any) => {
     if (!user) throw new Error("User not authenticated");
+
+    const isSmartFolder = carpetaData.is_smart === true;
+    
+    // Prepare insert data
+    const insertData: any = {
+      name: carpetaData.name || carpetaData,
+      color: carpetaData.color || "#6366f1",
+      icon: carpetaData.icon,
+      user_id: user.id,
+    };
+
+    if (isSmartFolder) {
+      insertData.is_smart = true;
+      insertData.smart_rules = carpetaData.smart_rules;
+    }
 
     try {
       const { data: newFolder, error } = await supabase
         .from("folders")
-        .insert([{ name, color, user_id: user.id }])
-        .select("id, name, color, is_system, icon")
+        .insert(insertData)
+        .select("id, name, color, is_system, icon, is_smart, smart_rules")
         .single();
 
       if (error) throw error;
