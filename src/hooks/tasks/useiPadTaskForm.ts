@@ -34,6 +34,7 @@ export interface iPadTaskFormState extends TaskFormData {
   tags: string[];
   subtasks: iPadSubtask[];
   reminders: iPadReminder[];
+  isToday: boolean;
   [key: string]: unknown;
 }
 
@@ -120,6 +121,7 @@ export const useiPadTaskForm = (config: iPadTaskFormConfig): iPadTaskFormReturn 
       tags: config.initialData?.tags || [],
       subtasks: config.initialData?.subtasks || [],
       reminders: config.initialData?.reminders || [],
+      isToday: config.initialData?.isToday || false,
     },
     validators: {
       title: [

@@ -13,8 +13,20 @@ export const useTaskOperations = () => {
     customProperties?: CustomProperty[]
   ) => {
     try {
+      // FASE 1: Process isToday flag
+      const processedTaskData = { ...taskData };
+      
+      // If isToday is true, set due_date to today
+      if (processedTaskData.isToday) {
+        const today = new Date().toISOString().split('T')[0];
+        processedTaskData.due_date = today;
+      }
+      
+      // Remove isToday from the data sent to database (it's not a DB field)
+      delete processedTaskData.isToday;
+      
       // Create the task
-      const created = await createTask(taskData);
+      const created = await createTask(processedTaskData);
       
       // Apply custom properties if any
       if (created?.id && customProperties && customProperties.length > 0) {

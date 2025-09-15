@@ -134,6 +134,11 @@ export const IPadFormSections: React.FC<iPadFormSectionsProps> = ({ form, folder
                 onCreateNew={form.createNewFolder}
                 folders={folders}
               />
+
+              <iPadFormFields.TodayToggleField
+                value={form.values.isToday || false}
+                onChange={(value) => form.setValue('isToday', value)}
+              />
             </TabsContent>
 
             <TabsContent value="dates" className="mt-0 p-6 space-y-6">

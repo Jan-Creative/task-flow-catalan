@@ -24,7 +24,8 @@ import {
   Hash,
   Circle,
   AlertTriangle,
-  Smartphone
+  Smartphone,
+  Sun
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -533,6 +534,38 @@ const CustomPropertiesField: React.FC<{
   </TouchFieldWrapper>
 );
 
+// Today Toggle Field - FASE 1 implementation (iPad optimized)
+const TodayToggleField: React.FC<{
+  value: boolean;
+  onChange: (value: boolean) => void;
+  disabled?: boolean;
+}> = ({ value, onChange, disabled }) => (
+  <TouchFieldWrapper 
+    label="Tasca per avui"
+    icon={<Sun />}
+  >
+    <div className="flex items-center space-x-4 p-6 rounded-xl bg-[hsl(var(--input-form-primary))] backdrop-blur-sm border-2 border-transparent touch-manipulation">
+      <Checkbox
+        id="today-toggle-ipad"
+        checked={value}
+        onCheckedChange={(checked) => onChange(checked === true)}
+        disabled={disabled}
+        className="h-6 w-6"
+      />
+      <Label 
+        htmlFor="today-toggle-ipad" 
+        className="text-base font-medium cursor-pointer flex items-center gap-3 flex-1"
+      >
+        <Sun className="h-5 w-5 text-amber-500" />
+        És per fer avui
+      </Label>
+    </div>
+    <p className="text-sm text-muted-foreground px-1">
+      Si l'actives, aquesta tasca apareixerà a la pàgina "Avui"
+    </p>
+  </TouchFieldWrapper>
+);
+
 // Export all fields as an object
 export const iPadFormFields = {
   TitleField,
@@ -547,5 +580,6 @@ export const iPadFormFields = {
   QuickSubtasksField,
   NotesField,
   CustomPropertiesField,
+  TodayToggleField,
   TouchFieldWrapper
 };

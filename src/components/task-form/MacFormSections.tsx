@@ -50,6 +50,11 @@ export const MacFormSections: React.FC<MacFormSectionsProps> = ({ form, folders 
               onCreateNew={form.createNewFolder}
               folders={folders}
             />
+
+            <MacFormFields.TodayToggleField
+              value={form.values.isToday || false}
+              onChange={(value) => form.setValue('isToday', value)}
+            />
           </div>
 
           {/* Right Column: Dates & Reminders */}

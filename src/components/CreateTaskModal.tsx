@@ -6,7 +6,9 @@ import React, { useEffect } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { X, FileText } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { X, FileText, Sun } from "lucide-react";
 import { useTaskForm } from "@/hooks/useTaskForm";
 import { useStableCallback } from "@/hooks/useOptimizedPerformance";
 import { useResponsiveLayout } from "@/hooks/device/useResponsiveLayout";
@@ -236,6 +238,30 @@ useEffect(() => {
                   disabled={taskForm.isSubmitting}
                   compact={useCompactMode}
                 />
+
+                {/* Today Toggle - FASE 1 */}
+                <div className="space-y-3">
+                  <h4 className="text-sm font-medium text-foreground">Planificació</h4>
+                  <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/30">
+                    <Checkbox
+                      id="today-toggle-default"
+                      checked={taskForm.values.isToday as boolean || false}
+                      onCheckedChange={(checked) => taskForm.setValue('isToday', checked === true)}
+                      disabled={taskForm.isSubmitting}
+                      className="h-4 w-4"
+                    />
+                    <Label 
+                      htmlFor="today-toggle-default" 
+                      className="text-sm font-medium cursor-pointer flex items-center gap-2"
+                    >
+                      <Sun className="h-4 w-4 text-amber-500" />
+                      És per fer avui
+                    </Label>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Si l'actives, aquesta tasca apareixerà a la pàgina "Avui"
+                  </p>
+                </div>
 
                 {/* Custom Properties */}
                 {taskForm.hasCustomProperties && (

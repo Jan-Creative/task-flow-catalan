@@ -33,6 +33,7 @@ export interface MacTaskFormState extends TaskFormData {
   tags: string[];
   subtasks: MacSubtask[];
   reminders: MacReminder[];
+  isToday: boolean;
   [key: string]: unknown; // Add index signature for compatibility
 }
 
@@ -120,6 +121,7 @@ export const useMacTaskForm = (config: MacTaskFormConfig): MacTaskFormReturn => 
       tags: config.initialData?.tags || [],
       subtasks: config.initialData?.subtasks || [],
       reminders: config.initialData?.reminders || [],
+      isToday: config.initialData?.isToday || false,
     },
     validators: {
       title: [

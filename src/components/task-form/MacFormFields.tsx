@@ -23,7 +23,8 @@ import {
   CheckSquare,
   Hash,
   Circle,
-  AlertTriangle
+  AlertTriangle,
+  Sun
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -487,6 +488,35 @@ const CustomPropertiesField: React.FC<{
   </FieldWrapper>
 );
 
+// Today Toggle Field - FASE 1 implementation
+const TodayToggleField: React.FC<{
+  value: boolean;
+  onChange: (value: boolean) => void;
+  disabled?: boolean;
+}> = ({ value, onChange, disabled }) => (
+  <FieldWrapper label="Tasca per avui">
+    <div className="flex items-center space-x-3 p-4 rounded-lg bg-[hsl(var(--input-form-primary))] backdrop-blur-sm">
+      <Checkbox
+        id="today-toggle"
+        checked={value}
+        onCheckedChange={(checked) => onChange(checked === true)}
+        disabled={disabled}
+        className="h-5 w-5"
+      />
+      <Label 
+        htmlFor="today-toggle" 
+        className="text-sm font-medium cursor-pointer flex items-center gap-2"
+      >
+        <Sun className="h-4 w-4 text-amber-500" />
+        És per fer avui
+      </Label>
+    </div>
+    <p className="text-xs text-muted-foreground">
+      Si l'actives, aquesta tasca apareixerà a la pàgina "Avui"
+    </p>
+  </FieldWrapper>
+);
+
 export const MacFormFields = {
   TitleField,
   DescriptionField,
@@ -499,5 +529,6 @@ export const MacFormFields = {
   RemindersField,
   TagsField,
   QuickSubtasksField,
-  CustomPropertiesField
+  CustomPropertiesField,
+  TodayToggleField
 };

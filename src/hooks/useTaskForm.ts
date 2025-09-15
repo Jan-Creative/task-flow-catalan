@@ -14,6 +14,7 @@ export interface CustomProperty {
 
 export interface TaskFormState extends TaskFormData {
   customProperties: CustomProperty[];
+  isToday: boolean;
   [key: string]: unknown; // Add index signature for compatibility
 }
 
@@ -36,6 +37,7 @@ export const useTaskForm = (config: TaskFormConfig) => {
       folder_id: config.initialData?.folder_id || '',
       due_date: config.initialData?.due_date || '',
       customProperties: config.initialData?.customProperties || [],
+      isToday: config.initialData?.isToday || false,
     },
     validators: {
       title: [
