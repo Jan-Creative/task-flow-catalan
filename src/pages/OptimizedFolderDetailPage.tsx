@@ -79,7 +79,8 @@ const useFolderTasks = (folderId: string) => {
     unscheduledTasks,
     updateFolder,
     updateTaskStatus,
-    loading
+    loading,
+    folders
   };
 };
 
@@ -111,7 +112,8 @@ const OptimizedFolderDetailPage = () => {
     unscheduledTasks,
     updateFolder,
     updateTaskStatus,
-    loading
+    loading,
+    folders
   } = useFolderTasks(folderId || '');
 
   // Cleanup timeouts on unmount
@@ -497,7 +499,7 @@ const OptimizedFolderDetailPage = () => {
           }}
           onSubmit={handleTaskSubmit}
           editingTask={editingTask}
-          
+          folders={folders}
         />
       )}
 
