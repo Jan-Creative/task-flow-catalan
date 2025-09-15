@@ -67,75 +67,70 @@ export const InboxTriageTools = ({ inboxTaskCount, selectedTasks, onClearSelecti
   const showTriageNotification = inboxTaskCount > 5;
 
   return (
-    <div className="space-y-4">
-      {/* Inbox notification */}
+    <div className="space-y-3">
+      {/* Subtle inbox notification */}
       {showTriageNotification && (
-        <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4">
+        <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-3 backdrop-blur-sm">
           <div className="flex items-center gap-3">
-            <div className="bg-amber-500/20 p-2 rounded-lg">
-              <Inbox className="h-5 w-5 text-amber-600" />
+            <div className="bg-amber-500/10 p-1.5 rounded-lg">
+              <Inbox className="h-4 w-4 text-amber-600" />
             </div>
             <div className="flex-1">
-              <h3 className="font-medium text-amber-800 dark:text-amber-200 mb-1">
-                Bustia necessita organització
-              </h3>
               <p className="text-sm text-amber-700 dark:text-amber-300">
-                Tens {inboxTaskCount} tasques sense organitzar. Considera organitzar-les per mantenir el flux de treball net.
+                <span className="font-medium">{inboxTaskCount} tasques</span> sense organitzar
               </p>
             </div>
-            <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300">
-              {inboxTaskCount} tasques
+            <Badge variant="outline" className="text-xs bg-amber-500/10 text-amber-600 border-amber-500/20">
+              Organitzar
             </Badge>
           </div>
         </div>
       )}
 
-      {/* Quick triage tools - show when tasks are selected */}
+      {/* Minimalist quick triage tools - show when tasks are selected */}
       {selectedTasks.length > 0 && (
-        <div className="bg-muted/20 border border-border/50 rounded-lg p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-medium text-foreground">
-              Eines d'organització ràpida
-            </h3>
-            <Badge variant="outline">
-              {selectedTasks.length} seleccionades
-            </Badge>
-          </div>
-          
-          <div className="flex flex-wrap gap-2">
+        <div className="bg-background/60 border border-border/40 rounded-xl p-3 backdrop-blur-sm">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs text-muted-foreground mr-2">
+              Accions ràpides:
+            </span>
+            
             <Button
               size="sm"
-              variant="outline"
+              variant="ghost"
               onClick={handleMoveToToday}
               disabled={isProcessing}
-              className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+              className="h-7 px-2 text-xs bg-primary/10 text-primary hover:bg-primary/20"
             >
-              <Calendar className="h-4 w-4 mr-1" />
-              Moure a Avui
+              <Calendar className="h-3 w-3 mr-1" />
+              Avui
             </Button>
             
             <Button
               size="sm"
-              variant="outline"
+              variant="ghost"
               onClick={handleSchedule}
               disabled={isProcessing}
-              className="bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100"
+              className="h-7 px-2 text-xs bg-secondary/10 text-secondary hover:bg-secondary/20"
             >
-              <Clock className="h-4 w-4 mr-1" />
+              <Clock className="h-3 w-3 mr-1" />
               Programar
             </Button>
             
-            {/* Quick folder actions */}
-            {folders.filter(f => !f.is_system).slice(0, 3).map(folder => (
+            {/* Quick folder actions - only top 2 folders */}
+            {folders.filter(f => !f.is_system).slice(0, 2).map(folder => (
               <Button
                 key={folder.id}
                 size="sm"
-                variant="outline"
+                variant="ghost"
                 onClick={() => handleMoveToFolder(folder.id)}
                 disabled={isProcessing}
-                className="bg-muted/30 border-border/50 hover:bg-muted/50"
+                className="h-7 px-2 text-xs bg-muted/30 hover:bg-muted/50"
               >
-                <FolderOpen className="h-4 w-4 mr-1" />
+                <div 
+                  className="w-2 h-2 rounded-full mr-1" 
+                  style={{ backgroundColor: folder.color }}
+                />
                 {folder.name}
               </Button>
             ))}

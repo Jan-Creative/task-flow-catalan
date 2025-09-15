@@ -131,142 +131,120 @@ export const TaskSelectionSystem = ({
 
   if (tasks.length === 0) return null;
 
+  if (selectedTasks.length === 0) return null;
+
   return (
-    <div className="bg-muted/10 border border-border/30 rounded-lg p-4 space-y-4">
-      {/* Selection controls */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+    <div className="backdrop-blur-sm bg-background/60 border border-border/40 rounded-xl p-3 mb-4 transition-all duration-300">
+      {/* Compact selection controls */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
           <Checkbox
             checked={selectedTasks.length === tasks.length && tasks.length > 0}
             onCheckedChange={onSelectAll}
-            className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+            className="h-4 w-4"
           />
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onSelectAll}
-            className="text-sm"
-          >
-            {selectedTasks.length === tasks.length ? 'Deseleccionar tot' : 'Seleccionar tot'}
-          </Button>
-          {selectedTasks.length > 0 && (
-            <Badge variant="outline" className="text-xs">
-              {selectedTasks.length} seleccionades
-            </Badge>
-          )}
+          <span className="text-sm text-muted-foreground">
+            {selectedTasks.length} de {tasks.length} seleccionades
+          </span>
         </div>
-
-        {selectedTasks.length > 0 && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onClearSelection}
-            className="text-xs"
-          >
-            Cancel·lar selecció
-          </Button>
-        )}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onClearSelection}
+          className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
+        >
+          Cancel·lar
+        </Button>
       </div>
 
-      {/* Mass actions - only show when tasks are selected */}
-      {selectedTasks.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-          {/* Move to folder */}
-          <div className="space-y-2">
-            <label className="text-xs font-medium text-muted-foreground">Moure a carpeta</label>
-            <Select onValueChange={handleMoveToFolder} disabled={isProcessing}>
-              <SelectTrigger className="h-8">
-                <SelectValue placeholder="Triar carpeta..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">
-                  <div className="flex items-center gap-2">
-                    <FolderOpen className="h-4 w-4" />
-                    Bustia
-                  </div>
-                </SelectItem>
-                {folders.filter(f => !f.is_system).map(folder => (
-                  <SelectItem key={folder.id} value={folder.id}>
-                    <div className="flex items-center gap-2">
-                      <div 
-                        className="w-3 h-3 rounded-full" 
-                        style={{ backgroundColor: folder.color }}
-                      />
-                      {folder.name}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+      {/* Compact mass actions */}
+      <div className="flex flex-wrap items-center gap-2">
+        {/* Move to folder */}
+        <Select onValueChange={handleMoveToFolder} disabled={isProcessing}>
+          <SelectTrigger className="h-7 w-auto min-w-[120px] bg-background/80 border-border/60 text-xs">
+            <FolderOpen className="h-3 w-3 mr-1" />
+            <SelectValue placeholder="Moure a..." />
+          </SelectTrigger>
+          <SelectContent className="bg-background/95 backdrop-blur-md border-border/60">
+            <SelectItem value="none">
+              <div className="flex items-center gap-2">
+                <FolderOpen className="h-3 w-3" />
+                <span className="text-xs">Bustia</span>
+              </div>
+            </SelectItem>
+            {folders.filter(f => !f.is_system).map(folder => (
+              <SelectItem key={folder.id} value={folder.id}>
+                <div className="flex items-center gap-2">
+                  <div 
+                    className="w-2 h-2 rounded-full" 
+                    style={{ backgroundColor: folder.color }}
+                  />
+                  <span className="text-xs">{folder.name}</span>
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-          {/* Set date */}
-          <div className="space-y-2">
-            <label className="text-xs font-medium text-muted-foreground">Establir data</label>
-            <Select onValueChange={handleSetDate} disabled={isProcessing}>
-              <SelectTrigger className="h-8">
-                <SelectValue placeholder="Triar data..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="today">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-blue-500" />
-                    Avui
-                  </div>
-                </SelectItem>
-                <SelectItem value="tomorrow">
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-purple-500" />
-                    Demà
-                  </div>
-                </SelectItem>
-                <SelectItem value="clear">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    Sense data
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        {/* Set date */}
+        <Select onValueChange={handleSetDate} disabled={isProcessing}>
+          <SelectTrigger className="h-7 w-auto min-w-[100px] bg-background/80 border-border/60 text-xs">
+            <Calendar className="h-3 w-3 mr-1" />
+            <SelectValue placeholder="Data..." />
+          </SelectTrigger>
+          <SelectContent className="bg-background/95 backdrop-blur-md border-border/60">
+            <SelectItem value="today">
+              <div className="flex items-center gap-2">
+                <Calendar className="h-3 w-3 text-primary" />
+                <span className="text-xs">Avui</span>
+              </div>
+            </SelectItem>
+            <SelectItem value="tomorrow">
+              <div className="flex items-center gap-2">
+                <Clock className="h-3 w-3 text-secondary" />
+                <span className="text-xs">Demà</span>
+              </div>
+            </SelectItem>
+            <SelectItem value="clear">
+              <div className="flex items-center gap-2">
+                <Calendar className="h-3 w-3 text-muted-foreground" />
+                <span className="text-xs">Sense data</span>
+              </div>
+            </SelectItem>
+          </SelectContent>
+        </Select>
 
-          {/* Set priority */}
-          <div className="space-y-2">
-            <label className="text-xs font-medium text-muted-foreground">Establir prioritat</label>
-            <Select onValueChange={handleSetPriority} disabled={isProcessing}>
-              <SelectTrigger className="h-8">
-                <SelectValue placeholder="Triar prioritat..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="alta">
-                  <Badge variant="destructive" className="text-xs">Alta</Badge>
-                </SelectItem>
-                <SelectItem value="mitjana">
-                  <Badge variant="outline" className="text-xs">Mitjana</Badge>
-                </SelectItem>
-                <SelectItem value="baixa">
-                  <Badge variant="secondary" className="text-xs">Baixa</Badge>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        {/* Set priority */}
+        <Select onValueChange={handleSetPriority} disabled={isProcessing}>
+          <SelectTrigger className="h-7 w-auto min-w-[100px] bg-background/80 border-border/60 text-xs">
+            <Clock className="h-3 w-3 mr-1" />
+            <SelectValue placeholder="Prioritat..." />
+          </SelectTrigger>
+          <SelectContent className="bg-background/95 backdrop-blur-md border-border/60">
+            <SelectItem value="alta">
+              <Badge variant="destructive" className="text-xs h-4">Alta</Badge>
+            </SelectItem>
+            <SelectItem value="mitjana">
+              <Badge variant="outline" className="text-xs h-4">Mitjana</Badge>
+            </SelectItem>
+            <SelectItem value="baixa">
+              <Badge variant="secondary" className="text-xs h-4">Baixa</Badge>
+            </SelectItem>
+          </SelectContent>
+        </Select>
 
-          {/* Delete tasks */}
-          <div className="space-y-2">
-            <label className="text-xs font-medium text-muted-foreground">Accions</label>
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={handleDeleteSelected}
-              disabled={isProcessing}
-              className="h-8 w-full"
-            >
-              <Trash2 className="h-4 w-4 mr-1" />
-              Eliminar
-            </Button>
-          </div>
-        </div>
-      )}
+        {/* Delete tasks */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleDeleteSelected}
+          disabled={isProcessing}
+          className="h-7 px-2 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+        >
+          <Trash2 className="h-3 w-3 mr-1" />
+          Eliminar
+        </Button>
+      </div>
     </div>
   );
 };

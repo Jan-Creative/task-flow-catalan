@@ -440,16 +440,18 @@ const FolderDetailPage = () => {
               {viewMode === "list" && (
                 <div className="space-y-2">
                   {folderTasks.map((task) => (
-                    <div key={task.id} className="flex items-center gap-2">
+                    <div key={task.id} className="group relative">
                       {selectionMode && (
-                        <input
-                          type="checkbox"
-                          checked={selectedTasks.includes(task.id)}
-                          onChange={() => handleSelectTask(task.id)}
-                          className="rounded border-border"
-                        />
+                        <div className="absolute left-2 top-1/2 -translate-y-1/2 z-10">
+                          <input
+                            type="checkbox"
+                            checked={selectedTasks.includes(task.id)}
+                            onChange={() => handleSelectTask(task.id)}
+                            className="h-4 w-4 rounded border-border/60 bg-background/80 text-primary focus:ring-primary/50"
+                          />
+                        </div>
                       )}
-                      <div className="flex-1">
+                      <div className={selectionMode ? "ml-8" : ""}>
                         <TaskChecklistItem
                           key={task.id}
                           task={task}
