@@ -226,7 +226,7 @@ export const UnifiedFolderToolbar = ({
       )}
 
       {/* Main unified toolbar */}
-      <div className="flex items-center justify-between bg-background/60 border border-border/40 rounded-xl p-3 backdrop-blur-sm">
+      <div className="flex items-center justify-between px-1 py-2">
         {/* Left section - View mode and selection toggle */}
         <div className="flex items-center gap-2">
           {!selectionMode ? (
