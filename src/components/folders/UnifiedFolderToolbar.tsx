@@ -5,6 +5,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { 
   List, 
   LayoutGrid, 
@@ -15,6 +16,7 @@ import {
   Plus,
   FolderOpen,
   Calendar,
+  CalendarDays,
   Clock,
   Trash2,
   Inbox,
@@ -24,6 +26,8 @@ import { cn } from "@/lib/utils";
 import { useDadesApp } from '@/hooks/useDadesApp';
 import { useProperties } from "@/hooks/useProperties";
 import { toast } from 'sonner';
+import { format } from 'date-fns';
+import { ca } from 'date-fns/locale';
 import type { Task } from '@/types';
 
 interface UnifiedFolderToolbarProps {
@@ -78,6 +82,7 @@ export const UnifiedFolderToolbar = ({
 }: UnifiedFolderToolbarProps) => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isSortOpen, setIsSortOpen] = useState(false);
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   
   const { updateTask, deleteTask, folders } = useDadesApp();
@@ -123,18 +128,28 @@ export const UnifiedFolderToolbar = ({
     }
   };
 
-  const handleSetDate = async (dateType: 'today' | 'tomorrow' | 'clear') => {
+  // Enhanced date setting with custom date support
+  const handleSetDate = async (dateOption: 'today' | 'clear' | Date) => {
     if (selectedTasks.length === 0) return;
     
     setIsProcessing(true);
     try {
       let due_date = null;
-      if (dateType === 'today') {
-        due_date = new Date().toISOString().split('T')[0];
-      } else if (dateType === 'tomorrow') {
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        due_date = tomorrow.toISOString().split('T')[0];
+      let successMessage = '';
+      let description = '';
+      
+      if (dateOption === 'today') {
+        due_date = format(new Date(), 'yyyy-MM-dd');
+        successMessage = `${selectedTasks.length} tasques programades per avui`;
+        description = `Data establerta: ${format(new Date(), 'PPP', { locale: ca })}`;
+      } else if (dateOption === 'clear') {
+        due_date = null;
+        successMessage = `${selectedTasks.length} tasques sense data`;
+        description = 'Data eliminada de les tasques';
+      } else if (dateOption instanceof Date) {
+        due_date = format(dateOption, 'yyyy-MM-dd');
+        successMessage = `${selectedTasks.length} tasques programades`;
+        description = `Data establerta: ${format(dateOption, 'PPP', { locale: ca })}`;
       }
       
       await Promise.all(
@@ -143,17 +158,21 @@ export const UnifiedFolderToolbar = ({
         )
       );
       
-      const message = dateType === 'clear' 
-        ? 'Data eliminada' 
-        : `Data establerta a ${dateType === 'today' ? 'avui' : 'demà'}`;
-      
-      toast.success(`${selectedTasks.length} tasques actualitzades: ${message}`);
+      toast.success(successMessage, { description });
       onClearSelection();
+      setIsDatePickerOpen(false);
     } catch (error) {
       console.error('Error setting date:', error);
       toast.error('Error al establir la data');
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  // Handle date picker selection
+  const handleDatePickerSelect = (date: Date | undefined) => {
+    if (date) {
+      handleSetDate(date);
     }
   };
 
@@ -460,25 +479,57 @@ export const UnifiedFolderToolbar = ({
                 </SelectContent>
               </Select>
 
-              {/* Quick actions for inbox */}
-              {isInboxFolder && (
-                <>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleSetDate('today')}
-                        disabled={isProcessing}
-                        className="h-7 px-2 text-xs bg-primary/10 text-primary hover:bg-primary/20"
+              {/* Date actions - available for all folders */}
+              <>
+                {/* DatePicker */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={isProcessing}
+                          className="h-7 px-2 text-xs bg-accent/10 text-accent-foreground hover:bg-accent/20"
+                        >
+                          <Calendar className="h-3 w-3" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent 
+                        className="w-auto p-0 bg-background/95 backdrop-blur-md border-border/60" 
+                        align="end"
+                        sideOffset={4}
                       >
-                        <Calendar className="h-3 w-3" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Moure a avui</TooltipContent>
-                  </Tooltip>
-                </>
-              )}
+                        <CalendarComponent
+                          mode="single"
+                          selected={undefined}
+                          onSelect={handleDatePickerSelect}
+                          disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                          initialFocus
+                          className="p-3 pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </TooltipTrigger>
+                  <TooltipContent>Seleccionar data</TooltipContent>
+                </Tooltip>
+
+                {/* Today button */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleSetDate('today')}
+                      disabled={isProcessing}
+                      className="h-7 px-2 text-xs bg-primary/10 text-primary hover:bg-primary/20"
+                    >
+                      <CalendarDays className="h-3 w-3" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Moure a avui</TooltipContent>
+                </Tooltip>
+              </>
 
               {/* Delete */}
               <Tooltip>
