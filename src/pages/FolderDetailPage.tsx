@@ -9,12 +9,10 @@ import { useUnifiedProperties } from "@/hooks/useUnifiedProperties";
 import { useTaskOperations } from "@/hooks/useTaskOperations";
 import TaskChecklistItem from "@/components/TaskChecklistItem";
 import CreateTaskModal from "@/components/CreateTaskModal";
-import DatabaseToolbar from "@/components/DatabaseToolbar";
 import BottomNavigation from "@/components/BottomNavigation";
 import { FolderCustomizationPopover } from "@/components/folders/FolderCustomizationPopover";
 import { getIconByName } from "@/lib/iconLibrary";
-import { TaskSelectionSystem } from "@/components/folders/TaskSelectionSystem";
-import { InboxTriageTools } from "@/components/folders/InboxTriageTools";
+import { UnifiedFolderToolbar } from "@/components/folders/UnifiedFolderToolbar";
 
 
 const FolderDetailPage = () => {
@@ -28,6 +26,8 @@ const FolderDetailPage = () => {
   const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterPriority, setFilterPriority] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<string>("none");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [recentlyCompleted, setRecentlyCompleted] = useState<Set<string>>(new Set());
   const [completingTasks, setCompletingTasks] = useState<Set<string>>(new Set());
   const timeoutsRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
@@ -268,10 +268,12 @@ const FolderDetailPage = () => {
     setSelectionMode(false);
   };
 
-  // Enable selection mode when any task is selected
+  // Handle selection mode changes
   useEffect(() => {
-    setSelectionMode(selectedTasks.length > 0);
-  }, [selectedTasks.length]);
+    if (selectedTasks.length === 0 && selectionMode) {
+      setSelectionMode(false);
+    }
+  }, [selectedTasks.length, selectionMode]);
 
   // Check if current folder is inbox
   const isInboxFolder = folderId === 'inbox' || 
@@ -375,26 +377,8 @@ const FolderDetailPage = () => {
           </div>
         </div>
 
-        {/* Inbox-specific tools */}
-        {isInboxFolder && (
-          <InboxTriageTools 
-            inboxTaskCount={folderTasks.length}
-            selectedTasks={selectedTasks}
-            onClearSelection={handleClearSelection}
-          />
-        )}
-
-        {/* Task Selection System */}
-        <TaskSelectionSystem 
-          tasks={folderTasks}
-          selectedTasks={selectedTasks}
-          onSelectTask={handleSelectTask}
-          onSelectAll={handleSelectAll}
-          onClearSelection={handleClearSelection}
-        />
-
-        {/* Database Toolbar */}
-        <DatabaseToolbar
+        {/* Unified Toolbar */}
+        <UnifiedFolderToolbar
           viewMode={viewMode}
           onViewModeChange={setViewMode}
           filterStatus={filterStatus}
@@ -402,6 +386,21 @@ const FolderDetailPage = () => {
           filterPriority={filterPriority}
           onFilterPriorityChange={setFilterPriority}
           onNavigateToSettings={() => navigate('/settings')}
+          onCreateTask={() => setShowCreateTask(true)}
+          tasks={folderTasks}
+          selectedTasks={selectedTasks}
+          onSelectTask={handleSelectTask}
+          onSelectAll={handleSelectAll}
+          onClearSelection={handleClearSelection}
+          selectionMode={selectionMode}
+          onToggleSelectionMode={() => {
+            setSelectionMode(!selectionMode);
+            if (selectionMode) {
+              handleClearSelection();
+            }
+          }}
+          isInboxFolder={isInboxFolder}
+          inboxTaskCount={folderTasks.length}
         />
 
         {/* Tasks content */}
