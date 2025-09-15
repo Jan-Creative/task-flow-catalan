@@ -1,29 +1,24 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { useDadesApp } from "@/hooks/useDadesApp";
 import { useSmartFolders } from "@/hooks/useSmartFolders";
-import { FolderPlus, Briefcase, Folder, Brain, Sparkles } from "lucide-react";
+import { Briefcase, Brain, Sparkles, Plus } from "lucide-react";
 import { FolderItem } from "@/components/FolderItem";
+import { UnifiedFolderModal } from "@/components/folders/UnifiedFolderModal";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import CreateProjectModal from "@/components/projects/CreateProjectModal";
-import { SimpleSmartFolderModal } from "@/components/folders/SimpleSmartFolderModal";
 
 const FoldersPage = React.memo(() => {
   const { tasks, folders, createFolder, updateFolder, deleteFolder, loading } = useDadesApp();
   const { createSmartFolder, smartFolders, regularFolders, smartFolderStats } = useSmartFolders();
   const navigate = useNavigate();
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [newFolderName, setNewFolderName] = useState("");
+  
+  // Unified folder modal state
+  const [showUnifiedFolderModal, setShowUnifiedFolderModal] = useState(false);
   
   // Edit folder state
   const [showEditDialog, setShowEditDialog] = useState(false);
@@ -35,6 +30,14 @@ const FoldersPage = React.memo(() => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deletingFolder, setDeletingFolder] = useState<{ id: string; name: string } | null>(null);
 
+  // Project modal state
+  const [showCreateProject, setShowCreateProject] = useState(false);
+
+  const colorOptions = [
+    "#6366f1", "#8b5cf6", "#06b6d4", "#10b981",
+    "#f59e0b", "#ef4444", "#ec4899", "#84cc16"
+  ];
+
   const getTaskCountByFolder = (folderId: string) => {
     return tasks.filter(task => task.folder_id === folderId).length;
   };
@@ -43,11 +46,20 @@ const FoldersPage = React.memo(() => {
     return tasks.filter(task => !task.folder_id).length;
   };
 
-  const handleCreateFolder = () => {
-    if (newFolderName.trim()) {
-      createFolder(newFolderName.trim());
-      setNewFolderName("");
-      setShowCreateDialog(false);
+  const handleUnifiedFolderSubmit = async (data: any, isSmartFolder: boolean) => {
+    if (isSmartFolder) {
+      await createSmartFolder({
+        name: data.name,
+        color: data.color,
+        icon: data.icon,
+        smart_rules: data.smart_rules
+      });
+    } else {
+      await createFolder({ 
+        name: data.name, 
+        color: data.color,
+        icon: data.icon || 'Folder'
+      });
     }
   };
 
@@ -86,18 +98,10 @@ const FoldersPage = React.memo(() => {
     }
   };
 
-  const colorOptions = [
-    "#6366f1", "#8b5cf6", "#06b6d4", "#10b981", 
-    "#f59e0b", "#ef4444", "#ec4899", "#84cc16"
-  ];
-
   const onSelectFolder = (folderId: string | null) => {
     console.log("Selected folder:", folderId);
     // Navigation will be implemented in future versions
   };
-
-  const [showCreateProject, setShowCreateProject] = useState(false);
-  const [showSmartFolderModal, setShowSmartFolderModal] = useState(false);
 
   const handleCreateProject = () => {
     setShowCreateProject(true);
@@ -130,7 +134,7 @@ const FoldersPage = React.memo(() => {
             </div>
           )}
         </div>
-         <div className="flex gap-3">
+        <div className="flex gap-3">
           <Button 
             onClick={handleCreateProject}
             className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white shadow-lg"
@@ -138,64 +142,13 @@ const FoldersPage = React.memo(() => {
             <Briefcase className="mr-2 h-4 w-4" />
             Nou Projecte
           </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="border-primary/20 hover:bg-primary/5">
-                <FolderPlus className="mr-2 h-4 w-4" />
-                Nova carpeta
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56">
-              <DropdownMenuItem onClick={() => setShowCreateDialog(true)}>
-                <Folder className="h-4 w-4 mr-2" />
-                Carpeta Normal
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setShowSmartFolderModal(true)}>
-                <Brain className="h-4 w-4 mr-2" />
-                Carpeta Intel·ligent
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-            <DialogContent className="bg-card/95 backdrop-blur-glass border-border/50 shadow-elevated sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle className="text-foreground">Nova Carpeta</DialogTitle>
-            </DialogHeader>
-            
-            <div className="space-y-4">
-              <div>
-                <Input
-                  value={newFolderName}
-                  onChange={(e) => setNewFolderName(e.target.value)}
-                  placeholder="Nom de la carpeta..."
-                  className="bg-input/80 border-border/50 focus:border-primary"
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      handleCreateFolder();
-                    }
-                  }}
-                />
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowCreateDialog(false)}
-                  className="flex-1 bg-secondary/50 border-border/50"
-                >
-                  Cancel·lar
-                </Button>
-                <Button
-                  onClick={handleCreateFolder}
-                  className="flex-1 bg-gradient-primary hover:scale-105 transition-bounce"
-                  disabled={!newFolderName.trim()}
-                >
-                  Crear Carpeta
-                </Button>
-              </div>
-            </div>
-            </DialogContent>
-          </Dialog>
+          <Button 
+            onClick={() => setShowUnifiedFolderModal(true)}
+            className="bg-gradient-primary hover:scale-105 transition-bounce"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Nova Carpeta
+          </Button>
         </div>
       </div>
 
@@ -263,6 +216,12 @@ const FoldersPage = React.memo(() => {
         </div>
       )}
 
+      {/* Unified folder modal */}
+      <UnifiedFolderModal
+        open={showUnifiedFolderModal}
+        onClose={() => setShowUnifiedFolderModal(false)}
+        onSubmit={handleUnifiedFolderSubmit}
+      />
 
       {/* Edit folder dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
@@ -330,12 +289,6 @@ const FoldersPage = React.memo(() => {
         open={showCreateProject}
         onOpenChange={setShowCreateProject}
         onCreated={(id) => navigate(`/project/${id}`)}
-      />
-
-      <SimpleSmartFolderModal
-        open={showSmartFolderModal}
-        onClose={() => setShowSmartFolderModal(false)}
-        onSubmit={createSmartFolder}
       />
 
       {/* Delete folder confirmation dialog */}
