@@ -44,8 +44,8 @@ export const useSmartFolders = () => {
       await createFolder(folderData);
       toast.success(`Carpeta intel·ligent "${data.name}" creada correctament`);
       
-      // Refresh to get updated data with triggers applied
-      setTimeout(() => refreshData(), 500);
+      // Force immediate refresh without timeout
+      await refreshData();
       
     } catch (error) {
       logger.error('Failed to create smart folder', error);

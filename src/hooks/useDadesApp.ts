@@ -414,7 +414,7 @@ export const useDadesApp = () => {
 
       if (error) throw error;
 
-      // Update cache
+      // Update cache with new folder
       queryClient.setQueryData([CLAU_CACHE_DADES, user.id], (old: any) => {
         if (!old) return old;
         return {
@@ -422,6 +422,9 @@ export const useDadesApp = () => {
           folders: [...old.folders, newFolder]
         };
       });
+
+      // Force refresh to ensure all related data is updated
+      queryClient.invalidateQueries({ queryKey: [CLAU_CACHE_DADES, user.id] });
 
       toast.success("Carpeta creada", {
         description: "La carpeta s'ha creat correctament",

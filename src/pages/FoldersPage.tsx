@@ -20,7 +20,7 @@ import { SimpleSmartFolderModal } from "@/components/folders/SimpleSmartFolderMo
 
 const FoldersPage = React.memo(() => {
   const { tasks, folders, createFolder, updateFolder, deleteFolder, loading } = useDadesApp();
-  const { createSmartFolder, smartFolderStats } = useSmartFolders();
+  const { createSmartFolder, smartFolders, regularFolders, smartFolderStats } = useSmartFolders();
   const navigate = useNavigate();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
@@ -222,22 +222,46 @@ const FoldersPage = React.memo(() => {
         })()}
       </div>
 
-      {/* User's folders */}
-      <div>
-        <h2 className="text-xl font-semibold mb-4 text-foreground/80">Les meves carpetes</h2>
-        <div className="space-y-2">
-          {folders.filter(f => !f.is_system).map((folder) => (
-            <FolderItem
-              key={folder.id}
-              folder={folder}
-              taskCount={getTaskCountByFolder(folder.id)}
-              onSelect={() => onSelectFolder(folder.id)}
-              onEdit={() => handleEditFolder(folder)}
-              onDelete={() => handleDeleteFolder(folder)}
-            />
-          ))}
+      {/* Regular folders */}
+      {regularFolders.length > 0 && (
+        <div>
+          <h2 className="text-xl font-semibold mb-4 text-foreground/80">Carpetes Normals</h2>
+          <div className="space-y-2">
+            {regularFolders.map((folder) => (
+              <FolderItem
+                key={folder.id}
+                folder={folder}
+                taskCount={getTaskCountByFolder(folder.id)}
+                onSelect={() => onSelectFolder(folder.id)}
+                onEdit={() => handleEditFolder(folder)}
+                onDelete={() => handleDeleteFolder(folder)}
+              />
+            ))}
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Smart folders */}
+      {smartFolders.length > 0 && (
+        <div>
+          <h2 className="text-xl font-semibold mb-4 text-foreground/80 flex items-center gap-2">
+            <Brain className="h-5 w-5 text-blue-500" />
+            Carpetes Intel·ligents
+          </h2>
+          <div className="space-y-2">
+            {smartFolders.map((folder) => (
+              <FolderItem
+                key={folder.id}
+                folder={folder}
+                taskCount={getTaskCountByFolder(folder.id)}
+                onSelect={() => onSelectFolder(folder.id)}
+                onEdit={() => handleEditFolder(folder)}
+                onDelete={() => handleDeleteFolder(folder)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
 
 
       {/* Edit folder dialog */}
