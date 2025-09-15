@@ -13,6 +13,8 @@ import DatabaseToolbar from "@/components/DatabaseToolbar";
 import BottomNavigation from "@/components/BottomNavigation";
 import { FolderCustomizationPopover } from "@/components/folders/FolderCustomizationPopover";
 import { getIconByName } from "@/lib/iconLibrary";
+import { TaskSelectionSystem } from "@/components/folders/TaskSelectionSystem";
+import { InboxTriageTools } from "@/components/folders/InboxTriageTools";
 
 
 const FolderDetailPage = () => {
@@ -30,6 +32,10 @@ const FolderDetailPage = () => {
   const [completingTasks, setCompletingTasks] = useState<Set<string>>(new Set());
   const timeoutsRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
   const [showCreateTaskFromNav, setShowCreateTaskFromNav] = useState(false);
+  
+  // Task selection state
+  const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
+  const [selectionMode, setSelectionMode] = useState(false);
 
   // Cleanup timeouts when component unmounts
   useEffect(() => {
@@ -240,6 +246,37 @@ const FolderDetailPage = () => {
     setShowCreateTask(true);
   };
 
+  // Task selection handlers
+  const handleSelectTask = (taskId: string) => {
+    setSelectedTasks(prev => 
+      prev.includes(taskId) 
+        ? prev.filter(id => id !== taskId)
+        : [...prev, taskId]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedTasks.length === folderTasks.length) {
+      setSelectedTasks([]);
+    } else {
+      setSelectedTasks(folderTasks.map(task => task.id));
+    }
+  };
+
+  const handleClearSelection = () => {
+    setSelectedTasks([]);
+    setSelectionMode(false);
+  };
+
+  // Enable selection mode when any task is selected
+  useEffect(() => {
+    setSelectionMode(selectedTasks.length > 0);
+  }, [selectedTasks.length]);
+
+  // Check if current folder is inbox
+  const isInboxFolder = folderId === 'inbox' || 
+    (currentFolder && currentFolder.is_system && currentFolder.name === 'Bustia');
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -338,6 +375,24 @@ const FolderDetailPage = () => {
           </div>
         </div>
 
+        {/* Inbox-specific tools */}
+        {isInboxFolder && (
+          <InboxTriageTools 
+            inboxTaskCount={folderTasks.length}
+            selectedTasks={selectedTasks}
+            onClearSelection={handleClearSelection}
+          />
+        )}
+
+        {/* Task Selection System */}
+        <TaskSelectionSystem 
+          tasks={folderTasks}
+          selectedTasks={selectedTasks}
+          onSelectTask={handleSelectTask}
+          onSelectAll={handleSelectAll}
+          onClearSelection={handleClearSelection}
+        />
+
         {/* Database Toolbar */}
         <DatabaseToolbar
           viewMode={viewMode}
@@ -385,15 +440,27 @@ const FolderDetailPage = () => {
               {viewMode === "list" && (
                 <div className="space-y-2">
                   {folderTasks.map((task) => (
-                    <TaskChecklistItem
-                      key={task.id}
-                      task={task}
-                      onStatusChange={handleStatusChange}
-                      onEdit={handleEditTask}
-                      onDelete={deleteTask}
-                      viewMode={viewMode}
-                      completingTasks={completingTasks}
-                    />
+                    <div key={task.id} className="flex items-center gap-2">
+                      {selectionMode && (
+                        <input
+                          type="checkbox"
+                          checked={selectedTasks.includes(task.id)}
+                          onChange={() => handleSelectTask(task.id)}
+                          className="rounded border-border"
+                        />
+                      )}
+                      <div className="flex-1">
+                        <TaskChecklistItem
+                          key={task.id}
+                          task={task}
+                          onStatusChange={handleStatusChange}
+                          onEdit={handleEditTask}
+                          onDelete={deleteTask}
+                          viewMode={viewMode}
+                          completingTasks={completingTasks}
+                        />
+                      </div>
+                    </div>
                   ))}
                 </div>
               )}
@@ -416,15 +483,27 @@ const FolderDetailPage = () => {
                       </div>
                       <div className="space-y-2">
                         {column.tasks.map((task) => (
-                          <TaskChecklistItem
-                            key={task.id}
-                            task={task}
-                            onStatusChange={handleStatusChange}
-                            onEdit={handleEditTask}
-                            onDelete={deleteTask}
-                            viewMode={viewMode}
-                            completingTasks={completingTasks}
-                          />
+                          <div key={task.id} className="flex items-start gap-2">
+                            {selectionMode && (
+                              <input
+                                type="checkbox"
+                                checked={selectedTasks.includes(task.id)}
+                                onChange={() => handleSelectTask(task.id)}
+                                className="rounded border-border mt-2"
+                              />
+                            )}
+                            <div className="flex-1">
+                              <TaskChecklistItem
+                                key={task.id}
+                                task={task}
+                                onStatusChange={handleStatusChange}
+                                onEdit={handleEditTask}
+                                onDelete={deleteTask}
+                                viewMode={viewMode}
+                                completingTasks={completingTasks}
+                              />
+                            </div>
+                          </div>
                         ))}
                         {column.tasks.length === 0 && (
                           <div className="text-center py-8 text-muted-foreground text-sm">
