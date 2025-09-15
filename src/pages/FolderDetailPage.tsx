@@ -3,7 +3,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, FolderOpen, Plus, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useOptimizedTaskManager } from "@/hooks/useOptimizedTaskManager";
 import { useDadesApp } from "@/hooks/useDadesApp";
+import { logger } from "@/lib/debugUtils";
 import type { Task } from "@/types";
 import { useUnifiedProperties } from "@/hooks/useUnifiedProperties";
 import { useTaskOperations } from "@/hooks/useTaskOperations";
@@ -18,7 +20,18 @@ import { UnifiedFolderToolbar } from "@/components/folders/UnifiedFolderToolbar"
 const FolderDetailPage = () => {
   const { folderId } = useParams<{ folderId: string }>();
   const navigate = useNavigate();
-  const { tasks, folders, loading, updateTaskStatus, updateTask, deleteTask, updateFolder } = useDadesApp();
+  const { 
+    tasks, 
+    folders, 
+    loading, 
+    updateStatus: updateTaskStatus, 
+    updateTask, 
+    deleteTask, 
+    refreshData 
+  } = useOptimizedTaskManager();
+  
+  // Import folder update function from useDadesApp
+  const { updateFolder } = useDadesApp();
   const { getStatusLabel, getStatusOptions, getStatusColor } = useUnifiedProperties();
   const { handleCreateTask, handleEditTask: handleEditTaskOp } = useTaskOperations();
   const [showCreateTask, setShowCreateTask] = useState(false);
@@ -51,7 +64,7 @@ const FolderDetailPage = () => {
     ? realInboxFolder 
     : folders.find(f => f.id === folderId);
   
-  console.log("Current folder data:", { 
+  logger.debug('FolderDetail', 'Current folder data', { 
     folderId, 
     realInboxFolder, 
     currentFolder, 
@@ -255,7 +268,7 @@ const FolderDetailPage = () => {
       }
       setShowCreateTask(false);
     } catch (error) {
-      console.error("Error creating/updating task:", error);
+      logger.error("Error creating/updating task", error);
       // Error is already handled by the hook with toast notification
       // Just ensure dialog stays open for retry
     }
@@ -323,7 +336,7 @@ const FolderDetailPage = () => {
   }
 
   if (!currentFolder) {
-    console.warn("No folder found for folderId:", folderId);
+    logger.warn("No folder found for folderId", { folderId });
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -360,7 +373,7 @@ const FolderDetailPage = () => {
               currentIcon={currentFolder.icon}
               currentColor={currentFolder.color}
               onUpdate={async (updates) => {
-                console.log("FolderDetailPage onUpdate called:", { 
+                logger.debug('FolderDetail', 'onUpdate called', { 
                   folderId: currentFolder.id, 
                   isSystem: currentFolder.is_system,
                   updates 
