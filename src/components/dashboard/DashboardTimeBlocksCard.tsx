@@ -1,8 +1,9 @@
 import { useMemo } from "react";
 import { format } from "date-fns";
-import { Clock, Plus, Calendar } from "lucide-react";
+import { Clock, Plus, Calendar, CheckCircle2, Circle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useTodayTimeBlocks } from "@/hooks/useTodayTimeBlocks";
 import { useTaskTimeBlocks } from "@/hooks/useTaskTimeBlocks";
@@ -37,13 +38,21 @@ const DashboardTimeBlocksCard = ({
     return currentTime >= block.startTime && currentTime <= block.endTime;
   };
 
-  // Get tasks count for a time block
-  const getTasksCount = (blockId: string) => {
-    return getTasksByTimeBlock(blockId).length;
+  // Get tasks information for a time block
+  const getTasksInfo = (blockId: string) => {
+    const tasks = getTasksByTimeBlock(blockId);
+    const completedTasks = tasks.filter(task => task.status === 'completada');
+    return {
+      total: tasks.length,
+      completed: completedTasks.length,
+      pending: tasks.length - completedTasks.length,
+      tasks: tasks
+    };
   };
 
   return (
-    <div className="bg-card rounded-2xl shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-organic)] transition-all duration-300 p-6">
+    <TooltipProvider>
+      <div className="bg-card rounded-2xl shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-organic)] transition-all duration-300 p-6">
       {/* Header */}
       <div className="flex items-center justify-between pb-4">
         <h3 className="flex items-center gap-2 text-lg font-semibold">
@@ -105,25 +114,47 @@ const DashboardTimeBlocksCard = ({
           <div className="space-y-2">
             {displayTimeBlocks.map((block) => {
               const isActive = isBlockActive(block);
-              const tasksCount = getTasksCount(block.id);
+              const tasksInfo = getTasksInfo(block.id);
+              const hasCompletedTasks = tasksInfo.completed > 0;
+              const completionPercentage = tasksInfo.total > 0 ? (tasksInfo.completed / tasksInfo.total) * 100 : 0;
               
-              return (
+              const BlockContent = (
                 <div
                   key={block.id}
                   className={cn(
-                    "p-3 rounded-xl border-2 transition-all duration-200 cursor-pointer hover:shadow-md",
+                    "p-3 rounded-xl border-2 transition-all duration-300 cursor-pointer hover:shadow-md group relative overflow-hidden",
                     isActive 
                       ? "border-primary bg-primary/5 shadow-sm" 
-                      : "border-transparent bg-accent/50 hover:bg-accent/80"
+                      : "border-transparent bg-accent/50 hover:bg-accent/80",
+                    tasksInfo.total > 0 && "animate-pulse [animation-duration:3s] [animation-iteration-count:infinite]"
                   )}
                   onClick={onOpenTimeBlocksModal}
                 >
-                  <div className="flex items-center justify-between">
+                  {/* Progress bar background */}
+                  {tasksInfo.total > 0 && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  )}
+                  
+                  {/* Progress indicator at top */}
+                  {tasksInfo.total > 0 && (
+                    <div className="absolute top-0 left-0 right-0 h-1 bg-muted/30 rounded-t-xl overflow-hidden">
+                      <div 
+                        className="h-full bg-primary transition-all duration-500"
+                        style={{ width: `${completionPercentage}%` }}
+                      />
+                    </div>
+                  )}
+                  
+                  <div className="flex items-center justify-between relative">
                     <div className="flex items-center gap-3 flex-1">
-                      {/* Time indicator */}
+                      {/* Enhanced time indicator */}
                       <div className={cn(
-                        "w-3 h-3 rounded-full border-2",
-                        isActive ? "bg-primary border-primary" : "border-muted-foreground/50"
+                        "w-3 h-3 rounded-full border-2 transition-all duration-200",
+                        isActive 
+                          ? "bg-primary border-primary shadow-[0_0_6px_hsl(var(--primary))]" 
+                          : tasksInfo.total > 0 
+                            ? "bg-primary/50 border-primary/50" 
+                            : "border-muted-foreground/50"
                       )} />
                       
                       {/* Block info */}
@@ -132,33 +163,114 @@ const DashboardTimeBlocksCard = ({
                           <span className="text-sm font-medium text-foreground truncate">
                             {block.title}
                           </span>
+                          
+                          {/* Task indicator dot */}
+                          {tasksInfo.total > 0 && (
+                            <div className={cn(
+                              "w-2 h-2 rounded-full transition-colors duration-200",
+                              hasCompletedTasks ? "bg-emerald-500" : "bg-amber-500"
+                            )} />
+                          )}
+                          
                           {isActive && (
                             <Badge variant="secondary" className="text-xs px-2 py-0">
                               Actiu
                             </Badge>
                           )}
                         </div>
+                        
                         <div className="flex items-center gap-2 mt-1">
                           <span className="text-xs text-muted-foreground">
                             {block.startTime} - {block.endTime}
                           </span>
-                          {tasksCount > 0 && (
-                            <Badge variant="outline" className="text-xs px-1.5 py-0">
-                              {tasksCount} {tasksCount === 1 ? 'tasca' : 'tasques'}
-                            </Badge>
+                          
+                          {/* Enhanced task badges */}
+                          {tasksInfo.total > 0 && (
+                            <div className="flex items-center gap-1">
+                              <Badge 
+                                variant="outline" 
+                                className={cn(
+                                  "text-xs px-1.5 py-0 border transition-colors duration-200",
+                                  hasCompletedTasks 
+                                    ? "border-emerald-500/50 text-emerald-600 bg-emerald-50" 
+                                    : "border-amber-500/50 text-amber-600 bg-amber-50"
+                                )}
+                              >
+                                {tasksInfo.completed > 0 && (
+                                  <CheckCircle2 className="w-3 h-3 mr-1" />
+                                )}
+                                {tasksInfo.pending > 0 && tasksInfo.completed === 0 && (
+                                  <Circle className="w-3 h-3 mr-1" />
+                                )}
+                                {tasksInfo.completed}/{tasksInfo.total}
+                              </Badge>
+                            </div>
                           )}
                         </div>
                       </div>
                     </div>
                     
-                    {/* Color indicator */}
-                    <div 
-                      className="w-4 h-4 rounded border"
-                      style={{ backgroundColor: block.color }}
-                    />
+                    {/* Enhanced color indicator */}
+                    <div className="flex items-center gap-2">
+                      {tasksInfo.total > 0 && (
+                        <div className="text-xs text-muted-foreground">
+                          {Math.round(completionPercentage)}%
+                        </div>
+                      )}
+                      <div 
+                        className={cn(
+                          "w-4 h-4 rounded border transition-all duration-200",
+                          tasksInfo.total > 0 && "shadow-sm ring-1 ring-primary/20"
+                        )}
+                        style={{ backgroundColor: block.color }}
+                      />
+                    </div>
                   </div>
                 </div>
               );
+
+              // Wrap with tooltip if has tasks
+              if (tasksInfo.total > 0) {
+                return (
+                  <Tooltip key={block.id}>
+                    <TooltipTrigger asChild>
+                      {BlockContent}
+                    </TooltipTrigger>
+                    <TooltipContent side="left" className="max-w-xs">
+                      <div className="space-y-2">
+                        <div className="font-medium text-sm">{block.title}</div>
+                        <div className="space-y-1">
+                          {tasksInfo.tasks.slice(0, 3).map((task, index) => (
+                            <div key={index} className="flex items-center gap-2 text-xs">
+                              {task.status === 'completada' ? (
+                                <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+                              ) : (
+                                <Circle className="w-3 h-3 text-muted-foreground" />
+                              )}
+                              <span className={cn(
+                                "truncate",
+                                task.status === 'completada' && "line-through text-muted-foreground"
+                              )}>
+                                {task.title}
+                              </span>
+                            </div>
+                          ))}
+                          {tasksInfo.tasks.length > 3 && (
+                            <div className="text-xs text-muted-foreground">
+                              +{tasksInfo.tasks.length - 3} més
+                            </div>
+                          )}
+                        </div>
+                        <div className="text-xs text-muted-foreground pt-1 border-t">
+                          {tasksInfo.completed} completades, {tasksInfo.pending} pendents
+                        </div>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              }
+
+              return BlockContent;
             })}
             
             {/* Show more indicator */}
@@ -174,6 +286,7 @@ const DashboardTimeBlocksCard = ({
         )}
       </div>
     </div>
+    </TooltipProvider>
   );
 };
 
