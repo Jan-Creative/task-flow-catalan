@@ -6,8 +6,7 @@ import React, { useState } from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Settings, Clock } from 'lucide-react';
 import { MacFormFields } from './MacFormFields';
-import { TaskTimeBlockSelector } from './TaskTimeBlockSelector';
-import { InlineTimeBlockCreator } from './InlineTimeBlockCreator';
+import { MacTimeBlockSection } from './MacTimeBlockSection';
 import type { MacTaskFormReturn } from '@/hooks/tasks/useMacTaskForm';
 
 interface MacFormSectionsProps {
@@ -16,14 +15,6 @@ interface MacFormSectionsProps {
 }
 
 export const MacFormSections: React.FC<MacFormSectionsProps> = ({ form, folders }) => {
-  const [showTimeBlockCreator, setShowTimeBlockCreator] = useState(false);
-
-  // Mock time blocks data for demonstration
-  const availableTimeBlocks = [
-    { id: '1', title: 'Focus profund', startTime: '09:00', endTime: '11:00', color: '#22c55e' },
-    { id: '2', title: 'Reunions', startTime: '14:00', endTime: '16:00', color: '#f97316' },
-    { id: '3', title: 'Tasques administratives', startTime: '16:30', endTime: '17:30', color: '#64748b' },
-  ];
   return (
     <div className="p-6 space-y-6">
       {/* Essential Fields - Always Visible */}
@@ -105,48 +96,10 @@ export const MacFormSections: React.FC<MacFormSectionsProps> = ({ form, folders 
             </AccordionTrigger>
             
             <AccordionContent className="pt-4 pb-2">
-              <div className="space-y-4 pl-4">
-                {!showTimeBlockCreator ? (
-                  <TaskTimeBlockSelector
-                    selectedTimeBlockId={form.values.time_block_id}
-                    selectedStartTime={form.values.scheduled_start_time}
-                    selectedEndTime={form.values.scheduled_end_time}
-                    onTimeBlockSelect={(timeBlockId) => {
-                      const selectedBlock = availableTimeBlocks.find(b => b.id === timeBlockId);
-                      if (selectedBlock) {
-                        form.setValue('time_block_id', timeBlockId);
-                        form.setValue('scheduled_start_time', selectedBlock.startTime);
-                        form.setValue('scheduled_end_time', selectedBlock.endTime);
-                      }
-                    }}
-                    onCustomTimeSelect={(startTime, endTime) => {
-                      form.setValue('time_block_id', '');
-                      form.setValue('scheduled_start_time', startTime);
-                      form.setValue('scheduled_end_time', endTime);
-                    }}
-                    onClear={() => {
-                      form.setValue('time_block_id', '');
-                      form.setValue('scheduled_start_time', '');
-                      form.setValue('scheduled_end_time', '');
-                    }}
-                    onCreateNew={() => setShowTimeBlockCreator(true)}
-                    availableTimeBlocks={availableTimeBlocks}
-                  />
-                ) : (
-                  <InlineTimeBlockCreator
-                    onTimeBlockCreate={(block) => {
-                      // In real implementation, this would create the block in the database
-                      console.log('Creating time block:', block);
-                      // For now, just simulate assigning the custom time
-                      form.setValue('time_block_id', '');
-                      form.setValue('scheduled_start_time', block.startTime);
-                      form.setValue('scheduled_end_time', block.endTime);
-                      setShowTimeBlockCreator(false);
-                    }}
-                    onCancel={() => setShowTimeBlockCreator(false)}
-                  />
-                )}
-              </div>
+              <MacTimeBlockSection
+                form={form}
+                className="space-y-4 pl-4"
+              />
             </AccordionContent>
           </AccordionItem>
         </Accordion>
