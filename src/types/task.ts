@@ -18,6 +18,10 @@ export interface TaskBase {
   due_date?: Timestamp;
   created_at: Timestamp;
   updated_at: Timestamp;
+  // Time block integration
+  time_block_id?: ID;
+  scheduled_start_time?: string; // HH:MM format
+  scheduled_end_time?: string;   // HH:MM format
 }
 
 // Main task interface
@@ -38,6 +42,10 @@ export interface TaskFormData {
   priority: TaskPriority;
   folder_id?: ID;
   due_date?: string;
+  // Time block fields
+  time_block_id?: ID;
+  scheduled_start_time?: string;
+  scheduled_end_time?: string;
 }
 
 export interface CreateTaskData extends Omit<TaskBase, "id" | "created_at" | "updated_at"> {}
@@ -146,6 +154,25 @@ export interface TaskFilters {
     from?: string;
     to?: string;
   };
+}
+
+// ============= TIME BLOCK INTEGRATION =============
+export interface TaskTimeSlot {
+  taskId: ID;
+  startTime: string; // HH:MM
+  endTime: string;   // HH:MM
+  title: string;
+  color?: string;
+}
+
+export interface TaskScheduleInfo {
+  hasTimeBlock: boolean;
+  timeBlockId?: ID;
+  scheduledTime?: {
+    start: string;
+    end: string;
+  };
+  isScheduledForToday?: boolean;
 }
 
 // ============= TASK STATISTICS =============
