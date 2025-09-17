@@ -910,7 +910,10 @@ export type Database = {
           folder_id: string | null
           id: string
           priority: string
+          scheduled_end_time: string | null
+          scheduled_start_time: string | null
           status: string
+          time_block_id: string | null
           title: string
           updated_at: string
           user_id: string | null
@@ -923,7 +926,10 @@ export type Database = {
           folder_id?: string | null
           id?: string
           priority?: string
+          scheduled_end_time?: string | null
+          scheduled_start_time?: string | null
           status?: string
+          time_block_id?: string | null
           title: string
           updated_at?: string
           user_id?: string | null
@@ -936,7 +942,10 @@ export type Database = {
           folder_id?: string | null
           id?: string
           priority?: string
+          scheduled_end_time?: string | null
+          scheduled_start_time?: string | null
           status?: string
+          time_block_id?: string | null
           title?: string
           updated_at?: string
           user_id?: string | null

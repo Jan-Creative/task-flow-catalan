@@ -31,7 +31,7 @@ export interface Task extends TaskBase {
   daysUntilDue?: number;
 }
 
-// Legacy alias for backward compatibility
+// Legacy alias for backward compatibility - extended with new fields
 export interface Tasca extends TaskBase {}
 
 // ============= TASK FORM TYPES =============
