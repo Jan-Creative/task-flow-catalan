@@ -27,6 +27,7 @@ import {
 import { ConfigurationMenu } from "@/components/dashboard/ConfigurationMenu";
 import { DailyReminderConfigModal } from "@/components/prepare-tomorrow/DailyReminderConfigModal";
 import { TodayTimeBlocksModal } from "@/components/dashboard/TodayTimeBlocksModal";
+import { TimeBlocksCard } from "@/components/dashboard/TimeBlocksCard";
 interface DashboardPageProps {
   onEditTask: (task: any) => void;
   onNavigateToTasks?: () => void;
@@ -214,7 +215,7 @@ const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar }: 
       </div>
 
       {/* Dashboard Cards Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         {/* Today's Tasks Card */}
         <div className="bg-card rounded-2xl shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-organic)] transition-all duration-300 p-6">
           <div className="flex flex-row items-center justify-between pb-3">
@@ -342,6 +343,14 @@ const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar }: 
               tasks={todayTasks}
             />
           </div>
+        </div>
+
+        {/* Time Blocks Card */}
+        <TimeBlocksCard onOpenModal={() => setShowTimeBlocks(true)} />
+
+        {/* Placeholder for future 6th card */}
+        <div className="bg-card/50 rounded-2xl border-2 border-dashed border-muted transition-all duration-300 p-6 flex items-center justify-center">
+          <p className="text-muted-foreground text-sm">Targeta futura</p>
         </div>
       </div>
       {/* Global modals */}
