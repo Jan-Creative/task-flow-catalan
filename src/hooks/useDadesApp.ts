@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/lib/toastUtils";
 import { useAuth } from "./useAuth";
 import { useProperties } from "./useProperties";
+import { useAuthGuard } from "./useAuthGuard";
 
 import type { 
   Tasca, 
@@ -20,6 +21,7 @@ const CLAU_CACHE_DADES = 'dades-app';
 
 export const useDadesApp = () => {
   const { user } = useAuth();
+  const { withAuthGuard } = useAuthGuard();
   
   const queryClient = useQueryClient();
   const { setTaskProperty, getPropertyByName } = useProperties();
@@ -35,6 +37,12 @@ export const useDadesApp = () => {
     queryKey: [CLAU_CACHE_DADES, user?.id],
     queryFn: async () => {
       if (!user) throw new Error("User not authenticated");
+      
+      // Verify session is valid before fetching data
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session) {
+        throw new Error("Sessió no vàlida. Si us plau, torna a iniciar sessió.");
+      }
 
       const [tasksResult, foldersResult] = await Promise.all([
         supabase
@@ -108,9 +116,16 @@ export const useDadesApp = () => {
     };
   }, [data]);
 
-  // Task creation with enhanced optimistic updates
+  // Task creation with enhanced optimistic updates and authentication guard
   const crearTasca = useCallback(async (taskData: CrearTascaData) => {
-    if (!user) throw new Error("User not authenticated");
+    return withAuthGuard(async () => {
+      if (!user) {
+        console.error('User not authenticated in crearTasca');
+        throw new Error("User not authenticated");
+      }
+
+      console.debug('Authenticated, proceeding with task creation');
+      console.debug('Current user:', user.id);
 
     // Normalize and map old English values to Catalan (safeguard)
     const statusMapping: Record<string, string> = {
@@ -236,7 +251,8 @@ export const useDadesApp = () => {
       handleError(error instanceof Error ? error : new Error("No s'ha pogut crear la tasca"));
       throw error;
     }
-  }, [user, dadesOptimitzades?.carpetes, queryClient, setTaskProperty, getPropertyByName, handleError]);
+    });
+  }, [user, dadesOptimitzades?.carpetes, queryClient, setTaskProperty, getPropertyByName, handleError, withAuthGuard]);
 
   // Task update with enhanced optimistic updates
   const actualitzarTasca = useCallback(async (taskId: string, taskData: ActualitzarTascaData) => {
