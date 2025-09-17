@@ -25,6 +25,7 @@ import {
   Sunset
 } from "lucide-react";
 import { ConfigurationMenu } from "@/components/dashboard/ConfigurationMenu";
+import DashboardTimeBlocksCard from "@/components/dashboard/DashboardTimeBlocksCard";
 import { DailyReminderConfigModal } from "@/components/prepare-tomorrow/DailyReminderConfigModal";
 import { TodayTimeBlocksModal } from "@/components/dashboard/TodayTimeBlocksModal";
 interface DashboardPageProps {
@@ -214,7 +215,7 @@ const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar }: 
       </div>
 
       {/* Dashboard Cards Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         {/* Today's Tasks Card */}
         <div className="bg-card rounded-2xl shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-organic)] transition-all duration-300 p-6">
           <div className="flex flex-row items-center justify-between pb-3">
@@ -326,6 +327,12 @@ const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar }: 
             )}
           </div>
         </div>
+
+        {/* Dashboard Time Blocks Card */}
+        <DashboardTimeBlocksCard 
+          onOpenTimeBlocksModal={() => setShowTimeBlocks(true)}
+          onCreateNewBlock={() => setShowTimeBlocks(true)}
+        />
 
         {/* Mini Weekly Calendar Card */}
         <div className="bg-card rounded-2xl shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-organic)] transition-all duration-300 p-6">
