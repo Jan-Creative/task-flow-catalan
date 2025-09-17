@@ -79,31 +79,6 @@ export const MacFormSections: React.FC<MacFormSectionsProps> = ({ form, folders 
         </div>
       </div>
 
-      {/* Time Block Configuration - New Section */}
-      <div className="pt-4 border-t border-border/20">
-        <Accordion type="single" collapsible className="w-full">
-          <AccordionItem value="timeblock" className="border-0">
-            <AccordionTrigger className="hover:no-underline group py-3 px-4 rounded-lg hover:bg-background/10 transition-all duration-200">
-              <div className="flex items-center gap-3">
-                <div className="h-8 w-8 rounded-lg bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-500/20 transition-colors">
-                  <Clock className="h-4 w-4 text-blue-500" />
-                </div>
-                <div className="text-left">
-                  <div className="font-medium text-foreground">Programació Temporal</div>
-                  <div className="text-xs text-muted-foreground">Assigna un horari específic per a aquesta tasca</div>
-                </div>
-              </div>
-            </AccordionTrigger>
-            
-            <AccordionContent className="pt-4 pb-2">
-              <MacTimeBlockSection
-                form={form}
-                className="space-y-4 pl-4"
-              />
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
-      </div>
 
       {/* Advanced Configuration - Collapsible */}
       <div className="pt-4 border-t border-border/20">
