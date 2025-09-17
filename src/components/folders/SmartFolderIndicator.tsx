@@ -1,5 +1,5 @@
 import React from 'react';
-import { Brain, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface SmartFolderIndicatorProps {
@@ -32,18 +32,12 @@ export const SmartFolderIndicator: React.FC<SmartFolderIndicatorProps> = ({
   return (
     <div className={cn("flex items-center gap-1", className)}>
       <div className="relative">
-        <Brain className={cn(sizeClasses[size], "text-blue-500")} />
         {isEnabled && (
-          <div className="absolute -top-0.5 -right-0.5 p-0.5 bg-blue-500 rounded-full">
+          <div className="p-0.5 bg-blue-500 rounded-full">
             <Sparkles size={iconSizes[size]} className="text-white" />
           </div>
         )}
       </div>
-      {size !== 'sm' && (
-        <span className="text-xs text-blue-600 dark:text-blue-400">
-          Intel·ligent
-        </span>
-      )}
     </div>
   );
 };

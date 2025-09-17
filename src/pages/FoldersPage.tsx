@@ -176,11 +176,11 @@ const FoldersPage = React.memo(() => {
       </div>
 
       {/* Regular folders */}
-      {regularFolders.length > 0 && (
+      {regularFolders.filter(folder => !folder.is_system).length > 0 && (
         <div>
           <h2 className="text-xl font-semibold mb-4 text-foreground/80">Carpetes Normals</h2>
           <div className="space-y-2">
-            {regularFolders.map((folder) => (
+            {regularFolders.filter(folder => !folder.is_system).map((folder) => (
               <FolderItem
                 key={folder.id}
                 folder={folder}
