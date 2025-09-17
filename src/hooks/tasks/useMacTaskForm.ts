@@ -34,6 +34,10 @@ export interface MacTaskFormState extends TaskFormData {
   subtasks: MacSubtask[];
   reminders: MacReminder[];
   isToday: boolean;
+  // Time block fields
+  time_block_id: string;
+  scheduled_start_time: string;
+  scheduled_end_time: string;
   [key: string]: unknown; // Add index signature for compatibility
 }
 
@@ -122,6 +126,10 @@ export const useMacTaskForm = (config: MacTaskFormConfig): MacTaskFormReturn => 
       subtasks: config.initialData?.subtasks || [],
       reminders: config.initialData?.reminders || [],
       isToday: config.initialData?.isToday || false,
+      // Time block fields
+      time_block_id: config.initialData?.time_block_id || '',
+      scheduled_start_time: config.initialData?.scheduled_start_time || '',
+      scheduled_end_time: config.initialData?.scheduled_end_time || '',
     },
     validators: {
       title: [

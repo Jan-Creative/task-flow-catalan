@@ -24,6 +24,10 @@ interface MacTaskFormModalProps {
     start_date?: string;
     folder_id?: string;
     estimated_time?: number;
+    // Time block fields
+    time_block_id?: string;
+    scheduled_start_time?: string;
+    scheduled_end_time?: string;
   }, customProperties?: Array<{
     propertyId: string;
     optionId: string;
