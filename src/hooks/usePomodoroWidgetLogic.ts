@@ -27,7 +27,11 @@ export const usePomodoroWidgetLogic = (): PomodoroWidgetVisibility => {
   }
   
   const currentPath = location.pathname;
-  const isHomePage = currentPath === '/';
+  const searchParams = new URLSearchParams(location.search);
+  const currentTab = searchParams.get('tab');
+  
+  // Home view: només quan estem a "/" sense cap tab específic
+  const isHomeView = currentPath === '/' && !currentTab;
   const isMac = deviceType === 'mac';
   const isDesktop = deviceType === 'mac' || deviceType === 'windows';
   const isMobile = deviceType === 'iphone' || deviceType === 'android';
@@ -42,24 +46,24 @@ export const usePomodoroWidgetLogic = (): PomodoroWidgetVisibility => {
   
   // REGLES DE VISIBILITAT:
   
-  // 1. Indicador de la barra d'eines: només a la pàgina d'inici
-  const showToolbarIndicator = isHomePage;
+  // 1. Indicador de la barra d'eines: només quan estem a la vista d'inici real
+  const showToolbarIndicator = isHomeView;
   
   // 2. Widget de sidebar: 
-  //    - NO a la pàgina d'inici (prioritat del toolbar)
+  //    - NO a la vista d'inici (prioritat del toolbar)
   //    - Només en dispositius amb sidebar disponible
   //    - Sidebar ha d'estar oberta i no col·lapsada
-  const showSidebarWidget = !isHomePage && 
+  const showSidebarWidget = !isHomeView && 
                             hasSidebar && 
                             sidebarOpen && 
                             !sidebarCollapsed && 
                             isDesktop;
   
   // 3. Widget flotant: fallback per a casos específics
-  //    - NO a la pàgina d'inici (prioritat del toolbar)
+  //    - NO a la vista d'inici (prioritat del toolbar)
   //    - Dispositius mòbils sempre usen el flotant
   //    - Desktop només quan no hi ha sidebar o està col·lapsada
-  const showFloatingWidget = !isHomePage && 
+  const showFloatingWidget = !isHomeView && 
                              (isMobile || 
                               !hasSidebar || 
                               !sidebarOpen || 
