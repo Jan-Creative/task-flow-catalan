@@ -106,6 +106,7 @@ const Index = () => {
             onEditTask={handleEditTaskClick} 
             onNavigateToTasks={() => setActiveTab("avui")}
             onNavigateToCalendar={() => setActiveTab("calendar")}
+            onNavigateToNotifications={() => setActiveTab("notificacions")}
           />
         </LazyPage>
       </TabPage>

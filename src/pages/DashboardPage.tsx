@@ -24,7 +24,7 @@ import {
   Moon,
   Sunset
 } from "lucide-react";
-import { ConfigurationMenu } from "@/components/dashboard/ConfigurationMenu";
+import { DashboardToolbar } from "@/components/dashboard/DashboardToolbar";
 import DashboardTimeBlocksCard from "@/components/dashboard/DashboardTimeBlocksCard";
 import { DailyReminderConfigModal } from "@/components/prepare-tomorrow/DailyReminderConfigModal";
 import { TodayTimeBlocksModal } from "@/components/dashboard/TodayTimeBlocksModal";
@@ -32,9 +32,10 @@ interface DashboardPageProps {
   onEditTask: (task: any) => void;
   onNavigateToTasks?: () => void;
   onNavigateToCalendar?: () => void;
+  onNavigateToNotifications?: () => void;
 }
 
-const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar }: DashboardPageProps) => {
+const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar, onNavigateToNotifications }: DashboardPageProps) => {
   const { user } = useAuth();
   const { todayTasks, updateTaskStatus, deleteTask, taskStats } = useDadesApp();
   const { events } = useEvents();
@@ -171,10 +172,11 @@ const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar }: 
             </div>
           </div>
           
-          <ConfigurationMenu 
+          <DashboardToolbar 
             onNavigateToPrepareTomorrow={() => window.location.href = '/prepare-tomorrow'}
             onOpenReminderConfig={() => setShowReminderConfig(true)}
             onOpenTodayTimeBlocks={() => setShowTimeBlocks(true)}
+            onNavigateToNotifications={onNavigateToNotifications}
           />
         </div>
 
