@@ -2,6 +2,29 @@
 @tailwind components;
 @tailwind utilities;
 
+/* TimeBlock Indicator Animations */
+@keyframes timeblock-pulse {
+  0%, 100% {
+    opacity: 0.6;
+    filter: brightness(1);
+  }
+  50% {
+    opacity: 0.8;
+    filter: brightness(1.1);
+  }
+}
+
+@keyframes timeblock-corner-glow {
+  0% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
+}
+
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
 */

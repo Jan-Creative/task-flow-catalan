@@ -14,6 +14,7 @@ import { BackgroundRefresher } from "@/components/ui/navigation-optimizers";
 import { NotificationDisplay } from "@/components/NotificationDisplay";
 import { PerformanceMonitor } from "@/components/performance/PerformanceMonitor";
 import { SecurityMonitor } from "@/components/security/SecurityMonitor";
+import { TimeBlockIndicator } from "@/components/timeblock/TimeBlockIndicator";
 import { config, validateConfig } from "@/config/appConfig";
 import { PomodoroWidgetCoordinator } from "@/components/PomodoroWidgetCoordinator";
 
@@ -52,6 +53,7 @@ const App = () => {
       <NotificationDisplay />
       <PerformanceMonitor />
       <SecurityMonitor />
+      <TimeBlockIndicator />
     </div>
   );
 };
