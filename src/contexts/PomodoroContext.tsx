@@ -350,31 +350,47 @@ export const PomodoroProvider = ({ children }: { children: React.ReactNode }) =>
     try {
       console.log('🔄 Starting generic timer:', { durationMinutes });
       
-      const session = await createSession(null, 'generic', durationMinutes);
-      console.log('✅ Generic session created:', session);
-      
       const now = Date.now();
+      const tempSessionId = `temp-${now}`;
       
-      // Update state with generic session data
+      // Optimistic update - show timer immediately
       saveState({
         isActive: true,
-        currentTaskId: null, // Generic timer has no task
-        currentSessionId: session.id,
+        currentTaskId: null,
+        currentSessionId: tempSessionId,
         timeLeft: durationMinutes * 60,
         startTime: now,
-        isBreak: false, // Generic timers start as work sessions
-        workDuration: durationMinutes // Update work duration to match selected time
+        isBreak: false,
+        workDuration: durationMinutes
       });
       
-      console.log('✅ Generic timer state updated successfully');
-      
+      // Show immediate feedback
       toast({
         title: "Timer iniciat",
         description: `${durationMinutes} minuts de focus`
       });
       
+      // Create session in background
+      const session = await createSession(null, 'generic', durationMinutes);
+      console.log('✅ Generic session created:', session);
+      
+      // Update with real session ID
+      saveState({
+        currentSessionId: session.id
+      });
+      
+      console.log('✅ Generic timer state updated successfully');
+      
     } catch (error) {
       console.error('❌ Error starting generic timer:', error);
+      
+      // Rollback optimistic update
+      saveState({
+        isActive: false,
+        currentSessionId: null,
+        timeLeft: state.workDuration * 60
+      });
+      
       toast({
         variant: "destructive",
         title: "Error",
