@@ -566,7 +566,7 @@ export type Database = {
           is_completed: boolean
           session_type: string
           started_at: string
-          task_id: string
+          task_id: string | null
           updated_at: string
         }
         Insert: {
@@ -578,7 +578,7 @@ export type Database = {
           is_completed?: boolean
           session_type?: string
           started_at?: string
-          task_id: string
+          task_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -590,7 +590,7 @@ export type Database = {
           is_completed?: boolean
           session_type?: string
           started_at?: string
-          task_id?: string
+          task_id?: string | null
           updated_at?: string
         }
         Relationships: []

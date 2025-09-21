@@ -12,15 +12,17 @@ export const PomodoroWidget = () => {
     hasActiveTimer,
     formatTime,
     pauseTimer,
-    resetTimer
+    resetTimer,
+    workDuration,
+    breakDuration
   } = usePomodoroContext();
 
   // Don't show widget if no active timer
   if (!hasActiveTimer) return null;
 
-  // Calculate progress
-  const totalTime = isBreak ? 5 * 60 : 25 * 60; // Default durations for display
-  const progress = Math.max(0, Math.min(100, ((totalTime - timeLeft) / totalTime) * 100));
+  // Calculate progress based on current session type and duration
+  const totalTime = isBreak ? breakDuration * 60 : workDuration * 60;
+  const progress = totalTime > 0 ? Math.max(0, Math.min(100, ((totalTime - timeLeft) / totalTime) * 100)) : 0;
 
   return (
     <div className="fixed bottom-6 right-6 z-50 pointer-events-auto">

@@ -76,8 +76,8 @@ export const PomodoroProvider = ({ children }: { children: React.ReactNode }) =>
         const parsed = JSON.parse(saved);
         const timeDiff = performance.now() - (parsed.timestamp || 0);
         
-        // Only recover if less than 2 hours old
-        if (timeDiff < 2 * 60 * 60 * 1000 && parsed.currentTaskId) {
+        // Only recover if less than 2 hours old and has either task or session
+        if (timeDiff < 2 * 60 * 60 * 1000 && (parsed.currentTaskId || parsed.currentSessionId)) {
           // Recalculate time left based on real time passed
           if (parsed.startTime && parsed.isActive) {
             const realElapsed = Math.floor((Date.now() - parsed.startTime) / 1000);
@@ -362,7 +362,7 @@ export const PomodoroProvider = ({ children }: { children: React.ReactNode }) =>
     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
-  const hasActiveTimer = state.isActive || (state.currentSessionId !== null);
+  const hasActiveTimer = (state.isActive && state.timeLeft > 0) || (state.currentSessionId !== null);
 
   return (
     <PomodoroContext.Provider value={{

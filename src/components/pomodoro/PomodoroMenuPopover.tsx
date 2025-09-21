@@ -34,10 +34,13 @@ export const PomodoroMenuPopover = ({ children }: PomodoroMenuPopoverProps) => {
 
   const handleStartTimer = async (duration: number) => {
     try {
+      console.log('Starting generic timer with duration:', duration);
       await startGenericTimer(duration);
       setOpen(false);
+      console.log('Generic timer started successfully');
     } catch (error) {
       console.error('Error starting generic timer:', error);
+      // You could add a toast notification here for user feedback
     }
   };
 
