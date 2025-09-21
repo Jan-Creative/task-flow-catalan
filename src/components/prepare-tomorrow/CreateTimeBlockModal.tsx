@@ -94,7 +94,7 @@ export const CreateTimeBlockModal = ({
     }
   }, [editingBlock, notificationConfig]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!title.trim()) return;
@@ -110,35 +110,39 @@ export const CreateTimeBlockModal = ({
       return;
     }
 
-    onSubmit({
-      title: title.trim(),
-      description: description.trim() || undefined,
-      startTime,
-      endTime,
-      color,
-      notifications: {
-        start: notifyStart,
-        end: notifyEnd
-      },
-      reminderMinutes: {
-        start: startReminderMinutes,
-        end: endReminderMinutes
-      },
-    });
+    try {
+      await onSubmit({
+        title: title.trim(),
+        description: description.trim() || undefined,
+        startTime,
+        endTime,
+        color,
+        notifications: {
+          start: notifyStart,
+          end: notifyEnd
+        },
+        reminderMinutes: {
+          start: startReminderMinutes,
+          end: endReminderMinutes
+        },
+      });
 
-    if (!isEditing) {
-      // Use intelligent default times for the next block
-      const { startTime: defaultStart, endTime: defaultEnd } = getIntelligentDefaultTimes();
-      
-      setTitle('');
-      setDescription('');
-      setStartTime(defaultStart);
-      setEndTime(defaultEnd);
-      setColor('#3b82f6');
-      setNotifyStart(notificationConfig?.defaultStartEnabled || false);
-      setNotifyEnd(notificationConfig?.defaultEndEnabled || false);
-      setStartReminderMinutes(notificationConfig?.defaultStartReminder || 5);
-      setEndReminderMinutes(notificationConfig?.defaultEndReminder || 5);
+      if (!isEditing) {
+        // Use intelligent default times for the next block
+        const { startTime: defaultStart, endTime: defaultEnd } = getIntelligentDefaultTimes();
+        
+        setTitle('');
+        setDescription('');
+        setStartTime(defaultStart);
+        setEndTime(defaultEnd);
+        setColor('#3b82f6');
+        setNotifyStart(notificationConfig?.defaultStartEnabled || false);
+        setNotifyEnd(notificationConfig?.defaultEndEnabled || false);
+        setStartReminderMinutes(notificationConfig?.defaultStartReminder || 5);
+        setEndReminderMinutes(notificationConfig?.defaultEndReminder || 5);
+      }
+    } catch (error) {
+      console.error('Error submitting time block:', error);
     }
   };
 

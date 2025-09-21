@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import React, { useMemo } from "react";
 import { format } from "date-fns";
 import { Clock, Plus, Calendar, CheckCircle2, Circle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { cn } from "@/lib/utils";
 import { useTodayTimeBlocks } from "@/hooks/useTodayTimeBlocks";
 import { useTaskTimeBlocks } from "@/hooks/useTaskTimeBlocks";
+import { QuickTimeBlockCreator } from "./QuickTimeBlockCreator";
 import { TimeBlock } from "@/types/timeblock";
 
 interface DashboardTimeBlocksCardProps {
@@ -14,7 +15,7 @@ interface DashboardTimeBlocksCardProps {
   onCreateNewBlock?: () => void;
 }
 
-const DashboardTimeBlocksCard = ({ 
+const DashboardTimeBlocksCard = React.memo(({ 
   onOpenTimeBlocksModal, 
   onCreateNewBlock 
 }: DashboardTimeBlocksCardProps) => {
@@ -110,9 +111,13 @@ const DashboardTimeBlocksCard = ({
             </Button>
           </div>
         ) : (
-          /* Time Blocks List */
-          <div className="space-y-2">
-            {displayTimeBlocks.map((block) => {
+          <>
+            {/* Quick Creator */}
+            <QuickTimeBlockCreator onSuccess={onOpenTimeBlocksModal} />
+            
+            {/* Time Blocks List */}
+            <div className="space-y-2">
+              {displayTimeBlocks.map((block) => {
               const isActive = isBlockActive(block);
               const tasksInfo = getTasksInfo(block.id);
               const hasCompletedTasks = tasksInfo.completed > 0;
@@ -283,11 +288,12 @@ const DashboardTimeBlocksCard = ({
               </div>
             )}
           </div>
+          </>
         )}
       </div>
     </div>
     </TooltipProvider>
   );
-};
+});
 
 export default DashboardTimeBlocksCard;
