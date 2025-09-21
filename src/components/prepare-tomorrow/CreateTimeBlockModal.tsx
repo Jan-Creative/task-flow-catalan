@@ -9,7 +9,7 @@ import { Trash2, Bell } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 import { getIntelligentDefaultTimes } from '@/utils/timeUtils';
-import type { TimeBlock, TimeBlockNotificationConfig } from '@/types/timeblock';
+import type { TimeBlock } from '@/types/timeblock';
 
 interface CreateTimeBlockModalProps {
   open: boolean;
@@ -17,7 +17,6 @@ interface CreateTimeBlockModalProps {
   onSubmit: (block: Omit<TimeBlock, 'id'>) => void;
   editingBlock?: TimeBlock | null;
   onDelete?: () => void;
-  notificationConfig?: TimeBlockNotificationConfig;
 }
 
 const timeOptions = Array.from({ length: 15 * 4 }, (_, i) => {
@@ -51,8 +50,7 @@ export const CreateTimeBlockModal = ({
   onClose, 
   onSubmit, 
   editingBlock,
-  onDelete,
-  notificationConfig
+  onDelete
 }: CreateTimeBlockModalProps) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -86,13 +84,15 @@ export const CreateTimeBlockModal = ({
       setStartTime(defaultStart);
       setEndTime(defaultEnd);
       setColor('#3b82f6');
-      // Apply defaults from config if available
-      setNotifyStart(notificationConfig?.defaultStartEnabled || false);
-      setNotifyEnd(notificationConfig?.defaultEndEnabled || false);
-      setStartReminderMinutes(notificationConfig?.defaultStartReminder || 5);
-      setEndReminderMinutes(notificationConfig?.defaultEndReminder || 5);
+      // Smart defaults: enable start notifications during work hours
+      const currentHour = new Date().getHours();
+      const isWorkHours = currentHour >= 8 && currentHour <= 18;
+      setNotifyStart(isWorkHours);
+      setNotifyEnd(false);
+      setStartReminderMinutes(5);
+      setEndReminderMinutes(5);
     }
-  }, [editingBlock, notificationConfig]);
+  }, [editingBlock]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -136,10 +136,13 @@ export const CreateTimeBlockModal = ({
         setStartTime(defaultStart);
         setEndTime(defaultEnd);
         setColor('#3b82f6');
-        setNotifyStart(notificationConfig?.defaultStartEnabled || false);
-        setNotifyEnd(notificationConfig?.defaultEndEnabled || false);
-        setStartReminderMinutes(notificationConfig?.defaultStartReminder || 5);
-        setEndReminderMinutes(notificationConfig?.defaultEndReminder || 5);
+        // Keep smart defaults for next blocks
+        const currentHour = new Date().getHours();
+        const isWorkHours = currentHour >= 8 && currentHour <= 18;
+        setNotifyStart(isWorkHours);
+        setNotifyEnd(false);
+        setStartReminderMinutes(5);
+        setEndReminderMinutes(5);
       }
     } catch (error) {
       console.error('Error submitting time block:', error);
@@ -263,11 +266,6 @@ export const CreateTimeBlockModal = ({
                 <Bell className="h-4 w-4 text-primary" />
                 <Label className="font-medium text-primary">Notificacions</Label>
               </div>
-              {notificationConfig?.enableGlobal && (
-                <div className="text-xs text-muted-foreground">
-                  Configuració global activada
-                </div>
-              )}
             </div>
             
             {/* Start notification */}

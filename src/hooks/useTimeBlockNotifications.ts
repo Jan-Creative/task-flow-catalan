@@ -68,10 +68,14 @@ export const useTimeBlockNotifications = (baseDate?: Date) => {
   }, [scheduleBlockNotification]);
 
   const cancelBlockNotifications = useCallback(async (blockId: string) => {
-    // Note: In a real implementation, we'd need to store notification IDs
-    // For now, this is a placeholder for the cancellation logic
-    console.log(`Cancelling notifications for block: ${blockId}`);
-  }, []);
+    try {
+      // Cancel all pending reminders for this block
+      await cancelReminder(blockId);
+      console.log(`✅ Notificacions cancel·lades per al bloc: ${blockId}`);
+    } catch (error) {
+      console.error(`❌ Error cancel·lant notificacions per al bloc ${blockId}:`, error);
+    }
+  }, [cancelReminder]);
 
   return {
     scheduleBlockNotification,

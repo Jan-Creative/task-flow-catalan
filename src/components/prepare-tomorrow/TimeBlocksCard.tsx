@@ -3,12 +3,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Plus, Clock, MoreHorizontal, Settings } from 'lucide-react';
 import { CreateTimeBlockModal } from './CreateTimeBlockModal';
-import { TimeBlockNotificationConfigModal } from './TimeBlockNotificationConfig';
 import { TimeBlockNotificationPopover } from './TimeBlockNotificationPopover';
 import { cn } from '@/lib/utils';
 import { useBlockResize } from '@/hooks/useBlockResize';
 import { useTimeBlockNotifications } from '@/hooks/useTimeBlockNotifications';
-import type { TimeBlock, TimeBlockNotificationConfig } from '@/types/timeblock';
+import type { TimeBlock } from '@/types/timeblock';
 
 // TimeBlock interface now imported from types
 
@@ -31,14 +30,6 @@ export const TimeBlocksCard = ({
 }: TimeBlocksCardProps) => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingBlock, setEditingBlock] = useState<TimeBlock | null>(null);
-  const [showNotificationConfig, setShowNotificationConfig] = useState(false);
-  const [notificationConfig, setNotificationConfig] = useState<TimeBlockNotificationConfig>({
-    enableGlobal: false,
-    defaultStartReminder: 5,
-    defaultEndReminder: 5,
-    defaultStartEnabled: true,
-    defaultEndEnabled: false,
-  });
 
   // Initialize resize functionality
   const { resizeState, startResize, containerRef } = useBlockResize({
@@ -124,14 +115,6 @@ export const TimeBlocksCard = ({
               <Clock className="h-5 w-5 text-primary" />
               Blocs de Temps
             </div>
-            <Button
-              onClick={() => setShowNotificationConfig(true)}
-              variant="outline"
-              size="sm"
-              className="backdrop-blur-sm bg-white/10 border-white/20 hover:bg-white/20 text-white/90 h-8 px-3"
-            >
-              <Settings className="h-4 w-4" />
-            </Button>
           </CardTitle>
           {totalPlannedHours > 0 && (
             <div className="text-sm text-white/70 font-medium">
@@ -280,14 +263,6 @@ export const TimeBlocksCard = ({
         open={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         onSubmit={handleCreateBlock}
-        notificationConfig={notificationConfig}
-      />
-
-      <TimeBlockNotificationConfigModal
-        open={showNotificationConfig}
-        onClose={() => setShowNotificationConfig(false)}
-        config={notificationConfig}
-        onConfigChange={setNotificationConfig}
       />
 
       {editingBlock && (
@@ -296,7 +271,6 @@ export const TimeBlocksCard = ({
           onClose={() => setEditingBlock(null)}
           onSubmit={handleEditBlock}
           editingBlock={editingBlock}
-          notificationConfig={notificationConfig}
           onDelete={onRemoveTimeBlock ? () => {
             onRemoveTimeBlock(editingBlock.id);
             setEditingBlock(null);

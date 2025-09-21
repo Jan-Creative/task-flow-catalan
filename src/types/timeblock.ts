@@ -19,11 +19,3 @@ export interface TimeBlock {
   notifications?: TimeBlockNotifications;
   reminderMinutes?: TimeBlockReminderSettings;
 }
-
-export interface TimeBlockNotificationConfig {
-  enableGlobal: boolean;
-  defaultStartReminder: number;
-  defaultEndReminder: number;
-  defaultStartEnabled: boolean;
-  defaultEndEnabled: boolean;
-}

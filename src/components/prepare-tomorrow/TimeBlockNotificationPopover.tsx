@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Bell, BellOff } from 'lucide-react';
+import { Bell, BellOff, Clock } from 'lucide-react';
+import { useTimeBlockNotifications } from '@/hooks/useTimeBlockNotifications';
 import type { TimeBlock, TimeBlockNotifications, TimeBlockReminderSettings } from '@/types/timeblock';
 
 interface TimeBlockNotificationPopoverProps {
@@ -24,34 +25,59 @@ export const TimeBlockNotificationPopover = ({
   block,
   onUpdateBlock
 }: TimeBlockNotificationPopoverProps) => {
+  const [isOpen, setIsOpen] = useState(false);
   const notifications = block.notifications || { start: false, end: false };
   const reminderMinutes = block.reminderMinutes || { start: 5, end: 5 };
+  const { updateBlockNotifications, cancelBlockNotifications } = useTimeBlockNotifications();
   
   const hasNotifications = notifications.start || notifications.end;
 
-  const handleNotificationToggle = (type: 'start' | 'end', enabled: boolean) => {
+  const handleNotificationToggle = async (type: 'start' | 'end', enabled: boolean) => {
     const newNotifications: TimeBlockNotifications = {
       ...notifications,
       [type]: enabled
+    };
+    
+    const updatedBlock = { 
+      ...block,
+      notifications: newNotifications,
+      reminderMinutes: block.reminderMinutes || { start: 5, end: 5 }
     };
     
     onUpdateBlock({ 
       notifications: newNotifications,
       reminderMinutes: block.reminderMinutes || { start: 5, end: 5 }
     });
+
+    // Schedule or cancel notifications immediately
+    if (enabled) {
+      await updateBlockNotifications(updatedBlock);
+    } else {
+      await cancelBlockNotifications(block.id);
+    }
   };
 
-  const handleReminderTimeChange = (type: 'start' | 'end', minutes: number) => {
+  const handleReminderTimeChange = async (type: 'start' | 'end', minutes: number) => {
     const newReminderMinutes: TimeBlockReminderSettings = {
       ...reminderMinutes,
       [type]: minutes
     };
     
+    const updatedBlock = { 
+      ...block,
+      reminderMinutes: newReminderMinutes 
+    };
+    
     onUpdateBlock({ reminderMinutes: newReminderMinutes });
+
+    // Reschedule notifications with new timing
+    if (notifications[type]) {
+      await updateBlockNotifications(updatedBlock);
+    }
   };
 
   return (
-    <Popover>
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <Button
           variant="ghost"
@@ -66,12 +92,15 @@ export const TimeBlockNotificationPopover = ({
         </Button>
       </PopoverTrigger>
       
-      <PopoverContent className="w-80" align="start">
+      <PopoverContent className="w-80 bg-background/95 backdrop-blur-xl border-white/10 shadow-xl" align="start">
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h4 className="font-medium text-sm">Notificacions del bloc</h4>
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-primary" />
+              <h4 className="font-medium text-sm text-primary">Notificacions</h4>
+            </div>
             <div className="text-xs text-muted-foreground">
-              {hasNotifications ? 'Activades' : 'Desactivades'}
+              {hasNotifications ? '✅ Activades' : '⚫ Desactivades'}
             </div>
           </div>
           
