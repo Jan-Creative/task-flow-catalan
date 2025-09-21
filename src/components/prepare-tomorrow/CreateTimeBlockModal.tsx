@@ -150,23 +150,28 @@ export const CreateTimeBlockModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md" aria-describedby="timeblock-desc">
-        <DialogHeader>
-          <DialogTitle>
+      <DialogContent 
+        className="max-w-md backdrop-blur-xl bg-background/95 border-white/10 shadow-2xl shadow-black/50" 
+        overlayClassName="backdrop-blur-md bg-black/20"
+        aria-describedby="timeblock-desc"
+      >
+        <DialogHeader className="border-b border-white/5 pb-4">
+          <DialogTitle className="text-xl font-semibold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
             {isEditing ? 'Editar Bloc de Temps' : 'Nou Bloc de Temps'}
           </DialogTitle>
         </DialogHeader>
         <p id="timeblock-desc" className="sr-only">Formulari per crear o editar un bloc de temps</p>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6 pt-2">
           {/* Title */}
           <div>
-            <Label htmlFor="title">Títol del bloc</Label>
+            <Label htmlFor="title" className="text-sm font-medium text-foreground/80">Títol del bloc</Label>
             <Input
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Descripció de l'activitat..."
+              className="bg-background/50 border-white/10 focus:border-primary/50 focus:ring-primary/20 transition-all duration-200"
               required
             />
           </div>
@@ -174,14 +179,14 @@ export const CreateTimeBlockModal = ({
           {/* Time inputs */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="startTime">Hora d'inici</Label>
+              <Label htmlFor="startTime" className="text-sm font-medium text-foreground/80">Hora d'inici</Label>
               <Select value={startTime} onValueChange={setStartTime}>
-                <SelectTrigger>
+                <SelectTrigger className="bg-background/50 border-white/10 focus:border-primary/50 focus:ring-primary/20 transition-all duration-200">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="backdrop-blur-xl bg-background/95 border-white/10">
                   {timeOptions.map(time => (
-                    <SelectItem key={time} value={time}>
+                    <SelectItem key={time} value={time} className="focus:bg-primary/20">
                       {time}
                     </SelectItem>
                   ))}
@@ -189,14 +194,14 @@ export const CreateTimeBlockModal = ({
               </Select>
             </div>
             <div>
-              <Label htmlFor="endTime">Hora de fi</Label>
+              <Label htmlFor="endTime" className="text-sm font-medium text-foreground/80">Hora de fi</Label>
               <Select value={endTime} onValueChange={setEndTime}>
-                <SelectTrigger>
+                <SelectTrigger className="bg-background/50 border-white/10 focus:border-primary/50 focus:ring-primary/20 transition-all duration-200">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="backdrop-blur-xl bg-background/95 border-white/10">
                   {timeOptions.map(time => (
-                    <SelectItem key={time} value={time}>
+                    <SelectItem key={time} value={time} className="focus:bg-primary/20">
                       {time}
                     </SelectItem>
                   ))}
@@ -207,32 +212,32 @@ export const CreateTimeBlockModal = ({
 
           {/* Color picker */}
           <div>
-            <Label>Color del bloc</Label>
-            <div className="grid grid-cols-4 gap-2 mt-2">
+            <Label className="text-sm font-medium text-foreground/80">Color del bloc</Label>
+            <div className="grid grid-cols-4 gap-3 mt-3">
               {colorOptions.map(option => (
                 <button
                   key={option.value}
                   type="button"
                   onClick={() => setColor(option.value)}
                   className={cn(
-                    "flex flex-col items-center p-2 rounded-lg border-2 transition-all hover:scale-105",
+                    "flex flex-col items-center p-3 rounded-xl border-2 transition-all duration-200 hover:scale-110 hover:shadow-lg",
                     color === option.value 
-                      ? "border-primary ring-2 ring-primary/20" 
-                      : "border-border hover:border-primary/50"
+                      ? "border-white scale-110 shadow-lg shadow-primary/30" 
+                      : "border-white/20 hover:border-white/40"
                   )}
                 >
                   <div 
-                    className="w-6 h-6 rounded-full mb-1"
+                    className="w-8 h-8 rounded-full mb-2 shadow-sm"
                     style={{ backgroundColor: option.value }}
                   />
-                  <span className="text-xs text-center leading-tight">
+                  <span className="text-xs text-center leading-tight text-foreground/70">
                     {option.label}
                   </span>
                 </button>
               ))}
             </div>
             {selectedColor && (
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-xs text-muted-foreground mt-2">
                 Suggeriment: {selectedColor.name}
               </p>
             )}
@@ -240,22 +245,23 @@ export const CreateTimeBlockModal = ({
 
           {/* Description */}
           <div>
-            <Label htmlFor="description">Descripció (opcional)</Label>
+            <Label htmlFor="description" className="text-sm font-medium text-foreground/80">Descripció (opcional)</Label>
             <Textarea
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Detalls adicionals, objectius..."
+              className="bg-background/50 border-white/10 focus:border-primary/50 focus:ring-primary/20 transition-all duration-200"
               rows={3}
             />
           </div>
 
           {/* Notifications Section - Always visible */}
-          <div className="space-y-4 p-4 border rounded-lg bg-muted/20">
+          <div className="space-y-4 p-4 border border-white/10 rounded-xl bg-background/30 backdrop-blur-sm">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Bell className="h-4 w-4 text-primary" />
-                <Label className="font-medium">Notificacions</Label>
+                <Label className="font-medium text-primary">Notificacions</Label>
               </div>
               {notificationConfig?.enableGlobal && (
                 <div className="text-xs text-muted-foreground">
@@ -267,7 +273,7 @@ export const CreateTimeBlockModal = ({
             {/* Start notification */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="notifyStart" className="text-sm">
+                <Label htmlFor="notifyStart" className="text-sm text-foreground/80">
                   Notificar a l'inici
                 </Label>
                 <Switch
@@ -286,12 +292,12 @@ export const CreateTimeBlockModal = ({
                     value={startReminderMinutes.toString()}
                     onValueChange={(value) => setStartReminderMinutes(parseInt(value))}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-background/50 border-white/10 focus:border-primary/50">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="backdrop-blur-xl bg-background/95 border-white/10">
                       {reminderOptions.map(option => (
-                        <SelectItem key={option.value} value={option.value.toString()}>
+                        <SelectItem key={option.value} value={option.value.toString()} className="focus:bg-primary/20">
                           {option.label}
                         </SelectItem>
                       ))}
@@ -312,7 +318,7 @@ export const CreateTimeBlockModal = ({
             {/* End notification */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="notifyEnd" className="text-sm">
+                <Label htmlFor="notifyEnd" className="text-sm text-foreground/80">
                   Notificar al final
                 </Label>
                 <Switch
@@ -331,12 +337,12 @@ export const CreateTimeBlockModal = ({
                     value={endReminderMinutes.toString()}
                     onValueChange={(value) => setEndReminderMinutes(parseInt(value))}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-background/50 border-white/10 focus:border-primary/50">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="backdrop-blur-xl bg-background/95 border-white/10">
                       {reminderOptions.map(option => (
-                        <SelectItem key={option.value} value={option.value.toString()}>
+                        <SelectItem key={option.value} value={option.value.toString()} className="focus:bg-primary/20">
                           {option.label}
                         </SelectItem>
                       ))}
@@ -356,23 +362,31 @@ export const CreateTimeBlockModal = ({
           </div>
 
           {/* Action buttons */}
-          <div className="flex gap-2 pt-4">
+          <div className="flex gap-2 pt-6 border-t border-white/5">
             {isEditing && onDelete && (
               <Button
                 type="button"
                 variant="destructive"
                 size="sm"
                 onClick={onDelete}
-                className="mr-auto"
+                className="mr-auto hover:scale-105 transition-all duration-200"
               >
                 <Trash2 className="h-4 w-4 mr-2" />
                 Eliminar
               </Button>
             )}
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={onClose}
+              className="bg-background/50 border-white/10 hover:bg-background/70 hover:scale-105 transition-all duration-200"
+            >
               Cancel·lar
             </Button>
-            <Button type="submit">
+            <Button 
+              type="submit"
+              className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-primary/20"
+            >
               {isEditing ? 'Actualitzar' : 'Crear Bloc'}
             </Button>
           </div>

@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { format } from "date-fns";
 import { Clock, Plus, Calendar, CheckCircle2, Circle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { useTodayTimeBlocks } from "@/hooks/useTodayTimeBlocks";
 import { useTaskTimeBlocks } from "@/hooks/useTaskTimeBlocks";
 import { QuickTimeBlockCreator } from "./QuickTimeBlockCreator";
+import { CreateTimeBlockModal } from "@/components/prepare-tomorrow/CreateTimeBlockModal";
 import { TimeBlock } from "@/types/timeblock";
 
 interface DashboardTimeBlocksCardProps {
@@ -19,8 +20,9 @@ const DashboardTimeBlocksCard = React.memo(({
   onOpenTimeBlocksModal, 
   onCreateNewBlock 
 }: DashboardTimeBlocksCardProps) => {
-  const { timeBlocks, loading } = useTodayTimeBlocks();
+  const { timeBlocks, loading, addTimeBlock } = useTodayTimeBlocks();
   const { getTasksByTimeBlock } = useTaskTimeBlocks();
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   // Sort time blocks by start time and limit to 5
   const displayTimeBlocks = useMemo(() => {
@@ -64,8 +66,8 @@ const DashboardTimeBlocksCard = React.memo(({
           <Button
             variant="ghost"
             size="sm"
-            onClick={onCreateNewBlock}
-            className="h-8 w-8 p-0 hover:bg-primary/10"
+            onClick={() => setShowCreateModal(true)}
+            className="h-8 w-8 p-0 hover:bg-primary/10 hover:scale-105 transition-all duration-200"
           >
             <Plus className="h-4 w-4" />
           </Button>
@@ -103,8 +105,8 @@ const DashboardTimeBlocksCard = React.memo(({
             <Button
               variant="outline"
               size="sm"
-              onClick={onCreateNewBlock}
-              className="mt-3"
+              onClick={() => setShowCreateModal(true)}
+              className="mt-3 hover:scale-105 transition-all duration-200"
             >
               <Plus className="h-4 w-4 mr-2" />
               Crear bloc
@@ -292,6 +294,18 @@ const DashboardTimeBlocksCard = React.memo(({
         )}
       </div>
     </div>
+    
+    {/* Create Time Block Modal */}
+    {showCreateModal && (
+      <CreateTimeBlockModal
+        open={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSubmit={async (block) => {
+          await addTimeBlock(block);
+          setShowCreateModal(false);
+        }}
+      />
+    )}
     </TooltipProvider>
   );
 });
