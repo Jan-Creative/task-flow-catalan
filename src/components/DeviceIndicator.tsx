@@ -14,9 +14,6 @@ const DeviceIndicator = () => {
         {type.toUpperCase()}
       </Badge>
       <Badge variant="outline" className="text-xs">
-        {width}×{height}
-      </Badge>
-      <Badge variant="outline" className="text-xs">
         {orientation}
       </Badge>
       {isTouch && (
