@@ -61,43 +61,74 @@ export const PomodoroProvider = ({ children }: { children: React.ReactNode }) =>
   const timerRef = useRef<number | null>(null);
   const { toast } = useToast();
 
-  // Save state to localStorage
+  // Save state to localStorage - CORRECTED: No circular dependency
   const saveState = useCallback((newState: Partial<PomodoroState>) => {
-    const updatedState = { ...state, ...newState };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      ...updatedState,
-      timestamp: performance.now()
-    }));
-    setState(updatedState);
-  }, [state]);
+    setState(prevState => {
+      const updatedState = { ...prevState, ...newState };
+      // Save to localStorage after state update
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          ...updatedState,
+          timestamp: Date.now()
+        }));
+      } catch (error) {
+        console.error('Error saving pomodoro state:', error);
+      }
+      return updatedState;
+    });
+  }, []);
 
-  // Load state from localStorage
+  // Load state from localStorage - SIMPLIFIED
   const loadState = useCallback(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        const timeDiff = performance.now() - (parsed.timestamp || 0);
-        
-        // Only recover if less than 2 hours old and has either task or session
-        if (timeDiff < 2 * 60 * 60 * 1000 && (parsed.currentTaskId || parsed.currentSessionId)) {
-          // Recalculate time left based on real time passed
-          if (parsed.startTime && parsed.isActive) {
-            const realElapsed = Math.floor((Date.now() - parsed.startTime) / 1000);
-            const totalDuration = parsed.isBreak ? parsed.breakDuration * 60 : parsed.workDuration * 60;
-            const newTimeLeft = Math.max(0, totalDuration - realElapsed);
-            
-            setState({
-              ...parsed,
-              timeLeft: newTimeLeft,
-              isActive: newTimeLeft > 0
-            });
-            return true;
-          }
-        }
+      if (!saved) return false;
+      
+      const parsed = JSON.parse(saved);
+      const timeDiff = Date.now() - (parsed.timestamp || 0);
+      
+      // Only recover if less than 2 hours old and is a valid session
+      if (timeDiff > 2 * 60 * 60 * 1000) {
+        localStorage.removeItem(STORAGE_KEY);
+        return false;
       }
+      
+      // Skip recovery for temporary sessions
+      if (parsed.currentSessionId?.startsWith('temp-')) {
+        localStorage.removeItem(STORAGE_KEY);
+        return false;
+      }
+      
+      // Only recover if we have a valid session ID
+      if (!parsed.currentSessionId) return false;
+      
+      // Recalculate time left if timer was active
+      if (parsed.startTime && parsed.isActive) {
+        const realElapsed = Math.floor((Date.now() - parsed.startTime) / 1000);
+        const totalDuration = parsed.isBreak ? parsed.breakDuration * 60 : parsed.workDuration * 60;
+        const newTimeLeft = Math.max(0, totalDuration - realElapsed);
+        
+        // If time expired, don't recover
+        if (newTimeLeft <= 0) {
+          localStorage.removeItem(STORAGE_KEY);
+          return false;
+        }
+        
+        setState({
+          ...parsed,
+          timeLeft: newTimeLeft,
+          isActive: true
+        });
+        return true;
+      }
+      
+      // Recover paused state
+      setState(parsed);
+      return true;
+      
     } catch (error) {
       console.error('Error loading pomodoro state:', error);
+      localStorage.removeItem(STORAGE_KEY);
     }
     return false;
   }, []);
@@ -217,13 +248,17 @@ export const PomodoroProvider = ({ children }: { children: React.ReactNode }) =>
         setState(prev => {
           const newTimeLeft = prev.timeLeft - 1;
           
-          // Auto-save every 5 seconds
-          if (newTimeLeft % 5 === 0) {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify({
-              ...prev,
-              timeLeft: newTimeLeft,
-              timestamp: performance.now()
-            }));
+          // Auto-save every 10 seconds to reduce localStorage writes
+          if (newTimeLeft % 10 === 0) {
+            try {
+              localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                ...prev,
+                timeLeft: newTimeLeft,
+                timestamp: Date.now()
+              }));
+            } catch (error) {
+              console.error('Error auto-saving state:', error);
+            }
           }
           
           return { ...prev, timeLeft: newTimeLeft };
@@ -299,6 +334,24 @@ export const PomodoroProvider = ({ children }: { children: React.ReactNode }) =>
     }
   }, [state.timeLeft, state.isActive, state.currentSessionId, state.isBreak, state.currentTaskId, toast, updateStats]);
 
+  // Cleanup failed sessions
+  const cleanupFailedSessions = useCallback(async () => {
+    try {
+      const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      
+      // Mark old uncompleted sessions as failed
+      await supabase
+        .from('pomodoro_sessions')
+        .update({ is_completed: false })
+        .is('completed_at', null)
+        .lt('started_at', oneDayAgo);
+        
+      console.log('✅ Cleaned up failed sessions');
+    } catch (error) {
+      console.error('Error cleaning up failed sessions:', error);
+    }
+  }, []);
+
   // Initialize from localStorage
   useEffect(() => {
     const recovered = loadState();
@@ -307,19 +360,31 @@ export const PomodoroProvider = ({ children }: { children: React.ReactNode }) =>
       if ('Notification' in window && Notification.permission === 'default') {
         Notification.requestPermission();
       }
+      // Cleanup failed sessions on fresh start
+      cleanupFailedSessions();
     }
-  }, [loadState]);
+  }, [loadState, cleanupFailedSessions]);
 
   const startTimer = async (taskId: string) => {
     try {
-      console.log('🔄 Starting task-based timer:', { taskId, isBreak: state.isBreak });
+      console.log('🔄 Starting task-based timer:', { taskId, isBreak: state.isBreak, currentSession: state.currentSessionId });
+      
+      // Prevent starting if there's already an active timer
+      if (state.currentSessionId && state.timeLeft > 0) {
+        console.warn('⚠️ Timer already active, cannot start new one');
+        toast({
+          title: "Timer ja actiu",
+          description: "Ja tens un timer en marxa"
+        });
+        return;
+      }
       
       const sessionType = state.isBreak ? 'break' : 'work';
       const session = await createSession(taskId, sessionType);
       const duration = state.isBreak ? state.breakDuration : state.workDuration;
       const now = Date.now();
       
-      console.log('✅ Task session created:', session);
+      console.log('✅ Task session created:', { session, duration, sessionType });
       
       saveState({
         isActive: true,
@@ -332,6 +397,11 @@ export const PomodoroProvider = ({ children }: { children: React.ReactNode }) =>
       if (taskId) {
         await updateStats(taskId);
       }
+      
+      toast({
+        title: state.isBreak ? "Descans iniciat" : "Sessió iniciada",
+        description: `${duration} minuts de ${state.isBreak ? 'descans' : 'focus'}`
+      });
       
       console.log('✅ Task timer started successfully');
       
@@ -350,46 +420,31 @@ export const PomodoroProvider = ({ children }: { children: React.ReactNode }) =>
     try {
       console.log('🔄 Starting generic timer:', { durationMinutes });
       
-      const now = Date.now();
-      const tempSessionId = `temp-${now}`;
+      // Create session first to avoid temporary IDs
+      const session = await createSession(null, 'generic', durationMinutes);
+      console.log('✅ Generic session created:', session);
       
-      // Optimistic update - show timer immediately
+      const now = Date.now();
+      
       saveState({
         isActive: true,
         currentTaskId: null,
-        currentSessionId: tempSessionId,
+        currentSessionId: session.id,
         timeLeft: durationMinutes * 60,
         startTime: now,
         isBreak: false,
         workDuration: durationMinutes
       });
       
-      // Show immediate feedback
       toast({
         title: "Timer iniciat",
         description: `${durationMinutes} minuts de focus`
       });
       
-      // Create session in background
-      const session = await createSession(null, 'generic', durationMinutes);
-      console.log('✅ Generic session created:', session);
-      
-      // Update with real session ID
-      saveState({
-        currentSessionId: session.id
-      });
-      
-      console.log('✅ Generic timer state updated successfully');
+      console.log('✅ Generic timer started successfully');
       
     } catch (error) {
       console.error('❌ Error starting generic timer:', error);
-      
-      // Rollback optimistic update
-      saveState({
-        isActive: false,
-        currentSessionId: null,
-        timeLeft: state.workDuration * 60
-      });
       
       toast({
         variant: "destructive",
@@ -401,15 +456,28 @@ export const PomodoroProvider = ({ children }: { children: React.ReactNode }) =>
   };
 
   const pauseTimer = () => {
-    saveState({ isActive: false });
+    console.log('⏸️ Pausing timer');
+    saveState({ 
+      isActive: false,
+      // Update startTime to reflect the pause
+      startTime: Date.now() - ((state.isBreak ? state.breakDuration : state.workDuration) * 60 - state.timeLeft) * 1000
+    });
   };
 
   const resetTimer = async () => {
+    console.log('🔄 Resetting timer');
     if (state.currentSessionId) {
       try {
-        await completeSession(state.currentSessionId);
+        // Mark as completed but not successful for tracking
+        await supabase
+          .from('pomodoro_sessions')
+          .update({
+            completed_at: new Date().toISOString(),
+            is_completed: false // Mark as incomplete/cancelled
+          })
+          .eq('id', state.currentSessionId);
       } catch (error) {
-        console.error('Error completing session on reset:', error);
+        console.error('Error updating session on reset:', error);
       }
     }
     clearState();
@@ -435,7 +503,7 @@ export const PomodoroProvider = ({ children }: { children: React.ReactNode }) =>
     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
-  const hasActiveTimer = (state.isActive && state.timeLeft > 0) || (state.currentSessionId !== null);
+  const hasActiveTimer = state.currentSessionId !== null && state.timeLeft > 0;
 
   return (
     <PomodoroContext.Provider value={{
