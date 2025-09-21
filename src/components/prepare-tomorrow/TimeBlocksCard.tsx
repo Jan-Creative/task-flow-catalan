@@ -117,9 +117,9 @@ export const TimeBlocksCard = ({
 
   return (
     <>
-      <Card className={cn("h-fit backdrop-blur-sm bg-background/80 border-white/10", className)}>
-        <CardHeader className="pb-4">
-          <CardTitle className="flex items-center justify-between">
+      <Card className={cn("h-fit bg-transparent border-0 shadow-none", className)}>
+        <CardHeader className="pb-3 px-0">
+          <CardTitle className="flex items-center justify-between text-lg font-semibold">
             <div className="flex items-center gap-2">
               <Clock className="h-5 w-5 text-primary" />
               Blocs de Temps
@@ -128,30 +128,27 @@ export const TimeBlocksCard = ({
               onClick={() => setShowNotificationConfig(true)}
               variant="outline"
               size="sm"
-              className="backdrop-blur-sm bg-background/50 border-white/20 hover:bg-background/70"
+              className="backdrop-blur-sm bg-white/10 border-white/20 hover:bg-white/20 text-white/90 h-8 px-3"
             >
               <Settings className="h-4 w-4" />
             </Button>
           </CardTitle>
-          <CardDescription className="text-muted-foreground/80">
-            Organitza el teu temps en blocs dedicats
-          </CardDescription>
           {totalPlannedHours > 0 && (
-            <div className="text-sm text-muted-foreground/70 font-medium">
+            <div className="text-sm text-white/70 font-medium">
               {totalPlannedHours.toFixed(1)} hores planificades
             </div>
           )}
         </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Timeline view */}
-          <div className="relative backdrop-blur-sm bg-background/20 rounded-lg border border-white/10 overflow-hidden shadow-lg">
-            <div className="relative">
+        <CardContent className="px-0 pb-0">
+          {/* Timeline view - Cronograma principal */}
+          <div className="relative bg-background/5 backdrop-blur-xl backdrop-saturate-150 backdrop-brightness-110 rounded-2xl border border-white/5 overflow-hidden shadow-lg/10" style={{height: '600px'}}>
+            <div className="relative h-full">
               {/* Time column */}
-              <div className="w-14 flex-shrink-0 bg-background/30 backdrop-blur-sm relative z-10">
+              <div className="w-16 flex-shrink-0 bg-white/5 backdrop-blur-sm relative z-10 h-full">
                 {hours.map((hour) => (
                   <div
                     key={hour}
-                    className="h-10 px-2 py-1 text-xs text-muted-foreground/40 border-t border-muted/8 flex items-start first:border-t-0"
+                    className="h-14 px-3 py-2 text-xs font-semibold text-white/70 border-t border-white/10 flex items-center first:border-t-0"
                   >
                     {hour.toString().padStart(2, '0')}:00
                   </div>
@@ -159,13 +156,13 @@ export const TimeBlocksCard = ({
               </div>
 
               {/* Grid background - positioned absolutely to cover full width */}
-              <div className="absolute inset-0 min-h-[375px]">
+              <div className="absolute inset-0 h-full">
                 {/* Hour separators */}
                 {hours.map((hour) => (
                   <div
                     key={hour}
-                    className="absolute left-0 right-0 h-10 border-t border-muted/8 first:border-t-0"
-                    style={{ top: `${(hour - 8) * 2.5}rem` }}
+                    className="absolute left-0 right-0 h-14 border-t border-white/10 first:border-t-0"
+                    style={{ top: `${(hour - 8) * 3.5}rem` }}
                   >
                     {/* Half-hour line */}
                     <div className="absolute top-5 left-0 right-0 h-px bg-muted/5" />
@@ -270,7 +267,7 @@ export const TimeBlocksCard = ({
           <Button 
             onClick={() => setShowCreateModal(true)}
             variant="outline" 
-            className="w-full backdrop-blur-sm bg-background/50 border-white/20 hover:bg-background/70 transition-all duration-300"
+            className="w-full mt-6 backdrop-blur-sm bg-white/10 border-white/20 hover:bg-white/20 text-white/90 transition-all duration-300 rounded-xl h-12"
             size="sm"
           >
             <Plus className="h-4 w-4 mr-2" />
