@@ -27,11 +27,11 @@ interface ResizeState {
   currentEndTime: string;
 }
 
-export const useBlockResize = ({ 
-  onUpdateBlock, 
-  minHour = 8, 
-  maxHour = 22, 
-  snapMinutes = 15 
+export const useBlockResize = ({
+  onUpdateBlock,
+  minHour = 0,
+  maxHour = 23,
+  snapMinutes = 15
 }: UseBlockResizeProps) => {
   const [resizeState, setResizeState] = useState<ResizeState>({
     isResizing: false,

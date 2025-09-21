@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, Clock, MoreHorizontal, Settings } from 'lucide-react';
@@ -34,20 +34,21 @@ export const TimeBlocksCard = ({
   // Initialize resize functionality
   const { resizeState, startResize, containerRef } = useBlockResize({
     onUpdateBlock: onUpdateTimeBlock || (() => {}),
-    minHour: 8,
-    maxHour: 22,
+    minHour: 0,
+    maxHour: 23,
     snapMinutes: 15,
   });
 
   const { updateBlockNotifications } = useTimeBlockNotifications(baseDate);
 
-  const hours = Array.from({ length: 15 }, (_, i) => i + 8); // 8:00 to 22:00
+  const hours = Array.from({ length: 24 }, (_, i) => i); // 0:00 to 23:00
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const getBlockPosition = (block: TimeBlock) => {
     const [startHour, startMinutes] = block.startTime.split(':').map(Number);
     const [endHour, endMinutes] = block.endTime.split(':').map(Number);
     
-    const startPosition = ((startHour - 8) * 60 + startMinutes) / 60; // Hours from 8:00
+    const startPosition = (startHour * 60 + startMinutes) / 60; // Hours from 0:00
     const duration = ((endHour - startHour) * 60 + (endMinutes - startMinutes)) / 60;
     
     return {
@@ -106,6 +107,25 @@ export const TimeBlocksCard = ({
     }, 0);
   }, [timeBlocks]);
 
+  // Auto-scroll to current time on component mount
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      const now = new Date();
+      const currentHour = now.getHours();
+      const currentMinute = now.getMinutes();
+      
+      // Calculate position to center current time in view (2.5rem per hour)
+      const currentPosition = (currentHour + currentMinute / 60) * 2.5 * 16; // Convert rem to pixels (16px per rem)
+      const containerHeight = scrollContainerRef.current.clientHeight;
+      const scrollPosition = Math.max(0, currentPosition - containerHeight / 2);
+      
+      scrollContainerRef.current.scrollTo({
+        top: scrollPosition,
+        behavior: 'smooth'
+      });
+    }
+  }, []);
+
   return (
     <>
       <Card className={cn("h-fit bg-transparent border-0 shadow-none", className)}>
@@ -124,37 +144,50 @@ export const TimeBlocksCard = ({
         </CardHeader>
         <CardContent className="px-0 pb-0">
           {/* Timeline view - Cronograma principal */}
-          <div className="relative bg-background/5 backdrop-blur-xl backdrop-saturate-150 backdrop-brightness-110 rounded-2xl border border-white/5 overflow-hidden shadow-lg/10" style={{height: '600px'}}>
-            <div className="relative h-full">
+          <div 
+            ref={scrollContainerRef}
+            className="relative bg-background/5 backdrop-blur-xl backdrop-saturate-150 backdrop-brightness-110 rounded-2xl border border-white/5 overflow-y-auto shadow-lg/10 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent" 
+            style={{height: '600px'}}
+          >
+            <div className="relative" style={{height: `${hours.length * 3.5}rem`}}>
               {/* Time column */}
-              <div className="w-16 flex-shrink-0 bg-white/5 backdrop-blur-sm relative z-10 h-full">
-                {hours.map((hour) => (
-                  <div
-                    key={hour}
-                    className="h-14 px-3 py-2 text-xs font-semibold text-white/70 border-t border-white/10 flex items-center first:border-t-0"
-                  >
-                    {hour.toString().padStart(2, '0')}:00
-                  </div>
-                ))}
+              <div className="absolute left-0 w-16 bg-white/5 backdrop-blur-sm z-10 h-full">
+                {hours.map((hour) => {
+                  const now = new Date();
+                  const isCurrentHour = hour === now.getHours();
+                  
+                  return (
+                    <div
+                      key={hour}
+                      className={`h-14 px-3 py-2 text-xs font-semibold border-t border-white/10 flex items-center first:border-t-0 ${
+                        isCurrentHour 
+                          ? 'text-primary bg-primary/10' 
+                          : 'text-white/70'
+                      }`}
+                    >
+                      {hour.toString().padStart(2, '0')}:00
+                    </div>
+                  );
+                })}
               </div>
 
               {/* Grid background - positioned absolutely to cover full width */}
-              <div className="absolute inset-0 h-full">
+              <div className="absolute inset-0" style={{height: `${hours.length * 3.5}rem`}}>
                 {/* Hour separators */}
                 {hours.map((hour) => (
                   <div
                     key={hour}
                     className="absolute left-0 right-0 h-14 border-t border-white/10 first:border-t-0"
-                    style={{ top: `${(hour - 8) * 3.5}rem` }}
+                    style={{ top: `${hour * 3.5}rem` }}
                   >
                     {/* Half-hour line */}
-                    <div className="absolute top-5 left-0 right-0 h-px bg-muted/5" />
+                    <div className="absolute top-7 left-0 right-0 h-px bg-muted/5" />
                   </div>
                 ))}
               </div>
 
               {/* Time blocks - positioned absolutely to cover full width */}
-              <div ref={containerRef} className="absolute inset-0 min-h-[375px]">
+              <div ref={containerRef} className="absolute inset-0" style={{height: `${hours.length * 3.5}rem`}}>
                 {timeBlocks.map((block) => {
                   const isResizing = resizeState.isResizing && resizeState.blockId === block.id;
                   const renderBlock: TimeBlock = isResizing && resizeState.currentStartTime
