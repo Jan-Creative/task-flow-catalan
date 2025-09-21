@@ -5,6 +5,7 @@ import { Separator } from "@/components/ui/separator";
 import { useProjectKeyboardShortcuts, useProjectSearchLogic } from "@/hooks/useProjectNavigation";
 import { useProjectNavigation } from "@/contexts/ProjectNavigationContext";
 import ProjectSearchInput from "./ProjectSearchInput";
+import { SidebarPomodoroWidget } from "@/components/pomodoro/SidebarPomodoroWidget";
 
 interface ProjectSidebarProps {
   projectId: string;
@@ -163,6 +164,11 @@ const ProjectSidebar = ({
               <p className="text-xs">Més funcions aviat...</p>
             </div>
           </div>
+        </div>
+
+        {/* Pomodoro Widget - Positioned at bottom */}
+        <div className="px-6 pb-3">
+          <SidebarPomodoroWidget />
         </div>
 
         {/* Footer */}

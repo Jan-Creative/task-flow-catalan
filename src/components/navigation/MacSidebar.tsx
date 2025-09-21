@@ -99,9 +99,6 @@ const MacSidebar = ({
           </Button>
         </div>
 
-        {/* Pomodoro Widget */}
-        <SidebarPomodoroWidget />
-
         {/* Navigation Sections */}
         <div className="flex-1 overflow-y-auto px-3">
           {mainSections.map((section, sectionIndex) => (
@@ -159,6 +156,11 @@ const MacSidebar = ({
               )}
             </div>
           ))}
+        </div>
+
+        {/* Pomodoro Widget - Positioned at bottom */}
+        <div className="px-6 pb-3">
+          <SidebarPomodoroWidget />
         </div>
 
         {/* Footer */}
