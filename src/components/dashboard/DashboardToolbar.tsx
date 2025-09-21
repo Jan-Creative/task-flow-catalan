@@ -51,9 +51,9 @@ export const DashboardToolbar = ({
   };
 
   return (
-    <div className="flex items-center gap-1 bg-card border border-border/30 rounded-xl px-2 py-1.5 shadow-sm">
+    <div className="flex items-center gap-1 bg-card rounded-2xl px-2 py-1.5 shadow-[var(--shadow-card)]">
       {/* Pomodoro Widget */}
-      <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-muted/30">
+      <div className="flex items-center gap-1.5 px-2 py-1 rounded-xl bg-accent">
         {hasActiveTimer ? (
           <>
             <div className="flex items-center gap-1.5">
@@ -123,7 +123,7 @@ export const DashboardToolbar = ({
       <Button 
         variant="ghost" 
         size="sm"
-        className="h-7 w-7 p-0 relative hover:bg-accent"
+        className="h-8 w-8 p-0 relative bg-accent hover:bg-accent/80 rounded-xl"
         onClick={onNavigateToNotifications}
         title="Notificacions"
       >
@@ -142,7 +142,7 @@ export const DashboardToolbar = ({
       <Button 
         variant="ghost" 
         size="sm"
-        className="h-7 w-7 p-0 hover:bg-accent"
+        className="h-8 w-8 p-0 bg-accent hover:bg-accent/80 rounded-xl"
         onClick={() => setShowStats(!showStats)}
         title="Estadístiques"
       >
@@ -153,7 +153,7 @@ export const DashboardToolbar = ({
       <Button 
         variant="ghost" 
         size="sm"
-        className="h-7 w-7 p-0 hover:bg-accent opacity-50"
+        className="h-8 w-8 p-0 bg-accent hover:bg-accent/80 rounded-xl opacity-50"
         title="Mode Focus (Aviat disponible)"
         disabled
       >
