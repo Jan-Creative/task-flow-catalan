@@ -51,9 +51,9 @@ export const DashboardToolbar = ({
   };
 
   return (
-    <div className="flex items-center gap-1.5 bg-white/5 backdrop-blur-xl border border-white/10 rounded-lg px-2 py-1.5 shadow-lg shadow-black/5">
+    <div className="flex items-center gap-1 bg-card border border-border/30 rounded-xl px-2 py-1.5 shadow-sm">
       {/* Pomodoro Widget */}
-      <div className="flex items-center gap-2 px-2 py-1 rounded-md bg-white/5 border border-white/8">
+      <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-muted/30">
         {hasActiveTimer ? (
           <>
             <div className="flex items-center gap-1.5">
@@ -78,7 +78,8 @@ export const DashboardToolbar = ({
                   onClick={handleStartPomodoro}
                   size="sm" 
                   variant="ghost"
-                  className="h-6 w-6 p-0 hover:bg-white/15"
+                  className="h-6 w-6 p-0 hover:bg-accent"
+                  title="Reproduir"
                 >
                   <Play className="h-3 w-3" />
                 </Button>
@@ -87,7 +88,8 @@ export const DashboardToolbar = ({
                   onClick={pauseTimer}
                   size="sm" 
                   variant="ghost"
-                  className="h-6 w-6 p-0 hover:bg-white/15"
+                  className="h-6 w-6 p-0 hover:bg-accent"
+                  title="Pausar"
                 >
                   <Pause className="h-3 w-3" />
                 </Button>
@@ -98,6 +100,7 @@ export const DashboardToolbar = ({
                 size="sm" 
                 variant="ghost"
                 className="h-6 w-6 p-0 hover:bg-destructive/15 hover:text-destructive"
+                title="Reiniciar"
               >
                 <RotateCcw className="h-3 w-3" />
               </Button>
@@ -108,10 +111,10 @@ export const DashboardToolbar = ({
             onClick={handleStartPomodoro}
             size="sm" 
             variant="ghost"
-            className="h-8 px-3 gap-1.5 hover:bg-white/15"
+            className="h-7 w-7 p-0 hover:bg-accent"
+            title="Iniciar Pomodoro"
           >
-            <Timer className="h-4 w-4" />
-            <span className="text-sm">Pomodoro</span>
+            <Timer className="h-4 w-4 text-muted-foreground" />
           </Button>
         )}
       </div>
@@ -120,10 +123,11 @@ export const DashboardToolbar = ({
       <Button 
         variant="ghost" 
         size="sm"
-        className="h-8 w-8 p-0 relative hover:bg-white/10"
+        className="h-7 w-7 p-0 relative hover:bg-accent"
         onClick={onNavigateToNotifications}
+        title="Notificacions"
       >
-        <Bell className="h-4 w-4 opacity-80" />
+        <Bell className="h-4 w-4 text-muted-foreground" />
         {queueSize > 0 && (
           <Badge 
             variant="destructive" 
@@ -138,25 +142,26 @@ export const DashboardToolbar = ({
       <Button 
         variant="ghost" 
         size="sm"
-        className="h-8 w-8 p-0 hover:bg-white/10"
+        className="h-7 w-7 p-0 hover:bg-accent"
         onClick={() => setShowStats(!showStats)}
+        title="Estadístiques"
       >
-        <BarChart3 className="h-4 w-4 opacity-80" />
+        <BarChart3 className="h-4 w-4 text-muted-foreground" />
       </Button>
 
       {/* Focus Mode */}
       <Button 
         variant="ghost" 
         size="sm"
-        className="h-8 w-8 p-0 hover:bg-white/10 opacity-50"
+        className="h-7 w-7 p-0 hover:bg-accent opacity-50"
         title="Mode Focus (Aviat disponible)"
         disabled
       >
-        <Focus className="h-4 w-4" />
+        <Focus className="h-4 w-4 text-muted-foreground" />
       </Button>
 
       {/* Separator */}
-      <div className="w-px h-5 bg-white/20 mx-1" />
+      <div className="w-px h-4 bg-border/40 mx-1" />
 
       {/* Configuration Menu */}
       <ConfigurationMenu 
