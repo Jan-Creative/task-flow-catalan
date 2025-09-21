@@ -1,6 +1,6 @@
 import { useLocation } from 'react-router-dom';
 import { useDeviceType } from '@/hooks/device/useDeviceType';
-import { useSidebar } from '@/components/ui/sidebar';
+import { useMacNavigation } from '@/contexts/MacNavigationContext';
 import { usePomodoroContext } from '@/contexts/PomodoroContext';
 
 export interface PomodoroWidgetVisibility {
@@ -18,12 +18,12 @@ export const usePomodoroWidgetLogic = (): PomodoroWidgetVisibility => {
   const { type: deviceType } = useDeviceType();
   const { hasActiveTimer } = usePomodoroContext();
   
-  // Intentar obtenir l'estat de la sidebar si està disponible
-  let sidebarState = null;
+  // Detectar l'estat de la sidebar segons el tipus de dispositiu
+  let macNavigation = null;
   try {
-    sidebarState = useSidebar();
+    macNavigation = useMacNavigation();
   } catch {
-    // No estem en un context de sidebar
+    // No estem en un context de MacNavigation
   }
   
   const currentPath = location.pathname;
@@ -32,10 +32,10 @@ export const usePomodoroWidgetLogic = (): PomodoroWidgetVisibility => {
   const isDesktop = deviceType === 'mac' || deviceType === 'windows';
   const isMobile = deviceType === 'iphone' || deviceType === 'android';
   
-  // Sidebar està oberta/visible
-  const sidebarOpen = sidebarState?.open ?? false;
-  const sidebarCollapsed = sidebarState?.collapsed ?? false;
-  const hasSidebar = sidebarState !== null;
+  // Estat de la sidebar segons el tipus de dispositiu
+  const hasSidebar = isMac && macNavigation !== null;
+  const sidebarCollapsed = macNavigation?.isCollapsed ?? false;
+  const sidebarOpen = !sidebarCollapsed;
   
   // NOTA: Eliminem la restricció anterior que impedia mostrar widgets sense timer actiu
   // Ara els widgets es mostren segons la lògica de coordinació, independentment de si hi ha timer actiu
