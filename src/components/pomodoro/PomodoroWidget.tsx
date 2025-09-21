@@ -3,6 +3,7 @@ import { Play, Pause, RotateCcw, Coffee, Timer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePomodoroContext } from '@/contexts/PomodoroContext';
 import { cn } from '@/lib/utils';
+import { usePomodoroWidgetLogic } from '@/hooks/usePomodoroWidgetLogic';
 
 export const PomodoroWidget = () => {
   const {
@@ -16,9 +17,11 @@ export const PomodoroWidget = () => {
     workDuration,
     breakDuration
   } = usePomodoroContext();
+  
+  const { showFloatingWidget } = usePomodoroWidgetLogic();
 
-  // Don't show widget if no active timer
-  if (!hasActiveTimer) return null;
+  // Només mostrar si la lògica de coordinació ho permet
+  if (!hasActiveTimer || !showFloatingWidget) return null;
 
   // Calculate progress based on current session type and duration
   const totalTime = isBreak ? breakDuration * 60 : workDuration * 60;

@@ -15,6 +15,7 @@ import { NotificationDisplay } from "@/components/NotificationDisplay";
 import { PerformanceMonitor } from "@/components/performance/PerformanceMonitor";
 import { SecurityMonitor } from "@/components/security/SecurityMonitor";
 import { config, validateConfig } from "@/config/appConfig";
+import { usePomodoroWidgetLogic } from "@/hooks/usePomodoroWidgetLogic";
 
 const App = () => {
   // Validate configuration on app start - handle errors gracefully
@@ -26,6 +27,8 @@ const App = () => {
   } catch (error) {
     console.warn('Configuration validation warning:', error);
   }
+
+  const { showFloatingWidget } = usePomodoroWidgetLogic();
 
   return (
     <div className="w-full min-h-screen overflow-x-hidden">
@@ -46,7 +49,8 @@ const App = () => {
           </Routes>
         </RouteCacheProvider>
       </BrowserRouter>
-      <PomodoroWidget />
+      {/* Només mostrar el widget flotant quan la lògica ho permet */}
+      {showFloatingWidget && <PomodoroWidget />}
       <NotificationDisplay />
       <PerformanceMonitor />
       <SecurityMonitor />

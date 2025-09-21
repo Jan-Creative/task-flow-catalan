@@ -17,6 +17,7 @@ import { usePomodoroContext } from '@/contexts/PomodoroContext';
 import { useNotificationManager } from '@/hooks/useNotificationManager';
 import { PomodoroMenuPopover } from '@/components/pomodoro/PomodoroMenuPopover';
 import { cn } from '@/lib/utils';
+import { usePomodoroWidgetLogic } from '@/hooks/usePomodoroWidgetLogic';
 
 interface DashboardToolbarProps {
   onNavigateToPrepareTomorrow?: () => void;
@@ -46,6 +47,8 @@ export const DashboardToolbar = ({
     resetTimer,
     hasActiveTimer
   } = usePomodoroContext();
+  
+  const { showToolbarIndicator } = usePomodoroWidgetLogic();
 
   const handleStartPomodoro = () => {
     startTimer('dashboard-widget');
@@ -53,73 +56,75 @@ export const DashboardToolbar = ({
 
   return (
     <div className="flex items-center gap-1 bg-card rounded-2xl px-2 py-1.5 shadow-[var(--shadow-card)]">
-      {/* Pomodoro Widget */}
-      <div className="flex items-center gap-1.5 px-2 py-1 rounded-xl bg-accent">
-        {hasActiveTimer ? (
-          <>
-            <div className="flex items-center gap-1.5">
-              <div className="relative">
-                <Timer className={cn(
-                  "h-4 w-4 transition-colors duration-300",
-                  isActive ? "text-primary" : "text-muted-foreground"
-                )} />
-                {isActive && (
-                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full animate-pulse" />
-                )}
+      {/* Pomodoro Widget - només visible a la pàgina d'inici */}
+      {showToolbarIndicator && (
+        <div className="flex items-center gap-1.5 px-2 py-1 rounded-xl bg-accent">
+          {hasActiveTimer ? (
+            <>
+              <div className="flex items-center gap-1.5">
+                <div className="relative">
+                  <Timer className={cn(
+                    "h-4 w-4 transition-colors duration-300",
+                    isActive ? "text-primary" : "text-muted-foreground"
+                  )} />
+                  {isActive && (
+                    <div className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full animate-pulse" />
+                  )}
+                </div>
+                <span className="font-mono text-sm font-medium text-foreground">
+                  {formatTime(timeLeft)}
+                </span>
+                {isBreak && <Coffee className="h-3 w-3 text-orange-400" />}
               </div>
-              <span className="font-mono text-sm font-medium text-foreground">
-                {formatTime(timeLeft)}
-              </span>
-              {isBreak && <Coffee className="h-3 w-3 text-orange-400" />}
-            </div>
-            
-            <div className="flex items-center gap-1">
-              {!isActive ? (
-                <Button 
-                  onClick={handleStartPomodoro}
-                  size="sm" 
-                  variant="ghost"
-                  className="h-6 w-6 p-0 hover:bg-accent"
-                  title="Reproduir"
-                >
-                  <Play className="h-3 w-3" />
-                </Button>
-              ) : (
-                <Button 
-                  onClick={pauseTimer}
-                  size="sm" 
-                  variant="ghost"
-                  className="h-6 w-6 p-0 hover:bg-accent"
-                  title="Pausar"
-                >
-                  <Pause className="h-3 w-3" />
-                </Button>
-              )}
               
+              <div className="flex items-center gap-1">
+                {!isActive ? (
+                  <Button 
+                    onClick={handleStartPomodoro}
+                    size="sm" 
+                    variant="ghost"
+                    className="h-6 w-6 p-0 hover:bg-accent"
+                    title="Reproduir"
+                  >
+                    <Play className="h-3 w-3" />
+                  </Button>
+                ) : (
+                  <Button 
+                    onClick={pauseTimer}
+                    size="sm" 
+                    variant="ghost"
+                    className="h-6 w-6 p-0 hover:bg-accent"
+                    title="Pausar"
+                  >
+                    <Pause className="h-3 w-3" />
+                  </Button>
+                )}
+                
+                <Button 
+                  onClick={resetTimer}
+                  size="sm" 
+                  variant="ghost"
+                  className="h-6 w-6 p-0 hover:bg-destructive/15 hover:text-destructive"
+                  title="Reiniciar"
+                >
+                  <RotateCcw className="h-3 w-3" />
+                </Button>
+              </div>
+            </>
+          ) : (
+            <PomodoroMenuPopover>
               <Button 
-                onClick={resetTimer}
                 size="sm" 
                 variant="ghost"
-                className="h-6 w-6 p-0 hover:bg-destructive/15 hover:text-destructive"
-                title="Reiniciar"
+                className="h-7 w-7 p-0 hover:bg-accent"
+                title="Iniciar Pomodoro"
               >
-                <RotateCcw className="h-3 w-3" />
+                <Timer className="h-4 w-4 text-white" />
               </Button>
-            </div>
-          </>
-        ) : (
-          <PomodoroMenuPopover>
-            <Button 
-              size="sm" 
-              variant="ghost"
-              className="h-7 w-7 p-0 hover:bg-accent"
-              title="Iniciar Pomodoro"
-            >
-              <Timer className="h-4 w-4 text-white" />
-            </Button>
-          </PomodoroMenuPopover>
-        )}
-      </div>
+            </PomodoroMenuPopover>
+          )}
+        </div>
+      )}
 
       {/* Notification Indicator */}
       <Button 

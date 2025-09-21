@@ -3,6 +3,7 @@ import { Play, Pause, RotateCcw, Coffee, Timer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePomodoroContext } from '@/contexts/PomodoroContext';
 import { cn } from '@/lib/utils';
+import { usePomodoroWidgetLogic } from '@/hooks/usePomodoroWidgetLogic';
 
 export const SidebarPomodoroWidget = React.memo(() => {
   const {
@@ -16,8 +17,11 @@ export const SidebarPomodoroWidget = React.memo(() => {
     workDuration,
     breakDuration
   } = usePomodoroContext();
+  
+  const { showSidebarWidget } = usePomodoroWidgetLogic();
 
-  if (!hasActiveTimer) {
+  // Només mostrar si la lògica de coordinació ho permet
+  if (!hasActiveTimer || !showSidebarWidget) {
     return null;
   }
 
