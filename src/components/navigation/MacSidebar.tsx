@@ -148,6 +148,13 @@ const MacSidebar = ({
                 })}
               </nav>
               
+              {/* Pomodoro Widget - After "Gestió" section */}
+              {section.title === "Gestió" && (
+                <div className="mt-4 px-3">
+                  <SidebarPomodoroWidget />
+                </div>
+              )}
+              
               {/* Section Separator */}
               {sectionIndex < mainSections.length - 1 && (
                 <div className="mt-6">
@@ -156,11 +163,6 @@ const MacSidebar = ({
               )}
             </div>
           ))}
-        </div>
-
-        {/* Pomodoro Widget - Positioned at bottom */}
-        <div className="px-6 pb-3">
-          <SidebarPomodoroWidget />
         </div>
 
         {/* Footer */}

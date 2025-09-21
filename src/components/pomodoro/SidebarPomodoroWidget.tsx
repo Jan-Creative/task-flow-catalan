@@ -33,27 +33,56 @@ export const SidebarPomodoroWidget = React.memo(() => {
   const strokeDashoffset = circumference - (progress / 100) * circumference;
 
   return (
-    <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-accent">
-      <div className="flex items-center gap-1.5">
+    <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-accent">
+      <div className="flex items-center gap-2">
         <div className="relative">
-          {isBreak ? (
-            <Coffee className="h-4 w-4 text-orange-400" />
-          ) : (
-            <Timer className={cn(
-              "h-4 w-4 transition-colors duration-300",
-              isActive ? "text-white" : "text-white/70"
-            )} />
-          )}
+          {/* Progress Circle */}
+          <svg className="w-8 h-8 transform -rotate-90" viewBox="0 0 36 36">
+            {/* Background circle */}
+            <path
+              d="m18,2.0845 a 15.9155,15.9155 0 0,1 0,31.831 a 15.9155,15.9155 0 0,1 0,-31.831"
+              fill="none"
+              stroke="rgba(255,255,255,0.1)"
+              strokeWidth="2"
+            />
+            {/* Progress circle */}
+            <path
+              d="m18,2.0845 a 15.9155,15.9155 0 0,1 0,31.831 a 15.9155,15.9155 0 0,1 0,-31.831"
+              fill="none"
+              stroke={isBreak ? "hsl(var(--orange-400))" : "hsl(var(--primary))"}
+              strokeWidth="2"
+              strokeDasharray={`${progress}, 100`}
+              strokeLinecap="round"
+              className="transition-all duration-300"
+            />
+          </svg>
+          
+          {/* Icon centered in circle */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            {isBreak ? (
+              <Coffee className="h-3.5 w-3.5 text-orange-400" />
+            ) : (
+              <Timer className={cn(
+                "h-3.5 w-3.5 transition-colors duration-300",
+                isActive ? "text-white" : "text-white/70"
+              )} />
+            )}
+          </div>
+          
+          {/* Active indicator dot */}
           {isActive && (
-            <div className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full animate-pulse" />
+            <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-primary rounded-full animate-pulse" />
           )}
         </div>
-        <span className="font-mono text-sm font-medium text-white">
-          {formatTime(timeLeft)}
-        </span>
-        {isBreak && (
-          <span className="text-xs font-medium text-orange-400">Descans</span>
-        )}
+        
+        <div className="flex flex-col">
+          <span className="font-mono text-sm font-medium text-white leading-none">
+            {formatTime(timeLeft)}
+          </span>
+          {isBreak && (
+            <span className="text-xs font-medium text-orange-400 leading-none mt-0.5">Descans</span>
+          )}
+        </div>
       </div>
       
       <div className="flex items-center gap-1">

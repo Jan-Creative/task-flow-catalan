@@ -157,6 +157,11 @@ const ProjectSidebar = ({
             </div>
           ))}
 
+          {/* Pomodoro Widget - After sections */}
+          <div className="px-3 mb-6">
+            <SidebarPomodoroWidget />
+          </div>
+
           {/* Empty State Message */}
           <div className="px-3 py-8 text-center">
             <div className="text-sm text-muted-foreground space-y-2">
@@ -164,11 +169,6 @@ const ProjectSidebar = ({
               <p className="text-xs">Més funcions aviat...</p>
             </div>
           </div>
-        </div>
-
-        {/* Pomodoro Widget - Positioned at bottom */}
-        <div className="px-6 pb-3">
-          <SidebarPomodoroWidget />
         </div>
 
         {/* Footer */}
