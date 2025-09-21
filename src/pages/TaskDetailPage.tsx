@@ -3,7 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TaskDetailsCard } from "@/components/task-detail/TaskDetailsCard";
 import { TaskRemindersCard } from "@/components/task-detail/TaskRemindersCard";
-import { TaskTimeBlockCard } from "@/components/task-detail/TaskTimeBlockCard";
+
 import { LazySubtasksCard, LazyNotesCard, LazyPomodoroCard } from "@/components/LazyComponents";
 import { memo, Suspense, useEffect, useState } from "react";
 import { TaskProvider, useTaskContext } from "@/contexts/TaskContext";
@@ -76,8 +76,8 @@ const TaskDetailContent = memo(() => {
       <div className="relative z-20 p-4 pb-24">
         <div className="max-w-7xl mx-auto task-detail-grid">
           {/* Desktop XL Layout - Grid Complex (1440px+) */}
-          <div className="hidden 2xl:grid 2xl:grid-cols-6 gap-6 min-h-[600px] auto-rows-fr">
-            {/* Task Details Card - Quadrada mitjana */}
+          <div className="hidden 2xl:grid 2xl:grid-cols-5 gap-6 min-h-[600px] auto-rows-fr">
+            {/* Task Details Card - Més ampla */}
             <div className="col-span-2 row-span-2 animate-fade-in" style={{animationDelay: '0.1s'}}>
               <div className="h-full min-h-[280px]">
                 <TaskDetailsCard task={task} folderName={folder?.name} />
@@ -92,28 +92,21 @@ const TaskDetailContent = memo(() => {
             </div>
 
             {/* Subtasks Card - Rectangular vertical */}
-            <div className="col-span-2 row-span-4 animate-fade-in" style={{animationDelay: '0.3s'}}>
+            <div className="col-span-1 row-span-4 animate-fade-in" style={{animationDelay: '0.3s'}}>
               <div className="h-full min-h-[580px]">
                 <LazySubtasksCard taskId={task.id} />
               </div>
             </div>
 
-            {/* Time Block Card - Quadrada mitjana */}
-            <div className="col-span-2 row-span-2 animate-fade-in" style={{animationDelay: '0.4s'}}>
-              <div className="h-full min-h-[280px]">
-                <TaskTimeBlockCard />
-              </div>
-            </div>
-
             {/* Pomodoro Card - Quadrada mitjana */}
-            <div className="col-span-2 row-span-2 animate-fade-in" style={{animationDelay: '0.5s'}}>
+            <div className="col-span-2 row-span-2 animate-fade-in" style={{animationDelay: '0.4s'}}>
               <div className="h-full min-h-[280px]">
                 <LazyPomodoroCard taskId={task.id} />
               </div>
             </div>
 
             {/* Notes Card - Rectangular horitzontal gran */}
-            <div className="col-span-4 row-span-2 animate-fade-in" style={{animationDelay: '0.6s'}}>
+            <div className="col-span-2 row-span-2 animate-fade-in" style={{animationDelay: '0.5s'}}>
               <div className="h-full min-h-[280px]">
                 <LazyNotesCard taskId={task.id} />
               </div>
@@ -121,40 +114,35 @@ const TaskDetailContent = memo(() => {
           </div>
 
           {/* Desktop Layout - Grid simplificat (1024px-1440px) */}
-          <div className="hidden xl:grid 2xl:hidden xl:grid-cols-4 gap-6 auto-rows-fr">
+          <div className="hidden xl:grid 2xl:hidden xl:grid-cols-3 gap-6 auto-rows-fr">
             {/* Fila superior amb Task Details i Reminders */}
             <div className="col-span-2 animate-fade-in" style={{animationDelay: '0.1s'}}>
               <div className="h-full min-h-[300px]">
                 <TaskDetailsCard task={task} folderName={folder?.name} />
               </div>
             </div>
-            <div className="col-span-2 animate-fade-in" style={{animationDelay: '0.2s'}}>
+            <div className="col-span-1 animate-fade-in" style={{animationDelay: '0.2s'}}>
               <div className="h-full min-h-[300px]">
                 <TaskRemindersCard taskId={task.id} taskTitle={task.title} />
               </div>
             </div>
 
-            {/* Segona fila amb Time Block i Pomodoro */}
-            <div className="col-span-2 animate-fade-in" style={{animationDelay: '0.3s'}}>
-              <div className="h-full min-h-[300px]">
-                <TaskTimeBlockCard />
-              </div>
-            </div>
-            <div className="col-span-2 animate-fade-in" style={{animationDelay: '0.4s'}}>
+            {/* Segona fila amb Pomodoro */}
+            <div className="col-span-3 animate-fade-in" style={{animationDelay: '0.3s'}}>
               <div className="h-full min-h-[300px]">
                 <LazyPomodoroCard taskId={task.id} />
               </div>
             </div>
 
             {/* Tercera fila amb Subtasks */}
-            <div className="col-span-4 animate-fade-in" style={{animationDelay: '0.5s'}}>
+            <div className="col-span-3 animate-fade-in" style={{animationDelay: '0.4s'}}>
               <div className="h-full min-h-[350px]">
                 <LazySubtasksCard taskId={task.id} />
               </div>
             </div>
 
             {/* Quarta fila amb Notes */}
-            <div className="col-span-4 animate-fade-in" style={{animationDelay: '0.6s'}}>
+            <div className="col-span-3 animate-fade-in" style={{animationDelay: '0.5s'}}>
               <div className="h-full min-h-[350px]">
                 <LazyNotesCard taskId={task.id} />
               </div>
@@ -175,27 +163,22 @@ const TaskDetailContent = memo(() => {
               </div>
             </div>
 
-            {/* Fila 2: Time Block i Pomodoro */}
-            <div className="animate-fade-in" style={{animationDelay: '0.3s'}}>
-              <div className="h-full min-h-[280px]">
-                <TaskTimeBlockCard />
-              </div>
-            </div>
-            <div className="animate-fade-in" style={{animationDelay: '0.4s'}}>
+            {/* Fila 2: Pomodoro */}
+            <div className="col-span-2 animate-fade-in" style={{animationDelay: '0.3s'}}>
               <div className="h-full min-h-[350px]">
                 <LazyPomodoroCard taskId={task.id} />
               </div>
             </div>
 
             {/* Fila 3: Subtasks */}
-            <div className="col-span-2 animate-fade-in" style={{animationDelay: '0.5s'}}>
+            <div className="col-span-2 animate-fade-in" style={{animationDelay: '0.4s'}}>
               <div className="h-full min-h-[350px]">
                 <LazySubtasksCard taskId={task.id} />
               </div>
             </div>
 
             {/* Fila 4: Notes */}
-            <div className="col-span-2 animate-fade-in" style={{animationDelay: '0.6s'}}>
+            <div className="col-span-2 animate-fade-in" style={{animationDelay: '0.5s'}}>
               <div className="h-full min-h-[400px]">
                 <LazyNotesCard taskId={task.id} />
               </div>
@@ -211,15 +194,12 @@ const TaskDetailContent = memo(() => {
               <TaskRemindersCard taskId={task.id} taskTitle={task.title} />
             </div>
             <div className="animate-fade-in" style={{animationDelay: '0.3s'}}>
-              <TaskTimeBlockCard />
-            </div>
-            <div className="animate-fade-in" style={{animationDelay: '0.4s'}}>
               <LazyPomodoroCard taskId={task.id} />
             </div>
-            <div className="animate-fade-in" style={{animationDelay: '0.5s'}}>
+            <div className="animate-fade-in" style={{animationDelay: '0.4s'}}>
               <LazySubtasksCard taskId={task.id} />
             </div>
-            <div className="animate-fade-in" style={{animationDelay: '0.6s'}}>
+            <div className="animate-fade-in" style={{animationDelay: '0.5s'}}>
               <LazyNotesCard taskId={task.id} />
             </div>
           </div>

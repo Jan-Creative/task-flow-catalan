@@ -1,12 +1,17 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Clock, User, FolderOpen } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Calendar, Clock, User, FolderOpen, Edit3, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { ca } from "date-fns/locale";
-import { memo } from "react";
+import { memo, useState } from "react";
 import { useTaskContext } from "@/contexts/TaskContext";
 import { useTaskProperties } from "@/hooks/useTaskProperties";
 import { useProperties } from "@/hooks/useProperties";
 import { PropertyBadge } from "@/components/ui/property-badge";
+import { useTodayTimeBlocks } from "@/hooks/useTodayTimeBlocks";
+import { useTaskTimeBlocks } from "@/hooks/useTaskTimeBlocks";
+import { TaskTimeBlockSelector } from "@/components/task-form/TaskTimeBlockSelector";
+import { toast } from "sonner";
 
 interface Task {
   id: string;
@@ -31,6 +36,12 @@ export const TaskDetailsCard = memo(({ task: propTask, folderName: propFolderNam
   const contextData = useTaskContext();
   const task = propTask || contextData?.task;
   const folderName = propFolderName || contextData?.folder?.name;
+  const { updateTask } = contextData || {};
+  
+  // Time block management
+  const { timeBlocks } = useTodayTimeBlocks();
+  const { getTaskScheduleInfo } = useTaskTimeBlocks();
+  const [showTimeBlockSelector, setShowTimeBlockSelector] = useState(false);
   
   // Obtenir les propietats de la tasca
   const { data: taskProperties = [] } = useTaskProperties(task?.id);
@@ -122,8 +133,71 @@ export const TaskDetailsCard = memo(({ task: propTask, folderName: propFolderNam
       });
     });
 
+  // Time block info
+  const scheduleInfo = task ? getTaskScheduleInfo(task) : null;
+  const assignedTimeBlock = scheduleInfo?.timeBlockId 
+    ? timeBlocks.find(block => block.id === scheduleInfo.timeBlockId)
+    : null;
+
+  // Add time block to properties if assigned
+  if (assignedTimeBlock || scheduleInfo?.scheduledTime) {
+    allProperties.push({
+      id: `time-block-${assignedTimeBlock?.id || 'custom'}`,
+      propertyName: "Bloc de temps",
+      optionValue: assignedTimeBlock?.id || 'custom',
+      optionLabel: assignedTimeBlock ? assignedTimeBlock.title : 'Horari personalitzat',
+      optionColor: '#10b981', // green color for time blocks
+      optionIcon: 'clock',
+      order: 2.5
+    });
+  }
+
   // Ordenar propietats per importància
   allProperties.sort((a, b) => a.order - b.order);
+
+  // Handle time block assignment
+  const handleTimeBlockSelect = async (timeBlockId: string) => {
+    if (!updateTask) return;
+    try {
+      await updateTask({ time_block_id: timeBlockId });
+      setShowTimeBlockSelector(false);
+      toast.success('Bloc de temps assignat');
+    } catch (error) {
+      console.error('Error assigning time block:', error);
+      toast.error('Error al assignar el bloc de temps');
+    }
+  };
+
+  const handleCustomTimeSelect = async (startTime: string, endTime: string) => {
+    if (!updateTask) return;
+    try {
+      await updateTask({ 
+        scheduled_start_time: startTime,
+        scheduled_end_time: endTime,
+        time_block_id: null 
+      });
+      setShowTimeBlockSelector(false);
+      toast.success('Horari personalitzat assignat');
+    } catch (error) {
+      console.error('Error setting custom time:', error);
+      toast.error('Error al assignar l\'horari personalitzat');
+    }
+  };
+
+  const handleRemoveTimeBlock = async () => {
+    if (!updateTask) return;
+    try {
+      await updateTask({ 
+        time_block_id: null,
+        scheduled_start_time: null,
+        scheduled_end_time: null 
+      });
+      toast.success('Assignació temporal eliminada');
+    } catch (error) {
+      console.error('Error removing time assignment:', error);
+      toast.error('Error al eliminar l\'assignació temporal');
+    }
+  };
 
   return (
     <Card className="animate-fade-in h-full flex flex-col">
@@ -151,18 +225,63 @@ export const TaskDetailsCard = memo(({ task: propTask, folderName: propFolderNam
                 Propietats
               </h4>
               <div className="flex flex-wrap gap-1.5">
-                {allProperties.map((property) => (
-                  <PropertyBadge
-                    key={property.id}
-                    propertyName={property.propertyName}
-                    optionValue={property.optionValue}
-                    optionLabel={property.optionLabel}
-                    optionColor={property.optionColor}
-                    optionIcon={property.optionIcon}
-                    size="sm"
-                  />
-                ))}
+                {allProperties.map((property) => {
+                  const isTimeBlock = property.id.startsWith('time-block-');
+                  return (
+                    <div key={property.id} className="flex items-center gap-1">
+                      <PropertyBadge
+                        propertyName={property.propertyName}
+                        optionValue={property.optionValue}
+                        optionLabel={property.optionLabel}
+                        optionColor={property.optionColor}
+                        optionIcon={property.optionIcon}
+                        size="sm"
+                      />
+                      {isTimeBlock && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleRemoveTimeBlock}
+                          className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
+            </div>
+          )}
+
+          {/* Time Block Selector */}
+          {showTimeBlockSelector && (
+            <div className="space-y-2">
+              <TaskTimeBlockSelector
+                selectedTimeBlockId={assignedTimeBlock?.id}
+                selectedStartTime={task?.scheduled_start_time || ''}
+                selectedEndTime={task?.scheduled_end_time || ''}
+                onTimeBlockSelect={handleTimeBlockSelect}
+                onCustomTimeSelect={handleCustomTimeSelect}
+                onClear={() => setShowTimeBlockSelector(false)}
+                onCreateNew={() => {}} // Disabled for now
+                availableTimeBlocks={timeBlocks}
+              />
+            </div>
+          )}
+
+          {/* Time Block Assignment Button */}
+          {!showTimeBlockSelector && !assignedTimeBlock && !scheduleInfo?.scheduledTime && (
+            <div className="pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowTimeBlockSelector(true)}
+                className="gap-2"
+              >
+                <Clock className="h-4 w-4" />
+                Assignar Bloc de Temps
+              </Button>
             </div>
           )}
         </div>
