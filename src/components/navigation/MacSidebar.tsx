@@ -6,6 +6,7 @@ import { usePrepareTomorrowVisibility } from "@/hooks/usePrepareTomorrowVisibili
 import { useMacKeyboardShortcuts, useMacSearchLogic } from "@/hooks/useMacNavigation";
 import { useMacNavigation } from "@/contexts/MacNavigationContext";
 import MacSearchInput from "./MacSearchInput";
+import { SidebarPomodoroWidget } from "@/components/pomodoro/SidebarPomodoroWidget";
 
 interface MacSidebarProps {
   activeTab: string;
@@ -97,6 +98,9 @@ const MacSidebar = ({
             </kbd>
           </Button>
         </div>
+
+        {/* Pomodoro Widget */}
+        <SidebarPomodoroWidget />
 
         {/* Navigation Sections */}
         <div className="flex-1 overflow-y-auto px-3">
