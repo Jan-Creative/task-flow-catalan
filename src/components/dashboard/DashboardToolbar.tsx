@@ -44,6 +44,7 @@ export const DashboardToolbar = ({
     formatTime,
     startTimer,
     pauseTimer,
+    resumeTimer,
     resetTimer,
     hasActiveTimer
   } = usePomodoroContext();
@@ -80,11 +81,11 @@ export const DashboardToolbar = ({
               <div className="flex items-center gap-1">
                 {!isActive ? (
                   <Button 
-                    onClick={handleStartPomodoro}
+                    onClick={resumeTimer}
                     size="sm" 
                     variant="ghost"
                     className="h-6 w-6 p-0 hover:bg-accent"
-                    title="Reproduir"
+                    title="Reprendre"
                   >
                     <Play className="h-3 w-3" />
                   </Button>
