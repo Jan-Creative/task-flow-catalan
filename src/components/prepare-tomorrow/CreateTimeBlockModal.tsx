@@ -19,8 +19,9 @@ interface CreateTimeBlockModalProps {
   onDelete?: () => void;
 }
 
-const timeOptions = Array.from({ length: 15 * 4 }, (_, i) => {
-  const totalMinutes = (8 * 60) + (i * 15); // Start at 8:00, 15-minute intervals
+// Generate 24-hour time options with 15-minute intervals (00:00 to 23:45)
+const timeOptions = Array.from({ length: 24 * 4 }, (_, i) => {
+  const totalMinutes = i * 15;
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
   return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
@@ -99,15 +100,28 @@ export const CreateTimeBlockModal = ({
     
     if (!title.trim()) return;
     
-    // Validate time order
+    // Validate time order with support for cross-midnight blocks
     const [startHour, startMinutes] = startTime.split(':').map(Number);
     const [endHour, endMinutes] = endTime.split(':').map(Number);
     const startTotalMinutes = startHour * 60 + startMinutes;
-    const endTotalMinutes = endHour * 60 + endMinutes;
+    let endTotalMinutes = endHour * 60 + endMinutes;
     
+    // If end time is earlier than start time, assume it's the next day
     if (endTotalMinutes <= startTotalMinutes) {
-      alert('L\'hora de fi ha de ser posterior a l\'hora d\'inici');
+      endTotalMinutes += 24 * 60; // Add 24 hours
+    }
+    
+    // Ensure minimum duration of 15 minutes
+    const durationMinutes = endTotalMinutes - startTotalMinutes;
+    if (durationMinutes < 15) {
+      alert('La durada mínima del bloc ha de ser de 15 minuts');
       return;
+    }
+    
+    // Warn for very long blocks (more than 8 hours)
+    if (durationMinutes > 8 * 60) {
+      const confirmed = confirm('Aquest bloc té una durada de més de 8 hores. Estàs segur?');
+      if (!confirmed) return;
     }
 
     try {
@@ -206,7 +220,7 @@ export const CreateTimeBlockModal = ({
                   <SelectTrigger className="h-10 bg-white/5 border-white/10 text-sm">
                     <SelectValue placeholder="Inici" />
                   </SelectTrigger>
-                  <SelectContent className="backdrop-blur-xl bg-background/95 border-white/10">
+                  <SelectContent className="backdrop-blur-xl bg-background/95 border-white/10 max-h-60">
                     {timeOptions.map(time => (
                       <SelectItem key={time} value={time}>{time}</SelectItem>
                     ))}
@@ -216,7 +230,7 @@ export const CreateTimeBlockModal = ({
                   <SelectTrigger className="h-10 bg-white/5 border-white/10 text-sm">
                     <SelectValue placeholder="Final" />
                   </SelectTrigger>
-                  <SelectContent className="backdrop-blur-xl bg-background/95 border-white/10">
+                  <SelectContent className="backdrop-blur-xl bg-background/95 border-white/10 max-h-60">
                     {timeOptions.map(time => (
                       <SelectItem key={time} value={time}>{time}</SelectItem>
                     ))}
