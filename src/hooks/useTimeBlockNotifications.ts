@@ -1,10 +1,10 @@
 import { useCallback } from 'react';
 import { addDays, parse, addMinutes, format } from 'date-fns';
-import { useNotificationContext } from '@/contexts/NotificationContext';
+import { useNotificationManager } from '@/hooks/useNotificationManager';
 import type { TimeBlock } from '@/types/timeblock';
 
 export const useTimeBlockNotifications = (baseDate?: Date) => {
-  const { createCustomNotification, cancelReminder } = useNotificationContext();
+  const { createTimeBlockReminder, cancelBlockNotifications } = useNotificationManager();
 
   const scheduleBlockNotification = useCallback(async (
     block: TimeBlock, 
@@ -44,15 +44,18 @@ export const useTimeBlockNotifications = (baseDate?: Date) => {
       : `"${block.title}" acabarà en ${block.reminderMinutes[type]} minuts (${timeString})`;
 
     try {
-      await createCustomNotification(title, message, reminderDateTime, {
-        block_id: block.id,
-        notification_type: 'time_block_reminder'
-      });
+      await createTimeBlockReminder(
+        block.id,
+        title,
+        message,
+        reminderDateTime,
+        type
+      );
       console.log(`✅ Notificació programada per ${block.title} (${type}) a ${format(reminderDateTime, 'dd/MM/yyyy HH:mm')} (target date: ${format(targetDate, 'dd/MM/yyyy')})`);
     } catch (error) {
       console.error(`❌ Error programant notificació per ${block.title}:`, error);
     }
-  }, [createCustomNotification]);
+  }, [createTimeBlockReminder]);
 
   const updateBlockNotifications = useCallback(async (
     newBlock: TimeBlock,
@@ -67,19 +70,19 @@ export const useTimeBlockNotifications = (baseDate?: Date) => {
     }
   }, [scheduleBlockNotification]);
 
-  const cancelBlockNotifications = useCallback(async (blockId: string) => {
+  const cancelBlockNotificationsHandler = useCallback(async (blockId: string) => {
     try {
       // Cancel all pending reminders for this block
-      await cancelReminder(blockId);
-      console.log(`✅ Notificacions cancel·lades per al bloc: ${blockId}`);
+      const cancelledCount = await cancelBlockNotifications(blockId);
+      console.log(`✅ ${cancelledCount} notificacions cancel·lades per al bloc: ${blockId}`);
     } catch (error) {
       console.error(`❌ Error cancel·lant notificacions per al bloc ${blockId}:`, error);
     }
-  }, [cancelReminder]);
+  }, [cancelBlockNotifications]);
 
   return {
     scheduleBlockNotification,
     updateBlockNotifications,
-    cancelBlockNotifications
+    cancelBlockNotifications: cancelBlockNotificationsHandler
   };
 };

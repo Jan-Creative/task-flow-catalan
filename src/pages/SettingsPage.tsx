@@ -25,12 +25,15 @@ import {
   Monitor,
   Smartphone,
   Globe,
-  HelpCircle
+  HelpCircle,
+  Activity
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { NotificationDebugPanel } from "@/components/NotificationDebugPanel";
 
 const SettingsPage = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [showNotificationPanel, setShowNotificationPanel] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(true);
@@ -104,6 +107,17 @@ const SettingsPage = () => {
                 />
               </SettingsItem>
             </SettingsGroup>
+
+            <div className="pt-2">
+              <Button 
+                variant="outline" 
+                onClick={() => navigate('/notifications-monitor')}
+                className="w-full flex items-center gap-2"
+              >
+                <Activity className="h-4 w-4" />
+                Monitor de Notificacions
+              </Button>
+            </div>
 
             <Collapsible open={showNotificationPanel} onOpenChange={setShowNotificationPanel}>
               <CollapsibleTrigger asChild>
