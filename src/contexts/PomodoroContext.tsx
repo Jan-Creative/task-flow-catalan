@@ -35,6 +35,9 @@ interface PomodoroContextType extends PomodoroState {
   setBreakDuration: (duration: number) => void;
   formatTime: (seconds: number) => string;
   hasActiveTimer: boolean;
+  getGenericStats: () => Promise<{ sessionsToday: number; totalMinutesToday: number }>;
+  sessionId: string | null;
+  taskId: string | null;
 }
 
 const PomodoroContext = createContext<PomodoroContextType | undefined>(undefined);
@@ -158,7 +161,7 @@ export const PomodoroProvider = ({ children }: { children: React.ReactNode }) =>
     }
   };
 
-  // Update statistics
+  // Update statistics for task-based sessions
   const updateStats = useCallback(async (taskId: string) => {
     try {
       const today = new Date().toISOString().split('T')[0];
@@ -181,6 +184,29 @@ export const PomodoroProvider = ({ children }: { children: React.ReactNode }) =>
       }));
     } catch (error) {
       console.error('Error updating stats:', error);
+    }
+  }, []);
+
+  // Get statistics for generic sessions
+  const getGenericStats = useCallback(async () => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const { data } = await supabase
+        .from('pomodoro_sessions')
+        .select('*')
+        .is('task_id', null)
+        .eq('session_type', 'generic')
+        .eq('is_completed', true)
+        .gte('started_at', `${today}T00:00:00Z`)
+        .lt('started_at', `${today}T23:59:59Z`);
+
+      const sessionsToday = data?.length || 0;
+      const totalMinutesToday = data?.reduce((acc, session) => acc + session.duration_minutes, 0) || 0;
+      
+      return { sessionsToday, totalMinutesToday };
+    } catch (error) {
+      console.error('Error getting generic stats:', error);
+      return { sessionsToday: 0, totalMinutesToday: 0 };
     }
   }, []);
 
@@ -242,14 +268,27 @@ export const PomodoroProvider = ({ children }: { children: React.ReactNode }) =>
             description: state.isBreak ? 'Hora de tornar al treball' : 'Hora de fer una pausa'
           });
           
-          // Switch to next phase
-          setState(prev => ({
-            ...prev,
-            isActive: false,
-            isBreak: !prev.isBreak,
-            timeLeft: !prev.isBreak ? prev.breakDuration * 60 : prev.workDuration * 60,
-            currentSessionId: null
-          }));
+          // Handle completion differently for generic vs task sessions
+          if (state.currentTaskId) {
+            // Task-based session: switch to break mode
+            setState(prev => ({
+              ...prev,
+              isActive: false,
+              isBreak: !prev.isBreak,
+              timeLeft: !prev.isBreak ? prev.breakDuration * 60 : prev.workDuration * 60,
+              currentSessionId: null
+            }));
+            await updateStats(state.currentTaskId);
+          } else {
+            // Generic session: just stop and reset
+            setState(prev => ({
+              ...prev,
+              isActive: false,
+              currentSessionId: null,
+              timeLeft: prev.workDuration * 60,
+              isBreak: false // Reset to work mode for next session
+            }));
+          }
           
         } catch (error) {
           console.error('Error handling completion:', error);
@@ -273,10 +312,14 @@ export const PomodoroProvider = ({ children }: { children: React.ReactNode }) =>
 
   const startTimer = async (taskId: string) => {
     try {
+      console.log('🔄 Starting task-based timer:', { taskId, isBreak: state.isBreak });
+      
       const sessionType = state.isBreak ? 'break' : 'work';
       const session = await createSession(taskId, sessionType);
       const duration = state.isBreak ? state.breakDuration : state.workDuration;
       const now = Date.now();
+      
+      console.log('✅ Task session created:', session);
       
       saveState({
         isActive: true,
@@ -290,28 +333,40 @@ export const PomodoroProvider = ({ children }: { children: React.ReactNode }) =>
         await updateStats(taskId);
       }
       
+      console.log('✅ Task timer started successfully');
+      
     } catch (error) {
+      console.error('❌ Error starting task timer:', error);
       toast({
         variant: "destructive",
         title: "Error",
         description: "No s'ha pogut iniciar el timer"
       });
+      throw error;
     }
   };
 
   const startGenericTimer = async (durationMinutes: number) => {
     try {
+      console.log('🔄 Starting generic timer:', { durationMinutes });
+      
       const session = await createSession(null, 'generic', durationMinutes);
+      console.log('✅ Generic session created:', session);
+      
       const now = Date.now();
       
+      // Update state with generic session data
       saveState({
         isActive: true,
         currentTaskId: null, // Generic timer has no task
         currentSessionId: session.id,
         timeLeft: durationMinutes * 60,
         startTime: now,
-        isBreak: false // Generic timers start as work sessions
+        isBreak: false, // Generic timers start as work sessions
+        workDuration: durationMinutes // Update work duration to match selected time
       });
+      
+      console.log('✅ Generic timer state updated successfully');
       
       toast({
         title: "Timer iniciat",
@@ -319,11 +374,13 @@ export const PomodoroProvider = ({ children }: { children: React.ReactNode }) =>
       });
       
     } catch (error) {
+      console.error('❌ Error starting generic timer:', error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "No s'ha pogut iniciar el timer"
+        description: "No s'ha pogut iniciar el timer genèric"
       });
+      throw error;
     }
   };
 
@@ -374,7 +431,10 @@ export const PomodoroProvider = ({ children }: { children: React.ReactNode }) =>
       setWorkDuration,
       setBreakDuration,
       formatTime,
-      hasActiveTimer
+      hasActiveTimer,
+      getGenericStats,
+      sessionId: state.currentSessionId,
+      taskId: state.currentTaskId
     }}>
       {children}
     </PomodoroContext.Provider>
