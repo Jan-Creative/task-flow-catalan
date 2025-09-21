@@ -13,6 +13,7 @@ export const SidebarPomodoroWidget = React.memo(() => {
     isBreak,
     formatTime,
     pauseTimer,
+    resumeTimer,
     resetTimer,
     workDuration,
     breakDuration
@@ -88,11 +89,11 @@ export const SidebarPomodoroWidget = React.memo(() => {
       <div className="flex items-center gap-1">
         {!isActive ? (
           <Button 
-            onClick={() => {/* Logic handled by main timer */}}
+            onClick={resumeTimer}
             size="sm" 
             variant="ghost"
             className="h-6 w-6 p-0 hover:bg-white/10 text-white"
-            title="Reproduir"
+            title="Reprendre"
           >
             <Play className="h-3 w-3" />
           </Button>

@@ -13,6 +13,7 @@ export const PomodoroWidget = () => {
     hasActiveTimer,
     formatTime,
     pauseTimer,
+    resumeTimer,
     resetTimer,
     workDuration,
     breakDuration
@@ -98,9 +99,8 @@ export const PomodoroWidget = () => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => {}} // Will be handled by main timer logic
+              onClick={resumeTimer}
               className="h-8 w-8 p-0 hover:bg-muted/80"
-              disabled
             >
               <Play className="h-3 w-3" />
             </Button>

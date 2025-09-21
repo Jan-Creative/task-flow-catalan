@@ -30,6 +30,7 @@ interface PomodoroContextType extends PomodoroState {
   startTimer: (taskId: string) => Promise<void>;
   startGenericTimer: (durationMinutes: number) => Promise<void>;
   pauseTimer: () => void;
+  resumeTimer: () => void;
   resetTimer: () => void;
   setWorkDuration: (duration: number) => void;
   setBreakDuration: (duration: number) => void;
@@ -464,6 +465,20 @@ export const PomodoroProvider = ({ children }: { children: React.ReactNode }) =>
     });
   };
 
+  const resumeTimer = () => {
+    console.log('▶️ Resuming timer');
+    if (state.currentSessionId && state.timeLeft > 0) {
+      saveState({ 
+        isActive: true,
+        startTime: Date.now() - ((state.isBreak ? state.breakDuration : state.workDuration) * 60 - state.timeLeft) * 1000
+      });
+      toast({
+        title: "Timer reprès",
+        description: "Continuant la sessió"
+      });
+    }
+  };
+
   const resetTimer = async () => {
     console.log('🔄 Resetting timer');
     if (state.currentSessionId) {
@@ -511,6 +526,7 @@ export const PomodoroProvider = ({ children }: { children: React.ReactNode }) =>
       startTimer,
       startGenericTimer,
       pauseTimer,
+      resumeTimer,
       resetTimer,
       setWorkDuration,
       setBreakDuration,
