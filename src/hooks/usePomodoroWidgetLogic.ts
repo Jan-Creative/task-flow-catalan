@@ -37,14 +37,8 @@ export const usePomodoroWidgetLogic = (): PomodoroWidgetVisibility => {
   const sidebarCollapsed = sidebarState?.collapsed ?? false;
   const hasSidebar = sidebarState !== null;
   
-  // Només mostrar widgets si hi ha un timer actiu
-  if (!hasActiveTimer) {
-    return {
-      showToolbarIndicator: false,
-      showSidebarWidget: false,
-      showFloatingWidget: false
-    };
-  }
+  // NOTA: Eliminem la restricció anterior que impedia mostrar widgets sense timer actiu
+  // Ara els widgets es mostren segons la lògica de coordinació, independentment de si hi ha timer actiu
   
   // REGLES DE VISIBILITAT:
   
