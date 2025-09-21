@@ -15,6 +15,7 @@ import {
 import { ConfigurationMenu } from './ConfigurationMenu';
 import { usePomodoroContext } from '@/contexts/PomodoroContext';
 import { useNotificationManager } from '@/hooks/useNotificationManager';
+import { PomodoroMenuPopover } from '@/components/pomodoro/PomodoroMenuPopover';
 import { cn } from '@/lib/utils';
 
 interface DashboardToolbarProps {
@@ -107,15 +108,16 @@ export const DashboardToolbar = ({
             </div>
           </>
         ) : (
-          <Button 
-            onClick={handleStartPomodoro}
-            size="sm" 
-            variant="ghost"
-            className="h-7 w-7 p-0 hover:bg-accent"
-            title="Iniciar Pomodoro"
-          >
-            <Timer className="h-4 w-4 text-white" />
-          </Button>
+          <PomodoroMenuPopover>
+            <Button 
+              size="sm" 
+              variant="ghost"
+              className="h-7 w-7 p-0 hover:bg-accent"
+              title="Iniciar Pomodoro"
+            >
+              <Timer className="h-4 w-4 text-white" />
+            </Button>
+          </PomodoroMenuPopover>
         )}
       </div>
 

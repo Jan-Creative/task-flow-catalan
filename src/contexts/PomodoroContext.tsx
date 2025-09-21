@@ -9,8 +9,8 @@ interface PomodoroSession {
   started_at: string;
   completed_at?: string;
   is_completed: boolean;
-  session_type: 'work' | 'break';
-  task_id: string;
+  session_type: 'work' | 'break' | 'generic';
+  task_id?: string;
 }
 
 interface PomodoroState {
@@ -28,6 +28,7 @@ interface PomodoroState {
 
 interface PomodoroContextType extends PomodoroState {
   startTimer: (taskId: string) => Promise<void>;
+  startGenericTimer: (durationMinutes: number) => Promise<void>;
   pauseTimer: () => void;
   resetTimer: () => void;
   setWorkDuration: (duration: number) => void;
@@ -112,17 +113,25 @@ export const PomodoroProvider = ({ children }: { children: React.ReactNode }) =>
   }, []);
 
   // Create session in database
-  const createSession = async (taskId: string, sessionType: 'work' | 'break') => {
+  const createSession = async (taskId: string | null, sessionType: 'work' | 'break' | 'generic', durationMinutes?: number) => {
     try {
+      const duration = durationMinutes || (sessionType === 'work' ? state.workDuration : state.breakDuration);
+      
+      const sessionData: any = {
+        session_type: sessionType,
+        duration_minutes: duration,
+        break_duration_minutes: state.breakDuration,
+        started_at: new Date().toISOString()
+      };
+
+      // Only add task_id if it's not a generic session
+      if (taskId && sessionType !== 'generic') {
+        sessionData.task_id = taskId;
+      }
+
       const { data, error } = await supabase
         .from('pomodoro_sessions')
-        .insert({
-          task_id: taskId,
-          session_type: sessionType,
-          duration_minutes: sessionType === 'work' ? state.workDuration : state.breakDuration,
-          break_duration_minutes: state.breakDuration,
-          started_at: new Date().toISOString()
-        })
+        .insert(sessionData)
         .select()
         .single();
 
@@ -290,6 +299,34 @@ export const PomodoroProvider = ({ children }: { children: React.ReactNode }) =>
     }
   };
 
+  const startGenericTimer = async (durationMinutes: number) => {
+    try {
+      const session = await createSession(null, 'generic', durationMinutes);
+      const now = Date.now();
+      
+      saveState({
+        isActive: true,
+        currentTaskId: null, // Generic timer has no task
+        currentSessionId: session.id,
+        timeLeft: durationMinutes * 60,
+        startTime: now,
+        isBreak: false // Generic timers start as work sessions
+      });
+      
+      toast({
+        title: "Timer iniciat",
+        description: `${durationMinutes} minuts de focus`
+      });
+      
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No s'ha pogut iniciar el timer"
+      });
+    }
+  };
+
   const pauseTimer = () => {
     saveState({ isActive: false });
   };
@@ -325,12 +362,13 @@ export const PomodoroProvider = ({ children }: { children: React.ReactNode }) =>
     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
-  const hasActiveTimer = state.isActive || (state.currentTaskId !== null);
+  const hasActiveTimer = state.isActive || (state.currentSessionId !== null);
 
   return (
     <PomodoroContext.Provider value={{
       ...state,
       startTimer,
+      startGenericTimer,
       pauseTimer,
       resetTimer,
       setWorkDuration,
