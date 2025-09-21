@@ -15,7 +15,7 @@ import { NotificationDisplay } from "@/components/NotificationDisplay";
 import { PerformanceMonitor } from "@/components/performance/PerformanceMonitor";
 import { SecurityMonitor } from "@/components/security/SecurityMonitor";
 import { config, validateConfig } from "@/config/appConfig";
-import { usePomodoroWidgetLogic } from "@/hooks/usePomodoroWidgetLogic";
+import { PomodoroWidgetCoordinator } from "@/components/PomodoroWidgetCoordinator";
 
 const App = () => {
   // Validate configuration on app start - handle errors gracefully
@@ -27,8 +27,6 @@ const App = () => {
   } catch (error) {
     console.warn('Configuration validation warning:', error);
   }
-
-  const { showFloatingWidget } = usePomodoroWidgetLogic();
 
   return (
     <div className="w-full min-h-screen overflow-x-hidden">
@@ -47,10 +45,10 @@ const App = () => {
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          {/* Widget coordinator dins del context del Router */}
+          <PomodoroWidgetCoordinator />
         </RouteCacheProvider>
       </BrowserRouter>
-      {/* Només mostrar el widget flotant quan la lògica ho permet */}
-      {showFloatingWidget && <PomodoroWidget />}
       <NotificationDisplay />
       <PerformanceMonitor />
       <SecurityMonitor />
