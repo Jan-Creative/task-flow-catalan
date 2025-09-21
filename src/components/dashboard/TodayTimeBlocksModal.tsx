@@ -19,14 +19,7 @@ export const TodayTimeBlocksModal = ({ open, onClose }: TodayTimeBlocksModalProp
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-        <DialogHeader className="flex-shrink-0">
-          <DialogTitle className="flex items-center gap-2">
-            <Clock className="h-5 w-5 text-primary" />
-            Blocs de Temps d'Avui
-          </DialogTitle>
-        </DialogHeader>
-        
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col backdrop-blur-xl bg-background/5 border-white/10 shadow-2xl">        
         <div className="flex-1 overflow-y-auto p-2">
           {loading ? (
             <div className="flex items-center justify-center py-8">
@@ -38,7 +31,7 @@ export const TodayTimeBlocksModal = ({ open, onClose }: TodayTimeBlocksModalProp
               onAddTimeBlock={addTimeBlock}
               onUpdateTimeBlock={updateTimeBlock}
               onRemoveTimeBlock={removeTimeBlock}
-              className="border-0 shadow-none"
+              className="border-0 shadow-none bg-transparent"
               baseDate={new Date()}
             />
           )}

@@ -117,8 +117,8 @@ export const TimeBlocksCard = ({
 
   return (
     <>
-      <Card className={cn("h-fit", className)}>
-        <CardHeader>
+      <Card className={cn("h-fit backdrop-blur-sm bg-background/80 border-white/10", className)}>
+        <CardHeader className="pb-4">
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Clock className="h-5 w-5 text-primary" />
@@ -128,25 +128,26 @@ export const TimeBlocksCard = ({
               onClick={() => setShowNotificationConfig(true)}
               variant="outline"
               size="sm"
+              className="backdrop-blur-sm bg-background/50 border-white/20 hover:bg-background/70"
             >
               <Settings className="h-4 w-4" />
             </Button>
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-muted-foreground/80">
             Organitza el teu temps en blocs dedicats
           </CardDescription>
           {totalPlannedHours > 0 && (
-            <div className="text-sm text-muted-foreground">
+            <div className="text-sm text-muted-foreground/70 font-medium">
               {totalPlannedHours.toFixed(1)} hores planificades
             </div>
           )}
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Timeline view */}
-          <div className="relative bg-muted/5 rounded-lg border border-muted/8 overflow-hidden">
+          <div className="relative backdrop-blur-sm bg-background/20 rounded-lg border border-white/10 overflow-hidden shadow-lg">
             <div className="relative">
               {/* Time column */}
-              <div className="w-14 flex-shrink-0 bg-muted/8 relative z-10">
+              <div className="w-14 flex-shrink-0 bg-background/30 backdrop-blur-sm relative z-10">
                 {hours.map((hour) => (
                   <div
                     key={hour}
@@ -269,7 +270,7 @@ export const TimeBlocksCard = ({
           <Button 
             onClick={() => setShowCreateModal(true)}
             variant="outline" 
-            className="w-full"
+            className="w-full backdrop-blur-sm bg-background/50 border-white/20 hover:bg-background/70 transition-all duration-300"
             size="sm"
           >
             <Plus className="h-4 w-4 mr-2" />
