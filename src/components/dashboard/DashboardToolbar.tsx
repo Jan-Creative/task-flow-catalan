@@ -114,7 +114,7 @@ export const DashboardToolbar = ({
             className="h-7 w-7 p-0 hover:bg-accent"
             title="Iniciar Pomodoro"
           >
-            <Timer className="h-4 w-4 text-muted-foreground" />
+            <Timer className="h-4 w-4 text-white" />
           </Button>
         )}
       </div>
@@ -127,7 +127,7 @@ export const DashboardToolbar = ({
         onClick={onNavigateToNotifications}
         title="Notificacions"
       >
-        <Bell className="h-4 w-4 text-muted-foreground" />
+        <Bell className="h-4 w-4 text-white" />
         {queueSize > 0 && (
           <Badge 
             variant="destructive" 
@@ -146,7 +146,7 @@ export const DashboardToolbar = ({
         onClick={() => setShowStats(!showStats)}
         title="Estadístiques"
       >
-        <BarChart3 className="h-4 w-4 text-muted-foreground" />
+        <BarChart3 className="h-4 w-4 text-white" />
       </Button>
 
       {/* Focus Mode */}
@@ -157,7 +157,7 @@ export const DashboardToolbar = ({
         title="Mode Focus (Aviat disponible)"
         disabled
       >
-        <Focus className="h-4 w-4 text-muted-foreground" />
+        <Focus className="h-4 w-4 text-white" />
       </Button>
 
       {/* Separator */}
