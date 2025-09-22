@@ -27,7 +27,10 @@ const Index = () => {
   });
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    const stored = localStorage.getItem('mac-sidebar-collapsed');
+    return stored ? JSON.parse(stored) : false;
+  });
   const { folders } = useDadesApp();
   const { handleCreateTask, handleEditTask: handleEditTaskOp } = useTaskOperations();
   

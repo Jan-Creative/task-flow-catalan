@@ -14,7 +14,6 @@ const AdaptiveLayout = ({ children, sidebarCollapsed = false }: AdaptiveLayoutPr
   const { type } = useDeviceDetection();
   const { type: deviceType } = useDeviceType();
   const { navigationMode } = type === 'ipad' ? useIPadNavigation() : { navigationMode: 'sidebar' };
-  const { isCollapsed: macSidebarCollapsed } = type === 'desktop' && deviceType === 'mac' ? useMacNavigation() : { isCollapsed: false };
 
   // Calculate layout based on device type
   const getLayoutClasses = () => {
@@ -40,7 +39,7 @@ const AdaptiveLayout = ({ children, sidebarCollapsed = false }: AdaptiveLayoutPr
         if (deviceType === 'mac') {
           return cn(
             "transition-all duration-300 ease-out min-h-screen",
-            macSidebarCollapsed ? "ml-20" : "ml-[276px]"
+            sidebarCollapsed ? "ml-20" : "ml-[276px]"
           );
         }
         // Other Desktop: Full width (top navigation in future)

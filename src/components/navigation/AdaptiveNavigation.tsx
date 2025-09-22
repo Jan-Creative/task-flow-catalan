@@ -54,10 +54,13 @@ const AdaptiveNavigation = ({
     />;
   }
 
-  // Mac: Use Mac sidebar with context
+  // Mac: Use Mac sidebar with synchronized state
   if (deviceType === 'mac') {
     return (
-      <MacNavigationProvider>
+      <MacNavigationProvider 
+        isCollapsed={sidebarCollapsed}
+        onToggleCollapsed={toggleSidebarCollapse}
+      >
         <MacSidebar
           activeTab={activeTab}
           onTabChange={onTabChange}
