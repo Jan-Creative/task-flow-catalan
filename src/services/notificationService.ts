@@ -63,8 +63,8 @@ class NotificationService {
     if ('Notification' in window && Notification.permission === 'granted') {
       const browserNotification = new Notification(notification.title, {
         body: notification.message,
-        icon: '/favicon.ico',
-        badge: '/favicon.ico'
+        icon: '/icons/app-icon-192.png',
+        badge: '/icons/badge-72x72.png'
       });
 
       // Auto-tancar després de 5 segons

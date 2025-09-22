@@ -231,10 +231,10 @@ async function handleAppRoute(request) {
 
 // Push notification handling
 self.addEventListener('push', event => {
-  const options = {
+const options = {
     body: 'Tens una nova notificació',
-    icon: '/icona App 11.png?v=3',
-    badge: '/icona App 11.png?v=3',
+    icon: '/icons/app-icon-192.png',
+    badge: '/icons/badge-72x72.png',
     tag: 'taskflow-notification',
     requireInteraction: false,
     data: {},

@@ -126,8 +126,8 @@ export const appleWebPushConfig = {
     title,
     body,
     // Safari és més restrictiu amb les propietats
-    icon: '/favicon.ico',
-    badge: '/favicon.ico',
+    icon: '/icons/app-icon-192.png',
+    badge: '/icons/badge-72x72.png',
     tag: data.type || 'taskflow',
     data,
     // Safari no suporta accions complexes

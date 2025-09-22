@@ -295,7 +295,7 @@ export const PomodoroProvider = ({ children }: { children: React.ReactNode }) =>
           if ('Notification' in window && Notification.permission === 'granted') {
             new Notification(state.isBreak ? 'Descans completat!' : 'Sessió de treball completada!', {
               body: state.isBreak ? 'Hora de tornar al treball' : 'Hora de fer una pausa',
-              icon: '/favicon.ico'
+              icon: '/icons/app-icon-192.png'
             });
           }
           
