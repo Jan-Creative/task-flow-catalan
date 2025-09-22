@@ -20,7 +20,11 @@ export default defineConfig(({ mode }) => ({
       injectManifest: {
         swSrc: 'public/sw-advanced.js',
         swDest: 'dist/sw-advanced.js',
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}']
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        // Increase cache size limit for internal PWA
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB
+        // Don't precache large assets - let runtime caching handle them
+        globIgnores: ['**/index-*.js'] // Don't precache main bundle
       },
       devOptions: {
         enabled: false,
@@ -53,13 +57,42 @@ export default defineConfig(({ mode }) => ({
     // Optimize chunk splitting for better caching
     rollupOptions: {
       output: {
-        // Create separate chunks for vendor libraries
+        // Aggressive code splitting for better performance
         manualChunks: {
-          vendor: ['react', 'react-dom'],
-          router: ['react-router-dom'],
-          ui: ['@radix-ui/react-dialog', '@radix-ui/react-popover', '@radix-ui/react-select'],
-          query: ['@tanstack/react-query'],
-          supabase: ['@supabase/supabase-js'],
+          // Core React libraries
+          'react-core': ['react', 'react-dom'],
+          'react-router': ['react-router-dom'],
+          
+          // UI libraries
+          'radix-ui': [
+            '@radix-ui/react-dialog', 
+            '@radix-ui/react-popover', 
+            '@radix-ui/react-select',
+            '@radix-ui/react-accordion',
+            '@radix-ui/react-dropdown-menu',
+            '@radix-ui/react-tabs',
+            '@radix-ui/react-tooltip'
+          ],
+          
+          // Data libraries
+          'data-libs': ['@tanstack/react-query', '@supabase/supabase-js'],
+          
+          // Form libraries
+          'form-libs': ['react-hook-form', '@hookform/resolvers', 'zod'],
+          
+          // Date libraries
+          'date-libs': ['date-fns', 'react-day-picker'],
+          
+          // Rich text editor
+          'editor': ['@tiptap/react', '@tiptap/starter-kit', '@tiptap/extension-heading'],
+          
+          // Charts and visualization
+          'charts': ['recharts'],
+          
+          // Heavy components that should be separate
+          'task-components': ['src/components/CreateTaskModal.tsx'],
+          'calendar-components': ['src/pages/CalendarPage.tsx'],
+          'settings-components': ['src/pages/SettingsPage.tsx']
         },
         // Use content-based hashing for better cache invalidation
         chunkFileNames: 'assets/[name]-[hash].js',
@@ -72,5 +105,7 @@ export default defineConfig(({ mode }) => ({
     sourcemap: false, // Disable sourcemaps in production for smaller files
     // Enable CSS minification
     cssMinify: true,
+    // Increase chunk size warning limit since this is an internal app
+    chunkSizeWarningLimit: 1000, // 1MB instead of 500KB
   },
 }));
