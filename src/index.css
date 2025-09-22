@@ -3,49 +3,41 @@
 @tailwind utilities;
 
 /* TimeBlock Indicator Animations */
-@keyframes timeblock-pulse {
-  0%, 100% {
-    opacity: 0.7;
-    filter: brightness(1);
-  }
-  50% {
-    opacity: 1.0;
-    filter: brightness(1.2);
-  }
-}
-
-@keyframes timeblock-corner-glow {
-  0% {
-    opacity: 0.5;
+@keyframes timeblock-siri-breathe {
+  0% { 
+    opacity: 0.85;
+    filter: blur(0px);
     transform: scale(1);
   }
-  100% {
-    opacity: 0.9;
-    transform: scale(1.08);
+  100% { 
+    opacity: 0.95;
+    filter: blur(0.5px);
+    transform: scale(1.02);
   }
 }
 
-@keyframes timeblock-breathe {
-  0% {
-    transform: scale(1);
+@keyframes timeblock-siri-glow {
+  0% { 
+    opacity: 0.3; 
+    transform: scale(0.95);
+    filter: blur(8px);
   }
-  100% {
-    transform: scale(1.01);
+  100% { 
+    opacity: 0.5; 
+    transform: scale(1.05);
+    filter: blur(12px);
   }
 }
 
-@keyframes timeblock-shimmer {
-  0% { opacity: 0.5; }
-  25% { opacity: 0.8; }
-  50% { opacity: 0.5; }
-  75% { opacity: 0.8; }
-  100% { opacity: 0.5; }
-}
-
-@keyframes timeblock-wave {
-  0% { transform: translateY(-8px); opacity: 0.3; }
-  50% { transform: translateY(8px); opacity: 0.8; }
-  100% { transform: translateY(-8px); opacity: 0.3; }
+@keyframes timeblock-ambient-glow {
+  0% { 
+    opacity: 0.2; 
+    transform: scale(0.98);
+  }
+  100% { 
+    opacity: 0.4; 
+    transform: scale(1.02);
+  }
 }
 
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
