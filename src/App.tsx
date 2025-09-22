@@ -16,6 +16,7 @@ import { PerformanceMonitor } from "@/components/performance/PerformanceMonitor"
 import { SecurityMonitor } from "@/components/security/SecurityMonitor";
 import { TimeBlockIndicator } from "@/components/timeblock/TimeBlockIndicator";
 import { config, validateConfig } from "@/config/appConfig";
+import { logger } from "@/lib/logger";
 import { PomodoroWidgetCoordinator } from "@/components/PomodoroWidgetCoordinator";
 
 const App = () => {
@@ -23,10 +24,10 @@ const App = () => {
   try {
     const validation = validateConfig(config);
     if (!validation.valid && config.environment.BUILD_MODE === 'production') {
-      console.error('App configuration invalid:', validation.errors);
+      logger.error('App', 'Configuration validation failed', validation.errors);
     }
   } catch (error) {
-    console.warn('Configuration validation warning:', error);
+    logger.warn('App', 'Configuration validation warning', error);
   }
 
   return (

@@ -1,85 +1,79 @@
 /**
- * Automated console.log replacement utility
- * This script helps replace console statements with the new logger system
+ * Logger Replacement Utilities
+ * Tools for migrating from console.* to structured logging
  */
 
-import { logger } from './debugUtils';
+import { logger } from './logger';
 
-// Export logger replacements for easy find-and-replace
+// Logger replacements mapping
 export const loggerReplacements = {
-  // Debug statements
-  'console.log': (message: string, data?: unknown) => logger.debug('App', message, data),
-  'console.debug': (message: string, data?: unknown) => logger.debug('App', message, data),
-  
-  // Info statements
-  'console.info': (message: string, data?: unknown) => logger.info(message, data),
-  
-  // Warning statements
-  'console.warn': (message: string, data?: unknown) => logger.warn(message, data),
-  
-  // Error statements
-  'console.error': (message: string, error?: unknown) => logger.error(message, error),
-  
-  // Performance statements
-  'console.time': (label: string) => logger.performance(`Timer started: ${label}`),
-  'console.timeEnd': (label: string) => logger.performance(`Timer ended: ${label}`),
+  'console.log': (context: string = 'App', message: string, data?: unknown) => 
+    logger.debug(context, message, data),
+  'console.info': (context: string = 'App', message: string, data?: unknown) => 
+    logger.info(context, message, data),
+  'console.warn': (context: string = 'App', message: string, data?: unknown) => 
+    logger.warn(context, message, data),
+  'console.error': (context: string = 'App', message: string, error?: unknown) => 
+    logger.error(context, message, error),
+  'console.debug': (context: string = 'App', message: string, data?: unknown) => 
+    logger.debug(context, message, data)
 };
 
-// Helper function to replace console statements in code
-export const replaceConsoleStatement = (
-  originalStatement: string,
-  context: string = 'App'
-): string => {
-  // Handle console.log with context
+// Helper function to replace console statements
+export function replaceConsoleStatement(originalStatement: string, context: string = 'App'): string {
+  // Handle console.log with string literals
   if (originalStatement.includes('console.log(')) {
-    const match = originalStatement.match(/console\.log\(([^)]+)\)/);
+    const match = originalStatement.match(/console\.log\((['"`])(.*?)\1(?:,\s*(.+))?\)/);
     if (match) {
-      const args = match[1];
-      return `logger.debug('${context}', ${args})`;
+      const message = match[2];
+      const data = match[3] || 'undefined';
+      return `logger.debug('${context}', '${message}', ${data})`;
     }
   }
   
   // Handle console.warn
   if (originalStatement.includes('console.warn(')) {
-    const match = originalStatement.match(/console\.warn\(([^)]+)\)/);
+    const match = originalStatement.match(/console\.warn\((['"`])(.*?)\1(?:,\s*(.+))?\)/);
     if (match) {
-      const args = match[1];
-      return `logger.warn(${args})`;
+      const message = match[2];
+      const data = match[3] || 'undefined';
+      return `logger.warn('${context}', '${message}', ${data})`;
     }
   }
   
   // Handle console.error
   if (originalStatement.includes('console.error(')) {
-    const match = originalStatement.match(/console\.error\(([^)]+)\)/);
+    const match = originalStatement.match(/console\.error\((['"`])(.*?)\1(?:,\s*(.+))?\)/);
     if (match) {
-      const args = match[1];
-      return `logger.error(${args})`;
+      const message = match[2];
+      const error = match[3] || 'undefined';
+      return `logger.error('${context}', '${message}', ${error})`;
     }
   }
   
   return originalStatement;
-};
+}
 
-// Patterns for mass replacement
+// Bulk replacement patterns for mass updates
 export const replacementPatterns = [
   {
-    from: /console\.log\(([^)]+)\)/g,
-    to: "logger.debug('App', $1)"
+    from: /console\.log\((['"`])(.*?)\1(?:,\s*(.+))?\)/g,
+    to: "logger.debug('$CONTEXT$', '$2', $3)"
   },
   {
-    from: /console\.warn\(([^)]+)\)/g,
-    to: "logger.warn($1)"
+    from: /console\.info\((['"`])(.*?)\1(?:,\s*(.+))?\)/g,
+    to: "logger.info('$CONTEXT$', '$2', $3)"
   },
   {
-    from: /console\.error\(([^)]+)\)/g,
-    to: "logger.error($1)"
+    from: /console\.warn\((['"`])(.*?)\1(?:,\s*(.+))?\)/g,
+    to: "logger.warn('$CONTEXT$', '$2', $3)"
   },
   {
-    from: /console\.debug\(([^)]+)\)/g,
-    to: "logger.debug('App', $1)"
+    from: /console\.error\((['"`])(.*?)\1(?:,\s*(.+))?\)/g,
+    to: "logger.error('$CONTEXT$', '$2', $3)"
   },
   {
-    from: /console\.info\(([^)]+)\)/g,
-    to: "logger.info($1)"
+    from: /console\.debug\((['"`])(.*?)\1(?:,\s*(.+))?\)/g,
+    to: "logger.debug('$CONTEXT$', '$2', $3)"
   }
 ];

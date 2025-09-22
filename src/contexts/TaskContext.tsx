@@ -4,21 +4,38 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useDadesApp } from '@/hooks/useDadesApp';
 import { useTaskSubtasks } from '@/hooks/useTaskSubtasks';
 import { useTaskNotes } from '@/hooks/useTaskNotes';
+import { logger } from '@/lib/logger';
+import type { Tasca, Carpeta, Subtask } from '@/types';
+import type { ID, Nullable } from '@/types/common';
+
+interface TaskSubtask extends Subtask {
+  completed: boolean; // Map is_completed to completed for interface compatibility
+}
+
+interface TaskUpdateData {
+  title?: string;
+  description?: string;
+  priority?: 'low' | 'medium' | 'high';
+  due_date?: string;
+  completed?: boolean;
+  folder_id?: ID;
+  [key: string]: unknown;
+}
 
 interface TaskContextValue {
   // Task basic data
-  task: any;
-  folder: any;
+  task: Nullable<Tasca>;
+  folder: Nullable<Carpeta>;
   loading: boolean;
-  error: any;
+  error: unknown;
   
   // Subtasks data and methods
-  subtasks: any[];
+  subtasks: Subtask[];
   subtasksLoading: boolean;
   completedCount: number;
   progressPercentage: number;
-  createSubtask: (title: string) => Promise<any>;
-  deleteSubtask: (id: string) => Promise<any>;
+  createSubtask: (title: string) => Promise<Subtask>;
+  deleteSubtask: (id: string) => Promise<void>;
   toggleSubtask: (id: string) => void;
   
   // Notes data and methods
@@ -31,8 +48,8 @@ interface TaskContextValue {
   forceSave: () => void;
   
   // Task operations
-  updateTask: (data: any) => Promise<any>;
-  deleteTask: () => Promise<any>;
+  updateTask: (data: TaskUpdateData) => Promise<void>;
+  deleteTask: () => Promise<void>;
   
   // Navigation helpers
   refreshTaskData: () => void;
@@ -67,6 +84,8 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Preload adjacent tasks when component mounts or taskId changes
   useEffect(() => {
     if (taskId && tasks.length > 0) {
+      logger.performance('TaskContext', 'Preloading adjacent tasks', { taskId, tasksCount: tasks.length });
+      
       const currentIndex = tasks.findIndex(t => t.id === taskId);
       if (currentIndex !== -1) {
         const adjacentTasks = [
@@ -80,6 +99,11 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
             queryKey: ['task-properties', task.id],
             staleTime: 1000 * 60 * 5
           });
+        });
+        
+        logger.performance('TaskContext', 'Adjacent tasks preloaded', { 
+          adjacentCount: adjacentTasks.length,
+          currentIndex 
         });
       }
     }
@@ -119,13 +143,23 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   } = useTaskNotes(taskId!);
   
   // Task operations
-  const updateTask = useCallback(async (data: any) => {
-    if (!taskId) return;
-    return appUpdateTask(taskId, data);
+  const updateTask = useCallback(async (data: TaskUpdateData): Promise<void> => {
+    if (!taskId) {
+      logger.warn('TaskContext', 'Update task called without taskId', { data });
+      throw new Error('No task ID provided');
+    }
+    
+    logger.info('TaskContext', 'Updating task', { taskId, updates: Object.keys(data) });
+    await appUpdateTask(taskId, data);
   }, [taskId, appUpdateTask]);
   
-  const deleteTask = useCallback(async () => {
-    if (!taskId) return;
+  const deleteTask = useCallback(async (): Promise<void> => {
+    if (!taskId) {
+      logger.warn('TaskContext', 'Delete task called without taskId');
+      throw new Error('No task ID provided');
+    }
+    
+    logger.info('TaskContext', 'Deleting task', { taskId });
     return appDeleteTask(taskId);
   }, [taskId, appDeleteTask]);
   

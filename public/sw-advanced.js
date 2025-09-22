@@ -1,0 +1,324 @@
+/**
+ * Advanced Service Worker for PWA
+ * Implements professional caching strategies and offline capabilities
+ */
+
+const CACHE_NAME = 'taskflow-v1.1.0';
+const STATIC_CACHE = 'taskflow-static-v1.1.0';
+const DYNAMIC_CACHE = 'taskflow-dynamic-v1.1.0';
+const API_CACHE = 'taskflow-api-v1.1.0';
+
+// Cache strategies
+const CACHE_STRATEGIES = {
+  CACHE_FIRST: 'cache-first',
+  NETWORK_FIRST: 'network-first',
+  STALE_WHILE_REVALIDATE: 'stale-while-revalidate',
+  NETWORK_ONLY: 'network-only',
+  CACHE_ONLY: 'cache-only'
+};
+
+// Resources to precache
+const PRECACHE_RESOURCES = [
+  '/',
+  '/manifest.json',
+  '/offline.html'
+];
+
+// Route configurations
+const ROUTE_STRATEGIES = [
+  {
+    pattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\//,
+    strategy: CACHE_STRATEGIES.NETWORK_FIRST,
+    cache: API_CACHE,
+    options: {
+      networkTimeoutSeconds: 3,
+      cacheableResponse: {
+        statuses: [0, 200]
+      }
+    }
+  },
+  {
+    pattern: /\.(js|css|woff2?|png|jpg|jpeg|webp|svg|ico)$/,
+    strategy: CACHE_STRATEGIES.CACHE_FIRST,
+    cache: STATIC_CACHE,
+    options: {
+      cacheableResponse: {
+        statuses: [0, 200]
+      }
+    }
+  },
+  {
+    pattern: /\/api\//,
+    strategy: CACHE_STRATEGIES.NETWORK_FIRST,
+    cache: API_CACHE,
+    options: {
+      networkTimeoutSeconds: 2
+    }
+  }
+];
+
+// Install event - precache resources
+self.addEventListener('install', event => {
+  event.waitUntil(
+    (async () => {
+      const cache = await caches.open(STATIC_CACHE);
+      await cache.addAll(PRECACHE_RESOURCES);
+      self.skipWaiting();
+    })()
+  );
+});
+
+// Activate event - cleanup old caches
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    (async () => {
+      const cacheNames = await caches.keys();
+      const validCaches = [CACHE_NAME, STATIC_CACHE, DYNAMIC_CACHE, API_CACHE];
+      
+      await Promise.all(
+        cacheNames
+          .filter(cacheName => !validCaches.includes(cacheName))
+          .map(cacheName => caches.delete(cacheName))
+      );
+      
+      self.clients.claim();
+      
+      // Notify all clients that SW is active
+      const clients = await self.clients.matchAll();
+      clients.forEach(client => {
+        client.postMessage({ type: 'SW_ACTIVATED' });
+      });
+    })()
+  );
+});
+
+// Fetch event - implement caching strategies
+self.addEventListener('fetch', event => {
+  if (event.request.method !== 'GET') return;
+  
+  const url = new URL(event.request.url);
+  
+  // Find matching route strategy
+  const routeConfig = ROUTE_STRATEGIES.find(route => 
+    route.pattern.test(event.request.url)
+  );
+  
+  if (routeConfig) {
+    event.respondWith(handleRequest(event.request, routeConfig));
+  } else {
+    // Default strategy for app routes
+    event.respondWith(handleAppRoute(event.request));
+  }
+});
+
+// Cache-first strategy
+async function cacheFirst(request, cacheName) {
+  const cache = await caches.open(cacheName);
+  const cached = await cache.match(request);
+  
+  if (cached) {
+    return cached;
+  }
+  
+  try {
+    const response = await fetch(request);
+    if (response.status === 200) {
+      cache.put(request, response.clone());
+    }
+    return response;
+  } catch (error) {
+    // Return offline fallback if available
+    return cache.match('/offline.html') || new Response('Offline', { status: 503 });
+  }
+}
+
+// Network-first strategy
+async function networkFirst(request, cacheName, options = {}) {
+  const cache = await caches.open(cacheName);
+  
+  try {
+    const networkResponse = await Promise.race([
+      fetch(request),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('timeout')), 
+        options.networkTimeoutSeconds * 1000 || 3000)
+      )
+    ]);
+    
+    if (networkResponse.status === 200) {
+      cache.put(request, networkResponse.clone());
+    }
+    return networkResponse;
+  } catch (error) {
+    const cached = await cache.match(request);
+    if (cached) {
+      return cached;
+    }
+    
+    // Return structured offline response for API calls
+    if (request.url.includes('/rest/v1/')) {
+      return new Response(JSON.stringify({
+        error: 'offline',
+        message: 'This data is not available offline'
+      }), {
+        status: 503,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    throw error;
+  }
+}
+
+// Stale while revalidate strategy
+async function staleWhileRevalidate(request, cacheName) {
+  const cache = await caches.open(cacheName);
+  const cached = await cache.match(request);
+  
+  const fetchPromise = fetch(request).then(response => {
+    if (response.status === 200) {
+      cache.put(request, response.clone());
+    }
+    return response;
+  }).catch(() => cached);
+  
+  return cached || fetchPromise;
+}
+
+// Handle request based on strategy
+async function handleRequest(request, routeConfig) {
+  const { strategy, cache: cacheName, options } = routeConfig;
+  
+  switch (strategy) {
+    case CACHE_STRATEGIES.CACHE_FIRST:
+      return cacheFirst(request, cacheName);
+    case CACHE_STRATEGIES.NETWORK_FIRST:
+      return networkFirst(request, cacheName, options);
+    case CACHE_STRATEGIES.STALE_WHILE_REVALIDATE:
+      return staleWhileRevalidate(request, cacheName);
+    case CACHE_STRATEGIES.NETWORK_ONLY:
+      return fetch(request);
+    case CACHE_STRATEGIES.CACHE_ONLY:
+      const cache = await caches.open(cacheName);
+      return cache.match(request);
+    default:
+      return fetch(request);
+  }
+}
+
+// Handle app routes (SPA navigation)
+async function handleAppRoute(request) {
+  const cache = await caches.open(DYNAMIC_CACHE);
+  
+  try {
+    const response = await fetch(request);
+    if (response.status === 200) {
+      cache.put(request, response.clone());
+    }
+    return response;
+  } catch (error) {
+    // For navigation requests, return cached index.html
+    if (request.mode === 'navigate') {
+      const cached = await cache.match('/') || await cache.match('/index.html');
+      return cached || new Response('App offline', { status: 503 });
+    }
+    
+    // Try to find cached version
+    const cached = await cache.match(request);
+    return cached || new Response('Resource offline', { status: 503 });
+  }
+}
+
+// Push notification handling
+self.addEventListener('push', event => {
+  const options = {
+    body: 'You have a new notification',
+    icon: '/icona App 11.png',
+    badge: '/icona App 11.png',
+    tag: 'notification',
+    requireInteraction: false,
+    actions: [
+      {
+        action: 'view',
+        title: 'View',
+        icon: '/icona App 11.png'
+      }
+    ]
+  };
+
+  if (event.data) {
+    try {
+      const payload = event.data.json();
+      options.body = payload.body || options.body;
+      options.title = payload.title || 'TaskFlow';
+      
+      if (payload.type === 'task_reminder') {
+        options.actions = [
+          { action: 'view', title: 'View Task' },
+          { action: 'complete', title: 'Mark Complete' }
+        ];
+        options.data = { taskId: payload.taskId };
+      }
+    } catch (error) {
+      // Use default options if parsing fails
+    }
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(options.title || 'TaskFlow', options)
+  );
+});
+
+// Notification click handling
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+
+  if (event.action === 'view') {
+    const urlToOpen = event.notification.data?.taskId 
+      ? `/task/${event.notification.data.taskId}`
+      : '/';
+      
+    event.waitUntil(
+      clients.matchAll({ type: 'window' }).then(clientList => {
+        if (clientList.length > 0) {
+          return clientList[0].focus().then(client => {
+            return client.navigate(urlToOpen);
+          });
+        }
+        return clients.openWindow(urlToOpen);
+      })
+    );
+  } else if (event.action === 'complete' && event.notification.data?.taskId) {
+    // Send message to complete task
+    event.waitUntil(
+      clients.matchAll().then(clientList => {
+        clientList.forEach(client => {
+          client.postMessage({
+            type: 'COMPLETE_TASK',
+            taskId: event.notification.data.taskId
+          });
+        });
+      })
+    );
+  }
+});
+
+// Background sync
+self.addEventListener('sync', event => {
+  if (event.tag === 'background-sync') {
+    event.waitUntil(
+      clients.matchAll().then(clientList => {
+        clientList.forEach(client => {
+          client.postMessage({ type: 'BACKGROUND_SYNC' });
+        });
+      })
+    );
+  }
+});
+
+// Message handling
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
