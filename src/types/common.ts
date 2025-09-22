@@ -122,3 +122,117 @@ export interface UserPreferences extends AppSettings {
   backgroundType: string;
   shortcuts: Record<string, string>;
 }
+
+// ============= MAGNETIC DROP ZONE TYPES =============
+export interface MagneticDropZoneData {
+  id: string;
+  type: 'task' | 'event' | 'note';
+  position: {
+    x: number;
+    y: number;
+  };
+  bounds: DOMRect;
+  isActive: boolean;
+}
+
+export interface DropZoneConfig {
+  magneticDistance: number;
+  snapToGrid: boolean;
+  gridSize: number;
+  allowedTypes: string[];
+}
+
+// ============= PROPERTY TYPES =============
+export interface PropertyValue {
+  id: string;
+  value: string;
+  color?: string;
+  icon?: string;
+}
+
+export interface PropertyDefinition {
+  id: string;
+  name: string;
+  type: 'select' | 'multi-select' | 'text' | 'number' | 'date' | 'boolean';
+  values?: PropertyValue[];
+  required?: boolean;
+  defaultValue?: unknown;
+}
+
+export interface SelectedProperty {
+  propertyId: string;
+  values: string[];
+}
+
+// ============= TASK OPERATIONS TYPES =============
+export interface TaskOperation {
+  type: 'create' | 'update' | 'delete' | 'move';
+  taskId?: string;
+  data?: Record<string, unknown>;
+  timestamp: number;
+}
+
+export interface BulkOperation {
+  taskIds: string[];
+  operation: TaskOperation;
+  rollback?: () => Promise<void>;
+}
+
+// ============= VIRTUAL LIST TYPES =============
+export interface VirtualListItem {
+  id: string;
+  height: number;
+  data: unknown;
+}
+
+export interface VirtualListConfig {
+  itemHeight: number;
+  overscan: number;
+  scrollTolerance: number;
+}
+
+// ============= CACHE TYPES =============
+export interface CacheEntry<T = unknown> {
+  data: T;
+  timestamp: number;
+  ttl: number;
+  hits: number;
+}
+
+export interface CacheConfig {
+  maxSize: number;
+  defaultTTL: number;
+  cleanupInterval: number;
+}
+
+// ============= ERROR BOUNDARY TYPES =============
+export interface ErrorInfo {
+  componentStack: string;
+  errorBoundary?: string;
+  eventType?: string;
+}
+
+export interface ErrorDetails {
+  message: string;
+  stack?: string;
+  componentStack?: string;
+  userId?: string;
+  url?: string;
+  userAgent?: string;
+  timestamp: number;
+}
+
+// ============= KEYBOARD SHORTCUT TYPES =============
+export interface ShortcutDefinition {
+  key: string;
+  modifiers: ('ctrl' | 'shift' | 'alt' | 'meta')[];
+  action: string;
+  description: string;
+  category: string;
+}
+
+export interface ShortcutHandler {
+  definition: ShortcutDefinition;
+  handler: (event: KeyboardEvent) => void;
+  enabled: boolean;
+}

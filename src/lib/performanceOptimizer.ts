@@ -1,94 +1,193 @@
 /**
- * Sistema de optimització de rendiment per l'aplicació
+ * Advanced Performance Optimization Suite
+ * Comprehensive performance monitoring and optimization utilities
  */
+
+import { logger } from './logger';
+import type { PerformanceMetrics, CacheEntry, CacheConfig } from '@/types/common';
 
 // ============= PERFORMANCE MONITORING =============
 
-interface PerformanceMetrics {
+export interface PerformanceThresholds {
   renderTime: number;
   memoryUsage: number;
+  bundleSize: number;
   cacheHitRate: number;
-  componentCount: number;
-  lastMeasurement: number;
 }
 
 class PerformanceMonitor {
-  private metrics: PerformanceMetrics = {
-    renderTime: 0,
-    memoryUsage: 0,
-    cacheHitRate: 0,
-    componentCount: 0,
-    lastMeasurement: Date.now()
+  private metrics: PerformanceMetrics[] = [];
+  private observers: PerformanceObserver[] = [];
+  private isMonitoring = false;
+  
+  private thresholds: PerformanceThresholds = {
+    renderTime: 16, // 60fps threshold
+    memoryUsage: 100 * 1024 * 1024, // 100MB
+    bundleSize: 500 * 1024, // 500KB
+    cacheHitRate: 0.8 // 80%
   };
 
-  private observers: ((metrics: PerformanceMetrics) => void)[] = [];
-  private measurementInterval: NodeJS.Timeout | null = null;
-
-  startMonitoring() {
-    if (this.measurementInterval) return;
-
-    this.measurementInterval = setInterval(() => {
-      this.collectMetrics();
-    }, 5000); // Mesurar cada 5 segons
-
-    // Cleanup on page unload
-    if (typeof window !== 'undefined') {
-      window.addEventListener('beforeunload', () => {
-        this.stopMonitoring();
-      });
-    }
-  }
-
-  stopMonitoring() {
-    if (this.measurementInterval) {
-      clearInterval(this.measurementInterval);
-      this.measurementInterval = null;
-    }
-  }
-
-  private collectMetrics() {
-    const now = Date.now();
+  startMonitoring(): void {
+    if (this.isMonitoring) return;
     
-    // Memory usage (si està disponible)
-    if ('memory' in performance) {
-      const memory = (performance as any).memory;
-      this.metrics.memoryUsage = memory.usedJSHeapSize / memory.totalJSHeapSize;
-    }
-
-    // Component count (aproximat basant-se en elements DOM)
-    this.metrics.componentCount = document.querySelectorAll('[data-component]').length;
-
-    this.metrics.lastMeasurement = now;
-
-    // Notificar observers
-    this.observers.forEach(callback => callback({ ...this.metrics }));
-
-    // Log warnings si el rendiment és baix
-    this.checkPerformanceThresholds();
+    this.isMonitoring = true;
+    logger.performance('PerformanceMonitor', 'Started performance monitoring');
+    
+    this.observeResourceTiming();
+    this.observeUserTiming();
+    this.observeLongTasks();
+    this.observeLayoutShifts();
   }
 
-  private checkPerformanceThresholds() {
-    if (this.metrics.memoryUsage > 0.8) {
-      console.warn('⚠️ Ús de memòria alt:', Math.round(this.metrics.memoryUsage * 100) + '%');
-    }
+  stopMonitoring(): void {
+    this.isMonitoring = false;
+    this.observers.forEach(observer => observer.disconnect());
+    this.observers = [];
+    logger.performance('PerformanceMonitor', 'Stopped performance monitoring');
+  }
 
-    if (this.metrics.componentCount > 1000) {
-      console.warn('⚠️ Número alt de components:', this.metrics.componentCount);
+  private observeResourceTiming(): void {
+    if (!('PerformanceObserver' in window)) return;
+
+    const observer = new PerformanceObserver((list) => {
+      list.getEntries().forEach(entry => {
+        if (entry.entryType === 'resource') {
+          this.recordResourceMetric(entry as PerformanceResourceTiming);
+        }
+      });
+    });
+
+    observer.observe({ entryTypes: ['resource'] });
+    this.observers.push(observer);
+  }
+
+  private observeUserTiming(): void {
+    if (!('PerformanceObserver' in window)) return;
+
+    const observer = new PerformanceObserver((list) => {
+      list.getEntries().forEach(entry => {
+        if (entry.entryType === 'measure') {
+          this.recordTimingMetric(entry);
+        }
+      });
+    });
+
+    observer.observe({ entryTypes: ['measure'] });
+    this.observers.push(observer);
+  }
+
+  private observeLongTasks(): void {
+    if (!('PerformanceObserver' in window)) return;
+
+    const observer = new PerformanceObserver((list) => {
+      list.getEntries().forEach(entry => {
+        if (entry.duration > 50) { // Long task threshold
+          logger.warn('PerformanceMonitor', 'Long task detected', {
+            duration: entry.duration,
+            startTime: entry.startTime
+          });
+        }
+      });
+    });
+
+    observer.observe({ entryTypes: ['longtask'] });
+    this.observers.push(observer);
+  }
+
+  private observeLayoutShifts(): void {
+    if (!('PerformanceObserver' in window)) return;
+
+    let cumulativeLayoutShift = 0;
+
+    const observer = new PerformanceObserver((list) => {
+      list.getEntries().forEach(entry => {
+        if ((entry as any).value && !(entry as any).hadRecentInput) {
+          cumulativeLayoutShift += (entry as any).value;
+          
+          if (cumulativeLayoutShift > 0.1) { // CLS threshold
+            logger.warn('PerformanceMonitor', 'High Cumulative Layout Shift detected', {
+              cls: cumulativeLayoutShift
+            });
+          }
+        }
+      });
+    });
+
+    observer.observe({ entryTypes: ['layout-shift'] });
+    this.observers.push(observer);
+  }
+
+  private recordResourceMetric(entry: PerformanceResourceTiming): void {
+    const metric = {
+      name: entry.name,
+      duration: entry.duration,
+      transferSize: entry.transferSize,
+      type: this.getResourceType(entry.name)
+    };
+
+    if (metric.duration > 1000) { // Slow resource threshold
+      logger.warn('PerformanceMonitor', 'Slow resource detected', metric);
     }
   }
 
-  onMetricsUpdate(callback: (metrics: PerformanceMetrics) => void) {
-    this.observers.push(callback);
-    return () => {
-      const index = this.observers.indexOf(callback);
-      if (index > -1) {
-        this.observers.splice(index, 1);
-      }
+  private recordTimingMetric(entry: PerformanceEntry): void {
+    const metric = {
+      name: entry.name,
+      duration: entry.duration,
+      startTime: entry.startTime
+    };
+
+    if (metric.duration > this.thresholds.renderTime) {
+      logger.warn('PerformanceMonitor', 'Slow operation detected', metric);
+    }
+  }
+
+  private getResourceType(url: string): string {
+    if (url.includes('.js')) return 'script';
+    if (url.includes('.css')) return 'style';
+    if (url.match(/\.(png|jpg|jpeg|webp|svg)$/)) return 'image';
+    if (url.includes('/api/')) return 'api';
+    return 'other';
+  }
+
+  getMetrics(): PerformanceMetrics[] {
+    return [...this.metrics];
+  }
+
+  checkThresholds(): { passed: boolean; issues: string[] } {
+    const issues: string[] = [];
+    
+    // Check Core Web Vitals
+    this.checkCoreWebVitals(issues);
+    
+    // Check memory usage
+    this.checkMemoryUsage(issues);
+    
+    return {
+      passed: issues.length === 0,
+      issues
     };
   }
 
-  getMetrics(): PerformanceMetrics {
-    return { ...this.metrics };
+  private checkCoreWebVitals(issues: string[]): void {
+    const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+    
+    if (navigation) {
+      const fcp = navigation.responseStart - navigation.fetchStart;
+      const lcp = navigation.loadEventEnd - navigation.fetchStart;
+      
+      if (fcp > 1800) issues.push(`First Contentful Paint too slow: ${fcp}ms`);
+      if (lcp > 2500) issues.push(`Largest Contentful Paint too slow: ${lcp}ms`);
+    }
+  }
+
+  private checkMemoryUsage(issues: string[]): void {
+    if ('memory' in performance) {
+      const memory = (performance as any).memory;
+      if (memory.usedJSHeapSize > this.thresholds.memoryUsage) {
+        issues.push(`High memory usage: ${(memory.usedJSHeapSize / 1024 / 1024).toFixed(2)}MB`);
+      }
+    }
   }
 }
 
@@ -96,226 +195,202 @@ export const performanceMonitor = new PerformanceMonitor();
 
 // ============= RENDER OPTIMIZATION =============
 
-/**
- * Debounce per optimitzar funcions que es criden massa sovint
- */
-export const debounce = <T extends (...args: any[]) => any>(
+export const debounce = <T extends (...args: any[]) => void>(
   func: T,
   wait: number,
-  immediate?: boolean
-): T => {
+  immediate = false
+): ((...args: Parameters<T>) => void) => {
   let timeout: NodeJS.Timeout | null = null;
   
-  return ((...args: any[]) => {
+  return (...args: Parameters<T>) => {
+    const later = () => {
+      timeout = null;
+      if (!immediate) func(...args);
+    };
+    
     const callNow = immediate && !timeout;
     
     if (timeout) clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
     
-    timeout = setTimeout(() => {
-      timeout = null;
-      if (!immediate) func.apply(null, args);
-    }, wait);
-    
-    if (callNow) func.apply(null, args);
-  }) as T;
+    if (callNow) func(...args);
+  };
 };
 
-/**
- * Throttle per limitar execucions d'una funció
- */
-export const throttle = <T extends (...args: any[]) => any>(
+export const throttle = <T extends (...args: any[]) => void>(
   func: T,
   limit: number
-): T => {
+): ((...args: Parameters<T>) => void) => {
   let inThrottle: boolean;
   
-  return ((...args: any[]) => {
+  return (...args: Parameters<T>) => {
     if (!inThrottle) {
-      func.apply(null, args);
+      func(...args);
       inThrottle = true;
-      setTimeout(() => inThrottle = false, limit);
+      setTimeout(() => (inThrottle = false), limit);
     }
-  }) as T;
+  };
 };
 
 // ============= MEMORY OPTIMIZATION =============
 
-/**
- * Neteja automàtica d'event listeners
- */
 export class EventListenerCleaner {
-  private listeners: Array<{
-    element: Element | Window | Document;
-    event: string;
-    handler: EventListener;
-    options?: boolean | AddEventListenerOptions;
-  }> = [];
+  private listeners: Map<Element, Array<{ event: string; listener: EventListener }>> = new Map();
 
-  add(
-    element: Element | Window | Document,
-    event: string,
-    handler: EventListener,
-    options?: boolean | AddEventListenerOptions
-  ) {
-    element.addEventListener(event, handler, options);
-    this.listeners.push({ element, event, handler, options });
-  }
-
-  cleanup() {
-    this.listeners.forEach(({ element, event, handler, options }) => {
-      element.removeEventListener(event, handler, options);
-    });
-    this.listeners = [];
-  }
-
-  remove(element: Element | Window | Document, event: string, handler: EventListener) {
-    const index = this.listeners.findIndex(
-      l => l.element === element && l.event === event && l.handler === handler
-    );
+  addListener(element: Element, event: string, listener: EventListener, options?: AddEventListenerOptions): void {
+    element.addEventListener(event, listener, options);
     
-    if (index > -1) {
-      element.removeEventListener(event, handler);
-      this.listeners.splice(index, 1);
+    if (!this.listeners.has(element)) {
+      this.listeners.set(element, []);
     }
-  }
-}
-
-// ============= IMAGE OPTIMIZATION =============
-
-/**
- * Lazy loading amb intersection observer optimitzat
- */
-export class LazyImageLoader {
-  private observer: IntersectionObserver | null = null;
-  private imageCache = new Map<string, HTMLImageElement>();
-
-  constructor() {
-    if (typeof window !== 'undefined' && 'IntersectionObserver' in window) {
-      this.observer = new IntersectionObserver(
-        this.handleIntersection.bind(this),
-        {
-          rootMargin: '50px', // Precarregar 50px abans que aparegui
-          threshold: 0.1
-        }
-      );
-    }
+    
+    this.listeners.get(element)!.push({ event, listener });
   }
 
-  private handleIntersection(entries: IntersectionObserverEntry[]) {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const img = entry.target as HTMLImageElement;
-        this.loadImage(img);
-        this.observer?.unobserve(img);
+  removeListener(element: Element, event: string, listener: EventListener): void {
+    element.removeEventListener(event, listener);
+    
+    const elementListeners = this.listeners.get(element);
+    if (elementListeners) {
+      const index = elementListeners.findIndex(l => l.event === event && l.listener === listener);
+      if (index > -1) {
+        elementListeners.splice(index, 1);
       }
+    }
+  }
+
+  cleanupElement(element: Element): void {
+    const elementListeners = this.listeners.get(element);
+    if (elementListeners) {
+      elementListeners.forEach(({ event, listener }) => {
+        element.removeEventListener(event, listener);
+      });
+      this.listeners.delete(element);
+    }
+  }
+
+  cleanupAll(): void {
+    this.listeners.forEach((listeners, element) => {
+      listeners.forEach(({ event, listener }) => {
+        element.removeEventListener(event, listener);
+      });
     });
-  }
-
-  private async loadImage(img: HTMLImageElement) {
-    const src = img.dataset.src;
-    if (!src) return;
-
-    // Check cache primer
-    if (this.imageCache.has(src)) {
-      const cachedImg = this.imageCache.get(src)!;
-      img.src = cachedImg.src;
-      img.classList.remove('lazy');
-      return;
-    }
-
-    try {
-      // Precarregar imatge
-      const tempImg = new Image();
-      tempImg.onload = () => {
-        img.src = src;
-        img.classList.remove('lazy');
-        this.imageCache.set(src, tempImg);
-      };
-      tempImg.onerror = () => {
-        img.classList.add('error');
-      };
-      tempImg.src = src;
-    } catch (error) {
-      console.warn('Error carregant imatge:', src, error);
-      img.classList.add('error');
-    }
-  }
-
-  observe(img: HTMLImageElement) {
-    if (this.observer) {
-      this.observer.observe(img);
-    } else {
-      // Fallback per navegadors sense suport
-      this.loadImage(img);
-    }
-  }
-
-  disconnect() {
-    this.observer?.disconnect();
-    this.imageCache.clear();
+    this.listeners.clear();
   }
 }
-
-export const lazyImageLoader = new LazyImageLoader();
 
 // ============= QUERY OPTIMIZATION =============
 
-/**
- * Cache intel·ligent per queries
- */
-export class QueryCache {
-  private cache = new Map<string, {
-    data: any;
-    timestamp: number;
-    ttl: number;
-  }>();
+export class QueryCache<T = unknown> {
+  private cache = new Map<string, CacheEntry<T>>();
+  private config: CacheConfig;
 
-  set(key: string, data: any, ttl = 5 * 60 * 1000) { // 5 minuts per defecte
-    this.cache.set(key, {
-      data,
-      timestamp: Date.now(),
-      ttl
-    });
+  constructor(config: Partial<CacheConfig> = {}) {
+    this.config = {
+      maxSize: 100,
+      defaultTTL: 5 * 60 * 1000, // 5 minutes
+      cleanupInterval: 60 * 1000, // 1 minute
+      ...config
+    };
 
-    // Neteja automàtica després del TTL
-    setTimeout(() => {
-      this.cache.delete(key);
-    }, ttl);
+    this.startCleanupTimer();
   }
 
-  get(key: string): any | null {
+  set(key: string, data: T, ttl?: number): void {
+    // Cleanup if at max size
+    if (this.cache.size >= this.config.maxSize) {
+      this.evictOldest();
+    }
+
+    const entry: CacheEntry<T> = {
+      data,
+      timestamp: Date.now(),
+      ttl: ttl ?? this.config.defaultTTL,
+      hits: 0
+    };
+
+    this.cache.set(key, entry);
+    logger.debug('QueryCache', 'Cache set', { key, size: this.cache.size });
+  }
+
+  get(key: string): T | null {
     const entry = this.cache.get(key);
     if (!entry) return null;
 
-    // Comprovar si ha expirat
+    // Check if expired
     if (Date.now() - entry.timestamp > entry.ttl) {
       this.cache.delete(key);
       return null;
     }
 
+    // Update hit count
+    entry.hits++;
+    logger.debug('QueryCache', 'Cache hit', { key, hits: entry.hits });
+    
     return entry.data;
   }
 
-  invalidate(keyPattern: string) {
-    const keysToDelete: string[] = [];
+  invalidate(pattern?: string): void {
+    if (!pattern) {
+      this.cache.clear();
+      logger.debug('QueryCache', 'Cache cleared completely');
+      return;
+    }
+
+    const regex = new RegExp(pattern);
+    for (const [key] of this.cache) {
+      if (regex.test(key)) {
+        this.cache.delete(key);
+      }
+    }
     
-    for (const key of this.cache.keys()) {
-      if (key.includes(keyPattern)) {
-        keysToDelete.push(key);
+    logger.debug('QueryCache', 'Cache invalidated by pattern', { pattern });
+  }
+
+  private evictOldest(): void {
+    let oldestKey = '';
+    let oldestTime = Date.now();
+
+    for (const [key, entry] of this.cache) {
+      if (entry.timestamp < oldestTime) {
+        oldestTime = entry.timestamp;
+        oldestKey = key;
       }
     }
 
-    keysToDelete.forEach(key => this.cache.delete(key));
+    if (oldestKey) {
+      this.cache.delete(oldestKey);
+      logger.debug('QueryCache', 'Evicted oldest entry', { key: oldestKey });
+    }
   }
 
-  clear() {
-    this.cache.clear();
+  private startCleanupTimer(): void {
+    setInterval(() => {
+      const now = Date.now();
+      let cleaned = 0;
+
+      for (const [key, entry] of this.cache) {
+        if (now - entry.timestamp > entry.ttl) {
+          this.cache.delete(key);
+          cleaned++;
+        }
+      }
+
+      if (cleaned > 0) {
+        logger.debug('QueryCache', 'Cleanup completed', { cleaned, remaining: this.cache.size });
+      }
+    }, this.config.cleanupInterval);
   }
 
-  getStats() {
+  getStats(): { size: number; hitRate: number; avgHits: number } {
+    const entries = Array.from(this.cache.values());
+    const totalHits = entries.reduce((sum, entry) => sum + entry.hits, 0);
+    const totalRequests = entries.length > 0 ? totalHits + entries.length : 0;
+
     return {
       size: this.cache.size,
-      keys: Array.from(this.cache.keys())
+      hitRate: totalRequests > 0 ? totalHits / totalRequests : 0,
+      avgHits: entries.length > 0 ? totalHits / entries.length : 0
     };
   }
 }
@@ -324,22 +399,18 @@ export const queryCache = new QueryCache();
 
 // ============= INITIALIZATION =============
 
-/**
- * Inicialitza optimitzacions de rendiment
- */
-export const initializePerformanceOptimizations = () => {
-  if (typeof window === 'undefined') return;
+export const initializePerformanceOptimizations = (): void => {
+  logger.info('PerformanceOptimizer', 'Initializing performance optimizations');
 
-  // Iniciar monitoring
-  performanceMonitor.startMonitoring();
+  // Start performance monitoring in development
+  if (import.meta.env.DEV) {
+    performanceMonitor.startMonitoring();
+  }
 
-  // Log mètriques inicials
-  console.log('🚀 Performance optimizations initialized');
-  
-  // Neteja en tancar l'app
+  // Setup cleanup on page unload
   window.addEventListener('beforeunload', () => {
     performanceMonitor.stopMonitoring();
-    lazyImageLoader.disconnect();
-    queryCache.clear();
   });
+
+  logger.info('PerformanceOptimizer', 'Performance optimizations initialized');
 };
