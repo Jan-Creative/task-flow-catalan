@@ -27,10 +27,30 @@ const Index = () => {
   });
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
-    const stored = localStorage.getItem('mac-sidebar-collapsed');
-    return stored ? JSON.parse(stored) : false;
+  const [sidebarState, setSidebarState] = useState<'expanded' | 'mini' | 'hidden'>(() => {
+    const stored = localStorage.getItem('mac-sidebar-state');
+    if (stored && ['expanded', 'mini', 'hidden'].includes(stored)) {
+      return stored as 'expanded' | 'mini' | 'hidden';
+    }
+    // Fallback to legacy
+    const legacyStored = localStorage.getItem('mac-sidebar-collapsed');
+    return legacyStored ? (JSON.parse(legacyStored) ? 'mini' : 'expanded') : 'expanded';
   });
+
+  // Convert sidebar state to legacy format for AdaptiveLayout compatibility
+  const sidebarCollapsed = sidebarState === 'hidden' ? undefined : sidebarState === 'mini';
+
+  const handleSidebarStateChange = (newState: 'expanded' | 'mini' | 'hidden') => {
+    setSidebarState(newState);
+    localStorage.setItem('mac-sidebar-state', newState);
+    localStorage.setItem('mac-sidebar-collapsed', JSON.stringify(newState !== 'expanded'));
+  };
+
+  const toggleSidebarCollapse = () => {
+    const newState = sidebarState === 'expanded' ? 'mini' : 'expanded';
+    handleSidebarStateChange(newState);
+  };
+
   const { folders } = useDadesApp();
   const { handleCreateTask, handleEditTask: handleEditTaskOp } = useTaskOperations();
   
@@ -187,7 +207,9 @@ const Index = () => {
         onTabChange={handleTabChange}
         onCreateTask={() => setShowCreateDialog(true)}
         sidebarCollapsed={sidebarCollapsed}
-        onSidebarCollapseChange={setSidebarCollapsed}
+        toggleSidebarCollapse={toggleSidebarCollapse}
+        sidebarState={sidebarState}
+        onSidebarStateChange={handleSidebarStateChange}
       />
 
       {/* Main Content with Adaptive Layout */}

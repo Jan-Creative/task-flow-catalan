@@ -1,15 +1,22 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
+export type SidebarState = 'expanded' | 'mini' | 'hidden';
+
 interface MacNavigationContextType {
-  isCollapsed: boolean;
-  setIsCollapsed: (collapsed: boolean) => void;
-  toggleCollapsed: () => void;
+  sidebarState: SidebarState;
+  setSidebarState: (state: SidebarState) => void;
+  toggleSidebar: () => void;
+  cycleSidebar: () => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   isSearchFocused: boolean;
   setIsSearchFocused: (focused: boolean) => void;
   searchResults: SearchResult[];
   setSearchResults: (results: SearchResult[]) => void;
+  // Legacy compatibility
+  isCollapsed: boolean;
+  setIsCollapsed: (collapsed: boolean) => void;
+  toggleCollapsed: () => void;
 }
 
 export interface SearchResult {
@@ -24,41 +31,67 @@ const MacNavigationContext = createContext<MacNavigationContextType | null>(null
 
 interface MacNavigationProviderProps {
   children: ReactNode;
+  sidebarState?: SidebarState;
+  onSidebarStateChange?: (state: SidebarState) => void;
+  // Legacy compatibility
   isCollapsed?: boolean;
   onToggleCollapsed?: () => void;
 }
 
 export const MacNavigationProvider = ({ 
   children, 
+  sidebarState: externalSidebarState,
+  onSidebarStateChange,
+  // Legacy compatibility
   isCollapsed: externalIsCollapsed,
   onToggleCollapsed
 }: MacNavigationProviderProps) => {
-  // Use external state if provided, otherwise use internal state
-  const [internalIsCollapsed, setInternalIsCollapsed] = useState<boolean>(() => {
-    const stored = localStorage.getItem('mac-sidebar-collapsed');
-    return stored ? JSON.parse(stored) : false;
+  // Convert legacy boolean to new state system
+  const legacyToState = (collapsed: boolean): SidebarState => collapsed ? 'mini' : 'expanded';
+  const stateToLegacy = (state: SidebarState): boolean => state !== 'expanded';
+
+  // Internal state management
+  const [internalSidebarState, setInternalSidebarState] = useState<SidebarState>(() => {
+    const stored = localStorage.getItem('mac-sidebar-state');
+    if (stored && ['expanded', 'mini', 'hidden'].includes(stored)) {
+      return stored as SidebarState;
+    }
+    // Fallback to legacy storage
+    const legacyStored = localStorage.getItem('mac-sidebar-collapsed');
+    return legacyStored ? legacyToState(JSON.parse(legacyStored)) : 'expanded';
   });
   
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
 
-  // Determine which collapsed state to use
-  const isCollapsed = externalIsCollapsed !== undefined ? externalIsCollapsed : internalIsCollapsed;
+  // Determine current state (priority: external > legacy external > internal)
+  const currentSidebarState = externalSidebarState || 
+    (externalIsCollapsed !== undefined ? legacyToState(externalIsCollapsed) : internalSidebarState);
 
-  // Persist collapsed state only when using internal state
+  // Legacy compatibility
+  const isCollapsed = stateToLegacy(currentSidebarState);
+
+  // Persist sidebar state
   useEffect(() => {
-    if (externalIsCollapsed === undefined) {
-      localStorage.setItem('mac-sidebar-collapsed', JSON.stringify(internalIsCollapsed));
+    if (!externalSidebarState && externalIsCollapsed === undefined) {
+      localStorage.setItem('mac-sidebar-state', internalSidebarState);
+      // Also maintain legacy storage for compatibility
+      localStorage.setItem('mac-sidebar-collapsed', JSON.stringify(stateToLegacy(internalSidebarState)));
     }
-  }, [internalIsCollapsed, externalIsCollapsed]);
+  }, [internalSidebarState, externalSidebarState, externalIsCollapsed]);
 
-  // Sync external state changes to internal state for localStorage persistence
+  // Sync external state changes to localStorage
   useEffect(() => {
-    if (externalIsCollapsed !== undefined) {
+    if (externalSidebarState) {
+      localStorage.setItem('mac-sidebar-state', externalSidebarState);
+      localStorage.setItem('mac-sidebar-collapsed', JSON.stringify(stateToLegacy(externalSidebarState)));
+    } else if (externalIsCollapsed !== undefined) {
+      const newState = legacyToState(externalIsCollapsed);
+      localStorage.setItem('mac-sidebar-state', newState);
       localStorage.setItem('mac-sidebar-collapsed', JSON.stringify(externalIsCollapsed));
     }
-  }, [externalIsCollapsed]);
+  }, [externalSidebarState, externalIsCollapsed]);
 
   // Clear search results when query is empty
   useEffect(() => {
@@ -70,49 +103,93 @@ export const MacNavigationProvider = ({
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      // Cmd+\ to toggle sidebar (like VS Code)
-      if ((event.metaKey || event.ctrlKey) && event.key === '\\') {
+      // Cmd+\ to cycle between expanded ↔ mini (VS Code style)
+      if ((event.metaKey || event.ctrlKey) && event.key === '\\' && !event.altKey) {
         event.preventDefault();
-        toggleCollapsed();
+        toggleSidebar();
+      }
+      
+      // Cmd+Alt+\ to toggle hidden state
+      if ((event.metaKey || event.ctrlKey) && event.key === '\\' && event.altKey) {
+        event.preventDefault();
+        cycleSidebar();
+      }
+      
+      // Cmd+B to toggle sidebar visible/hidden (standard)
+      if ((event.metaKey || event.ctrlKey) && event.key === 'b') {
+        event.preventDefault();
+        const newState = currentSidebarState === 'hidden' ? 'expanded' : 'hidden';
+        setSidebarState(newState);
       }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [onToggleCollapsed]);
+  }, [currentSidebarState]);
 
+  // State management functions
+  const setSidebarState = (newState: SidebarState) => {
+    if (onSidebarStateChange) {
+      onSidebarStateChange(newState);
+    } else if (onToggleCollapsed && externalIsCollapsed !== undefined) {
+      // Legacy external management
+      const newCollapsed = stateToLegacy(newState);
+      if (newCollapsed !== externalIsCollapsed) {
+        onToggleCollapsed();
+      }
+    } else {
+      // Internal management
+      setInternalSidebarState(newState);
+    }
+  };
+
+  // Toggle between expanded ↔ mini (maintaining hidden if currently hidden)
+  const toggleSidebar = () => {
+    if (currentSidebarState === 'hidden') return;
+    const newState = currentSidebarState === 'expanded' ? 'mini' : 'expanded';
+    setSidebarState(newState);
+  };
+
+  // Cycle through all three states: expanded → mini → hidden → expanded
+  const cycleSidebar = () => {
+    const cycle: Record<SidebarState, SidebarState> = {
+      'expanded': 'mini',
+      'mini': 'hidden', 
+      'hidden': 'expanded'
+    };
+    setSidebarState(cycle[currentSidebarState]);
+  };
+
+  // Legacy compatibility functions
   const toggleCollapsed = () => {
     if (onToggleCollapsed) {
-      // Use external toggle handler
       onToggleCollapsed();
     } else {
-      // Use internal state
-      setInternalIsCollapsed(prev => !prev);
+      toggleSidebar();
     }
   };
 
   const setIsCollapsed = (collapsed: boolean) => {
-    if (onToggleCollapsed && externalIsCollapsed !== undefined) {
-      // External state management - only call toggle if state would change
-      if (collapsed !== externalIsCollapsed) {
-        onToggleCollapsed();
-      }
-    } else {
-      // Internal state management
-      setInternalIsCollapsed(collapsed);
-    }
+    const newState = collapsed ? 'mini' : 'expanded';
+    setSidebarState(newState);
   };
 
   const value = {
-    isCollapsed,
-    setIsCollapsed,
-    toggleCollapsed,
+    // New 3-state API
+    sidebarState: currentSidebarState,
+    setSidebarState,
+    toggleSidebar,
+    cycleSidebar,
     searchQuery,
     setSearchQuery,
     isSearchFocused,
     setIsSearchFocused,
     searchResults,
-    setSearchResults
+    setSearchResults,
+    // Legacy compatibility
+    isCollapsed,
+    setIsCollapsed,
+    toggleCollapsed
   };
 
   return (

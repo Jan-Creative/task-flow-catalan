@@ -20,7 +20,14 @@ const MacSidebar = ({
   onCreateTask
 }: MacSidebarProps) => {
   const { isVisible: showPrepareTomorrow } = usePrepareTomorrowVisibility();
-  const { isCollapsed, toggleCollapsed } = useMacNavigation();
+  const { sidebarState, toggleSidebar, cycleSidebar } = useMacNavigation();
+  
+  // Return null when hidden
+  if (sidebarState === 'hidden') {
+    return null;
+  }
+  
+  const isCollapsed = sidebarState === 'mini';
   
   // Initialize Mac-specific hooks
   useMacKeyboardShortcuts(onCreateTask);
@@ -73,7 +80,8 @@ const MacSidebar = ({
             <Button
               variant="ghost"
               size="sm"
-              onClick={toggleCollapsed}
+              onClick={toggleSidebar}
+              onDoubleClick={cycleSidebar}
               className="h-8 w-8 p-0 hover:bg-accent rounded-lg transition-colors"
               title={isCollapsed ? "Expandir sidebar (⌘\)" : "Contreure sidebar (⌘\)"}
             >
@@ -197,7 +205,10 @@ const MacSidebar = ({
                   <kbd className="bg-muted px-1 rounded">⌘N</kbd> Nova tasca
                 </span>
                 <span className="flex items-center gap-1">
-                  <kbd className="bg-muted px-1 rounded">⌘\</kbd> Sidebar
+                  <kbd className="bg-muted px-1 rounded">⌘\</kbd> Toggle
+                </span>
+                <span className="flex items-center gap-1">
+                  <kbd className="bg-muted px-1 rounded">⌘B</kbd> Amagar
                 </span>
               </div>
             </div>

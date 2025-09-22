@@ -14,7 +14,10 @@ interface AdaptiveNavigationProps {
   onTabChange: (tab: string) => void;
   onCreateTask: () => void;
   sidebarCollapsed?: boolean;
-  onSidebarCollapseChange?: (collapsed: boolean) => void;
+  toggleSidebarCollapse?: () => void;
+  // New 3-state sidebar props
+  sidebarState?: 'expanded' | 'mini' | 'hidden';
+  onSidebarStateChange?: (state: 'expanded' | 'mini' | 'hidden') => void;
 }
 
 const AdaptiveNavigation = ({ 
@@ -22,15 +25,12 @@ const AdaptiveNavigation = ({
   onTabChange, 
   onCreateTask,
   sidebarCollapsed = false,
-  onSidebarCollapseChange
+  toggleSidebarCollapse,
+  sidebarState,
+  onSidebarStateChange
 }: AdaptiveNavigationProps) => {
   const { type } = useDeviceDetection();
   const { type: deviceType } = useDeviceType();
-
-  const toggleSidebarCollapse = () => {
-    const newState = !sidebarCollapsed;
-    onSidebarCollapseChange?.(newState);
-  };
 
   // iPhone: Use bottom navigation (existing)
   if (type === 'iphone') {
@@ -58,8 +58,8 @@ const AdaptiveNavigation = ({
   if (deviceType === 'mac') {
     return (
       <MacNavigationProvider 
-        isCollapsed={sidebarCollapsed}
-        onToggleCollapsed={toggleSidebarCollapse}
+        sidebarState={sidebarState}
+        onSidebarStateChange={onSidebarStateChange}
       >
         <MacSidebar
           activeTab={activeTab}
@@ -87,8 +87,8 @@ interface IPadNavigationWrapperProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
   onCreateTask: () => void;
-  sidebarCollapsed: boolean;
-  onToggleSidebarCollapse: () => void;
+  sidebarCollapsed?: boolean;
+  onToggleSidebarCollapse?: () => void;
 }
 
 const IPadNavigationWrapper = ({ 

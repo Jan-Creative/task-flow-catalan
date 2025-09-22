@@ -1,29 +1,56 @@
-import { ChevronRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useMacNavigation } from "@/contexts/MacNavigationContext";
-import { cn } from "@/lib/utils";
+import { useState, useEffect } from 'react';
+import { ChevronRight, Sidebar } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useMacNavigation } from '@/contexts/MacNavigationContext';
+import { cn } from '@/lib/utils';
 
 const MacFloatingRestoreButton = () => {
-  const { isCollapsed, toggleCollapsed } = useMacNavigation();
+  const { sidebarState, setSidebarState } = useMacNavigation();
+  const [isVisible, setIsVisible] = useState(false);
 
-  // Don't show floating button since sidebar is always visible in mini mode
-  return null;
+  // Show button when sidebar is hidden
+  useEffect(() => {
+    if (sidebarState === 'hidden') {
+      // Slight delay for smooth UX
+      const timer = setTimeout(() => setIsVisible(true), 200);
+      return () => clearTimeout(timer);
+    } else {
+      setIsVisible(false);
+    }
+  }, [sidebarState]);
+
+  // Don't render if not hidden
+  if (sidebarState !== 'hidden') {
+    return null;
+  }
+
+  const handleRestore = () => {
+    setSidebarState('expanded');
+  };
 
   return (
-    <div className="fixed left-4 top-6 z-50">
+    <div
+      className={cn(
+        "fixed left-4 top-1/2 -translate-y-1/2 z-50 transition-all duration-300",
+        isVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4 pointer-events-none"
+      )}
+    >
       <Button
-        variant="ghost"
+        variant="outline"
         size="sm"
-        onClick={toggleCollapsed}
+        onClick={handleRestore}
         className={cn(
-          "h-10 w-10 p-0 rounded-xl transition-all duration-300",
-          "bg-card/80 backdrop-blur-xl border border-border/50",
-          "hover:bg-card/90 hover:shadow-lg hover:scale-105",
-          "shadow-floating"
+          "h-12 w-12 p-0 rounded-full shadow-lg backdrop-blur-sm",
+          "bg-card/90 hover:bg-card border-border/50 hover:border-border",
+          "hover:shadow-xl hover:scale-105 active:scale-95",
+          "transition-all duration-200"
         )}
-        title="Expandir sidebar (⌘\)"
+        title="Mostrar sidebar (⌘B)"
       >
-        <ChevronRight className="h-4 w-4" />
+        <div className="flex items-center justify-center">
+          <Sidebar className="h-4 w-4 text-muted-foreground" />
+          <ChevronRight className="h-3 w-3 text-muted-foreground ml-0.5" />
+        </div>
       </Button>
     </div>
   );

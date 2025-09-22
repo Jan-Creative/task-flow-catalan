@@ -39,7 +39,8 @@ const AdaptiveLayout = ({ children, sidebarCollapsed = false }: AdaptiveLayoutPr
         if (deviceType === 'mac') {
           return cn(
             "transition-all duration-300 ease-out min-h-screen",
-            sidebarCollapsed ? "ml-20" : "ml-[276px]"
+            sidebarCollapsed === undefined ? "ml-0" : // hidden state
+            sidebarCollapsed ? "ml-20" : "ml-[276px]" // mini : expanded
           );
         }
         // Other Desktop: Full width (top navigation in future)
