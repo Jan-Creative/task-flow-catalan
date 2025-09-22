@@ -45,8 +45,8 @@ export const useActiveTimeBlock = (): ActiveTimeBlockState => {
     // Check immediately
     checkActiveBlock();
 
-    // Check every minute
-    const interval = setInterval(checkActiveBlock, 60000);
+    // Check every 30 seconds for better precision
+    const interval = setInterval(checkActiveBlock, 30000);
 
     return () => clearInterval(interval);
   }, [timeBlocks]);
