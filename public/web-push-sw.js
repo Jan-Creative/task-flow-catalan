@@ -1,10 +1,10 @@
 // Service Worker per Web Push nativu (compatible amb Apple)
 // Substitueix firebase-messaging-sw.js
 
-const CACHE_NAME = 'taskflow-v2-icons-20250828';
+const CACHE_NAME = 'taskflow-v4-icons-20250922';
 const urlsToCache = [
   '/',
-  '/manifest.json?v=2'
+  '/manifest.json?v=4'
 ];
 
 // Instal·lació del Service Worker
@@ -58,8 +58,8 @@ self.addEventListener('push', (event) => {
   let notificationData = {
     title: 'TaskFlow',
     body: 'Tens una nova notificació',
-    icon: '/icon-192x192.png',
-    badge: '/icon-192x192.png',
+    icon: '/icona App 11.png?v=3',
+    badge: '/icona App 11.png?v=3',
     tag: 'taskflow-notification',
     data: {},
     actions: [],
