@@ -36,11 +36,11 @@ const AdaptiveLayout = ({ children, sidebarCollapsed = false }: AdaptiveLayoutPr
       
       case 'desktop':
       default:
-        // Mac: Left margin for fixed sidebar when expanded, full width when collapsed
+        // Mac: Left margin for fixed sidebar when expanded, mini margin when collapsed
         if (deviceType === 'mac') {
           return cn(
             "transition-all duration-300 ease-out min-h-screen",
-            macSidebarCollapsed ? "ml-0" : "ml-[276px]"
+            macSidebarCollapsed ? "ml-20" : "ml-[276px]"
           );
         }
         // Other Desktop: Full width (top navigation in future)

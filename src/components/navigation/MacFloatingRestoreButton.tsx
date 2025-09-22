@@ -6,7 +6,8 @@ import { cn } from "@/lib/utils";
 const MacFloatingRestoreButton = () => {
   const { isCollapsed, toggleCollapsed } = useMacNavigation();
 
-  if (!isCollapsed) return null;
+  // Don't show floating button since sidebar is always visible in mini mode
+  return null;
 
   return (
     <div className="fixed left-4 top-6 z-50">
