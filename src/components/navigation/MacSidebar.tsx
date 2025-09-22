@@ -19,19 +19,20 @@ const MacSidebar = ({
   onTabChange, 
   onCreateTask
 }: MacSidebarProps) => {
+  // ⚠️ CRITICAL: All hooks must be called BEFORE any conditional returns
   const { isVisible: showPrepareTomorrow } = usePrepareTomorrowVisibility();
   const { sidebarState, toggleSidebar, cycleSidebar } = useMacNavigation();
   
-  // Return null when hidden
+  // Initialize Mac-specific hooks (must be called unconditionally)
+  useMacKeyboardShortcuts(onCreateTask);
+  useMacSearchLogic();
+  
+  // Return null when hidden (AFTER all hooks are called)
   if (sidebarState === 'hidden') {
     return null;
   }
   
   const isCollapsed = sidebarState === 'mini';
-  
-  // Initialize Mac-specific hooks
-  useMacKeyboardShortcuts(onCreateTask);
-  useMacSearchLogic();
 
   // Navigation items organized by sections - similar to iPad but optimized for Mac
   const mainSections = [
