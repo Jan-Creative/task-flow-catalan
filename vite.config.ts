@@ -17,6 +17,7 @@ export default defineConfig(({ mode }) => ({
       strategies: 'injectManifest',
       srcDir: 'public',
       filename: 'sw-advanced.js',
+      registerType: 'prompt',
       injectManifest: {
         swSrc: 'public/sw-advanced.js',
         swDest: 'dist/sw-advanced.js',
@@ -29,7 +30,10 @@ export default defineConfig(({ mode }) => ({
       devOptions: {
         enabled: false,
         type: 'module'
-      }
+      },
+      // Disable auto-registration to avoid conflicts
+      injectRegister: false,
+      manifest: false
     })
   ].filter(Boolean),
   resolve: {

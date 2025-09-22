@@ -232,18 +232,13 @@ async function handleAppRoute(request) {
 // Push notification handling
 self.addEventListener('push', event => {
   const options = {
-    body: 'You have a new notification',
-    icon: '/icona App 11.png',
-    badge: '/icona App 11.png',
-    tag: 'notification',
+    body: 'Tens una nova notificació',
+    icon: '/icona App 11.png?v=3',
+    badge: '/icona App 11.png?v=3',
+    tag: 'taskflow-notification',
     requireInteraction: false,
-    actions: [
-      {
-        action: 'view',
-        title: 'View',
-        icon: '/icona App 11.png'
-      }
-    ]
+    data: {},
+    actions: []
   };
 
   if (event.data) {
@@ -251,15 +246,20 @@ self.addEventListener('push', event => {
       const payload = event.data.json();
       options.body = payload.body || options.body;
       options.title = payload.title || 'TaskFlow';
+      options.icon = payload.icon || options.icon;
+      options.badge = payload.badge || options.badge;
+      options.tag = payload.tag || options.tag;
+      options.data = payload.data || {};
       
       if (payload.type === 'task_reminder') {
         options.actions = [
-          { action: 'view', title: 'View Task' },
-          { action: 'complete', title: 'Mark Complete' }
+          { action: 'view', title: 'Veure tasca' },
+          { action: 'complete', title: 'Marcar completada' }
         ];
-        options.data = { taskId: payload.taskId };
+        options.data = { taskId: payload.taskId, type: payload.type };
       }
     } catch (error) {
+      console.log('Error parsing push data:', error);
       // Use default options if parsing fails
     }
   }
