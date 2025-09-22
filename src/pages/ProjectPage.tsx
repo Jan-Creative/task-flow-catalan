@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Briefcase } from "lucide-react";
 import ProjectDashboard from "@/components/dashboard/ProjectDashboard";
 import CreateProjectModal from "@/components/projects/CreateProjectModal";
-import CreateTaskModal from "@/components/CreateTaskModal";
+import { CreateTaskModalLazy, LazyModal } from '@/lib/lazyLoading';
 import { ProjectNavigationProvider } from "@/contexts/ProjectNavigationContext";
 import ProjectSidebar from "@/components/navigation/ProjectSidebar";
 import ProjectFloatingRestoreButton from "@/components/navigation/ProjectFloatingRestoreButton";
@@ -121,15 +121,19 @@ const ProjectPage = () => {
           }}
         />
 
-        <CreateTaskModal
-          open={showCreateTaskModal}
-          onClose={() => setShowCreateTaskModal(false)}
-          onSubmit={(taskData) => {
-            console.log("Creating project task:", taskData);
-            setShowCreateTaskModal(false);
-          }}
-          folders={[{ id: projectId, name: `Projecte: ${projectName}` }]}
-        />
+        {showCreateTaskModal && (
+          <LazyModal>
+            <CreateTaskModalLazy
+              open={showCreateTaskModal}
+              onClose={() => setShowCreateTaskModal(false)}
+              onSubmit={(taskData) => {
+                console.log("Creating project task:", taskData);
+                setShowCreateTaskModal(false);
+              }}
+              folders={[{ id: projectId, name: `Projecte: ${projectName}` }]}
+            />
+          </LazyModal>
+        )}
       </div>
     </ProjectNavigationProvider>
   );

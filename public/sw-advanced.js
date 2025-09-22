@@ -17,8 +17,8 @@ const CACHE_STRATEGIES = {
   CACHE_ONLY: 'cache-only'
 };
 
-// Resources to precache
-const PRECACHE_RESOURCES = [
+// Resources to precache - Workbox will inject the manifest here
+const PRECACHE_RESOURCES = self.__WB_MANIFEST || [
   '/',
   '/manifest.json',
   '/offline.html'

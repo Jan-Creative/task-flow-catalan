@@ -10,7 +10,7 @@ import type { Task } from "@/types";
 import { useUnifiedProperties } from "@/hooks/useUnifiedProperties";
 import { useTaskOperations } from "@/hooks/useTaskOperations";
 import TaskChecklistItem from "@/components/TaskChecklistItem";
-import CreateTaskModal from "@/components/CreateTaskModal";
+import { CreateTaskModalLazy, LazyModal } from '@/lib/lazyLoading';
 import BottomNavigation from "@/components/BottomNavigation";
 import { FolderCustomizationPopover } from "@/components/folders/FolderCustomizationPopover";
 import { getIconByName } from "@/lib/iconLibrary";
@@ -627,17 +627,21 @@ const FolderDetailPage = () => {
       />
 
       {/* Create Task Modal */}
-      <CreateTaskModal
-        open={showCreateTask}
-        onClose={() => {
-          setShowCreateTask(false);
-          setEditingTask(null);
-          setShowCreateTaskFromNav(false);
-        }}
-        onSubmit={handleTaskSubmit}
-        editingTask={editingTask}
-        folders={folders}
-      />
+      {showCreateTask && (
+        <LazyModal>
+          <CreateTaskModalLazy
+            open={showCreateTask}
+            onClose={() => {
+              setShowCreateTask(false);
+              setEditingTask(null);
+              setShowCreateTaskFromNav(false);
+            }}
+            onSubmit={handleTaskSubmit}
+            editingTask={editingTask}
+            folders={folders}
+          />
+        </LazyModal>
+      )}
     </div>
   );
 };

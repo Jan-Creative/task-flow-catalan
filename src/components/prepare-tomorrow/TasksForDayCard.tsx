@@ -2,8 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-// Removed unused import
-import CreateTaskModal from '@/components/CreateTaskModal';
+import { CreateTaskModalLazy, LazyModal } from '@/lib/lazyLoading';
 import { Plus, Calendar, Clock } from 'lucide-react';
 import { useTaskOperations } from '@/hooks/useTaskOperations';
 import { useDadesApp } from '@/hooks/useDadesApp';
@@ -125,12 +124,16 @@ export const TasksForDayCard = ({ tomorrow, onTasksUpdate }: TasksForDayCardProp
         </CardContent>
       </Card>
 
-      <CreateTaskModal
-        open={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
-        onSubmit={handleCreateTaskForDay}
-        folders={folders}
-      />
+      {showCreateModal && (
+        <LazyModal>
+          <CreateTaskModalLazy
+            open={showCreateModal}
+            onClose={() => setShowCreateModal(false)}
+            onSubmit={handleCreateTaskForDay}
+            folders={folders}
+          />
+        </LazyModal>
+      )}
     </>
   );
 };

@@ -16,7 +16,7 @@ import { logger } from "@/lib/debugUtils";
 import type { Task } from "@/types";
 
 // Components
-import CreateTaskModal from "@/components/CreateTaskModal";
+import { CreateTaskModalLazy, LazyModal } from '@/lib/lazyLoading';
 import BottomNavigation from "@/components/BottomNavigation";
 import { UnifiedFolderToolbar } from "@/components/folders/UnifiedFolderToolbar";
 import { FolderHeader } from "@/components/FolderDetail/FolderHeader";
@@ -491,16 +491,18 @@ const OptimizedFolderDetailPage = () => {
 
       {/* Modals */}
       {showCreateTask && (
-        <CreateTaskModal
-          open={showCreateTask}
-          onClose={() => {
-            setShowCreateTask(false);
-            setEditingTask(null);
-          }}
-          onSubmit={handleTaskSubmit}
-          editingTask={editingTask}
-          folders={folders}
-        />
+        <LazyModal>
+          <CreateTaskModalLazy
+            open={showCreateTask}
+            onClose={() => {
+              setShowCreateTask(false);
+              setEditingTask(null);
+            }}
+            onSubmit={handleTaskSubmit}
+            editingTask={editingTask}
+            folders={folders}
+          />
+        </LazyModal>
       )}
 
       {/* Bottom Navigation */}
