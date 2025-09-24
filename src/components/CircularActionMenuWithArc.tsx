@@ -157,8 +157,8 @@ const CircularActionMenuWithArc = ({
     const safeMargin = optionBtn / 2 + 16;
 
     let radius = Math.max(
-      36,
-      Math.min(availableSpace.left - safeMargin, availableSpace.top - safeMargin, isMobile ? 100 : 120)
+      32,
+      Math.min(availableSpace.left - safeMargin, availableSpace.top - safeMargin, isMobile ? 80 : 120)
     );
 
     let startAngle = 180;
@@ -244,8 +244,8 @@ const CircularActionMenuWithArc = ({
     return `M ${startX} ${startY} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${endX} ${endY}`;
   };
 
-  const buttonSize = isMobile ? 56 : 60;
-  const mainButtonSize = isMobile ? 64 : 68;
+  const buttonSize = isMobile ? 48 : 60;
+  const mainButtonSize = isMobile ? 56 : 68;
 
   return (
     <>

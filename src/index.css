@@ -214,12 +214,47 @@ All colors MUST be HSL.
     scroll-behavior: smooth;
     /* Prevent layout shift during keyboard transitions */
     overflow-x: hidden;
+    /* iOS stability fixes */
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    /* Fixed background to prevent zoom/movement */
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
   }
 
   /* Anti-jumping techniques */
   html {
     scroll-behavior: smooth;
     overscroll-behavior: contain;
+    touch-action: manipulation;
+  }
+
+  /* Layout stabilization */
+  #root {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    overflow: auto;
+    overscroll-behavior: contain;
+    contain: layout style paint;
+    position: relative;
+  }
+
+  /* Fixed zones - no scroll interference */
+  .fixed-zone {
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  /* Reserved bottom space for iPhone navigation */
+  .reserved-bottom-space {
+    height: calc(7rem + env(safe-area-inset-bottom));
+    flex-shrink: 0;
   }
 
   /* CSS Containment for performance */

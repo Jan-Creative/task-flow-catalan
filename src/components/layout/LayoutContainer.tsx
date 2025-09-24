@@ -21,8 +21,9 @@ const LayoutContainer = ({ children, navigationHeight = 0, sidebarCollapsed = fa
       case 'iphone':
         return cn(
           baseClasses,
-          "pb-[calc(6rem+env(safe-area-inset-bottom))]", // Bottom nav + safe area
-          "overscroll-contain"
+          "pb-[calc(7rem+env(safe-area-inset-bottom))]", // Updated height for new layout
+          "overscroll-contain",
+          "contain-layout"
         );
       
       case 'ipad':
