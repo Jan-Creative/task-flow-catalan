@@ -28,10 +28,17 @@ const UnifiedBottomNavigation = ({ activeTab, onTabChange, onCreateTask }: Unifi
   return (
     <div 
       className={cn(
-        "fixed bottom-0 left-0 right-0 z-50 fixed-zone",
+        "fixed bottom-0 left-0 right-0 z-[9999] fixed-zone",
         "pb-[env(safe-area-inset-bottom)]",
         "overscroll-contain"
       )}
+      style={{
+        position: 'fixed !important' as any,
+        transform: 'translate3d(0, 0, 0)',
+        isolation: 'isolate',
+        bottom: '0 !important' as any,
+        willChange: 'transform'
+      }}
     >
       {/* Container with maximum stability */}
       <div className="px-4 py-3">

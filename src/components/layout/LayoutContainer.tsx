@@ -49,7 +49,9 @@ const LayoutContainer = ({ children, navigationHeight = 0, sidebarCollapsed = fa
       case 'iphone':
         return cn(
           "relative w-full",
-          "contain-layout" // CSS containment for performance
+          "contain-layout",
+          "overflow-y-auto overflow-x-hidden",
+          "overscroll-behavior-contain"
         );
       
       case 'ipad':
