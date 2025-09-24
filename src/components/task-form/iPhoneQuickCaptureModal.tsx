@@ -187,10 +187,41 @@ export const iPhoneQuickCaptureModal: React.FC<iPhoneQuickCaptureModalProps> = (
   });
 
   // Calculate positioning based on keyboard
-  const cardBottomOffset = isKeyboardVisible ? keyboardHeight + 16 : 24;
+  const cardBottomOffset = isKeyboardVisible 
+    ? `calc(${keyboardHeight}px + env(safe-area-inset-bottom, 0px) + 12px)`
+    : `calc(env(safe-area-inset-bottom, 0px) + 24px)`;
+  
   const maxCardHeight = isKeyboardVisible 
-    ? `calc(100vh - ${keyboardHeight + 80}px)` 
-    : isExpanded ? '60vh' : 'auto';
+    ? `calc(100dvh - ${keyboardHeight + 96}px)` 
+    : isExpanded ? '60dvh' : 'auto';
+
+  // Auto-focus title input when modal opens
+  useEffect(() => {
+    if (open && quickForm.titleRef.current) {
+      // Immediate focus attempt
+      quickForm.titleRef.current.focus();
+      
+      // Fallback for iOS
+      const fallbackFocus = () => {
+        if (quickForm.titleRef.current) {
+          quickForm.titleRef.current.focus();
+        }
+      };
+      
+      setTimeout(fallbackFocus, 100);
+      setTimeout(fallbackFocus, 300);
+    }
+  }, [open]);
+
+  // Block body scroll when modal is open
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = '';
+      };
+    }
+  }, [open]);
 
   // Disable global shortcuts while modal is open
   useEffect(() => {
@@ -203,11 +234,11 @@ export const iPhoneQuickCaptureModal: React.FC<iPhoneQuickCaptureModalProps> = (
   }, [open, setEnabled]);
 
   return (
-    <Drawer open={open} onOpenChange={handleClose}>
+    <Drawer open={open} onOpenChange={handleClose} shouldScaleBackground={false}>
       <DrawerContent 
-        className="fixed left-4 right-4 mx-auto max-w-sm p-0 rounded-2xl bg-background/95 backdrop-blur-2xl backdrop-saturate-150 border border-white/20 shadow-2xl overflow-hidden transition-all duration-300 ease-out"
+        className="fixed left-4 right-4 mx-auto max-w-sm p-0 rounded-2xl bg-background/95 backdrop-blur-2xl backdrop-saturate-150 border border-white/20 shadow-2xl overflow-hidden transition-all duration-300 ease-out overscroll-contain"
         style={{
-          bottom: `${cardBottomOffset}px`,
+          bottom: cardBottomOffset,
           maxHeight: maxCardHeight,
           transform: `translateY(${swipeGestures.dragOffset}px)`,
           transition: swipeGestures.isDragging ? 'none' : 'transform 0.3s ease-out, bottom 0.3s ease-out, max-height 0.3s ease-out',
