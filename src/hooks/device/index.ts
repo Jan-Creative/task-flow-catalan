@@ -14,5 +14,8 @@ export type { InteractionType, InputCapability } from './useInteractionType';
 export { useResponsiveLayout } from './useResponsiveLayout';
 export type { LayoutType, NavigationType } from './useResponsiveLayout';
 
+export { usePhoneDetection } from './usePhoneDetection';
+export type { PhoneSize } from './usePhoneDetection';
+
 // Legacy mobile hook (maintained for backward compatibility)
 export { useIsMobile } from '../use-mobile';

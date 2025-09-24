@@ -1,4 +1,4 @@
-import { Calendar, Folder, Settings, Bell, ChevronRight, Home, CheckSquare, Sunrise } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
@@ -7,6 +7,8 @@ import CircularActionMenuWithArc from "./CircularActionMenuWithArc";
 import CircularActionMenu from "./CircularActionMenu";
 import { useCircularMenuMode } from "@/hooks/useCircularMenuMode";
 import { usePrepareTomorrowVisibility } from "@/hooks/usePrepareTomorrowVisibility";
+import { usePhoneDetection } from "@/hooks/device/usePhoneDetection";
+import SmartTabSystem from "./navigation/SmartTabSystem";
 
 interface AdaptiveBottomNavigationProps {
   activeTab: string;
@@ -18,28 +20,9 @@ const AdaptiveBottomNavigation = ({ activeTab, onTabChange, onCreateTask }: Adap
   const [isCompacted, setIsCompacted] = useState(false);
   const [showTransition, setShowTransition] = useState(false);
   const isMobile = useIsMobile();
-  const { mode, isArcMode, toggleMode } = useCircularMenuMode("arc"); // Always start with arc mode
+  const { isArcMode, toggleMode } = useCircularMenuMode("arc");
   const { isVisible: showPrepareTomorrow } = usePrepareTomorrowVisibility();
-
-  const baseTabs = [
-    { id: "inici", label: "Inici", icon: Home },
-    { id: "avui", label: "Tasques", icon: CheckSquare },
-    { id: "carpetes", label: "Carpetes", icon: Folder },
-    { id: "calendar", label: "Calendari", icon: Calendar },
-    { id: "notificacions", label: "Notificacions", icon: Bell },
-    { id: "configuracio", label: "Configuració", icon: Settings },
-  ];
-
-  // Add prepare tomorrow tab when visible
-  const tabs = showPrepareTomorrow 
-    ? [
-        ...baseTabs.slice(0, 4), // inici, avui, carpetes, calendar
-        { id: "preparar-dema", label: "Preparar demà", icon: Sunrise },
-        ...baseTabs.slice(4) // notificacions, configuracio
-      ]
-    : baseTabs;
-
-  const activeTabData = tabs.find(tab => tab.id === activeTab);
+  const phoneInfo = usePhoneDetection();
 
   // Auto-compact logic for calendar page
   useEffect(() => {
@@ -71,8 +54,7 @@ const AdaptiveBottomNavigation = ({ activeTab, onTabChange, onCreateTask }: Adap
             showTransition && "animate-scale-in"
           )}
         >
-          {activeTabData && <activeTabData.icon className="h-5 w-5 text-muted-foreground" />}
-          <ChevronRight className="h-3 w-3 ml-1 text-muted-foreground" />
+          <ChevronRight className="h-5 w-5 text-muted-foreground" />
         </Button>
       </div>
     );
@@ -85,54 +67,33 @@ const AdaptiveBottomNavigation = ({ activeTab, onTabChange, onCreateTask }: Adap
         showTransition && "animate-fade-out"
       )}>
         {/* Main Navigation */}
-        <div className="bg-gray-800/90 backdrop-blur-[var(--backdrop-blur-organic)] rounded-[28px] shadow-[var(--shadow-organic)] px-2 py-1.5 flex-1 mr-4">
-          <div className={cn(
-            "flex items-center justify-between mx-auto",
-            isMobile ? "max-w-full overflow-x-auto scrollbar-hide" : "max-w-lg"
-          )}>
-            <div className="flex items-center gap-1">
-              {tabs.map((tab) => {
-                const Icon = tab.icon;
-                return (
-                  <Button
-                    key={tab.id}
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onTabChange(tab.id)}
-                    className={cn(
-                      "flex flex-col items-center gap-0.5 h-auto transition-all duration-200 ease-out rounded-[20px] flex-shrink-0",
-                      isMobile ? "py-1.5 px-2 min-w-[50px]" : "py-2 px-3 min-w-[60px]",
-                      activeTab === tab.id
-                        ? "bg-primary/10 text-primary scale-105"
-                        : "text-muted-foreground hover:text-foreground hover:bg-accent/50 hover:scale-102",
-                      tab.id === "preparar-dema" && "bg-gradient-to-r from-orange-500/20 to-yellow-500/20 text-orange-300 animate-pulse"
-                    )}
-                  >
-                    <Icon className={cn("shrink-0", isMobile ? "h-3.5 w-3.5" : "h-4 w-4")} />
-                    <span className={cn(
-                      "font-medium leading-tight whitespace-nowrap",
-                      isMobile ? "text-[9px]" : "text-[10px]"
-                    )}>
-                      {tab.label}
-                    </span>
-                  </Button>
-                );
-              })}
-            </div>
+        <div className={cn(
+          "bg-gray-800/90 backdrop-blur-[var(--backdrop-blur-organic)] rounded-[28px] shadow-[var(--shadow-organic)] px-2 py-1.5 flex-1",
+          phoneInfo.isPhone ? "mr-3" : "mr-4"
+        )}>
+          <div className="flex items-center justify-center mx-auto">
+            <SmartTabSystem
+              activeTab={activeTab}
+              onTabChange={onTabChange}
+              maxVisibleTabs={phoneInfo.isPhone ? phoneInfo.canFitTabs : 6}
+              availableWidth={phoneInfo.availableWidth}
+              showPrepareTomorrow={showPrepareTomorrow}
+              isMobile={phoneInfo.isPhone}
+            />
           </div>
         </div>
 
-        {/* Circular Action Menu */}
+        {/* Circular Action Menu - Optimized for phone */}
         {isArcMode ? (
           <CircularActionMenuWithArc
             onCreateTask={onCreateTask}
-            isMobile={isMobile}
+            isMobile={phoneInfo.isPhone || isMobile}
             onToggleMode={toggleMode}
           />
         ) : (
           <CircularActionMenu
             onCreateTask={onCreateTask}
-            isMobile={isMobile}
+            isMobile={phoneInfo.isPhone || isMobile}
           />
         )}
       </div>
