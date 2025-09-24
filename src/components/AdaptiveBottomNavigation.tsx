@@ -50,7 +50,7 @@ const AdaptiveBottomNavigation = ({ activeTab, onTabChange, onCreateTask }: Adap
           onClick={handleCompactedClick}
           size="lg"
           className={cn(
-            "bg-gray-800/90 backdrop-blur-[var(--backdrop-blur-organic)] hover:scale-110 active:scale-95 transition-all duration-300 ease-out rounded-full h-14 w-14 shadow-[var(--shadow-floating)] flex-shrink-0 p-0",
+            "bg-glass-navigation-primary backdrop-blur-[var(--backdrop-blur-navigation)] backdrop-saturate-[var(--backdrop-saturate-navigation)] backdrop-brightness-[var(--backdrop-brightness-navigation)] border border-glass-border-subtle hover:scale-110 active:scale-95 hover:bg-glass-navigation-accent transition-all duration-300 ease-out rounded-full h-14 w-14 shadow-[var(--glass-shadow-floating)] flex-shrink-0 p-0",
             showTransition && "animate-scale-in"
           )}
         >
@@ -68,7 +68,7 @@ const AdaptiveBottomNavigation = ({ activeTab, onTabChange, onCreateTask }: Adap
       )}>
         {/* Main Navigation */}
         <div className={cn(
-          "bg-gray-800/90 backdrop-blur-[var(--backdrop-blur-organic)] rounded-[28px] shadow-[var(--shadow-organic)] px-2 py-1.5 flex-1",
+          "bg-glass-navigation-primary backdrop-blur-[var(--backdrop-blur-navigation)] backdrop-saturate-[var(--backdrop-saturate-navigation)] backdrop-brightness-[var(--backdrop-brightness-navigation)] rounded-[28px] shadow-[var(--glass-shadow-floating)] border border-glass-border-subtle px-2 py-1.5 flex-1 transition-all duration-300 ease-out",
           phoneInfo.isPhone ? "mr-3" : "mr-4"
         )}>
           <div className="flex items-center justify-center mx-auto">

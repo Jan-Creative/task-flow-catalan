@@ -85,15 +85,15 @@ const SmartTabSystem = ({
           setIsMoreOpen(false);
         }}
         className={cn(
-          "flex flex-col items-center gap-0.5 h-auto transition-all duration-200 ease-out rounded-[20px] flex-shrink-0",
+          "flex flex-col items-center gap-0.5 h-auto transition-all duration-200 ease-out rounded-[20px] flex-shrink-0 border border-transparent",
           isCompact 
             ? "py-2 px-3 min-w-[60px]" 
             : isMobile 
               ? "py-1.5 px-2 min-w-[50px]" 
               : "py-2 px-3 min-w-[60px]",
           isActive
-            ? "bg-primary/10 text-primary scale-105"
-            : "text-muted-foreground hover:text-foreground hover:bg-accent/50 hover:scale-102",
+            ? "bg-glass-navigation-accent backdrop-blur-sm border-glass-border-subtle text-primary scale-105 shadow-sm"
+            : "text-muted-foreground hover:text-foreground hover:bg-glass-navigation-primary hover:backdrop-blur-sm hover:border-glass-border-subtle hover:scale-102",
           tab.id === "preparar-dema" && "bg-gradient-to-r from-orange-500/20 to-yellow-500/20 text-orange-300 animate-pulse"
         )}
       >
@@ -121,9 +121,9 @@ const SmartTabSystem = ({
               variant="ghost"
               size="sm"
               className={cn(
-                "flex flex-col items-center gap-0.5 h-auto transition-all duration-200 ease-out rounded-[20px] flex-shrink-0",
+                "flex flex-col items-center gap-0.5 h-auto transition-all duration-200 ease-out rounded-[20px] flex-shrink-0 border border-transparent",
                 isMobile ? "py-1.5 px-2 min-w-[50px]" : "py-2 px-3 min-w-[60px]",
-                "text-muted-foreground hover:text-foreground hover:bg-accent/50 hover:scale-102"
+                "text-muted-foreground hover:text-foreground hover:bg-glass-navigation-primary hover:backdrop-blur-sm hover:border-glass-border-subtle hover:scale-102"
               )}
             >
               <MoreHorizontal className={cn("shrink-0", isMobile ? "h-3.5 w-3.5" : "h-4 w-4")} />
@@ -136,7 +136,7 @@ const SmartTabSystem = ({
             </Button>
           </PopoverTrigger>
           <PopoverContent 
-            className="w-auto p-2 bg-gray-800/95 backdrop-blur-[var(--backdrop-blur-organic)] border-gray-700 shadow-[var(--shadow-floating)]" 
+            className="w-auto p-2 bg-glass-navigation-primary backdrop-blur-[var(--backdrop-blur-navigation)] backdrop-saturate-[var(--backdrop-saturate-navigation)] backdrop-brightness-[var(--backdrop-brightness-navigation)] border border-glass-border-subtle shadow-[var(--glass-shadow-floating)] rounded-[20px]" 
             side="top"
             align="end"
           >
