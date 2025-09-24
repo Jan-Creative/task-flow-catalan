@@ -6,6 +6,7 @@ export { useCreateTaskForm } from './useCreateTaskForm';
 export { useMacTaskForm, type MacTaskFormReturn } from './useMacTaskForm';
 export { useiPadTaskForm, type iPadTaskFormReturn } from './useiPadTaskForm';
 export { useiPhoneTaskForm, type iPhoneTaskFormReturn } from './useiPhoneTaskForm';
+export { useQuickCaptureForm, type QuickCaptureFormReturn } from './useQuickCaptureForm';
 export { useTaskForm } from '../useTaskForm';
 export { useTaskNotes } from '../useTaskNotes';
 export { useTaskSubtasks } from '../useTaskSubtasks';

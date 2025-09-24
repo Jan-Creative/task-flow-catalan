@@ -16,7 +16,7 @@ import { useDeviceType } from "@/hooks/device/useDeviceType";
 import { useKeyboardShortcuts } from "@/contexts/KeyboardShortcutsContext";
 import MacTaskFormModal from "@/components/task-form/MacTaskFormModal";
 import { iPadTaskFormModal as IPadTaskFormModal } from "@/components/task-form/iPadTaskFormModal";
-import { iPhoneTaskFormModal as IPhoneTaskFormModal } from "@/components/task-form/iPhoneTaskFormModal";
+import { iPhoneQuickCaptureModal as IPhoneQuickCaptureModal } from "@/components/task-form/iPhoneQuickCaptureModal";
 import { 
   AdaptiveFormLayout, 
   FormMainSection, 
@@ -130,7 +130,7 @@ useEffect(() => {
 
   if (deviceType === 'iphone') {
     return (
-      <IPhoneTaskFormModal
+      <IPhoneQuickCaptureModal
         open={open}
         onClose={onClose}
         onSubmit={onSubmit}
