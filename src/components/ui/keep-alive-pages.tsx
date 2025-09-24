@@ -39,12 +39,16 @@ export const TabPage = ({ children, tabId, activeTab, className }: TabPageProps)
   return (
     <div 
       className={cn(
-        "w-full transition-all duration-150 ease-out",
-        isActive ? "opacity-100 visible" : "opacity-0 invisible absolute",
+        "w-full h-full",
+        "transition-transform duration-200 ease-out",
+        "contain-layout contain-style contain-paint", // CSS containment for isolation
+        isActive 
+          ? "transform-none opacity-100 relative z-10" 
+          : "transform-gpu translate-x-full opacity-0 absolute inset-0 z-0",
         className
       )}
       style={{ 
-        display: isActive ? 'block' : 'none' // Ensure proper hiding
+        willChange: isActive ? 'auto' : 'transform' // Performance optimization
       }}
     >
       {children}

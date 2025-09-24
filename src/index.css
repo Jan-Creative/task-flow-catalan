@@ -211,6 +211,26 @@ All colors MUST be HSL.
     /* Força el tema fosc com a predeterminat */
     color-scheme: dark;
     overscroll-behavior: contain;
+    scroll-behavior: smooth;
+    /* Prevent layout shift during keyboard transitions */
+    overflow-x: hidden;
+  }
+
+  /* Anti-jumping techniques */
+  html {
+    scroll-behavior: smooth;
+    overscroll-behavior: contain;
+  }
+
+  /* CSS Containment for performance */
+  .tab-content {
+    contain: layout style paint;
+  }
+
+  /* Prevent content jumping during navigation */
+  .page-container {
+    contain: layout style;
+    will-change: transform;
   }
   
   /* Task completion animations - Redesigned for minimal static effect */

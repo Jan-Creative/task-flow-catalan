@@ -2,7 +2,7 @@ import { ReactNode } from 'react';
 import { useDeviceDetection } from '@/hooks/useDeviceDetection';
 import { useDeviceType } from '@/hooks/device/useDeviceType';
 import { useIPadNavigation } from '@/contexts/IPadNavigationContext';
-import { useMacNavigation } from '@/contexts/MacNavigationContext';
+import LayoutContainer from './LayoutContainer';
 import { cn } from '@/lib/utils';
 
 interface AdaptiveLayoutProps {
@@ -15,62 +15,60 @@ const AdaptiveLayout = ({ children, sidebarCollapsed = false }: AdaptiveLayoutPr
   const { type: deviceType } = useDeviceType();
   const { navigationMode } = type === 'ipad' ? useIPadNavigation() : { navigationMode: 'sidebar' };
 
-  // Calculate layout based on device type
-  const getLayoutClasses = () => {
+  // Use CSS Grid for stable layouts instead of dynamic margins
+  const getGridClasses = () => {
     switch (type) {
       case 'iphone':
-        // iPhone: Full width with bottom padding for navigation
-        return "w-full pb-24";
+        return "grid-cols-1 grid-rows-1";
       
       case 'ipad':
-        // iPad: Different layouts based on navigation mode
         if (navigationMode === 'topbar') {
-          return "transition-all duration-300 ease-out min-h-screen pt-20";
+          return "grid-cols-1 grid-rows-[80px_1fr] pt-0";
         }
-        // Sidebar mode: Floating sidebar layout with left margin for floating card
         return cn(
-          "transition-all duration-300 ease-out min-h-screen",
-          sidebarCollapsed ? "ml-24" : "ml-80"
+          "grid-cols-[auto_1fr] grid-rows-1",
+          "transition-[grid-template-columns] duration-300 ease-out"
         );
       
       case 'desktop':
       default:
-        // Mac: Left margin for fixed sidebar when expanded, mini margin when collapsed
         if (deviceType === 'mac') {
           return cn(
-            "transition-all duration-300 ease-out min-h-screen",
-            sidebarCollapsed === undefined ? "ml-0" : // hidden state
-            sidebarCollapsed ? "ml-20" : "ml-[276px]" // mini : expanded
+            "grid-cols-[auto_1fr] grid-rows-1",
+            "transition-[grid-template-columns] duration-300 ease-out"
           );
         }
-        // Other Desktop: Full width (top navigation in future)
-        return "w-full";
+        return "grid-cols-1 grid-rows-1";
     }
   };
 
-  // Apply specific styles for iPad and Mac layouts
   const getContentClasses = () => {
-    if (type === 'ipad') {
-      if (navigationMode === 'topbar') {
-        return "relative z-0 p-6 max-w-none";
-      }
-       return "relative z-0 p-6 max-w-none";
-    }
+    const baseClasses = "relative w-full overflow-hidden";
     
-    // Mac: Optimized padding for large screens
-    if (deviceType === 'mac') {
-      return "relative z-0 p-6 max-w-none";
+    switch (type) {
+      case 'iphone':
+        return cn(baseClasses, "p-4");
+      
+      case 'ipad':
+        return cn(baseClasses, "p-6");
+      
+      case 'desktop':
+      default:
+        if (deviceType === 'mac') {
+          return cn(baseClasses, "p-6");
+        }
+        return cn(baseClasses, "p-4");
     }
-    
-    return "relative z-0";
   };
 
   return (
-    <div className={getLayoutClasses()}>
-      <div className={getContentClasses()}>
-        {children}
+    <LayoutContainer sidebarCollapsed={sidebarCollapsed}>
+      <div className={cn("grid w-full h-full", getGridClasses())}>
+        <div className={getContentClasses()}>
+          {children}
+        </div>
       </div>
-    </div>
+    </LayoutContainer>
   );
 };
 
