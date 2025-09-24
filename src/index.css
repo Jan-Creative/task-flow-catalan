@@ -219,11 +219,26 @@ All colors MUST be HSL.
     user-select: none;
     -webkit-user-select: none;
     -webkit-touch-callout: none;
-    /* Static positioning for proper scroll context */
-    position: static;
+    /* Device-specific positioning */
     width: 100%;
     min-height: 100vh;
     min-height: 100dvh;
+  }
+
+  /* Device-specific body configurations */
+  @media (max-width: 768px) and (hover: none) {
+    /* iPhone-specific optimizations */
+    body {
+      position: static;
+    }
+  }
+
+  @media (min-width: 769px) {
+    /* iPad and Mac - stable positioning */
+    body {
+      position: static;
+      overflow: visible;
+    }
   }
 
   /* Anti-jumping techniques */
@@ -238,10 +253,27 @@ All colors MUST be HSL.
     width: 100vw;
     height: 100vh;
     height: 100dvh;
-    overflow: auto;
     overscroll-behavior: contain;
     contain: layout style paint;
-    position: relative;
+  }
+
+  /* Device-specific root configurations */
+  @media (max-width: 768px) and (hover: none) {
+    /* iPhone - controlled overflow */
+    #root {
+      overflow: auto;
+      position: relative;
+    }
+  }
+
+  @media (min-width: 769px) {
+    /* iPad and Mac - flexible layout */
+    #root {
+      overflow: visible;
+      position: static;
+      display: flex;
+      flex-direction: column;
+    }
   }
 
   /* Fixed zones - no scroll interference */

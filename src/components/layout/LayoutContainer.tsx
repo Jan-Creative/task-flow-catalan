@@ -29,7 +29,7 @@ const LayoutContainer = ({ children, navigationHeight = 0, sidebarCollapsed = fa
       case 'ipad':
         return cn(
           baseClasses,
-          "overflow-hidden" // Prevent content shifting
+          "flex flex-col" // Flexible layout for iPad
         );
       
       case 'desktop':
@@ -37,7 +37,7 @@ const LayoutContainer = ({ children, navigationHeight = 0, sidebarCollapsed = fa
         if (deviceType === 'mac') {
           return cn(
             baseClasses,
-            "overflow-hidden" // Stable container
+            "flex flex-col" // Flexible layout for Mac
           );
         }
         return baseClasses;
@@ -56,12 +56,18 @@ const LayoutContainer = ({ children, navigationHeight = 0, sidebarCollapsed = fa
       
       case 'ipad':
         return cn(
-          "relative w-full h-full",
+          "flex-1 w-full",
           "contain-layout contain-style"
         );
       
       case 'desktop':
       default:
+        if (deviceType === 'mac') {
+          return cn(
+            "flex-1 w-full",
+            "contain-layout"
+          );
+        }
         return cn(
           "relative w-full",
           "contain-layout"

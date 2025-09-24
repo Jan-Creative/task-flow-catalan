@@ -15,56 +15,62 @@ const AdaptiveLayout = ({ children, sidebarCollapsed = false }: AdaptiveLayoutPr
   const { type: deviceType } = useDeviceType();
   const { navigationMode } = type === 'ipad' ? useIPadNavigation() : { navigationMode: 'sidebar' };
 
-  // Use CSS Grid for stable layouts instead of dynamic margins
-  const getGridClasses = () => {
-    switch (type) {
-      case 'iphone':
-        return "grid-cols-1 grid-rows-1";
-      
-      case 'ipad':
-        if (navigationMode === 'topbar') {
-          return "grid-cols-1 grid-rows-[80px_1fr] pt-0";
-        }
-        return cn(
-          "grid-cols-[auto_1fr] grid-rows-1",
-          "transition-[grid-template-columns] duration-300 ease-out"
-        );
-      
-      case 'desktop':
-      default:
-        if (deviceType === 'mac') {
-          return cn(
-            "grid-cols-[auto_1fr] grid-rows-1",
-            "transition-[grid-template-columns] duration-300 ease-out"
-          );
-        }
-        return "grid-cols-1 grid-rows-1";
-    }
-  };
+  // iPhone: Simple full-width layout
+  if (type === 'iphone') {
+    return (
+      <LayoutContainer sidebarCollapsed={sidebarCollapsed}>
+        <div className="w-full h-full">
+          <div className="relative w-full p-4">
+            {children}
+          </div>
+        </div>
+      </LayoutContainer>
+    );
+  }
 
-  const getContentClasses = () => {
-    const baseClasses = "relative w-full overflow-hidden";
+  // iPad: Responsive grid layout
+  if (type === 'ipad') {
+    if (navigationMode === 'topbar') {
+      return (
+        <LayoutContainer sidebarCollapsed={sidebarCollapsed}>
+          <div className="grid grid-cols-1 grid-rows-[80px_1fr] w-full h-full">
+            <div className="relative w-full overflow-y-auto p-6">
+              {children}
+            </div>
+          </div>
+        </LayoutContainer>
+      );
+    }
     
-    switch (type) {
-      case 'iphone':
-        return cn(baseClasses, "p-4");
-      
-      case 'ipad':
-        return cn(baseClasses, "p-6");
-      
-      case 'desktop':
-      default:
-        if (deviceType === 'mac') {
-          return cn(baseClasses, "p-6");
-        }
-        return cn(baseClasses, "p-4");
-    }
-  };
+    return (
+      <LayoutContainer sidebarCollapsed={sidebarCollapsed}>
+        <div className="flex w-full h-full">
+          <div className="flex-1 overflow-y-auto p-6">
+            {children}
+          </div>
+        </div>
+      </LayoutContainer>
+    );
+  }
 
+  // Mac: Flexible sidebar + content layout
+  if (deviceType === 'mac') {
+    return (
+      <LayoutContainer sidebarCollapsed={sidebarCollapsed}>
+        <div className="flex w-full h-full">
+          <div className="flex-1 overflow-y-auto p-6">
+            {children}
+          </div>
+        </div>
+      </LayoutContainer>
+    );
+  }
+
+  // Desktop fallback: Simple layout
   return (
     <LayoutContainer sidebarCollapsed={sidebarCollapsed}>
-      <div className={cn("grid w-full h-full", getGridClasses())}>
-        <div className={getContentClasses()}>
+      <div className="w-full h-full">
+        <div className="relative w-full p-4">
           {children}
         </div>
       </div>
