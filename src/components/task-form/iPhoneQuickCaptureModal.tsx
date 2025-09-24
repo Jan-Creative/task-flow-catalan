@@ -3,7 +3,7 @@
  */
 
 import React, { useEffect } from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Drawer, DrawerContent } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -155,14 +155,18 @@ export const iPhoneQuickCaptureModal: React.FC<iPhoneQuickCaptureModalProps> = (
   }, [open, setEnabled]);
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent 
-        className="h-full w-full max-w-none max-h-none p-0 m-0 rounded-none bg-background/3 backdrop-blur-2xl backdrop-saturate-150 backdrop-brightness-110 border-0 overflow-hidden"
-        overlayClassName="bg-black/20 backdrop-blur-sm"
+    <Drawer open={open} onOpenChange={handleClose}>
+      <DrawerContent 
+        className="max-h-[85vh] p-0 rounded-t-3xl bg-background/95 backdrop-blur-2xl backdrop-saturate-150 border-t border-white/20 overflow-hidden"
         onKeyDown={handleKeyDown}
       >
+        {/* Pull Handle */}
+        <div className="flex justify-center py-3">
+          <div className="w-12 h-1 bg-white/30 rounded-full" />
+        </div>
+
         {/* iPhone Header */}
-        <div className="flex items-center justify-between p-4 bg-background/10 backdrop-blur-lg border-b border-white/10">
+        <div className="flex items-center justify-between px-6 pb-4">
           <div className="flex items-center gap-3">
             <div className="h-8 w-8 rounded-lg bg-primary/20 flex items-center justify-center">
               <Sparkles className="h-4 w-4 text-primary" />
@@ -300,7 +304,7 @@ export const iPhoneQuickCaptureModal: React.FC<iPhoneQuickCaptureModalProps> = (
           </div>
 
           {/* iPhone Footer */}
-          <div className="p-6 bg-background/20 backdrop-blur-lg border-t border-white/10 safe-area-inset-bottom">
+          <div className="p-6 bg-background/10 border-t border-white/10">
             <Button
               type="submit"
               disabled={!quickForm.canQuickSubmit || quickForm.isSubmitting}
@@ -322,7 +326,7 @@ export const iPhoneQuickCaptureModal: React.FC<iPhoneQuickCaptureModalProps> = (
             </Button>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </DrawerContent>
+    </Drawer>
   );
 };
