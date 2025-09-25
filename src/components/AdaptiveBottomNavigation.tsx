@@ -61,7 +61,12 @@ const AdaptiveBottomNavigation = ({ activeTab, onTabChange, onCreateTask }: Adap
   }
 
   return (
-    <div className="fixed bottom-6 left-4 right-4 z-50">
+    <div className="fixed bottom-6 left-4 right-4 z-50 transform-gpu"
+         style={{
+           position: 'fixed',
+           bottom: phoneInfo.isPhone ? 'env(safe-area-inset-bottom, 24px)' : '24px',
+           transform: 'translate3d(0, 0, 0)'
+         }}>
       <div className={cn(
         "flex items-center justify-between transition-all duration-500 ease-out",
         showTransition && "animate-fade-out"

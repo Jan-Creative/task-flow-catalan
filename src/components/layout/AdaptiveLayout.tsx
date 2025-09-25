@@ -19,8 +19,8 @@ const AdaptiveLayout = ({ children, sidebarCollapsed = false }: AdaptiveLayoutPr
   const getLayoutClasses = () => {
     switch (type) {
       case 'iphone':
-        // iPhone: Full width with bottom padding for navigation
-        return "w-full pb-24";
+        // iPhone: Fixed container with safe areas and internal scroll
+        return "fixed inset-0 w-full h-full overflow-hidden";
       
       case 'ipad':
         // iPad: Different layouts based on navigation mode
@@ -50,6 +50,11 @@ const AdaptiveLayout = ({ children, sidebarCollapsed = false }: AdaptiveLayoutPr
 
   // Apply specific styles for iPad and Mac layouts
   const getContentClasses = () => {
+    if (type === 'iphone') {
+      // iPhone: Scrollable content with safe areas
+      return "w-full h-full overflow-y-auto overscroll-contain pb-24 pt-safe-top px-4 transform-gpu";
+    }
+    
     if (type === 'ipad') {
       if (navigationMode === 'topbar') {
         return "relative z-0 p-6 max-w-none";
