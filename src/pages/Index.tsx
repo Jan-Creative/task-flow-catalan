@@ -20,6 +20,8 @@ import { LogOut, User } from "lucide-react";
 import { useShortcut } from "@/hooks/useKeyboardShortcuts";
 import { toast } from "sonner";
 import { KeepAlivePages, TabPage } from "@/components/ui/keep-alive-pages";
+import { useDeviceType, usePhoneDetection } from "@/hooks/device";
+import { useIOSDetection } from "@/hooks/useIOSDetection";
 
 const Index = () => {
   const { user, loading, signOut } = useAuth();
@@ -56,12 +58,21 @@ const Index = () => {
   const { folders } = useDadesApp();
   const { handleCreateTask, handleEditTask: handleEditTaskOp } = useTaskOperations();
   
-  // Ultra Simple Form state
+  // Device detection hooks
+  const { type: deviceType } = useDeviceType();
+  const { isPhone } = usePhoneDetection();
+  const isIOS = useIOSDetection();
+  
+  // Ultra Simple Form state with backend integration
   const ultraSimpleForm = useUltraSimpleForm({
-    onSubmit: (title: string) => {
-      console.log('🚀 Creant tasca desde formulari ultra simple:', title);
-      // Per ara només mostrem un toast, més endavant connectarem amb el backend
-      toast.success(`Tasca creada: ${title}`);
+    onSubmit: async (title: string) => {
+      try {
+        console.log('🚀 Creant tasca desde formulari ultra simple:', title);
+        await handleCreateTask({ title });
+        toast.success(`Tasca creada: ${title}`);
+      } catch (error) {
+        console.error('Error creating task from ultra simple form:', error);
+      }
     }
   });
   
@@ -70,7 +81,21 @@ const Index = () => {
   const { preloadCriticalData } = useCacheOptimization();
   useMemoryCleanup();
 
-  // Funció de toggle amb useCallback per assegurar estat actualitzat
+  // Smart task creation handler - device-specific form selection
+  const handleCreateTaskClick = useCallback(() => {
+    // iPhone: Always use ultra simple form for optimized experience
+    if (deviceType === 'iphone' && isPhone && isIOS) {
+      console.log('📱 iPhone detected - Opening ultra simple form');
+      ultraSimpleForm.openForm();
+    } else {
+      // Mac/iPad: Use complex form
+      console.log('💻 Mac/iPad detected - Opening complex form');
+      setEditingTask(null);
+      setShowCreateDialog(true);
+    }
+  }, [deviceType, isPhone, isIOS, ultraSimpleForm]);
+
+  // Legacy toggle function for manual testing
   const toggleCreateDialog = useCallback(() => {
     if (showCreateDialog) {
       setShowCreateDialog(false);
@@ -80,14 +105,14 @@ const Index = () => {
     }
   }, [showCreateDialog]);
 
-  // Registrar drecera per crear tasca normal (Cmd/Ctrl + N)
+  // Registrar drecera per crear tasca - device-aware (Cmd/Ctrl + N)
   useShortcut(
     'createTask',
     'Crear Tasca',
     ['meta', 'n'],
-    toggleCreateDialog,
+    handleCreateTaskClick,
     {
-      description: 'Obrir/tancar el formulari per crear una nova tasca',
+      description: 'Obrir formulari per crear nova tasca (intel·ligent segons dispositiu)',
       category: 'actions',
       enabled: !!user // Només si l'usuari està autenticat
     }
@@ -228,7 +253,7 @@ const Index = () => {
       <AdaptiveNavigation
         activeTab={activeTab}
         onTabChange={handleTabChange}
-        onCreateTask={() => setShowCreateDialog(true)}
+        onCreateTask={handleCreateTaskClick}
         sidebarCollapsed={sidebarCollapsed}
         toggleSidebarCollapse={toggleSidebarCollapse}
         sidebarState={sidebarState}
