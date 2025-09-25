@@ -3,8 +3,6 @@ import { useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import AdaptiveNavigation from "@/components/navigation/AdaptiveNavigation";
 import AdaptiveLayout from "@/components/layout/AdaptiveLayout";
-import UnifiedBottomNavigation from "@/components/navigation/UnifiedBottomNavigation";
-import { useDeviceDetection } from "@/hooks/useDeviceDetection";
 import DeviceIndicator from "@/components/DeviceIndicator";
 import { LazyPage, TodayPageLazy, FoldersPageLazy, SettingsPageLazy, NotificationsPageLazy, CreateTaskModalLazy } from "@/lib/lazyLoading";
 import CalendarPage from "@/pages/CalendarPage";
@@ -23,7 +21,6 @@ import { KeepAlivePages, TabPage } from "@/components/ui/keep-alive-pages";
 
 const Index = () => {
   const { user, loading, signOut } = useAuth();
-  const { type: deviceType } = useDeviceDetection();
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(() => {
     return searchParams.get("tab") || "inici";
@@ -203,27 +200,19 @@ const Index = () => {
 
   // Show main app if authenticated
   return (
-    <div className="w-full min-h-dvh bg-background overflow-x-hidden relative">
-      {/* Navigation - Unified for iPhone, Adaptive for others */}
-      {deviceType === 'iphone' ? (
-        <UnifiedBottomNavigation
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-          onCreateTask={() => setShowCreateDialog(true)}
-        />
-      ) : (
-        <AdaptiveNavigation
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-          onCreateTask={() => setShowCreateDialog(true)}
-          sidebarCollapsed={sidebarCollapsed}
-          toggleSidebarCollapse={toggleSidebarCollapse}
-          sidebarState={sidebarState}
-          onSidebarStateChange={handleSidebarStateChange}
-        />
-      )}
+    <div className="w-full min-h-screen bg-background overflow-x-hidden relative">
+      {/* Adaptive Navigation */}
+      <AdaptiveNavigation
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        onCreateTask={() => setShowCreateDialog(true)}
+        sidebarCollapsed={sidebarCollapsed}
+        toggleSidebarCollapse={toggleSidebarCollapse}
+        sidebarState={sidebarState}
+        onSidebarStateChange={handleSidebarStateChange}
+      />
 
-      {/* Main Content with Stable Layout */}
+      {/* Main Content with Adaptive Layout */}
       <AdaptiveLayout sidebarCollapsed={sidebarCollapsed}>
         <KeepAlivePages activeTab={activeTab}>
           {renderKeepAlivePages()}

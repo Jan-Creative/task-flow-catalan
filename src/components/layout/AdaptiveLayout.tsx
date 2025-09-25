@@ -2,7 +2,7 @@ import { ReactNode } from 'react';
 import { useDeviceDetection } from '@/hooks/useDeviceDetection';
 import { useDeviceType } from '@/hooks/device/useDeviceType';
 import { useIPadNavigation } from '@/contexts/IPadNavigationContext';
-import LayoutContainer from './LayoutContainer';
+import { useMacNavigation } from '@/contexts/MacNavigationContext';
 import { cn } from '@/lib/utils';
 
 interface AdaptiveLayoutProps {
@@ -15,66 +15,62 @@ const AdaptiveLayout = ({ children, sidebarCollapsed = false }: AdaptiveLayoutPr
   const { type: deviceType } = useDeviceType();
   const { navigationMode } = type === 'ipad' ? useIPadNavigation() : { navigationMode: 'sidebar' };
 
-  // iPhone: Simple full-width layout
-  if (type === 'iphone') {
-    return (
-      <LayoutContainer sidebarCollapsed={sidebarCollapsed}>
-        <div className="w-full h-full">
-          <div className="relative w-full p-4">
-            {children}
-          </div>
-        </div>
-      </LayoutContainer>
-    );
-  }
+  // Calculate layout based on device type
+  const getLayoutClasses = () => {
+    switch (type) {
+      case 'iphone':
+        // iPhone: Full width with bottom padding for navigation
+        return "w-full pb-24";
+      
+      case 'ipad':
+        // iPad: Different layouts based on navigation mode
+        if (navigationMode === 'topbar') {
+          return "transition-all duration-300 ease-out min-h-screen pt-20";
+        }
+        // Sidebar mode: Floating sidebar layout with left margin for floating card
+        return cn(
+          "transition-all duration-300 ease-out min-h-screen",
+          sidebarCollapsed ? "ml-24" : "ml-80"
+        );
+      
+      case 'desktop':
+      default:
+        // Mac: Left margin for fixed sidebar when expanded, mini margin when collapsed
+        if (deviceType === 'mac') {
+          return cn(
+            "transition-all duration-300 ease-out min-h-screen",
+            sidebarCollapsed === undefined ? "ml-0" : // hidden state
+            sidebarCollapsed ? "ml-20" : "ml-[276px]" // mini : expanded
+          );
+        }
+        // Other Desktop: Full width (top navigation in future)
+        return "w-full";
+    }
+  };
 
-  // iPad: Responsive grid layout
-  if (type === 'ipad') {
-    if (navigationMode === 'topbar') {
-      return (
-        <LayoutContainer sidebarCollapsed={sidebarCollapsed}>
-          <div className="grid grid-cols-1 grid-rows-[80px_1fr] w-full h-full">
-            <div className="relative w-full overflow-y-auto p-6">
-              {children}
-            </div>
-          </div>
-        </LayoutContainer>
-      );
+  // Apply specific styles for iPad and Mac layouts
+  const getContentClasses = () => {
+    if (type === 'ipad') {
+      if (navigationMode === 'topbar') {
+        return "relative z-0 p-6 max-w-none";
+      }
+       return "relative z-0 p-6 max-w-none";
     }
     
-    return (
-      <LayoutContainer sidebarCollapsed={sidebarCollapsed}>
-        <div className="flex w-full h-full">
-          <div className="flex-1 overflow-y-auto p-6">
-            {children}
-          </div>
-        </div>
-      </LayoutContainer>
-    );
-  }
+    // Mac: Optimized padding for large screens
+    if (deviceType === 'mac') {
+      return "relative z-0 p-6 max-w-none";
+    }
+    
+    return "relative z-0";
+  };
 
-  // Mac: Flexible sidebar + content layout
-  if (deviceType === 'mac') {
-    return (
-      <LayoutContainer sidebarCollapsed={sidebarCollapsed}>
-        <div className="flex w-full h-full">
-          <div className="flex-1 overflow-y-auto p-6">
-            {children}
-          </div>
-        </div>
-      </LayoutContainer>
-    );
-  }
-
-  // Desktop fallback: Simple layout
   return (
-    <LayoutContainer sidebarCollapsed={sidebarCollapsed}>
-      <div className="w-full h-full">
-        <div className="relative w-full p-4">
-          {children}
-        </div>
+    <div className={getLayoutClasses()}>
+      <div className={getContentClasses()}>
+        {children}
       </div>
-    </LayoutContainer>
+    </div>
   );
 };
 

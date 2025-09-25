@@ -129,10 +129,10 @@ const CircularActionMenu = ({
     const optionBtn = isMobile ? 56 : 60;
     const safeMargin = optionBtn / 2 + 16; // include half button + padding
 
-    // Conservative radius for iPhone stability
+    // Base radius limited by top-left space and a max cap
     let radius = Math.max(
-      32,
-      Math.min(availableSpace.left - safeMargin, availableSpace.top - safeMargin, isMobile ? 80 : 120)
+      36,
+      Math.min(availableSpace.left - safeMargin, availableSpace.top - safeMargin, isMobile ? 100 : 120)
     );
 
     // We prefer the top-left quadrant only: [180°, 270°]. Max arc = 90°
@@ -203,8 +203,8 @@ const CircularActionMenu = ({
     return { x, y };
   };
 
-  const buttonSize = isMobile ? 48 : 60;
-  const mainButtonSize = isMobile ? 56 : 68;
+  const buttonSize = isMobile ? 56 : 60;
+  const mainButtonSize = isMobile ? 64 : 68;
 
   return (
     <>
