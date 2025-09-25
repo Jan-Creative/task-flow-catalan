@@ -220,10 +220,11 @@ All colors MUST be HSL.
   
   /* iOS-specific stability optimizations */
   .ios .app-shell {
-    height: 100svh;
-    height: 100dvh;
+    height: calc(100svh - env(safe-area-inset-bottom));
+    height: calc(100dvh - env(safe-area-inset-bottom));
     overflow: hidden;
     contain: layout paint size;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
   
   .ios .page-scroll {
@@ -232,6 +233,24 @@ All colors MUST be HSL.
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-y: contain;
     touch-action: pan-y;
+  }
+
+  /* iOS Bottom Navigation Positioning */
+  .ios-bottom-nav {
+    position: fixed;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    left: 16px;
+    right: 16px;
+    z-index: 50;
+    transform: translate3d(0, 0, 0);
+  }
+
+  .ios-bottom-nav-compact {
+    position: fixed;
+    bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+    left: 16px;
+    z-index: 50;
+    transform: translate3d(0, 0, 0);
   }
   
   /* Prevent focus zoom on iOS inputs */
