@@ -5,6 +5,8 @@ import AdaptiveNavigation from "@/components/navigation/AdaptiveNavigation";
 import AdaptiveLayout from "@/components/layout/AdaptiveLayout";
 import DeviceIndicator from "@/components/DeviceIndicator";
 import { LazyPage, TodayPageLazy, FoldersPageLazy, SettingsPageLazy, NotificationsPageLazy, CreateTaskModalLazy } from "@/lib/lazyLoading";
+import { UltraSimpleTaskForm } from "@/components/UltraSimpleTaskForm";
+import { useUltraSimpleForm } from "@/hooks/useUltraSimpleForm";
 import CalendarPage from "@/pages/CalendarPage";
 import DashboardPage from "@/pages/DashboardPage";
 import AuthPage from "@/pages/AuthPage";
@@ -54,6 +56,14 @@ const Index = () => {
   const { folders } = useDadesApp();
   const { handleCreateTask, handleEditTask: handleEditTaskOp } = useTaskOperations();
   
+  // Ultra Simple Form state
+  const ultraSimpleForm = useUltraSimpleForm({
+    onSubmit: (title: string) => {
+      console.log('🚀 Creant tasca desde formulari ultra simple:', title);
+      // Per ara només mostrem un toast, més endavant connectarem amb el backend
+      toast.success(`Tasca creada: ${title}`);
+    }
+  });
   
   // Performance optimizations - simplified to avoid conflicts
   const performanceMetrics = usePerformanceMonitor();
@@ -70,7 +80,7 @@ const Index = () => {
     }
   }, [showCreateDialog]);
 
-  // Registrar drecera per crear tasca (Cmd/Ctrl + N) - Toggle behavior
+  // Registrar drecera per crear tasca normal (Cmd/Ctrl + N)
   useShortcut(
     'createTask',
     'Crear Tasca',
@@ -80,6 +90,19 @@ const Index = () => {
       description: 'Obrir/tancar el formulari per crear una nova tasca',
       category: 'actions',
       enabled: !!user // Només si l'usuari està autenticat
+    }
+  );
+
+  // Registrar drecera per formulari ultra simple (Cmd/Ctrl + Shift + N)
+  useShortcut(
+    'ultraSimpleTask',
+    'Formulari Ultra Simple',
+    ['meta', 'shift', 'n'],
+    ultraSimpleForm.openForm,
+    {
+      description: 'Obrir formulari ultra simple optimitzat per iPhone',
+      category: 'actions',
+      enabled: !!user
     }
   );
 
@@ -231,6 +254,13 @@ const Index = () => {
         onSubmit={handleTaskSubmit}
         folders={folders}
         editingTask={editingTask}
+      />
+
+      {/* Ultra Simple Task Form - Testing Phase 1 */}
+      <UltraSimpleTaskForm
+        open={ultraSimpleForm.isOpen}
+        onClose={ultraSimpleForm.closeForm}
+        onSubmit={ultraSimpleForm.handleSubmit}
       />
     </div>
   );
