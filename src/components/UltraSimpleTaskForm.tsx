@@ -28,18 +28,58 @@ export const UltraSimpleTaskForm: React.FC<UltraSimpleTaskFormProps> = ({
   const isIOS = useIOSDetection();
   const phoneInfo = usePhoneDetection();
   
-  // Auto-focus quan s'obre el modal
+  // Auto-focus avançat amb múltiples estratègies per iOS
   useEffect(() => {
     if (open && inputRef.current) {
-      // Delay lleuger per assegurar que el modal s'ha renderitzat
+      let attempts = 0;
+      const maxAttempts = 3;
+      
+      const tryFocus = () => {
+        if (!inputRef.current) return;
+        
+        attempts++;
+        console.log(`🎯 Intent d'auto-focus #${attempts}:`, { open, isIOS, isPhone: phoneInfo.isPhone });
+        
+        // Estratègia 1: Focus i click immediat
+        inputRef.current.focus();
+        
+        // Estratègia 2: Click simulat per iOS (imitant interacció d'usuari)
+        if (isIOS) {
+          inputRef.current.click();
+          
+          // Estratègia 3: ScrollIntoView per assegurar visibilitat
+          requestAnimationFrame(() => {
+            inputRef.current?.scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'center' 
+            });
+          });
+        }
+        
+        // Verificar si el focus ha funcionat després d'un moment
+        setTimeout(() => {
+          const isFocused = document.activeElement === inputRef.current;
+          console.log(`📱 Estat del focus #${attempts}:`, { 
+            isFocused, 
+            activeElement: document.activeElement?.tagName,
+            keyboardVisible: keyboardState.isVisible 
+          });
+          
+          // Si no ha funcionat i encara ens queden intents, provar de nou
+          if (!isFocused && attempts < maxAttempts) {
+            setTimeout(tryFocus, 200 * attempts); // Delay incremental
+          }
+        }, 150);
+      };
+      
+      // Primer intent amb delay més llarg per assegurar renderització completa
       const timer = setTimeout(() => {
-        inputRef.current?.focus();
-        console.log('🎯 Auto-focus activat:', { open, isIOS, isPhone: phoneInfo.isPhone });
-      }, 100);
+        tryFocus();
+      }, 300);
       
       return () => clearTimeout(timer);
     }
-  }, [open, isIOS, phoneInfo.isPhone]);
+  }, [open, isIOS, phoneInfo.isPhone, keyboardState.isVisible]);
 
   // Reset form quan es tanca
   useEffect(() => {
@@ -119,6 +159,8 @@ export const UltraSimpleTaskForm: React.FC<UltraSimpleTaskFormProps> = ({
               autoComplete="off"
               autoCapitalize="sentences"
               autoCorrect="on"
+              inputMode="text"
+              enterKeyHint="done"
             />
           </form>
           
