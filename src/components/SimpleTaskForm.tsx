@@ -21,12 +21,35 @@ export const SimpleTaskForm: React.FC<SimpleTaskFormProps> = ({
   const [title, setTitle] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   
-  // Auto-focus simple
+  // Sistema de focus reforçat amb múltiples estratègies
   useEffect(() => {
     if (open && inputRef.current) {
-      setTimeout(() => {
-        inputRef.current?.focus();
-      }, 200);
+      console.log('🎯 SimpleTaskForm: Intent de focus automàtic...');
+      
+      // Estratègia 1: Focus immediat sense autoFocus per evitar conflictes
+      const focusInput = () => {
+        if (inputRef.current) {
+          console.log('🎯 Aplicant focus manual...');
+          inputRef.current.focus();
+          
+          // Verificar si el focus ha funcionat
+          setTimeout(() => {
+            if (document.activeElement === inputRef.current) {
+              console.log('✅ Focus aplicat correctament');
+            } else {
+              console.log('❌ Focus no aplicat, reintentant...');
+              // Reintent amb click simulat
+              inputRef.current?.click();
+              inputRef.current?.focus();
+            }
+          }, 100);
+        }
+      };
+
+      // Múltiples intents amb timing progressiu
+      setTimeout(focusInput, 300);  // Primera intent
+      setTimeout(focusInput, 500);  // Segon intent
+      setTimeout(focusInput, 700);  // Tercer intent com a fallback
     }
   }, [open]);
 
@@ -75,9 +98,9 @@ export const SimpleTaskForm: React.FC<SimpleTaskFormProps> = ({
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Escriu el títol de la tasca..."
               className="w-full text-base border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/60 text-foreground"
-              autoFocus
               autoComplete="off"
               autoCapitalize="sentences"
+              inputMode="text"
             />
           </form>
         </div>
