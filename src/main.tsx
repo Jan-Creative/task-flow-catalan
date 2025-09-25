@@ -9,6 +9,59 @@ import "./index.css";
 // Initialize performance optimizations
 initializePerformanceOptimizations();
 
+// iOS Detection and Anti-Zoom Setup
+function setupIOSProtection() {
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  
+  if (isIOS) {
+    document.documentElement.classList.add('ios');
+    
+    // Prevent pinch gestures
+    let isGesturing = false;
+    
+    document.addEventListener('gesturestart', (e) => {
+      isGesturing = true;
+      e.preventDefault();
+    }, { passive: false });
+    
+    document.addEventListener('gesturechange', (e) => {
+      if (isGesturing) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+    
+    document.addEventListener('gestureend', (e) => {
+      isGesturing = false;
+      e.preventDefault();
+    }, { passive: false });
+    
+    // Prevent double-tap zoom
+    let lastTouchEnd = 0;
+    document.addEventListener('touchend', (e) => {
+      const now = Date.now();
+      if (now - lastTouchEnd <= 300) {
+        e.preventDefault();
+      }
+      lastTouchEnd = now;
+    }, { passive: false });
+    
+    // Monitor viewport scale (debug mode)
+    if (window.location.search.includes('debug-zoom=1')) {
+      if ('visualViewport' in window) {
+        const showScale = () => {
+          console.log('Viewport scale:', window.visualViewport?.scale);
+        };
+        window.visualViewport?.addEventListener('resize', showScale);
+        showScale();
+      }
+    }
+  }
+}
+
+// Initialize iOS protection
+setupIOSProtection();
+
 // Manual Service Worker registration
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {

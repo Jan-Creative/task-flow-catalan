@@ -31,26 +31,28 @@ const App = () => {
   }
 
   return (
-    <div className="w-full min-h-screen overflow-x-hidden">
-      <BrowserRouter>
-        <RouteCacheProvider maxAge={15 * 60 * 1000} maxEntries={25}>
-          <BackgroundRefresher />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/calendar" element={<CalendarPage />} />
-            <Route path="/notes" element={<NotesPage />} />
-            <Route path="/prepare-tomorrow" element={<PrepareTomorrowPage />} />
-            <Route path="/task/:taskId" element={<LazyTaskDetailPage />} />
-            <Route path="/folder/:folderId" element={<LazyFolderDetailPage />} />
-            <Route path="/project/:projectId" element={<ProjectPage />} />
-            <Route path="/offline-demo" element={<OfflineDemoPage />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          {/* Widget coordinator dins del context del Router */}
-          <PomodoroWidgetCoordinator />
-        </RouteCacheProvider>
-      </BrowserRouter>
+    <div className="app-shell w-full min-h-screen overflow-x-hidden">
+      <div className="page-scroll">
+        <BrowserRouter>
+          <RouteCacheProvider maxAge={15 * 60 * 1000} maxEntries={25}>
+            <BackgroundRefresher />
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/calendar" element={<CalendarPage />} />
+              <Route path="/notes" element={<NotesPage />} />
+              <Route path="/prepare-tomorrow" element={<PrepareTomorrowPage />} />
+              <Route path="/task/:taskId" element={<LazyTaskDetailPage />} />
+              <Route path="/folder/:folderId" element={<LazyFolderDetailPage />} />
+              <Route path="/project/:projectId" element={<ProjectPage />} />
+              <Route path="/offline-demo" element={<OfflineDemoPage />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            {/* Widget coordinator dins del context del Router */}
+            <PomodoroWidgetCoordinator />
+          </RouteCacheProvider>
+        </BrowserRouter>
+      </div>
       <NotificationDisplay />
       <PerformanceMonitor />
       <SecurityMonitor />

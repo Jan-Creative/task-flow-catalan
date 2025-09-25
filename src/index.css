@@ -208,37 +208,38 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
-  }
-  
-  /* iPhone stability optimizations */
-  @media screen and (max-width: 768px) and (pointer: coarse) {
-    html, body {
-      position: fixed;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      overscroll-behavior: contain;
-      touch-action: manipulation;
-      user-select: none;
-      -webkit-user-select: none;
-      -webkit-overflow-scrolling: touch;
-      -webkit-touch-callout: none;
-    }
-    
-    #root {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100vh;
-      height: 100dvh;
-      overflow: hidden;
-      overscroll-behavior: contain;
-      transform: translate3d(0, 0, 0);
-    }
     /* Força el tema fosc com a predeterminat */
     color-scheme: dark;
     overscroll-behavior: contain;
+    -webkit-text-size-adjust: 100%;
+  }
+  
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  
+  /* iOS-specific stability optimizations */
+  .ios .app-shell {
+    height: 100svh;
+    height: 100dvh;
+    overflow: hidden;
+    contain: layout paint size;
+  }
+  
+  .ios .page-scroll {
+    height: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+    touch-action: pan-y;
+  }
+  
+  /* Prevent focus zoom on iOS inputs */
+  .ios input,
+  .ios select,
+  .ios textarea {
+    font-size: 16px;
+  }
   }
   
   /* Task completion animations - Redesigned for minimal static effect */
@@ -373,4 +374,3 @@ All colors MUST be HSL.
   .rich-text-editor-content li {
     @apply text-foreground mb-1;
   }
-}
