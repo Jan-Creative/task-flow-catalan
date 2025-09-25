@@ -224,7 +224,6 @@ All colors MUST be HSL.
     height: calc(100dvh - env(safe-area-inset-bottom));
     overflow: hidden;
     contain: layout paint size;
-    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
   
   .ios .page-scroll {
