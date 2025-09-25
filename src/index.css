@@ -237,7 +237,7 @@ All colors MUST be HSL.
   /* iOS Bottom Navigation Positioning */
   .ios-bottom-nav {
     position: fixed;
-    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    bottom: calc(32px + env(safe-area-inset-bottom, 0px));
     left: 16px;
     right: 16px;
     z-index: 50;
@@ -246,7 +246,7 @@ All colors MUST be HSL.
 
   .ios-bottom-nav-compact {
     position: fixed;
-    bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+    bottom: calc(40px + env(safe-area-inset-bottom, 0px));
     left: 16px;
     z-index: 50;
     transform: translate3d(0, 0, 0);
