@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { KeepAlivePages, TabPage } from "@/components/ui/keep-alive-pages";
 import { useDeviceType, usePhoneDetection } from "@/hooks/device";
 import { useIOSDetection } from "@/hooks/useIOSDetection";
+import { DeviceDebugPanel } from "@/components/DeviceDebugPanel";
 
 const Index = () => {
   const { user, loading, signOut } = useAuth();
@@ -83,13 +84,32 @@ const Index = () => {
 
   // Smart task creation handler - device-specific form selection
   const handleCreateTaskClick = useCallback(() => {
+    // Detailed logging for debugging
+    console.log('🔍 DEVICE DETECTION DEBUG:', {
+      deviceType,
+      isPhone,
+      isIOS,
+      userAgent: navigator.userAgent,
+      platform: navigator.platform,
+      maxTouchPoints: navigator.maxTouchPoints,
+      windowSize: `${window.innerWidth}x${window.innerHeight}`
+    });
+    
+    const shouldUseUltraSimple = deviceType === 'iphone' && isPhone && isIOS;
+    console.log('🎯 FORM SELECTION:', {
+      condition1_deviceType_iPhone: deviceType === 'iphone',
+      condition2_isPhone: isPhone,
+      condition3_isIOS: isIOS,
+      finalDecision: shouldUseUltraSimple ? 'ULTRA_SIMPLE' : 'COMPLEX'
+    });
+    
     // iPhone: Always use ultra simple form for optimized experience
-    if (deviceType === 'iphone' && isPhone && isIOS) {
-      console.log('📱 iPhone detected - Opening ultra simple form');
+    if (shouldUseUltraSimple) {
+      console.log('📱 ✅ iPhone detected - Opening ultra simple form');
       ultraSimpleForm.openForm();
     } else {
       // Mac/iPad: Use complex form
-      console.log('💻 Mac/iPad detected - Opening complex form');
+      console.log('💻 ⚙️ Mac/iPad detected - Opening complex form');
       setEditingTask(null);
       setShowCreateDialog(true);
     }
@@ -269,6 +289,12 @@ const Index = () => {
 
       {/* Device Indicator for testing */}
       <DeviceIndicator />
+      
+      {/* Enhanced Device Debug Panel with form testing */}
+      <DeviceDebugPanel 
+        onTestUltraSimple={ultraSimpleForm.openForm}
+        isUltraSimpleOpen={ultraSimpleForm.isOpen}
+      />
 
       <CreateTaskModalLazy
         open={showCreateDialog}
