@@ -5,8 +5,8 @@ import AdaptiveNavigation from "@/components/navigation/AdaptiveNavigation";
 import AdaptiveLayout from "@/components/layout/AdaptiveLayout";
 import DeviceIndicator from "@/components/DeviceIndicator";
 import { LazyPage, TodayPageLazy, FoldersPageLazy, SettingsPageLazy, NotificationsPageLazy, CreateTaskModalLazy } from "@/lib/lazyLoading";
-import { UltraSimpleTaskForm } from "@/components/UltraSimpleTaskForm";
-import { useUltraSimpleForm } from "@/hooks/useUltraSimpleForm";
+import { SimpleTaskForm } from "@/components/SimpleTaskForm";
+import { useSimpleDeviceDetection } from "@/hooks/useSimpleDeviceDetection";
 import CalendarPage from "@/pages/CalendarPage";
 import DashboardPage from "@/pages/DashboardPage";
 import AuthPage from "@/pages/AuthPage";
@@ -59,61 +59,41 @@ const Index = () => {
   const { folders } = useDadesApp();
   const { handleCreateTask, handleEditTask: handleEditTaskOp } = useTaskOperations();
   
-  // Device detection hooks
-  const { type: deviceType } = useDeviceType();
-  const { isPhone } = usePhoneDetection();
-  const isIOS = useIOSDetection();
+  // Device detection - simplified
+  const { isIPhone } = useSimpleDeviceDetection();
   
-  // Ultra Simple Form state with backend integration
-  const ultraSimpleForm = useUltraSimpleForm({
-    onSubmit: async (title: string) => {
-      try {
-        console.log('🚀 Creant tasca desde formulari ultra simple:', title);
-        await handleCreateTask({ title });
-        toast.success(`Tasca creada: ${title}`);
-      } catch (error) {
-        console.error('Error creating task from ultra simple form:', error);
-      }
+  // Simple Form state
+  const [showSimpleForm, setShowSimpleForm] = useState(false);
+  
+  const handleSimpleTaskSubmit = async (title: string) => {
+    try {
+      console.log('🚀 Creant tasca desde formulari simple:', title);
+      await handleCreateTask({ title });
+      toast.success(`Tasca creada: ${title}`);
+      setShowSimpleForm(false);
+    } catch (error) {
+      console.error('Error creating task from simple form:', error);
     }
-  });
+  };
   
   // Performance optimizations - simplified to avoid conflicts
   const performanceMetrics = usePerformanceMonitor();
   const { preloadCriticalData } = useCacheOptimization();
   useMemoryCleanup();
 
-  // Smart task creation handler - device-specific form selection
+  // Smart task creation handler - simplified
   const handleCreateTaskClick = useCallback(() => {
-    // Detailed logging for debugging
-    console.log('🔍 DEVICE DETECTION DEBUG:', {
-      deviceType,
-      isPhone,
-      isIOS,
-      userAgent: navigator.userAgent,
-      platform: navigator.platform,
-      maxTouchPoints: navigator.maxTouchPoints,
-      windowSize: `${window.innerWidth}x${window.innerHeight}`
-    });
+    console.log('🔍 Device detection:', { isIPhone });
     
-    const shouldUseUltraSimple = deviceType === 'iphone' && isPhone && isIOS;
-    console.log('🎯 FORM SELECTION:', {
-      condition1_deviceType_iPhone: deviceType === 'iphone',
-      condition2_isPhone: isPhone,
-      condition3_isIOS: isIOS,
-      finalDecision: shouldUseUltraSimple ? 'ULTRA_SIMPLE' : 'COMPLEX'
-    });
-    
-    // iPhone: Always use ultra simple form for optimized experience
-    if (shouldUseUltraSimple) {
-      console.log('📱 ✅ iPhone detected - Opening ultra simple form');
-      ultraSimpleForm.openForm();
+    if (isIPhone) {
+      console.log('📱 iPhone detected - Opening simple form');
+      setShowSimpleForm(true);
     } else {
-      // Mac/iPad: Use complex form
-      console.log('💻 ⚙️ Mac/iPad detected - Opening complex form');
+      console.log('💻 Mac/iPad detected - Opening complex form');
       setEditingTask(null);
       setShowCreateDialog(true);
     }
-  }, [deviceType, isPhone, isIOS, ultraSimpleForm]);
+  }, [isIPhone]);
 
   // Legacy toggle function for manual testing
   const toggleCreateDialog = useCallback(() => {
@@ -138,14 +118,14 @@ const Index = () => {
     }
   );
 
-  // Registrar drecera per formulari ultra simple (Cmd/Ctrl + Shift + N)
+  // Registrar drecera per formulari simple (Cmd/Ctrl + Shift + N)
   useShortcut(
-    'ultraSimpleTask',
-    'Formulari Ultra Simple',
+    'simpleTask',
+    'Formulari Simple',
     ['meta', 'shift', 'n'],
-    ultraSimpleForm.openForm,
+    () => setShowSimpleForm(true),
     {
-      description: 'Obrir formulari ultra simple optimitzat per iPhone',
+      description: 'Obrir formulari simple optimitzat per iPhone',
       category: 'actions',
       enabled: !!user
     }
@@ -292,8 +272,8 @@ const Index = () => {
       
       {/* Enhanced Device Debug Panel with form testing */}
       <DeviceDebugPanel 
-        onTestUltraSimple={ultraSimpleForm.openForm}
-        isUltraSimpleOpen={ultraSimpleForm.isOpen}
+        onTestUltraSimple={() => setShowSimpleForm(true)}
+        isUltraSimpleOpen={showSimpleForm}
       />
 
       <CreateTaskModalLazy
@@ -307,11 +287,11 @@ const Index = () => {
         editingTask={editingTask}
       />
 
-      {/* Ultra Simple Task Form - Testing Phase 1 */}
-      <UltraSimpleTaskForm
-        open={ultraSimpleForm.isOpen}
-        onClose={ultraSimpleForm.closeForm}
-        onSubmit={ultraSimpleForm.handleSubmit}
+      {/* Simple Task Form */}
+      <SimpleTaskForm
+        open={showSimpleForm}
+        onClose={() => setShowSimpleForm(false)}
+        onSubmit={handleSimpleTaskSubmit}
       />
     </div>
   );
