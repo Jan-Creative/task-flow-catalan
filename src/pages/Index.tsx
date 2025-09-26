@@ -81,15 +81,18 @@ const Index = () => {
   const { preloadCriticalData } = useCacheOptimization();
   useMemoryCleanup();
 
-  // Smart task creation handler - simplified
+  // Smart task creation handler - simplified with enhanced logging
   const handleCreateTaskClick = useCallback(() => {
-    console.log('🔍 Device detection:', { isIPhone });
+    console.log('🔥 CREACIÓ DE TASCA ACTIVADA');
+    console.log('🔍 Device detection:', { isIPhone, userAgent: navigator.userAgent });
     
     if (isIPhone) {
-      console.log('📱 iPhone detected - Opening simple form');
+      console.log('📱 iPhone detectat - Obrint formulari simple');
+      setShowCreateDialog(false); // Assegurar que el formulari complex està tancat
       setShowSimpleForm(true);
     } else {
-      console.log('💻 Mac/iPad detected - Opening complex form');
+      console.log('💻 Mac/iPad detectat - Obrint formulari complex');
+      setShowSimpleForm(false); // Assegurar que el formulari simple està tancat
       setEditingTask(null);
       setShowCreateDialog(true);
     }
@@ -276,21 +279,27 @@ const Index = () => {
         isUltraSimpleOpen={showSimpleForm}
       />
 
-      <CreateTaskModalLazy
-        open={showCreateDialog}
-        onClose={() => {
-          setShowCreateDialog(false);
-          setEditingTask(null);
-        }}
-        onSubmit={handleTaskSubmit}
-        folders={folders}
-        editingTask={editingTask}
-      />
+      {/* Formulari complex NOMÉS per ordinadors/iPads */}
+      {!isIPhone && (
+        <CreateTaskModalLazy
+          open={showCreateDialog && !showSimpleForm}
+          onClose={() => {
+            setShowCreateDialog(false);
+            setEditingTask(null);
+          }}
+          onSubmit={handleTaskSubmit}
+          folders={folders}
+          editingTask={editingTask}
+        />
+      )}
 
-      {/* Simple Task Form */}
+      {/* Formulari simple NOMÉS per iPhone */}
       <SimpleTaskForm
         open={showSimpleForm}
-        onClose={() => setShowSimpleForm(false)}
+        onClose={() => {
+          setShowSimpleForm(false);
+          setShowCreateDialog(false); // Assegurar que ambdós estan tancats
+        }}
         onSubmit={handleSimpleTaskSubmit}
       />
     </div>

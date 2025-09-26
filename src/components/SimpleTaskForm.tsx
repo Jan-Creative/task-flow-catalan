@@ -136,25 +136,32 @@ export const SimpleTaskForm: React.FC<SimpleTaskFormProps> = ({
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent 
-        className="w-full max-w-sm mx-auto p-0 border-0 bg-transparent shadow-none fixed bottom-8 left-4 right-4 top-auto translate-x-0 translate-y-0"
+        className="!w-full !max-w-none !mx-0 !p-0 !border-0 !bg-transparent !shadow-none !fixed !bottom-0 !left-0 !right-0 !top-auto !translate-x-0 !translate-y-0 !transform-none !rounded-none"
+        overlayClassName="!bg-black/30 !backdrop-blur-sm"
         onKeyDown={handleKeyDown}
       >
-        <div className="bg-card/95 backdrop-blur-xl rounded-2xl border border-border/50 shadow-2xl overflow-hidden">
-          {/* Header minimal */}
-          <div className="px-4 py-3 border-b border-border/20">
-            <h3 className="text-sm font-medium text-foreground/80">
+        {/* Indicador visual únic per debug */}
+        <div className="absolute top-4 right-4 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-bold z-50 shadow-lg">
+          📱 SIMPLE FORM ACTIU
+        </div>
+        
+        <div className="bg-white dark:bg-gray-900 !p-0 !border-0 rounded-t-3xl shadow-2xl overflow-hidden animate-slide-up">
+          {/* Header ultra minimal */}
+          <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800">
+            <div className="w-12 h-1 bg-gray-300 dark:bg-gray-600 rounded-full mx-auto mb-4"></div>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white text-center">
               Nova tasca
             </h3>
           </div>
           
-          {/* Form content */}
-          <form onSubmit={handleSubmit} className="p-4">
+          {/* Form content optimitzat */}
+          <form onSubmit={handleSubmit} className="p-6 pb-8">
             <Input
               ref={inputRef}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Escriu el títol de la tasca..."
-              className="w-full text-base border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/60 text-foreground"
+              className="!w-full !text-lg !font-medium !border-0 !bg-transparent !shadow-none focus-visible:!ring-0 focus-visible:!ring-offset-0 !p-0 placeholder:!text-gray-400 dark:placeholder:!text-gray-500 !text-gray-900 dark:!text-white"
               autoComplete="off"
               autoCapitalize="sentences"
               inputMode="text"
