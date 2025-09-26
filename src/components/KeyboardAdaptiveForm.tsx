@@ -5,7 +5,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useKeyboardHeight } from '@/hooks/device/useKeyboardHeight';
-import { useSwipeGestures } from '@/hooks/useSwipeGestures';
+import { useFormPanelSwipe } from '@/hooks/useFormPanelSwipe';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { X, Calendar, Folder, Flag, Clock, Send, Star, Target, Sparkles } from 'lucide-react';
@@ -33,7 +33,6 @@ export const KeyboardAdaptiveForm: React.FC<KeyboardAdaptiveFormProps> = ({
   onSubmit
 }) => {
   const [title, setTitle] = useState('');
-  const [currentPanel, setCurrentPanel] = useState<'left' | 'center' | 'right'>('center');
   const [formOptions, setFormOptions] = useState<TaskFormOptions>({
     isToday: false,
     priority: 'medium',
@@ -42,6 +41,12 @@ export const KeyboardAdaptiveForm: React.FC<KeyboardAdaptiveFormProps> = ({
   });
   const inputRef = useRef<HTMLInputElement>(null);
   const { height: keyboardHeight, isVisible: keyboardVisible } = useKeyboardHeight();
+  
+  // Form panel swipe navigation
+  const { currentPanel, setCurrentPanel, isDragging, dragOffset, touchHandlers } = useFormPanelSwipe({
+    threshold: 80,
+    maxDistance: 250,
+  });
   
   // Posicionament dinàmic basat en l'altura del teclat
   const bottomOffset = keyboardVisible ? keyboardHeight + 20 : 40;
@@ -73,28 +78,6 @@ export const KeyboardAdaptiveForm: React.FC<KeyboardAdaptiveFormProps> = ({
     }
   }, [open]);
 
-  // Swipe gestures configuration
-  const { swipeState, touchHandlers } = useSwipeGestures({
-    threshold: 50,
-    maxDistance: 300,
-    onSwipeLeft: () => {
-      if (currentPanel === 'center') setCurrentPanel('right');
-      else if (currentPanel === 'left') setCurrentPanel('center');
-    },
-    onSwipeRight: () => {
-      if (currentPanel === 'center') setCurrentPanel('left');
-      else if (currentPanel === 'right') setCurrentPanel('center');
-    },
-    onSwipeEnd: (direction, distance) => {
-      if (distance > 150) {
-        if (direction === 'left' && currentPanel !== 'right') {
-          setCurrentPanel(currentPanel === 'left' ? 'center' : 'right');
-        } else if (direction === 'right' && currentPanel !== 'left') {
-          setCurrentPanel(currentPanel === 'right' ? 'center' : 'left');
-        }
-      }
-    }
-  });
 
   // Quick action functions
   const toggleToday = useCallback(() => {
@@ -155,14 +138,20 @@ export const KeyboardAdaptiveForm: React.FC<KeyboardAdaptiveFormProps> = ({
 
   if (!open) return null;
 
-  // Calculate transform for panel sliding
+  // Calculate transform for panel sliding with drag offset
   const getTransformX = () => {
-    switch (currentPanel) {
-      case 'left': return '0%';
-      case 'center': return '-100%';
-      case 'right': return '-200%';
-      default: return '-100%';
-    }
+    const baseTransform = (() => {
+      switch (currentPanel) {
+        case 'left': return 0;
+        case 'center': return -100;
+        case 'right': return -200;
+        default: return -100;
+      }
+    })();
+    
+    // Add drag offset if dragging
+    const dragPercentage = isDragging ? (dragOffset / window.innerWidth) * 100 : 0;
+    return `${baseTransform + dragPercentage}%`;
   };
 
   return (
@@ -184,11 +173,11 @@ export const KeyboardAdaptiveForm: React.FC<KeyboardAdaptiveFormProps> = ({
       >
         {/* Liquid Glass Card Container */}
         <div 
-          className="backdrop-blur-glass rounded-3xl shadow-glass border border-white/10 overflow-hidden"
+          className="backdrop-blur-glass rounded-3xl shadow-glass border border-white/10 overflow-hidden bg-glass"
           style={{
-            background: 'var(--gradient-glass)',
-            transition: 'var(--transition-smooth)',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.3), 0 2px 8px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.05)'
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.06) 100%)',
+            transition: isDragging ? 'none' : 'var(--transition-smooth)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08)'
           }}
         >
           {/* Minimal Panel Indicators */}
@@ -220,10 +209,11 @@ export const KeyboardAdaptiveForm: React.FC<KeyboardAdaptiveFormProps> = ({
           {/* Sliding Panels Container */}
           <div className="relative w-full overflow-hidden min-h-[180px]">
             <div 
-              className="flex transition-transform duration-500 ease-out"
+              className="flex ease-out"
               style={{
                 transform: `translateX(${getTransformX()})`,
-                width: '300%'
+                width: '300%',
+                transition: isDragging ? 'none' : 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
               }}
             >
               {/* Left Panel - Priority & Folder */}
@@ -289,10 +279,10 @@ export const KeyboardAdaptiveForm: React.FC<KeyboardAdaptiveFormProps> = ({
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    className="text-lg font-medium bg-white/5 border border-white/20 focus:border-primary/40 text-white placeholder:text-white/40 backdrop-blur-sm transition-all duration-300 rounded-2xl h-14 px-4 focus-visible:ring-0 focus-visible:ring-offset-0"
+                    className="text-lg font-medium bg-white/8 border border-white/25 focus:border-primary/50 text-white placeholder:text-white/50 backdrop-blur-sm transition-all duration-300 rounded-2xl h-14 px-4 focus-visible:ring-0 focus-visible:ring-offset-0"
                     style={{
-                      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.1)',
-                      background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)'
+                      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.15), 0 2px 8px rgba(0,0,0,0.2)',
+                      background: 'linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.06) 100%)'
                     }}
                     autoFocus
                   />
