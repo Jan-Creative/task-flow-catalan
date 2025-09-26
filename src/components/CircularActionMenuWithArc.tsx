@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Plus, Calendar, Bell, Folder, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { InvisibleInputButton } from "@/components/ui/InvisibleInputButton";
+import { useDeviceType } from "@/hooks/device/useDeviceType";
 import { cn } from "@/lib/utils";
 
 interface CircularActionMenuProps {
@@ -33,6 +35,7 @@ const CircularActionMenuWithArc = ({
   const [arcAnimationProgress, setArcAnimationProgress] = useState(0);
   const timeoutRef = useRef<NodeJS.Timeout>();
   const fabRef = useRef<HTMLButtonElement>(null);
+  const { type: deviceType } = useDeviceType();
 
   // Debug: confirm arc version is mounted
   useEffect(() => {
@@ -259,29 +262,52 @@ const CircularActionMenuWithArc = ({
 
       {/* Main FAB Container */}
       <div className="relative z-50">
-        {/* Main FAB Button */}
-        <Button
-          ref={fabRef}
-          onClick={handleButtonClick}
-          size="lg"
-          className={cn(
-            "bg-gradient-primary hover:scale-110 active:scale-95 transition-all duration-200 ease-out rounded-full shadow-[var(--shadow-floating)] hover:shadow-glow flex-shrink-0 p-0",
-            isExpanded && "scale-105 shadow-glow"
-          )}
-          style={{
-            height: `${mainButtonSize}px`,
-            width: `${mainButtonSize}px`
-          }}
-          aria-label="Accions ràpides"
-        >
-          <Plus 
+        {/* Main FAB Button - Use InvisibleInputButton for iPhone */}
+        {deviceType === 'iphone' ? (
+          <InvisibleInputButton
+            size="lg"
             className={cn(
-              "transition-transform duration-200 text-white",
-              isMobile ? "h-5 w-5" : "h-6 w-6",
-              isExpanded && "rotate-45"
-            )} 
-          />
-        </Button>
+              "bg-gradient-primary hover:scale-110 active:scale-95 transition-all duration-200 ease-out rounded-full shadow-[var(--shadow-floating)] hover:shadow-glow flex-shrink-0 p-0",
+              isExpanded && "scale-105 shadow-glow"
+            )}
+            style={{
+              height: `${mainButtonSize}px`,
+              width: `${mainButtonSize}px`
+            }}
+            onInputFocus={handleButtonClick}
+          >
+            <Plus 
+              className={cn(
+                "transition-transform duration-200 text-white",
+                isMobile ? "h-5 w-5" : "h-6 w-6",
+                isExpanded && "rotate-45"
+              )} 
+            />
+          </InvisibleInputButton>
+        ) : (
+          <Button
+            ref={fabRef}
+            onClick={handleButtonClick}
+            size="lg"
+            className={cn(
+              "bg-gradient-primary hover:scale-110 active:scale-95 transition-all duration-200 ease-out rounded-full shadow-[var(--shadow-floating)] hover:shadow-glow flex-shrink-0 p-0",
+              isExpanded && "scale-105 shadow-glow"
+            )}
+            style={{
+              height: `${mainButtonSize}px`,
+              width: `${mainButtonSize}px`
+            }}
+            aria-label="Accions ràpides"
+          >
+            <Plus 
+              className={cn(
+                "transition-transform duration-200 text-white",
+                isMobile ? "h-5 w-5" : "h-6 w-6",
+                isExpanded && "rotate-45"
+              )} 
+            />
+          </Button>
+        )}
 
         {/* Arc SVG and Menu Options */}
         {isExpanded && (
