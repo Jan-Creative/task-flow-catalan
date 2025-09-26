@@ -392,7 +392,6 @@ All colors MUST be HSL.
   .rich-text-editor-content li {
     @apply text-foreground mb-1;
   }
-}
 
 /* Animació per formulari simple iPhone */
 @keyframes slide-up {
