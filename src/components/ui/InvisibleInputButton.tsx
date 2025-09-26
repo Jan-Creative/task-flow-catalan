@@ -1,5 +1,5 @@
 import React, { useRef, useCallback } from 'react';
-import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 interface InvisibleInputButtonProps {
@@ -14,8 +14,8 @@ interface InvisibleInputButtonProps {
 }
 
 /**
- * Component híbrid que combina un botó visual amb un camp de text invisible
- * per permetre l'activació automàtica del teclat a iOS
+ * Component d'input transparent que sembla un botó
+ * per permetre l'activació directa del teclat a iOS
  */
 export const InvisibleInputButton: React.FC<InvisibleInputButtonProps> = ({
   children,
@@ -30,58 +30,62 @@ export const InvisibleInputButton: React.FC<InvisibleInputButtonProps> = ({
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleButtonClick = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    // Activar el camp invisible per desplegar el teclat
-    if (inputRef.current && !disabled) {
-      inputRef.current.focus();
-    }
-  }, [disabled]);
-
   const handleInputFocus = useCallback(() => {
-    console.log('📱 Camp invisible activat - Teclat desplegant...');
+    console.log('📱 Input directe activat - Teclat desplegant...');
     onInputFocus?.();
   }, [onInputFocus]);
 
   const handleInputBlur = useCallback(() => {
-    console.log('📱 Camp invisible desactivat');
+    console.log('📱 Input directe desactivat');
     onInputBlur?.();
   }, [onInputBlur]);
 
+  const handleInputClick = useCallback((e: React.MouseEvent) => {
+    // NO preventDefault ni stopPropagation per mantenir el user gesture
+    console.log('📱 Clic directe a l\'input');
+  }, []);
+
   return (
     <div className="relative">
-      {/* Camp de text invisible posicionat sobre el botó */}
+      {/* Input principal estilitzat com un botó */}
       <input
         ref={inputRef}
         type="text"
-        className="absolute inset-0 w-full h-full opacity-0 pointer-events-auto z-10 bg-transparent border-none outline-none text-transparent caret-transparent"
-        onFocus={handleInputFocus}
-        onBlur={handleInputBlur}
-        readOnly
-        tabIndex={-1}
+        className={cn(
+          // Aplicar els estils del botó
+          buttonVariants({ variant, size }),
+          // Fer-lo transparent però funcional
+          "bg-transparent text-transparent caret-transparent cursor-pointer",
+          // Posicionament i interacció
+          "relative z-10 pointer-events-auto",
+          className
+        )}
         style={{
-          // Assegurar que el camp és completament invisible
-          background: 'transparent',
+          // Assegurar transparència total del text
           color: 'transparent',
           textShadow: 'none',
-          caretColor: 'transparent'
+          caretColor: 'transparent',
+          // Mantenir l'aparença del botó
+          ...style
         }}
-      />
-      
-      {/* Botó visual que es renderitza per sota */}
-      <Button
-        size={size}
-        variant={variant}
-        className={cn(className, "relative z-0")}
-        style={style}
-        onClick={handleButtonClick}
+        onFocus={handleInputFocus}
+        onBlur={handleInputBlur}
+        onClick={handleInputClick}
+        readOnly
         disabled={disabled}
         {...props}
+      />
+      
+      {/* Contingut visual del botó posicionat per sota */}
+      <div 
+        className={cn(
+          "absolute inset-0 flex items-center justify-center gap-2 pointer-events-none z-0",
+          buttonVariants({ variant, size, className: "bg-transparent border-transparent" })
+        )}
+        style={style}
       >
         {children}
-      </Button>
+      </div>
     </div>
   );
 };
