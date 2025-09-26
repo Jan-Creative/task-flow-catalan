@@ -16,7 +16,7 @@ import { ca } from 'date-fns/locale';
 
 interface TaskFormOptions {
   isToday?: boolean;
-  priority?: 'low' | 'medium' | 'high' | 'urgent';
+  priority?: 'baixa' | 'mitjana' | 'alta' | 'urgent';
   folder_id?: string;
   due_date?: string;
 }
@@ -35,7 +35,7 @@ export const KeyboardAdaptiveForm: React.FC<KeyboardAdaptiveFormProps> = ({
   const [title, setTitle] = useState('');
   const [formOptions, setFormOptions] = useState<TaskFormOptions>({
     isToday: false,
-    priority: 'medium',
+    priority: 'mitjana',
     folder_id: '',
     due_date: ''
   });
@@ -71,7 +71,7 @@ export const KeyboardAdaptiveForm: React.FC<KeyboardAdaptiveFormProps> = ({
       setCurrentPanel('center');
       setFormOptions({
         isToday: false,
-        priority: 'medium',
+        priority: 'mitjana',
         folder_id: '',
         due_date: ''
       });
@@ -156,99 +156,93 @@ export const KeyboardAdaptiveForm: React.FC<KeyboardAdaptiveFormProps> = ({
 
   return (
     <>
-      {/* Liquid Glass Overlay */}
+      {/* Simple Dark Overlay */}
       <div 
-        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 transition-opacity duration-500"
+        className="fixed inset-0 bg-black/50 z-40 transition-opacity duration-300"
         onClick={onClose}
       />
       
-      {/* Floating Liquid Glass Form */}
+      {/* Main Form Container */}
       <div 
-        className="fixed left-4 right-4 z-50 transition-all duration-500 ease-out"
+        className="fixed left-4 right-4 z-50 transition-all duration-300 ease-out max-w-md mx-auto"
         style={{ 
           bottom: `${bottomOffset}px`,
           transform: open ? 'translateY(0) scale(1)' : 'translateY(100%) scale(0.95)',
         }}
         {...touchHandlers}
       >
-        {/* Liquid Glass Card Container */}
+        {/* Solid Card Container */}
         <div 
-          className="backdrop-blur-glass rounded-3xl shadow-glass border border-white/10 overflow-hidden bg-glass"
-          style={{
-            background: 'linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.06) 100%)',
-            transition: isDragging ? 'none' : 'var(--transition-smooth)',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08)'
-          }}
+          className="bg-card border border-border rounded-xl shadow-lg overflow-hidden"
         >
-          {/* Minimal Panel Indicators */}
-          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-10">
-            {['left', 'center', 'right'].map((panel, index) => (
+          {/* Panel Indicators */}
+          <div className="flex justify-center items-center gap-2 p-3 bg-muted/30 border-b border-border">
+            {['left', 'center', 'right'].map((panel) => (
               <div
                 key={panel}
                 className={cn(
-                  "w-1.5 h-1.5 rounded-full transition-all duration-500",
+                  "w-2 h-2 rounded-full transition-all duration-300",
                   currentPanel === panel
-                    ? 'bg-primary/80 scale-125 shadow-lg'
-                    : 'bg-white/25 scale-100'
+                    ? 'bg-primary scale-125'
+                    : 'bg-muted-foreground/30 scale-100'
                 )}
-                style={{
-                  boxShadow: currentPanel === panel ? '0 0 12px rgba(0,150,150,0.4)' : 'none'
-                }}
               />
             ))}
+            <div className="text-xs text-muted-foreground ml-2">
+              {currentPanel === 'left' && 'Prioritat'}
+              {currentPanel === 'center' && 'Tasca'}
+              {currentPanel === 'right' && 'Dates'}
+            </div>
           </div>
 
           {/* Close Button */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white/60 hover:text-white/90 hover:bg-white/20 transition-all duration-300"
+            className="absolute top-2 right-2 z-10 p-2 rounded-full bg-background/80 border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-200"
           >
             <X className="w-4 h-4" />
           </button>
           
           {/* Sliding Panels Container */}
-          <div className="relative w-full overflow-hidden min-h-[180px]">
+          <div className="relative w-full overflow-hidden min-h-[200px]">
             <div 
               className="flex ease-out"
               style={{
                 transform: `translateX(${getTransformX()})`,
                 width: '300%',
-                transition: isDragging ? 'none' : 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
+                transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
               }}
             >
               {/* Left Panel - Priority & Folder */}
-              <div className="w-1/3 flex-shrink-0 px-6 py-8">
-                <div className="space-y-6 pt-6">
+              <div className="w-1/3 flex-shrink-0 px-4 py-6">
+                <div className="space-y-4">
                   {/* Priority Selector */}
                   <div className="space-y-3">
-                    <p className="text-xs text-white/60 text-center font-medium">Prioritat</p>
+                    <p className="text-sm font-medium text-foreground text-center">Prioritat</p>
                     <div className="grid grid-cols-2 gap-2">
                       {[
-                        { value: 'urgent', icon: Flag, color: 'text-red-400' },
-                        { value: 'high', icon: Target, color: 'text-orange-400' },
-                        { value: 'medium', icon: Clock, color: 'text-yellow-400' },
-                        { value: 'low', icon: Sparkles, color: 'text-blue-400' }
+                        { value: 'baixa', label: 'Baixa', icon: Sparkles },
+                        { value: 'mitjana', label: 'Mitjana', icon: Clock },
+                        { value: 'alta', label: 'Alta', icon: Target },
+                        { value: 'urgent', label: 'Urgent', icon: Flag }
                       ].map((priority) => {
                         const IconComponent = priority.icon;
                         const isSelected = formOptions.priority === priority.value;
                         return (
                           <Button
                             key={priority.value}
-                            variant="ghost"
+                            variant="outline"
                             size="sm"
                             onClick={() => setPriority(priority.value as TaskFormOptions['priority'])}
                             className={cn(
-                              "h-12 text-xs backdrop-blur-sm transition-all duration-300 rounded-xl",
+                              "h-10 text-xs transition-all duration-200",
                               isSelected 
-                                ? 'bg-primary/20 border border-primary/30 text-primary-foreground shadow-lg' 
-                                : 'bg-white/5 border border-white/10 text-white/70 hover:bg-white/10'
+                                ? 'bg-primary text-primary-foreground border-primary' 
+                                : 'bg-background text-foreground border-border hover:bg-muted'
                             )}
-                            style={{
-                              boxShadow: isSelected ? '0 0 16px rgba(0,150,150,0.3)' : 'none'
-                            }}
                           >
-                            <IconComponent className={cn("h-3 w-3 mr-1", priority.color)} />
-                            {priority.value.charAt(0).toUpperCase() + priority.value.slice(1)}
+                            <IconComponent className="h-3 w-3 mr-1" />
+                            {priority.label}
                           </Button>
                         );
                       })}
@@ -257,10 +251,10 @@ export const KeyboardAdaptiveForm: React.FC<KeyboardAdaptiveFormProps> = ({
 
                   {/* Folder Selector */}
                   <div className="space-y-3">
-                    <p className="text-xs text-white/60 text-center font-medium">Carpeta</p>
+                    <p className="text-sm font-medium text-foreground text-center">Carpeta</p>
                     <Button
-                      variant="ghost"
-                      className="w-full h-12 bg-white/5 border border-white/10 text-white/70 hover:bg-white/10 backdrop-blur-sm transition-all duration-300 rounded-xl"
+                      variant="outline"
+                      className="w-full h-10 bg-background text-foreground border-border hover:bg-muted"
                     >
                       <Folder className="h-4 w-4 mr-2" />
                       Inbox
@@ -270,8 +264,8 @@ export const KeyboardAdaptiveForm: React.FC<KeyboardAdaptiveFormProps> = ({
               </div>
 
               {/* Center Panel - Main Input */}
-              <div className="w-1/3 flex-shrink-0 px-6 py-8">
-                <div className="space-y-6 pt-6">
+              <div className="w-1/3 flex-shrink-0 px-4 py-6">
+                <div className="space-y-4">
                   <Input
                     ref={inputRef}
                     type="text"
@@ -279,28 +273,26 @@ export const KeyboardAdaptiveForm: React.FC<KeyboardAdaptiveFormProps> = ({
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    className="text-lg font-medium bg-white/8 border border-white/25 focus:border-primary/50 text-white placeholder:text-white/50 backdrop-blur-sm transition-all duration-300 rounded-2xl h-14 px-4 focus-visible:ring-0 focus-visible:ring-offset-0"
-                    style={{
-                      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.15), 0 2px 8px rgba(0,0,0,0.2)',
-                      background: 'linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.06) 100%)'
-                    }}
+                    className="text-base font-medium bg-background border border-border focus:border-ring text-foreground placeholder:text-muted-foreground transition-all duration-200 rounded-lg h-12 px-4"
                     autoFocus
                   />
 
-                  {/* Current configuration preview with Liquid Glass badges */}
-                  {(formOptions.isToday || formOptions.priority !== 'medium' || formOptions.due_date) && (
+                  {/* Current configuration preview */}
+                  {(formOptions.isToday || formOptions.priority !== 'mitjana' || formOptions.due_date) && (
                     <div className="flex flex-wrap gap-2 justify-center">
                       {formOptions.isToday && (
-                        <div className="px-3 py-1 bg-primary/20 border border-primary/30 text-primary-foreground backdrop-blur-sm rounded-full text-xs font-medium">
+                        <div className="px-2 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-600 rounded-md text-xs font-medium">
                           <Star className="h-3 w-3 mr-1 inline" />
                           Avui
                         </div>
                       )}
-                      {formOptions.priority !== 'medium' && (
-                        <SmoothPriorityBadge priority={formOptions.priority || 'medium'} size="sm" />
+                      {formOptions.priority !== 'mitjana' && (
+                        <div className="px-2 py-1 bg-primary/10 border border-primary/20 text-primary rounded-md text-xs font-medium">
+                          {formOptions.priority?.charAt(0).toUpperCase() + formOptions.priority?.slice(1)}
+                        </div>
                       )}
                       {formOptions.due_date && !formOptions.isToday && (
-                        <div className="px-3 py-1 bg-white/10 border border-white/20 text-white/80 backdrop-blur-sm rounded-full text-xs font-medium">
+                        <div className="px-2 py-1 bg-green-500/10 border border-green-500/20 text-green-600 rounded-md text-xs font-medium">
                           <Calendar className="h-3 w-3 mr-1 inline" />
                           {format(new Date(formOptions.due_date), 'd MMM', { locale: ca })}
                         </div>
@@ -310,56 +302,64 @@ export const KeyboardAdaptiveForm: React.FC<KeyboardAdaptiveFormProps> = ({
 
                   <Button 
                     onClick={handleSubmit} 
-                    className="w-full h-12 font-medium bg-primary/20 border border-primary/30 text-primary-foreground hover:bg-primary/30 backdrop-blur-sm transition-all duration-300 rounded-2xl"
+                    className="w-full h-10 font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 rounded-lg"
                     disabled={!title.trim()}
-                    style={{
-                      boxShadow: '0 4px 16px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.1)'
-                    }}
                   >
                     <Send className="h-4 w-4 mr-2" />
-                    Afegir Tasca
+                    Crear Tasca
                   </Button>
+
+                  {/* Navigation hints */}
+                  <div className="flex justify-between text-xs text-muted-foreground pt-1">
+                    <span>← Prioritat</span>
+                    <span>Dates →</span>
+                  </div>
                 </div>
               </div>
 
               {/* Right Panel - Quick Dates & Today */}
-              <div className="w-1/3 flex-shrink-0 px-6 py-8">
-                <div className="space-y-6 pt-6">
-                  {/* Today Toggle - Prominent */}
+              <div className="w-1/3 flex-shrink-0 px-4 py-6">
+                <div className="space-y-4">
+                  {/* Today Toggle */}
                   <div className="text-center">
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       onClick={toggleToday}
                       className={cn(
-                        "w-full h-14 text-base font-medium transition-all duration-300 rounded-2xl backdrop-blur-sm",
+                        "w-full h-12 text-sm font-medium transition-all duration-200",
                         formOptions.isToday 
-                          ? 'bg-primary/20 border border-primary/30 text-primary-foreground shadow-lg' 
-                          : 'bg-white/5 border border-white/10 text-white/70 hover:bg-white/10'
+                          ? 'bg-blue-500/10 border-blue-500/20 text-blue-600' 
+                          : 'bg-background text-foreground border-border hover:bg-muted'
                       )}
-                      style={{
-                        boxShadow: formOptions.isToday ? '0 0 20px rgba(0,150,150,0.3)' : 'none'
-                      }}
                     >
-                      <Star className={cn("h-5 w-5 mr-2", formOptions.isToday ? 'text-primary' : 'text-white/60')} />
-                      {formOptions.isToday ? "És per avui" : "Marcar avui"}
+                      <Star className="h-4 w-4 mr-2" />
+                      {formOptions.isToday ? "És per avui" : "Avui"}
                     </Button>
                   </div>
                   
                   {/* Quick Date Buttons */}
-                  <div className="space-y-3">
-                    <p className="text-xs text-white/60 text-center font-medium">Dates ràpides</p>
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-foreground text-center">Dates ràpides</p>
                     <div className="grid grid-cols-1 gap-2">
                       {[
-                        { label: 'Avui', onClick: () => setQuickDate('today') },
-                        { label: 'Demà', onClick: () => setQuickDate('tomorrow') },
-                        { label: 'Setmana', onClick: () => setQuickDate('thisWeek') }
-                      ].map((item, index) => (
+                        { label: 'Demà', days: 1 },
+                        { label: '3 dies', days: 3 },
+                        { label: '1 setmana', days: 7 }
+                      ].map((item) => (
                         <Button
-                          key={index}
-                          variant="ghost"
+                          key={item.label}
+                          variant="outline"
                           size="sm"
-                          onClick={item.onClick}
-                          className="h-10 justify-start bg-white/5 border border-white/10 text-white/70 hover:bg-white/10 backdrop-blur-sm transition-all duration-300 rounded-xl"
+                          onClick={() => {
+                            const date = new Date();
+                            date.setDate(date.getDate() + item.days);
+                            setFormOptions(prev => ({ 
+                              ...prev, 
+                              due_date: date.toISOString().split('T')[0],
+                              isToday: false
+                            }));
+                          }}
+                          className="h-9 justify-start bg-background text-foreground border-border hover:bg-muted"
                         >
                           <Calendar className="h-3 w-3 mr-2" />
                           {item.label}
