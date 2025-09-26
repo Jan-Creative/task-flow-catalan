@@ -6,9 +6,11 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useKeyboardHeight } from '@/hooks/device/useKeyboardHeight';
 import { useFormPanelSwipe } from '@/hooks/useFormPanelSwipe';
+import { useTaskOperations } from '@/hooks/useTaskOperations';
+import { useDadesApp } from '@/hooks/useDadesApp';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { X, Calendar, Folder, Flag, Clock, Send, Star, Target, Sparkles } from 'lucide-react';
+import { X, Calendar, Folder, Flag, Clock, Send, Star, Target, Sparkles, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SmoothPriorityBadge } from '@/components/ui/smooth-priority-badge';
 import { format } from 'date-fns';
@@ -39,7 +41,14 @@ export const KeyboardAdaptiveForm: React.FC<KeyboardAdaptiveFormProps> = ({
     folder_id: '',
     due_date: ''
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [selectedFolderId, setSelectedFolderId] = useState<string>('');
   const inputRef = useRef<HTMLInputElement>(null);
+  
+  // Backend connections
+  const { handleCreateTask } = useTaskOperations();
+  const { data: dadesOptimitzades, folders } = useDadesApp();
   const { height: keyboardHeight, isVisible: keyboardVisible } = useKeyboardHeight();
   
   // Form panel swipe navigation
@@ -69,6 +78,9 @@ export const KeyboardAdaptiveForm: React.FC<KeyboardAdaptiveFormProps> = ({
     if (!open) {
       setTitle('');
       setCurrentPanel('center');
+      setIsSubmitting(false);
+      setSubmitStatus('idle');
+      setSelectedFolderId('');
       setFormOptions({
         isToday: false,
         priority: 'mitjana',
@@ -76,7 +88,18 @@ export const KeyboardAdaptiveForm: React.FC<KeyboardAdaptiveFormProps> = ({
         due_date: ''
       });
     }
-  }, [open]);
+  }, [open, setCurrentPanel]);
+
+  // Set default folder (inbox) when data loads
+  useEffect(() => {
+    if (folders && !selectedFolderId) {
+      const inboxFolder = folders.find(f => f.is_system && f.name === "Bustia");
+      if (inboxFolder) {
+        setSelectedFolderId(inboxFolder.id);
+        setFormOptions(prev => ({ ...prev, folder_id: inboxFolder.id }));
+      }
+    }
+  }, [folders, selectedFolderId]);
 
 
   // Quick action functions
@@ -116,17 +139,51 @@ export const KeyboardAdaptiveForm: React.FC<KeyboardAdaptiveFormProps> = ({
     }));
   }, []);
 
-  const handleSubmit = useCallback((e?: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (title.trim()) {
-      onSubmit?.(title.trim(), formOptions);
-      onClose();
+    if (!title.trim() || isSubmitting) return;
+
+    setIsSubmitting(true);
+    setSubmitStatus('idle');
+
+    try {
+      // Prepare task data for backend
+      const taskData = {
+        title: title.trim(),
+        status: 'pendent',
+        priority: formOptions.priority || 'mitjana',
+        folder_id: selectedFolderId || formOptions.folder_id,
+        due_date: formOptions.due_date || undefined,
+        isToday: formOptions.isToday
+      };
+
+      console.debug('Creating task with data:', taskData);
+
+      // Create task using backend hook
+      await handleCreateTask(taskData);
+      
+      setSubmitStatus('success');
       
       if ('vibrate' in navigator) {
         navigator.vibrate([50, 30, 50]);
       }
+
+      // Close form after short delay to show success
+      setTimeout(() => {
+        onClose();
+      }, 500);
+
+    } catch (error) {
+      console.error('Error creating task:', error);
+      setSubmitStatus('error');
+      
+      if ('vibrate' in navigator) {
+        navigator.vibrate([100, 50, 100]);
+      }
+    } finally {
+      setIsSubmitting(false);
     }
-  }, [title, formOptions, onSubmit, onClose]);
+  }, [title, formOptions, selectedFolderId, isSubmitting, handleCreateTask, onClose]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
@@ -253,13 +310,31 @@ export const KeyboardAdaptiveForm: React.FC<KeyboardAdaptiveFormProps> = ({
                   {/* Folder Selector */}
                   <div className="space-y-3">
                     <p className="text-sm font-medium text-foreground text-center">Carpeta</p>
-                    <Button
-                      variant="outline"
-                      className="w-full h-10 bg-background text-foreground border-border hover:bg-muted"
-                    >
-                      <Folder className="h-4 w-4 mr-2" />
-                      Inbox
-                    </Button>
+                    <div className="space-y-2">
+                      {folders.slice(0, 3).map((folder) => {
+                        const isSelected = selectedFolderId === folder.id;
+                        return (
+                          <Button
+                            key={folder.id}
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedFolderId(folder.id);
+                              setFormOptions(prev => ({ ...prev, folder_id: folder.id }));
+                            }}
+                            className={cn(
+                              "w-full h-8 text-xs transition-all duration-200 justify-start",
+                              isSelected 
+                                ? 'bg-primary text-primary-foreground border-primary' 
+                                : 'bg-background text-foreground border-border hover:bg-muted'
+                            )}
+                          >
+                            <Folder className="h-3 w-3 mr-2" style={{ color: folder.color }} />
+                            {folder.name}
+                          </Button>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -298,16 +373,48 @@ export const KeyboardAdaptiveForm: React.FC<KeyboardAdaptiveFormProps> = ({
                           {format(new Date(formOptions.due_date), 'd MMM', { locale: ca })}
                         </div>
                       )}
+                      {selectedFolderId && folders && (
+                        <div className="px-2 py-1 bg-purple-500/10 border border-purple-500/20 text-purple-600 rounded-md text-xs font-medium">
+                          <Folder className="h-3 w-3 mr-1 inline" />
+                          {folders.find(f => f.id === selectedFolderId)?.name}
+                        </div>
+                      )}
                     </div>
                   )}
 
                   <Button 
                     onClick={handleSubmit} 
-                    className="w-full h-10 font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 rounded-lg"
-                    disabled={!title.trim()}
+                    className={cn(
+                      "w-full h-10 font-medium transition-all duration-200 rounded-lg",
+                      submitStatus === 'success' 
+                        ? 'bg-green-500 text-white hover:bg-green-600'
+                        : submitStatus === 'error'
+                        ? 'bg-red-500 text-white hover:bg-red-600'
+                        : 'bg-primary text-primary-foreground hover:bg-primary/90'
+                    )}
+                    disabled={!title.trim() || isSubmitting}
                   >
-                    <Send className="h-4 w-4 mr-2" />
-                    Crear Tasca
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Creant...
+                      </>
+                    ) : submitStatus === 'success' ? (
+                      <>
+                        <CheckCircle2 className="h-4 w-4 mr-2" />
+                        Creat!
+                      </>
+                    ) : submitStatus === 'error' ? (
+                      <>
+                        <AlertCircle className="h-4 w-4 mr-2" />
+                        Error - Reintenta
+                      </>
+                    ) : (
+                      <>
+                        <Send className="h-4 w-4 mr-2" />
+                        Crear Tasca
+                      </>
+                    )}
                   </Button>
 
                   {/* Navigation hints */}
