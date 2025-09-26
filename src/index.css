@@ -393,8 +393,8 @@ All colors MUST be HSL.
     @apply text-foreground mb-1;
   }
 
-/* Animació per formulari simple iPhone */
-@keyframes slide-up {
+/* Animacions per formulari adaptatiu iOS */
+@keyframes keyboard-slide-in {
   from {
     transform: translateY(100%);
     opacity: 0;
@@ -405,6 +405,19 @@ All colors MUST be HSL.
   }
 }
 
-.animate-slide-up {
-  animation: slide-up 0.3s ease-out;
+@keyframes pulse-soft {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-keyboard-slide {
+  animation: keyboard-slide-in 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2s ease-in-out infinite;
 }

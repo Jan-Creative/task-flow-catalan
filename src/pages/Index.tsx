@@ -23,6 +23,7 @@ import { KeepAlivePages, TabPage } from "@/components/ui/keep-alive-pages";
 import { useDeviceType, usePhoneDetection } from "@/hooks/device";
 import { useIOSDetection } from "@/hooks/useIOSDetection";
 import { DeviceDebugPanel } from "@/components/DeviceDebugPanel";
+import { KeyboardAdaptiveForm } from '@/components/KeyboardAdaptiveForm';
 
 const Index = () => {
   const { user, loading, signOut } = useAuth();
@@ -293,8 +294,8 @@ const Index = () => {
         />
       )}
 
-      {/* Formulari simple NOMÉS per iPhone */}
-      <SimpleTaskForm
+      {/* Formulari adaptatiu al teclat per iPhone */}
+      <KeyboardAdaptiveForm
         open={showSimpleForm}
         onClose={() => {
           setShowSimpleForm(false);
