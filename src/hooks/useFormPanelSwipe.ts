@@ -80,31 +80,31 @@ export const useFormPanelSwipe = (
 
     let newPanel: PanelType = currentPanel;
 
-    // Adjacent panel navigation logic
+    // ARREGLAT: Lògica de navegació adjacent correcta
     if (dragDirection === 'right') {
-      // Swipe right - go to previous panel
+      // Swipe dreta → va a l'esquerra (panell anterior)
       switch (currentPanel) {
         case 'right':
-          newPanel = 'center';
+          newPanel = 'center';  // Dates → Tasca
           break;
         case 'center':
-          newPanel = 'left';
+          newPanel = 'left';    // Tasca → Prioritat
           break;
         case 'left':
-          // Already at leftmost panel
+          // Ja és al panell més esquerre
           break;
       }
     } else {
-      // Swipe left - go to next panel
+      // Swipe esquerra → va a la dreta (panell següent)
       switch (currentPanel) {
         case 'left':
-          newPanel = 'center';
+          newPanel = 'center';  // Prioritat → Tasca
           break;
         case 'center':
-          newPanel = 'right';
+          newPanel = 'right';   // Tasca → Dates
           break;
         case 'right':
-          // Already at rightmost panel
+          // Ja és al panell més dret
           break;
       }
     }

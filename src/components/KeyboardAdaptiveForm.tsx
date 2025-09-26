@@ -140,17 +140,18 @@ export const KeyboardAdaptiveForm: React.FC<KeyboardAdaptiveFormProps> = ({
 
   // Calculate transform for panel sliding with drag offset
   const getTransformX = () => {
+    // ARREGLAT: Transformació correcta per mostrar panell central per defecte
     const baseTransform = (() => {
       switch (currentPanel) {
-        case 'left': return 0;
-        case 'center': return -100;
-        case 'right': return -200;
-        default: return -100;
+        case 'left': return 0;        // Mostra panell prioritat (panell 1)
+        case 'center': return -33.33; // Mostra panell tasca (panell 2) - DEFECTE
+        case 'right': return -66.67;  // Mostra panell dates (panell 3)
+        default: return -33.33;       // Per defecte center
       }
     })();
     
-    // Add drag offset if dragging
-    const dragPercentage = isDragging ? (dragOffset / window.innerWidth) * 100 : 0;
+    // Add drag offset if dragging (suau interacció visual)
+    const dragPercentage = isDragging ? (dragOffset / window.innerWidth) * 33.33 : 0;
     return `${baseTransform + dragPercentage}%`;
   };
 
@@ -189,9 +190,9 @@ export const KeyboardAdaptiveForm: React.FC<KeyboardAdaptiveFormProps> = ({
               />
             ))}
             <div className="text-xs text-muted-foreground ml-2">
-              {currentPanel === 'left' && 'Prioritat'}
+              {currentPanel === 'left' && '← Prioritat'}
               {currentPanel === 'center' && 'Tasca'}
-              {currentPanel === 'right' && 'Dates'}
+              {currentPanel === 'right' && 'Dates →'}
             </div>
           </div>
 
@@ -213,7 +214,7 @@ export const KeyboardAdaptiveForm: React.FC<KeyboardAdaptiveFormProps> = ({
                 transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
               }}
             >
-              {/* Left Panel - Priority & Folder */}
+              {/* LEFT PANEL - Prioritat (primer panell) */}
               <div className="w-1/3 flex-shrink-0 px-4 py-6">
                 <div className="space-y-4">
                   {/* Priority Selector */}
@@ -311,8 +312,14 @@ export const KeyboardAdaptiveForm: React.FC<KeyboardAdaptiveFormProps> = ({
 
                   {/* Navigation hints */}
                   <div className="flex justify-between text-xs text-muted-foreground pt-1">
-                    <span>← Prioritat</span>
-                    <span>Dates →</span>
+                    <span className="flex items-center">
+                      <span className="inline-block mr-1">←</span> 
+                      Prioritat
+                    </span>
+                    <span className="flex items-center">
+                      Dates 
+                      <span className="inline-block ml-1">→</span>
+                    </span>
                   </div>
                 </div>
               </div>
