@@ -133,14 +133,18 @@ export const KeyboardAdaptiveForm: React.FC<KeyboardAdaptiveFormProps> = ({
     let isToday = false;
 
     if (type === 'today') {
-      isToday = true;
+      // When user explicitly picks "today" as due date, it's different from "isToday" toggle
+      isToday = false; // Don't auto-set isToday when picking date today
       targetDate = date.toISOString().split('T')[0];
+      setUserPickedDueDate(true); // Mark that user explicitly picked this date
     } else if (type === 'tomorrow') {
       date.setDate(date.getDate() + 1);
       targetDate = date.toISOString().split('T')[0];
+      setUserPickedDueDate(true);
     } else if (type === 'thisWeek') {
       date.setDate(date.getDate() + 7);
       targetDate = date.toISOString().split('T')[0];
+      setUserPickedDueDate(true);
     }
 
     setFormOptions(prev => ({ 

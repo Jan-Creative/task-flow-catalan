@@ -50,30 +50,42 @@ function calculateTodayUrgencyScore(task: Tasca): number {
   const today = new Date().toISOString().split('T')[0];
   const hasDueDateToday = task.due_date === today;
   const hasNoSpecificDate = !task.due_date;
+  const isOverdue = task.due_date && task.due_date < today;
   
   let score = 0;
   
-  // CRITERI 1: Venciment avui (urgent per data)
-  if (hasDueDateToday) {
-    score = 70; // Base per venciment avui
+  // CRITERI 1: Tasques vençudes (sempre urgents)
+  if (isOverdue) {
+    score = 80; // Base per vençudes
     
     // Bonus segons prioritat
     switch (task.priority) {
       case 'urgent':
-        score += 25; // 95 total
+        score += 20; // 100 total
         break;
       case 'alta':
-        score += 15; // 85 total
+        score += 15; // 95 total
         break;
       case 'mitjana':
-        score += 10; // 80 total
+        score += 10; // 90 total
         break;
       case 'baixa':
-        score += 5;  // 75 total
+        score += 5;  // 85 total
         break;
     }
   }
-  // CRITERI 2: Tasques generals sense data específica
+  // CRITERI 2: Venciment avui NOMÉS si prioritat alta/urgent
+  else if (hasDueDateToday) {
+    // Només considerar urgent si la prioritat ho justifica
+    if (task.priority === 'urgent') {
+      score = 95; // Urgent + venc avui
+    } else if (task.priority === 'alta') {
+      score = 85; // Alta + venc avui
+    }
+    // mitjana i baixa amb venciment avui NO són urgents
+    // (probablement són tasques marcades "Avui" sense voler-les urgent)
+  }
+  // CRITERI 3: Tasques generals sense data específica
   else if (hasNoSpecificDate) {
     if (task.priority === 'urgent') {
       score = 90; // Urgent general
@@ -82,7 +94,7 @@ function calculateTodayUrgencyScore(task: Tasca): number {
     }
     // mitjana i baixa sense data no són urgents
   }
-  // CRITERI 3: Tasques futures amb data específica = NO URGENTS AVUI
+  // CRITERI 4: Tasques futures amb data específica = NO URGENTS AVUI
   else {
     return 0; // Apareixeran el seu dia programat
   }
@@ -104,13 +116,14 @@ function getUrgencyLevel(score: number): 'critical' | 'high' | 'moderate' {
 function getUrgencyReason(task: Tasca, score: number): string {
   const today = new Date().toISOString().split('T')[0];
   const hasDueDateToday = task.due_date === today;
+  const isOverdue = task.due_date && task.due_date < today;
   
-  if (task.priority === 'urgent') {
+  if (isOverdue) {
+    return 'Vençuda';
+  } else if (task.priority === 'urgent') {
     return hasDueDateToday ? 'Urgent · Venc avui' : 'Prioritat urgent';
   } else if (task.priority === 'alta') {
     return hasDueDateToday ? 'Alta · Venc avui' : 'Prioritat alta';
-  } else if (hasDueDateToday) {
-    return 'Venciment avui';
   } else {
     return 'Urgent';
   }
