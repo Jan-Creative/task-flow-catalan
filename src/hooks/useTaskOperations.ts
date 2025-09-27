@@ -20,7 +20,9 @@ export const useTaskOperations = () => {
       delete processedTaskData.isToday;
       
       // Create the task
+      console.debug('[useTaskOperations] create payload', { due_date: processedTaskData.due_date ?? null, hasDueDate: !!processedTaskData.due_date });
       const created = await createTask(processedTaskData);
+      console.debug('[useTaskOperations] created task due_date', created?.due_date ?? null);
       
       // Apply custom properties if any
       if (created?.id && customProperties && customProperties.length > 0) {

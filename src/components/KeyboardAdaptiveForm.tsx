@@ -40,9 +40,10 @@ export const KeyboardAdaptiveForm: React.FC<KeyboardAdaptiveFormProps> = ({
     isToday: false,
     priority: 'mitjana',
     folder_id: '',
-    due_date: ''
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+      due_date: ''
+    });
+    const [userPickedDueDate, setUserPickedDueDate] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [selectedFolderId, setSelectedFolderId] = useState<string>('');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -96,6 +97,7 @@ export const KeyboardAdaptiveForm: React.FC<KeyboardAdaptiveFormProps> = ({
         folder_id: '',
         due_date: ''
       });
+      setUserPickedDueDate(false);
     }
   }, [open, setCurrentPanel, setFormOpen]);
 
@@ -117,6 +119,8 @@ export const KeyboardAdaptiveForm: React.FC<KeyboardAdaptiveFormProps> = ({
       ...prev,
       isToday: !prev.isToday
     }));
+    // Do NOT mark a due_date here; keep date independent
+    // If a date was previously picked, keep userPickedDueDate as is
   }, []);
 
   const setPriority = useCallback((priority: TaskFormOptions['priority']) => {
@@ -160,7 +164,8 @@ export const KeyboardAdaptiveForm: React.FC<KeyboardAdaptiveFormProps> = ({
         status: 'pendent',
         priority: formOptions.priority || 'mitjana',
         folder_id: selectedFolderId || formOptions.folder_id,
-        due_date: formOptions.due_date || undefined,
+        // Only persist due_date if the user explicitly picked a date
+        due_date: userPickedDueDate && formOptions.due_date ? formOptions.due_date : undefined,
         isToday: formOptions.isToday
       };
 
@@ -480,6 +485,7 @@ export const KeyboardAdaptiveForm: React.FC<KeyboardAdaptiveFormProps> = ({
                               due_date: date.toISOString().split('T')[0],
                               isToday: false
                             }));
+                            setUserPickedDueDate(true);
                           }}
                           className="h-9 justify-start bg-background text-foreground border-border hover:bg-muted"
                         >
