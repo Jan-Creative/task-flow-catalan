@@ -11,6 +11,7 @@ import { useDadesApp } from "@/hooks/useDadesApp";
 import { useEvents } from "@/hooks/useEvents";
 import { useOptimizedPropertyLabels } from "@/hooks/useOptimizedPropertyLabels";
 import { usePrepareTomorrowVisibility } from "@/hooks/usePrepareTomorrowVisibility";
+import { useDeviceType } from "@/hooks/device/useDeviceType";
 import WeeklyCalendarCard from "@/components/calendar/WeeklyCalendarCard";
 import TaskChecklistItem from "@/components/TaskChecklistItem";
 import { cn } from "@/lib/utils";
@@ -28,6 +29,7 @@ import { DashboardToolbar } from "@/components/dashboard/DashboardToolbar";
 import DashboardTimeBlocksCard from "@/components/dashboard/DashboardTimeBlocksCard";
 import { DailyReminderConfigModal } from "@/components/prepare-tomorrow/DailyReminderConfigModal";
 import { TodayTimeBlocksModal } from "@/components/dashboard/TodayTimeBlocksModal";
+import { IPhoneDashboardLayout } from "@/components/dashboard/iphone/IPhoneDashboardLayout";
 interface DashboardPageProps {
   onEditTask: (task: any) => void;
   onNavigateToTasks?: () => void;
@@ -41,6 +43,7 @@ const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar, on
   const { events } = useEvents();
   const { getStatusLabel, getPriorityColor } = useOptimizedPropertyLabels();
   const { isVisible: showPrepareTomorrow } = usePrepareTomorrowVisibility();
+  const { type: deviceType } = useDeviceType();
   const [selectedDate, setSelectedDate] = useState(new Date());
   
   // Dashboard-level modals
@@ -153,6 +156,33 @@ const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar, on
     };
   }, []);
 
+  // Render iPhone layout
+  if (deviceType === 'iphone') {
+    return (
+      <>
+        <IPhoneDashboardLayout
+          dashboardTasks={dashboardTasks}
+          urgentTasks={urgentTasks}
+          todayEvents={todayEvents}
+          onEditTask={onEditTask}
+          onNavigateToTasks={onNavigateToTasks}
+          onNavigateToCalendar={onNavigateToCalendar}
+          onNavigateToNotifications={onNavigateToNotifications}
+          completingTasks={completingTasks}
+          onStatusChange={handleStatusChange}
+          onDelete={handleDelete}
+          onOpenReminderConfig={() => setShowReminderConfig(true)}
+          onOpenTimeBlocks={() => setShowTimeBlocks(true)}
+          showPrepareTomorrow={showPrepareTomorrow}
+        />
+        {/* Global modals */}
+        <DailyReminderConfigModal open={showReminderConfig} onOpenChange={(o) => { console.debug('DailyReminderConfigModal onOpenChange', o); setShowReminderConfig(o); }} />
+        <TodayTimeBlocksModal open={showTimeBlocks} onClose={() => setShowTimeBlocks(false)} />
+      </>
+    );
+  }
+
+  // Default layout for iPad and Mac
   return (
     <div className="w-full max-w-full p-4 pb-24 space-y-6">
       {/* Personalized Header */}
