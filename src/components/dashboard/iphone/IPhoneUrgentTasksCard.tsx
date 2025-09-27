@@ -1,4 +1,4 @@
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Clock, Calendar } from "lucide-react";
 import TaskChecklistItem from "@/components/TaskChecklistItem";
 
 interface UrgentTask {
@@ -22,6 +22,52 @@ interface IPhoneUrgentTasksCardProps {
   onDelete: (taskId: string) => void;
 }
 
+const getUrgencyIcon = (level: 'critical' | 'high' | 'moderate') => {
+  switch (level) {
+    case 'critical':
+      return AlertTriangle;
+    case 'high':
+      return Clock;
+    case 'moderate':
+      return Calendar;
+    default:
+      return AlertTriangle;
+  }
+};
+
+const getUrgencyStyles = (level: 'critical' | 'high' | 'moderate') => {
+  switch (level) {
+    case 'critical':
+      return {
+        gradient: 'bg-gradient-to-br from-red-500/15 to-red-600/15',
+        border: 'border-red-500/30',
+        icon: 'text-red-400',
+        hover: 'hover:from-red-500/20 hover:to-red-600/20'
+      };
+    case 'high':
+      return {
+        gradient: 'bg-gradient-to-br from-orange-500/15 to-orange-600/15',
+        border: 'border-orange-500/30',
+        icon: 'text-orange-400',
+        hover: 'hover:from-orange-500/20 hover:to-orange-600/20'
+      };
+    case 'moderate':
+      return {
+        gradient: 'bg-gradient-to-br from-yellow-500/15 to-yellow-600/15',
+        border: 'border-yellow-500/30',
+        icon: 'text-yellow-400',
+        hover: 'hover:from-yellow-500/20 hover:to-yellow-600/20'
+      };
+    default:
+      return {
+        gradient: 'bg-gradient-to-br from-red-500/15 to-red-600/15',
+        border: 'border-red-500/30',
+        icon: 'text-red-400',
+        hover: 'hover:from-red-500/20 hover:to-red-600/20'
+      };
+  }
+};
+
 export const IPhoneUrgentTasksCard = ({
   tasks,
   completingTasks,
@@ -38,24 +84,46 @@ export const IPhoneUrgentTasksCard = ({
         </h3>
       </div>
       
-      <div className="space-y-1">
+      <div className="space-y-2">
         {tasks.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-muted-foreground">No tens tasques urgents avui</p>
           </div>
         ) : (
-          tasks.map((task) => (
-            <div key={task.id} className="p-2 rounded-2xl bg-accent/30 hover:bg-accent/50 transition-all duration-200">
-              <TaskChecklistItem
-                task={task}
-                onStatusChange={onStatusChange}
-                onEdit={onEdit}
-                onDelete={onDelete}
-                viewMode="compact"
-                completingTasks={completingTasks}
-              />
-            </div>
-          ))
+          tasks.map((task) => {
+            const UrgencyIcon = getUrgencyIcon(task.urgencyLevel);
+            const styles = getUrgencyStyles(task.urgencyLevel);
+            
+            return (
+              <div 
+                key={task.id} 
+                className={`p-3 rounded-2xl border transition-all duration-200 ${styles.gradient} ${styles.border} ${styles.hover}`}
+              >
+                <div className="flex items-start gap-3 mb-2">
+                  <div className="flex items-center gap-2">
+                    <UrgencyIcon className={`h-3 w-3 ${styles.icon}`} />
+                    <span className={`text-xs font-medium ${styles.icon}`}>
+                      {task.urgencyReason}
+                    </span>
+                  </div>
+                  <div className="ml-auto">
+                    <span className={`text-xs ${styles.icon}`}>
+                      {task.urgencyScore}
+                    </span>
+                  </div>
+                </div>
+                
+                <TaskChecklistItem
+                  task={task}
+                  onStatusChange={onStatusChange}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
+                  viewMode="compact"
+                  completingTasks={completingTasks}
+                />
+              </div>
+            );
+          })
         )}
       </div>
     </div>
