@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useDeviceDetection } from '@/hooks/useDeviceDetection';
 import { useDeviceType } from '@/hooks/device/useDeviceType';
-import AdaptiveBottomNavigation from '@/components/AdaptiveBottomNavigation';
+import SimpleBottomNavigation from '@/components/navigation/SimpleBottomNavigation';
 import IPadSidebar from './iPadSidebar';
 import IPadTopNavigation from './IPadTopNavigation';
 import MacSidebar from './MacSidebar';
@@ -32,13 +32,14 @@ const AdaptiveNavigation = ({
   const { type } = useDeviceDetection();
   const { type: deviceType } = useDeviceType();
 
-  // iPhone: Use bottom navigation (existing)
+  // iPhone: Use simple bottom navigation
   if (type === 'iphone') {
     return (
-      <AdaptiveBottomNavigation
+      <SimpleBottomNavigation
         activeTab={activeTab}
         onTabChange={onTabChange}
         onCreateTask={onCreateTask}
+        isMobile={true}
       />
     );
   }
@@ -71,13 +72,13 @@ const AdaptiveNavigation = ({
     );
   }
 
-  // Desktop: Use top navigation (placeholder for future implementation)
-  // For now, use bottom navigation as fallback
+  // Desktop: Use simple bottom navigation as fallback
   return (
-    <AdaptiveBottomNavigation
+    <SimpleBottomNavigation
       activeTab={activeTab}
       onTabChange={onTabChange}
       onCreateTask={onCreateTask}
+      isMobile={false}
     />
   );
 };

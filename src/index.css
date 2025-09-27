@@ -275,6 +275,16 @@ All colors MUST be HSL.
     transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
+  /* Simple Bottom Navigation - Fixed positioning without transforms */
+  .simple-bottom-nav {
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    pointer-events: auto;
+    z-index: 30;
+  }
+
   /* Navigation safe mode - Blindar contra interferències del teclat */
   .ios-bottom-nav-safe {
     position: fixed !important;
