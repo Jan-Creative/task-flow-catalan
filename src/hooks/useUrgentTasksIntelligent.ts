@@ -45,65 +45,70 @@ function isDateThisWeek(dateString: string | null): boolean {
 }
 
 function calculateTodayUrgencyScore(task: Tasca): number {
-  let score = 0;
-  const taskDate = task.due_date;
-  const isToday = taskDate === new Date().toISOString().split('T')[0];
+  // Exclusió immediata de tasques completades
+  if (task.status === 'completat') return 0;
   
-  // Tasques que vencen avui (puntuació base alta)
-  if (isToday) {
-    score += 50; // Base per tasques d'avui
+  let score = 0;
+  const today = new Date().toISOString().split('T')[0];
+  const hasDueDateToday = task.due_date === today;
+  
+  // CRITERI 1: Prioritat urgent (sempre urgent)
+  if (task.priority === 'urgent') {
+    score = 95;
+  }
+  // CRITERI 2: Prioritat alta (sempre urgent)  
+  else if (task.priority === 'alta') {
+    score = 80;
+  }
+  // CRITERI 3: Venciment avui (urgent per data)
+  else if (hasDueDateToday) {
+    score = 70; // Base per venciment avui
     
-    // Bonus per prioritat
+    // Bonus segons prioritat
     switch (task.priority) {
       case 'alta':
-        score += 40;
+      case 'urgent':
+        score += 15; // 85 total
         break;
       case 'mitjana':
-        score += 30;
+        score += 10; // 80 total
         break;
       case 'baixa':
-      default:
-        score += 20;
+        score += 5;  // 75 total
         break;
     }
   }
-  
-  // Tasques de prioritat alta sense data límit
-  else if (!taskDate && task.priority === 'alta') {
-    score += 70; // Important però sense urgència temporal
-  }
-  
-  // Si no és d'avui ni prioritat alta sense data, no és urgent
+  // TOT LA RESTA: NO URGENT
   else {
     return 0;
   }
   
-  // Bonus per estat pendent
+  // Petit bonus per estat pendent
   if (task.status === 'pendent') {
-    score += 10;
+    score += 5;
   }
   
   return Math.min(score, 100);
 }
 
 function getUrgencyLevel(score: number): 'critical' | 'high' | 'moderate' {
-  if (score >= 90) return 'critical';
-  if (score >= 70) return 'high';
-  return 'moderate';
+  if (score >= 90) return 'critical';  // urgent priority
+  if (score >= 75) return 'high';      // alta priority o avui+alta
+  return 'moderate';                   // avui+mitjana/baixa
 }
 
 function getUrgencyReason(task: Tasca, score: number): string {
-  const isToday = isDateToday(task.due_date);
-  const isHighPriority = task.priority === 'alta';
+  const today = new Date().toISOString().split('T')[0];
+  const hasDueDateToday = task.due_date === today;
   
-  if (isToday && isHighPriority) {
-    return 'Venc avui · Prioritat alta';
-  } else if (isToday) {
-    return 'Venc avui';
-  } else if (!task.due_date && isHighPriority) {
-    return 'Prioritat alta';
+  if (task.priority === 'urgent') {
+    return hasDueDateToday ? 'Urgent · Venc avui' : 'Prioritat urgent';
+  } else if (task.priority === 'alta') {
+    return hasDueDateToday ? 'Alta · Venc avui' : 'Prioritat alta';
+  } else if (hasDueDateToday) {
+    return 'Venciment avui';
   } else {
-    return 'Urgent avui';
+    return 'Urgent';
   }
 }
 
