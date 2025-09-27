@@ -111,8 +111,7 @@ export const useQuickCaptureForm = (config: QuickCaptureFormConfig): QuickCaptur
 
   // Quick action functions
   const toggleToday = useCallback(() => {
-    const today = new Date().toISOString().split('T')[0];
-    form.setValue('due_date', form.values.isToday ? '' : today);
+    // Only toggle isToday without affecting due_date to maintain consistency with Mac/iPad
     form.setValue('isToday', !form.values.isToday);
   }, [form]);
 

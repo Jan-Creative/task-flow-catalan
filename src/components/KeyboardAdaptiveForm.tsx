@@ -113,11 +113,9 @@ export const KeyboardAdaptiveForm: React.FC<KeyboardAdaptiveFormProps> = ({
 
   // Quick action functions
   const toggleToday = useCallback(() => {
-    const today = new Date().toISOString().split('T')[0];
     setFormOptions(prev => ({
       ...prev,
-      isToday: !prev.isToday,
-      due_date: !prev.isToday ? today : ''
+      isToday: !prev.isToday
     }));
   }, []);
 
