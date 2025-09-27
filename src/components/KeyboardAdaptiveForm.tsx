@@ -226,13 +226,13 @@ export const KeyboardAdaptiveForm: React.FC<KeyboardAdaptiveFormProps> = ({
     <>
       {/* Simple Dark Overlay */}
       <div 
-        className="fixed inset-0 bg-black/50 z-50 transition-opacity duration-300"
+        className="fixed inset-0 bg-black/50 z-40 transition-opacity duration-300"
         onClick={onClose}
       />
       
       {/* Main Form Container */}
       <div 
-        className="fixed left-4 right-4 z-60 transition-all duration-300 ease-out max-w-md mx-auto"
+        className="fixed left-4 right-4 z-50 transition-all duration-300 ease-out max-w-md mx-auto"
         style={{ 
           bottom: `${bottomOffset}px`,
           transform: open ? 'translateY(0) scale(1)' : 'translateY(100%) scale(0.95)',

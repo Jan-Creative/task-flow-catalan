@@ -264,7 +264,8 @@ All colors MUST be HSL.
     left: 16px;
     right: 16px;
     z-index: 50;
-    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translate3d(0, 0, 0);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .ios-bottom-nav-compact {
@@ -272,17 +273,8 @@ All colors MUST be HSL.
     bottom: calc(40px + env(safe-area-inset-bottom, 0px));
     left: 16px;
     z-index: 50;
-    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  /* Simple Bottom Navigation - Fixed positioning without transforms */
-  .simple-bottom-nav {
-    position: fixed;
-    left: 16px;
-    right: 16px;
-    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-    pointer-events: auto;
-    z-index: 30;
+    transform: translate3d(0, 0, 0);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   /* Navigation safe mode - Blindar contra interferències del teclat */
