@@ -38,14 +38,14 @@ export const IPhoneUrgentTasksCard = ({
         </h3>
       </div>
       
-      <div className="space-y-2">
+      <div className="space-y-1">
         {tasks.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-muted-foreground">No tens tasques urgents avui</p>
           </div>
         ) : (
           tasks.map((task) => (
-            <div key={task.id} className="p-3 rounded-2xl bg-accent/30 hover:bg-accent/50 transition-all duration-200">
+            <div key={task.id} className="p-2 rounded-2xl bg-accent/30 hover:bg-accent/50 transition-all duration-200">
               <TaskChecklistItem
                 task={task}
                 onStatusChange={onStatusChange}
