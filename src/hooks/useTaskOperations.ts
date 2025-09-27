@@ -16,7 +16,13 @@ export const useTaskOperations = () => {
       // FASE 1: Process isToday flag
       const processedTaskData = { ...taskData };
       
-      // Remove isToday before persisting (not a DB field); do not auto-set due_date
+      // If isToday is true, set due_date to today
+      if (processedTaskData.isToday) {
+        const today = new Date().toISOString().split('T')[0];
+        processedTaskData.due_date = today;
+      }
+      
+      // Remove isToday from the data sent to database (it's not a DB field)
       delete processedTaskData.isToday;
       
       // Create the task
