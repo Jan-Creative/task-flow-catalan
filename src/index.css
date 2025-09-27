@@ -264,8 +264,7 @@ All colors MUST be HSL.
     left: 16px;
     right: 16px;
     z-index: 50;
-    transform: translate3d(0, 0, 0);
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .ios-bottom-nav-compact {
@@ -273,8 +272,7 @@ All colors MUST be HSL.
     bottom: calc(40px + env(safe-area-inset-bottom, 0px));
     left: 16px;
     z-index: 50;
-    transform: translate3d(0, 0, 0);
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   /* Navigation safe mode - Blindar contra interferències del teclat */

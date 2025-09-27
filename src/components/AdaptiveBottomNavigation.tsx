@@ -2,6 +2,7 @@ import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import CircularActionMenuWithArc from "./CircularActionMenuWithArc";
 import CircularActionMenu from "./CircularActionMenu";
@@ -21,12 +22,13 @@ interface AdaptiveBottomNavigationProps {
 const AdaptiveBottomNavigation = ({ activeTab, onTabChange, onCreateTask }: AdaptiveBottomNavigationProps) => {
   const [isCompacted, setIsCompacted] = useState(false);
   const [showTransition, setShowTransition] = useState(false);
+  const [safeExitMode, setSafeExitMode] = useState(false);
   const isMobile = useIsMobile();
   const { isArcMode, toggleMode } = useCircularMenuMode("arc");
   const { isVisible: showPrepareTomorrow } = usePrepareTomorrowVisibility();
   const phoneInfo = usePhoneDetection();
   const isIOS = useIOSDetection();
-  const { navigationSafeMode, isFormOpen } = useKeyboardNavigation();
+  const { navigationSafeMode, isFormOpen, isKeyboardActive } = useKeyboardNavigation();
 
   // Auto-compact logic for calendar page
   useEffect(() => {
@@ -42,13 +44,30 @@ const AdaptiveBottomNavigation = ({ activeTab, onTabChange, onCreateTask }: Adap
     }
   }, [activeTab]);
 
+  // Safe exit coordination - Wait for keyboard to be fully closed
+  useEffect(() => {
+    if (!isFormOpen && !isKeyboardActive && safeExitMode) {
+      const settleTimer = setTimeout(() => {
+        setSafeExitMode(false);
+        console.debug('🎯 Navigation position validated:', {
+          bottom: window.getComputedStyle(document.querySelector('.adaptive-bottom-nav') || document.body).bottom,
+          transform: window.getComputedStyle(document.querySelector('.adaptive-bottom-nav') || document.body).transform
+        });
+      }, 250);
+      return () => clearTimeout(settleTimer);
+    } else if (isFormOpen) {
+      setSafeExitMode(true);
+    }
+  }, [isFormOpen, isKeyboardActive, safeExitMode]);
+
   const handleCompactedClick = () => {
     setIsCompacted(false);
     setShowTransition(false);
   };
 
+  // Portal the compact navigation to document.body for absolute positioning
   if (isCompacted && activeTab === "calendar") {
-    return (
+    const compactNav = (
       <div className={cn(
         isIOS && phoneInfo.isPhone ? "ios-bottom-nav-compact" : "fixed bottom-6 left-4 z-50"
       )}>
@@ -64,18 +83,24 @@ const AdaptiveBottomNavigation = ({ activeTab, onTabChange, onCreateTask }: Adap
         </Button>
       </div>
     );
+    
+    return createPortal(compactNav, document.body);
   }
 
-  return (
-    <div className={cn(
-      isIOS && phoneInfo.isPhone 
-        ? navigationSafeMode 
-          ? "ios-bottom-nav-safe" 
-          : "ios-bottom-nav" 
-        : "fixed bottom-6 left-4 right-4 z-50 transform-gpu",
-      "transition-all duration-300 ease-out",
-      navigationSafeMode && "navigation-protected"
-    )}>
+  // Portal the main navigation to document.body for absolute positioning
+  const navigation = (
+    <div 
+      className={cn(
+        "adaptive-bottom-nav",
+        isIOS && phoneInfo.isPhone 
+          ? (navigationSafeMode || safeExitMode)
+            ? "ios-bottom-nav-safe" 
+            : "ios-bottom-nav" 
+          : "fixed bottom-6 left-4 right-4 z-50",
+        "transition-all duration-300 ease-out",
+        (navigationSafeMode || safeExitMode) && "navigation-protected"
+      )}
+    >
       <div className={cn(
         "flex items-center justify-between transition-all duration-500 ease-out",
         showTransition && "animate-fade-out"
@@ -113,6 +138,8 @@ const AdaptiveBottomNavigation = ({ activeTab, onTabChange, onCreateTask }: Adap
       </div>
     </div>
   );
+
+  return createPortal(navigation, document.body);
 };
 
 export default AdaptiveBottomNavigation;

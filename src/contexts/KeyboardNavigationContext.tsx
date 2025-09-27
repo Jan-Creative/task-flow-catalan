@@ -62,9 +62,12 @@ export const KeyboardNavigationProvider: React.FC<{ children: React.ReactNode }>
       navigationSafeMode: open
     }));
     
-    // Reset keyboard state when form closes
+    // When form closes, maintain safe mode until keyboard fully closes
     if (!open) {
-      setKeyboardActive(false, 0);
+      // Don't immediately reset safe mode - let the navigation component handle it
+      setTimeout(() => {
+        setKeyboardActive(false, 0);
+      }, 100);
     }
   }, [setKeyboardActive]);
 
