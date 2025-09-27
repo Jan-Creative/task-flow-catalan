@@ -45,29 +45,24 @@ function isDateThisWeek(dateString: string | null): boolean {
 }
 
 function calculateTodayUrgencyScore(task: Tasca): number {
-  // Exclusió immediata de tasques completades
   if (task.status === 'completat') return 0;
   
-  let score = 0;
   const today = new Date().toISOString().split('T')[0];
   const hasDueDateToday = task.due_date === today;
+  const hasNoSpecificDate = !task.due_date;
   
-  // CRITERI 1: Prioritat urgent (sempre urgent)
-  if (task.priority === 'urgent') {
-    score = 95;
-  }
-  // CRITERI 2: Prioritat alta (sempre urgent)  
-  else if (task.priority === 'alta') {
-    score = 80;
-  }
-  // CRITERI 3: Venciment avui (urgent per data)
-  else if (hasDueDateToday) {
+  let score = 0;
+  
+  // CRITERI 1: Venciment avui (urgent per data)
+  if (hasDueDateToday) {
     score = 70; // Base per venciment avui
     
     // Bonus segons prioritat
     switch (task.priority) {
-      case 'alta':
       case 'urgent':
+        score += 25; // 95 total
+        break;
+      case 'alta':
         score += 15; // 85 total
         break;
       case 'mitjana':
@@ -78,9 +73,18 @@ function calculateTodayUrgencyScore(task: Tasca): number {
         break;
     }
   }
-  // TOT LA RESTA: NO URGENT
+  // CRITERI 2: Tasques generals sense data específica
+  else if (hasNoSpecificDate) {
+    if (task.priority === 'urgent') {
+      score = 90; // Urgent general
+    } else if (task.priority === 'alta') {
+      score = 75; // Alta general
+    }
+    // mitjana i baixa sense data no són urgents
+  }
+  // CRITERI 3: Tasques futures amb data específica = NO URGENTS AVUI
   else {
-    return 0;
+    return 0; // Apareixeran el seu dia programat
   }
   
   // Petit bonus per estat pendent
