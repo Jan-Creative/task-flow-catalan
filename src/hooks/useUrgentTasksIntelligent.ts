@@ -44,47 +44,43 @@ function isDateThisWeek(dateString: string | null): boolean {
   return diffDays >= 0 && diffDays <= 7;
 }
 
-function calculateUrgencyScore(task: Tasca): number {
+function calculateTodayUrgencyScore(task: Tasca): number {
   let score = 0;
   const taskDate = task.due_date;
+  const isToday = taskDate === new Date().toISOString().split('T')[0];
   
-  // Factor temporal (60% del pes total)
-  if (taskDate) {
-    if (isDateOverdue(taskDate)) {
-      score += 40; // Tasca endarrerida - màxima urgència temporal
-    } else if (isDateToday(taskDate)) {
-      score += 35; // Venc avui - alta urgència temporal
-    } else if (isDateTomorrow(taskDate)) {
-      score += 25; // Venc demà - urgència moderada-alta
-    } else if (isDateThisWeek(taskDate)) {
-      score += 15; // Venc aquesta setmana - urgència baixa
+  // Tasques que vencen avui (puntuació base alta)
+  if (isToday) {
+    score += 50; // Base per tasques d'avui
+    
+    // Bonus per prioritat
+    switch (task.priority) {
+      case 'alta':
+        score += 40;
+        break;
+      case 'mitjana':
+        score += 30;
+        break;
+      case 'baixa':
+      default:
+        score += 20;
+        break;
     }
   }
   
-  // Factor prioritat (30% del pes total)
-  switch (task.priority) {
-    case 'alta':
-      score += 30;
-      break;
-    case 'mitjana':
-      score += 20;
-      break;
-    case 'baixa':
-    default:
-      score += 10;
-      break;
+  // Tasques de prioritat alta sense data límit
+  else if (!taskDate && task.priority === 'alta') {
+    score += 70; // Important però sense urgència temporal
   }
   
-  // Factor estat (10% del pes total)
-  switch (task.status) {
-    case 'pendent':
-      score += 10; // Tasques pendents són més urgents
-      break;
-    case 'en_proces':
-      score += 5; // Tasques en procés tenen menys urgència
-      break;
-    default:
-      score += 0;
+  // Si no és d'avui ni prioritat alta sense data, no és urgent
+  else {
+    return 0;
+  }
+  
+  // Bonus per estat pendent
+  if (task.status === 'pendent') {
+    score += 10;
   }
   
   return Math.min(score, 100);
@@ -97,25 +93,17 @@ function getUrgencyLevel(score: number): 'critical' | 'high' | 'moderate' {
 }
 
 function getUrgencyReason(task: Tasca, score: number): string {
-  const isOverdue = isDateOverdue(task.due_date);
   const isToday = isDateToday(task.due_date);
-  const isTomorrow = isDateTomorrow(task.due_date);
   const isHighPriority = task.priority === 'alta';
   
-  if (isOverdue) {
-    return 'Endarrerida';
-  } else if (isToday && isHighPriority) {
+  if (isToday && isHighPriority) {
     return 'Venc avui · Prioritat alta';
   } else if (isToday) {
     return 'Venc avui';
-  } else if (isTomorrow && isHighPriority) {
-    return 'Venc demà · Prioritat alta';
-  } else if (isHighPriority) {
+  } else if (!task.due_date && isHighPriority) {
     return 'Prioritat alta';
-  } else if (isTomorrow) {
-    return 'Venc demà';
   } else {
-    return 'Urgent';
+    return 'Urgent avui';
   }
 }
 
@@ -130,7 +118,7 @@ export const useUrgentTasksIntelligent = () => {
     
     // Calcular puntuació d'urgència per cada tasca
     const tasksWithUrgency: UrgentTask[] = activeTasks.map(task => {
-      const urgencyScore = calculateUrgencyScore(task);
+      const urgencyScore = calculateTodayUrgencyScore(task);
       const urgencyLevel = getUrgencyLevel(urgencyScore);
       const urgencyReason = getUrgencyReason(task, urgencyScore);
       
@@ -142,11 +130,11 @@ export const useUrgentTasksIntelligent = () => {
       };
     });
     
-    // Filtrar tasques amb puntuació d'urgència >= 60 i ordenar per puntuació
+    // Filtrar tasques amb puntuació d'urgència > 0 i ordenar per puntuació
     return tasksWithUrgency
-      .filter(task => task.urgencyScore >= 60)
+      .filter(task => task.urgencyScore > 0)
       .sort((a, b) => b.urgencyScore - a.urgencyScore)
-      .slice(0, 6); // Màxim 6 tasques urgents
+      .slice(0, 6); // Màxim 6 tasques urgents d'avui
   }, [tasks, loading]);
   
   const urgencyStats = useMemo(() => {
