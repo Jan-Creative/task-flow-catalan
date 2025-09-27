@@ -3,10 +3,12 @@
  * Implements professional caching strategies and offline capabilities
  */
 
-const CACHE_NAME = 'taskflow-v1.1.0';
-const STATIC_CACHE = 'taskflow-static-v1.1.0';
-const DYNAMIC_CACHE = 'taskflow-dynamic-v1.1.0';
-const API_CACHE = 'taskflow-api-v1.1.0';
+// Dynamic cache names with timestamp for guaranteed updates
+const BUILD_TIMESTAMP = Date.now();
+const CACHE_NAME = `taskflow-v${BUILD_TIMESTAMP}`;
+const STATIC_CACHE = `taskflow-static-v${BUILD_TIMESTAMP}`;
+const DYNAMIC_CACHE = `taskflow-dynamic-v${BUILD_TIMESTAMP}`;
+const API_CACHE = `taskflow-api-v${BUILD_TIMESTAMP}`;
 
 // Cache strategies
 const CACHE_STRATEGIES = {
@@ -38,7 +40,17 @@ const ROUTE_STRATEGIES = [
     }
   },
   {
-    pattern: /\.(js|css|woff2?|png|jpg|jpeg|webp|svg|ico)$/,
+    pattern: /\.(js|css)$/,
+    strategy: CACHE_STRATEGIES.STALE_WHILE_REVALIDATE,
+    cache: STATIC_CACHE,
+    options: {
+      cacheableResponse: {
+        statuses: [0, 200]
+      }
+    }
+  },
+  {
+    pattern: /\.(woff2?|png|jpg|jpeg|webp|svg|ico)$/,
     strategy: CACHE_STRATEGIES.CACHE_FIRST,
     cache: STATIC_CACHE,
     options: {
@@ -57,36 +69,49 @@ const ROUTE_STRATEGIES = [
   }
 ];
 
-// Install event - precache resources
+// Install event - precache resources and force immediate activation
 self.addEventListener('install', event => {
+  console.log('📦 SW installing with cache:', CACHE_NAME);
   event.waitUntil(
     (async () => {
       const cache = await caches.open(STATIC_CACHE);
       await cache.addAll(PRECACHE_RESOURCES);
+      // Force immediate activation for updates
       self.skipWaiting();
     })()
   );
 });
 
-// Activate event - cleanup old caches
+// Activate event - aggressive cache cleanup and immediate update
 self.addEventListener('activate', event => {
+  console.log('🚀 SW activating with cache:', CACHE_NAME);
   event.waitUntil(
     (async () => {
       const cacheNames = await caches.keys();
       const validCaches = [CACHE_NAME, STATIC_CACHE, DYNAMIC_CACHE, API_CACHE];
       
+      // Delete ALL old caches to force fresh content
       await Promise.all(
         cacheNames
           .filter(cacheName => !validCaches.includes(cacheName))
-          .map(cacheName => caches.delete(cacheName))
+          .map(cacheName => {
+            console.log('🗑️ Deleting old cache:', cacheName);
+            return caches.delete(cacheName);
+          })
       );
       
-      self.clients.claim();
+      // Take immediate control of all clients
+      await self.clients.claim();
       
-      // Notify all clients that SW is active
+      // Force reload all clients to get fresh content
       const clients = await self.clients.matchAll();
       clients.forEach(client => {
-        client.postMessage({ type: 'SW_ACTIVATED' });
+        console.log('📡 Notifying client of update');
+        client.postMessage({ 
+          type: 'SW_ACTIVATED',
+          cacheVersion: CACHE_NAME,
+          shouldReload: true
+        });
       });
     })()
   );
@@ -206,10 +231,26 @@ async function handleRequest(request, routeConfig) {
   }
 }
 
-// Handle app routes (SPA navigation)
+// Handle app routes (SPA navigation) - Network first for HTML
 async function handleAppRoute(request) {
   const cache = await caches.open(DYNAMIC_CACHE);
   
+  // For navigation requests, always try network first to get fresh HTML
+  if (request.mode === 'navigate' || request.url.endsWith('/') || request.url.includes('.html')) {
+    try {
+      const response = await fetch(request);
+      if (response.status === 200) {
+        cache.put(request, response.clone());
+      }
+      return response;
+    } catch (error) {
+      // Fallback to cached version
+      const cached = await cache.match('/') || await cache.match('/index.html');
+      return cached || new Response('App offline', { status: 503 });
+    }
+  }
+  
+  // For other resources, use cache first
   try {
     const response = await fetch(request);
     if (response.status === 200) {
@@ -217,13 +258,6 @@ async function handleAppRoute(request) {
     }
     return response;
   } catch (error) {
-    // For navigation requests, return cached index.html
-    if (request.mode === 'navigate') {
-      const cached = await cache.match('/') || await cache.match('/index.html');
-      return cached || new Response('App offline', { status: 503 });
-    }
-    
-    // Try to find cached version
     const cached = await cache.match(request);
     return cached || new Response('Resource offline', { status: 503 });
   }

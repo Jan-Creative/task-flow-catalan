@@ -1,9 +1,12 @@
 import { useMemo } from "react";
 import { format } from "date-fns";
 import { ca } from "date-fns/locale";
-import { Sun, Moon } from "lucide-react";
+import { Sun, Moon, RotateCcw } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { IPhoneToolbarMenu } from "./IPhoneToolbarMenu";
+import { useAppUpdater } from "@/hooks/useAppUpdater";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 interface IPhoneHeaderCardProps {
   onOpenReminderConfig: () => void;
@@ -17,6 +20,7 @@ export const IPhoneHeaderCard = ({
   onNavigateToNotifications
 }: IPhoneHeaderCardProps) => {
   const { user } = useAuth();
+  const { status, forceUpdate } = useAppUpdater();
 
   // Get user display name
   const userName = useMemo(() => {
@@ -66,11 +70,32 @@ export const IPhoneHeaderCard = ({
           </div>
         </div>
         
-        <IPhoneToolbarMenu 
-          onOpenReminderConfig={onOpenReminderConfig}
-          onOpenTimeBlocks={onOpenTimeBlocks}
-          onNavigateToNotifications={onNavigateToNotifications}
-        />
+        <div className="flex items-center gap-3">
+          {(status.hasUpdate || status.error) && (
+            <div className="flex items-center gap-2">
+              {status.hasUpdate && (
+                <Badge variant="default" className="text-xs">
+                  Actualització disponible
+                </Badge>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={forceUpdate}
+                disabled={status.isUpdating}
+                className="h-8 w-8 p-0"
+              >
+                <RotateCcw className={`h-4 w-4 ${status.isUpdating ? 'animate-spin' : ''}`} />
+              </Button>
+            </div>
+          )}
+          
+          <IPhoneToolbarMenu 
+            onOpenReminderConfig={onOpenReminderConfig}
+            onOpenTimeBlocks={onOpenTimeBlocks}
+            onNavigateToNotifications={onNavigateToNotifications}
+          />
+        </div>
       </div>
     </div>
   );

@@ -73,15 +73,27 @@ if ('serviceWorker' in navigator) {
       
       console.log('Service Worker registrat correctament:', registration.scope);
       
-      // Listen for updates
+      // Listen for updates and force immediate activation
       registration.addEventListener('updatefound', () => {
         const newWorker = registration.installing;
         if (newWorker) {
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              console.log('Nova versió del Service Worker disponible');
+              console.log('🔄 Nova versió del SW disponible, activant immediatament...');
+              newWorker.postMessage({ type: 'SKIP_WAITING' });
             }
           });
+        }
+      });
+
+      // Listen for SW messages and reload when needed
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data?.type === 'SW_ACTIVATED' && event.data?.shouldReload) {
+          console.log('🔄 SW updated, reloading app...');
+          // Small delay to ensure SW is fully ready
+          setTimeout(() => {
+            window.location.reload();
+          }, 100);
         }
       });
       
