@@ -11,6 +11,12 @@ export const IPhoneExecutiveSummary = ({
   todayEvents,
   urgentTasks
 }: IPhoneExecutiveSummaryProps) => {
+  console.log('IPhoneExecutiveSummary rendering:', {
+    dashboardTasks: dashboardTasks?.length,
+    todayEvents: todayEvents?.length,
+    urgentTasks: urgentTasks?.length
+  });
+  
   return (
     <div className="bg-card rounded-3xl shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-organic)] transition-all duration-300 p-4">
       <div className="flex items-center justify-between gap-3">

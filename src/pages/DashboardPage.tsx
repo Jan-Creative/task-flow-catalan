@@ -96,9 +96,11 @@ const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar, on
 
   // Urgent tasks (high priority, not completed)
   const urgentTasks = useMemo(() => {
-    return (todayTasks || [])
+    const urgent = (todayTasks || [])
       .filter(task => task.priority === 'alta' && task.status !== 'completat')
       .slice(0, 4);
+    console.log('Urgent tasks calculated:', urgent);
+    return urgent;
   }, [todayTasks]);
 
   // Today's events
@@ -157,7 +159,15 @@ const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar, on
   }, []);
 
   // Render iPhone layout
+  console.log('DashboardPage deviceType:', deviceType);
+  console.log('Dashboard data:', {
+    dashboardTasks: dashboardTasks?.length,
+    urgentTasks: urgentTasks?.length,
+    todayEvents: todayEvents?.length
+  });
+  
   if (deviceType === 'iphone') {
+    console.log('Rendering iPhone layout');
     return (
       <>
         <IPhoneDashboardLayout
