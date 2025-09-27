@@ -99,8 +99,8 @@ function calculateTodayUrgencyScore(task: Tasca): number {
     return 0; // Apareixeran el seu dia programat
   }
   
-  // Petit bonus per estat pendent
-  if (task.status === 'pendent') {
+  // Petit bonus per estat pendent (només si ja hi ha urgència base)
+  if (score > 0 && task.status === 'pendent') {
     score += 5;
   }
   
