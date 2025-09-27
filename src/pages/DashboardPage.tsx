@@ -8,6 +8,7 @@ import { PriorityBadge } from "@/components/ui/priority-badge";
 import { PropertyBadge } from "@/components/ui/property-badge";
 import { useAuth } from "@/hooks/useAuth";
 import { useDadesApp } from "@/hooks/useDadesApp";
+import { useUrgentTasksIntelligent } from "@/hooks/useUrgentTasksIntelligent";
 import { useEvents } from "@/hooks/useEvents";
 import { useOptimizedPropertyLabels } from "@/hooks/useOptimizedPropertyLabels";
 import { usePrepareTomorrowVisibility } from "@/hooks/usePrepareTomorrowVisibility";
@@ -40,6 +41,7 @@ interface DashboardPageProps {
 const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar, onNavigateToNotifications }: DashboardPageProps) => {
   const { user } = useAuth();
   const { todayTasks, updateTaskStatus, deleteTask, taskStats } = useDadesApp();
+  const { urgentTasks } = useUrgentTasksIntelligent();
   const { events } = useEvents();
   const { getStatusLabel, getPriorityColor } = useOptimizedPropertyLabels();
   const { isVisible: showPrepareTomorrow } = usePrepareTomorrowVisibility();
@@ -94,14 +96,7 @@ const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar, on
       .slice(0, 6);
   }, [todayTasks]);
 
-  // Urgent tasks (high priority, not completed)
-  const urgentTasks = useMemo(() => {
-    const urgent = (todayTasks || [])
-      .filter(task => task.priority === 'alta' && task.status !== 'completat')
-      .slice(0, 4);
-    console.log('Urgent tasks calculated:', urgent);
-    return urgent;
-  }, [todayTasks]);
+  // Use intelligent urgent tasks system from the hook
 
   // Today's events
   const todayEvents = useMemo(() => {
