@@ -16,6 +16,7 @@ interface TaskFormData {
   priority: TaskPriority;
   due_date?: string;
   folder_id?: string;
+  is_today?: boolean;
 }
 
 export const useCreateTaskForm = ({ editingTask, onSubmit, onClose }: UseCreateTaskFormProps) => {
@@ -34,6 +35,7 @@ export const useCreateTaskForm = ({ editingTask, onSubmit, onClose }: UseCreateT
     editingTask?.due_date ? new Date(editingTask.due_date) : undefined
   );
   const [folderId, setFolderId] = useState<string>(editingTask?.folder_id || "");
+  const [isToday, setIsToday] = useState<boolean>(editingTask?.is_today || false);
 
   // Reset form when editing task changes
   const resetForm = useCallback(() => {
@@ -43,6 +45,7 @@ export const useCreateTaskForm = ({ editingTask, onSubmit, onClose }: UseCreateT
     setPriority(editingTask?.priority || "mitjana");
     setDueDate(editingTask?.due_date ? new Date(editingTask.due_date) : undefined);
     setFolderId(editingTask?.folder_id || "");
+    setIsToday(editingTask?.is_today || false);
   }, [editingTask]);
 
   const handleSubmit = useCallback((e: React.FormEvent) => {
@@ -56,6 +59,7 @@ export const useCreateTaskForm = ({ editingTask, onSubmit, onClose }: UseCreateT
       priority,
       due_date: dueDate ? format(dueDate, "yyyy-MM-dd") : undefined,
       folder_id: folderId || undefined,
+      is_today: isToday,
     };
 
     onSubmit(taskData);
@@ -68,10 +72,11 @@ export const useCreateTaskForm = ({ editingTask, onSubmit, onClose }: UseCreateT
       setPriority("mitjana");
       setDueDate(undefined);
       setFolderId("");
+      setIsToday(false);
     }
 
     onClose();
-  }, [title, description, status, priority, dueDate, folderId, editingTask, onSubmit, onClose]);
+  }, [title, description, status, priority, dueDate, folderId, isToday, editingTask, onSubmit, onClose]);
 
   return {
     // Form state
@@ -87,6 +92,8 @@ export const useCreateTaskForm = ({ editingTask, onSubmit, onClose }: UseCreateT
     setDueDate,
     folderId,
     setFolderId,
+    isToday,
+    setIsToday,
     
     // Options
     statusOptions: getStatusOptions(),

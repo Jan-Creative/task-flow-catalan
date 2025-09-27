@@ -22,6 +22,8 @@ export interface TaskBase {
   time_block_id?: ID;
   scheduled_start_time?: string; // HH:MM format
   scheduled_end_time?: string;   // HH:MM format
+  // Today flag for explicit "today" tasks
+  is_today?: boolean;
 }
 
 // Main task interface

@@ -909,6 +909,7 @@ export type Database = {
           due_date: string | null
           folder_id: string | null
           id: string
+          is_today: boolean | null
           priority: string
           scheduled_end_time: string | null
           scheduled_start_time: string | null
@@ -925,6 +926,7 @@ export type Database = {
           due_date?: string | null
           folder_id?: string | null
           id?: string
+          is_today?: boolean | null
           priority?: string
           scheduled_end_time?: string | null
           scheduled_start_time?: string | null
@@ -941,6 +943,7 @@ export type Database = {
           due_date?: string | null
           folder_id?: string | null
           id?: string
+          is_today?: boolean | null
           priority?: string
           scheduled_end_time?: string | null
           scheduled_start_time?: string | null

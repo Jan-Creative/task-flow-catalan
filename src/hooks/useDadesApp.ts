@@ -100,17 +100,13 @@ export const useDadesApp = () => {
       return acc;
     }, {} as Record<string, Tasca[]>);
 
-    // Filter today's tasks efficiently - Include tasks with due_date=today OR created today without due_date
+    // Filter today's tasks efficiently - Use explicit is_today flag OR due_date=today
     const today = new Date().toISOString().split('T')[0];
     const tasquesAvui = tasks.filter(task => {
       if (task.status === "completat") return false;
       
-      // Tasks with due date today
-      if (task.due_date === today) return true;
-      
-      // Tasks created today without due date (equivalent to "isToday")
-      const taskCreatedToday = task.created_at?.split('T')[0] === today;
-      return taskCreatedToday && !task.due_date;
+      // Tasks explicitly marked for today OR tasks with due date today
+      return task.is_today === true || task.due_date === today;
     });
 
     return {
@@ -152,7 +148,8 @@ export const useDadesApp = () => {
       due_date: taskData.due_date || null,
       status: statusMapping[taskData.status] || taskData.status || 'pendent',
       priority: priorityMapping[taskData.priority] || taskData.priority || 'mitjana',
-      folder_id: taskData.folder_id || null
+      folder_id: taskData.folder_id || null,
+      is_today: taskData.is_today || false
     };
 
     console.debug('Creating task with normalized data:', taskDataNormalized);
