@@ -100,12 +100,18 @@ export const useDadesApp = () => {
       return acc;
     }, {} as Record<string, Tasca[]>);
 
-    // Filter today's tasks efficiently - FASE 1: Only show tasks with due_date = today
+    // Filter today's tasks efficiently - Include tasks with due_date=today OR created today without due_date
     const today = new Date().toISOString().split('T')[0];
-    const tasquesAvui = tasks.filter(task => 
-      task.status !== "completat" && 
-      task.due_date === today
-    );
+    const tasquesAvui = tasks.filter(task => {
+      if (task.status === "completat") return false;
+      
+      // Tasks with due date today
+      if (task.due_date === today) return true;
+      
+      // Tasks created today without due date (equivalent to "isToday")
+      const taskCreatedToday = task.created_at?.split('T')[0] === today;
+      return taskCreatedToday && !task.due_date;
+    });
 
     return {
       tasques: tasks,
