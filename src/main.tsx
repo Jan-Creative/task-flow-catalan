@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { EnhancedErrorBoundary } from "@/components/ui/enhanced-error-boundary";
 import { OptimizedAppProvider } from "@/components/ui/optimized-context-provider";
+import { KeyboardNavigationProvider } from "@/contexts/KeyboardNavigationContext";
 import { initializePerformanceOptimizations } from "@/lib/performanceOptimizer";
 import App from "./App.tsx";
 import "./index.css";
@@ -94,7 +95,9 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <EnhancedErrorBoundary context="Aplicació Principal" showDetails={true}>
       <OptimizedAppProvider>
-        <App />
+        <KeyboardNavigationProvider>
+          <App />
+        </KeyboardNavigationProvider>
       </OptimizedAppProvider>
     </EnhancedErrorBoundary>
   </React.StrictMode>

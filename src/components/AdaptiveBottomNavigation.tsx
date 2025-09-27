@@ -9,6 +9,7 @@ import { useCircularMenuMode } from "@/hooks/useCircularMenuMode";
 import { usePrepareTomorrowVisibility } from "@/hooks/usePrepareTomorrowVisibility";
 import { usePhoneDetection } from "@/hooks/device/usePhoneDetection";
 import { useIOSDetection } from "@/hooks/useIOSDetection";
+import { useKeyboardNavigation } from "@/contexts/KeyboardNavigationContext";
 import SmartTabSystem from "./navigation/SmartTabSystem";
 
 interface AdaptiveBottomNavigationProps {
@@ -25,6 +26,7 @@ const AdaptiveBottomNavigation = ({ activeTab, onTabChange, onCreateTask }: Adap
   const { isVisible: showPrepareTomorrow } = usePrepareTomorrowVisibility();
   const phoneInfo = usePhoneDetection();
   const isIOS = useIOSDetection();
+  const { navigationSafeMode, isFormOpen } = useKeyboardNavigation();
 
   // Auto-compact logic for calendar page
   useEffect(() => {
@@ -66,7 +68,13 @@ const AdaptiveBottomNavigation = ({ activeTab, onTabChange, onCreateTask }: Adap
 
   return (
     <div className={cn(
-      isIOS && phoneInfo.isPhone ? "ios-bottom-nav" : "fixed bottom-6 left-4 right-4 z-50 transform-gpu"
+      isIOS && phoneInfo.isPhone 
+        ? navigationSafeMode 
+          ? "ios-bottom-nav-safe" 
+          : "ios-bottom-nav" 
+        : "fixed bottom-6 left-4 right-4 z-50 transform-gpu",
+      "transition-all duration-300 ease-out",
+      navigationSafeMode && "navigation-protected"
     )}>
       <div className={cn(
         "flex items-center justify-between transition-all duration-500 ease-out",

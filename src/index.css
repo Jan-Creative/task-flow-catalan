@@ -265,6 +265,7 @@ All colors MUST be HSL.
     right: 16px;
     z-index: 50;
     transform: translate3d(0, 0, 0);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .ios-bottom-nav-compact {
@@ -273,6 +274,23 @@ All colors MUST be HSL.
     left: 16px;
     z-index: 50;
     transform: translate3d(0, 0, 0);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Navigation safe mode - Blindar contra interferències del teclat */
+  .ios-bottom-nav-safe {
+    position: fixed !important;
+    bottom: calc(32px + env(safe-area-inset-bottom, 0px)) !important;
+    left: 16px;
+    right: 16px;
+    z-index: 50;
+    transform: translate3d(0, 0, 0) !important;
+    transition: none !important;
+  }
+
+  .navigation-protected {
+    will-change: auto !important;
+    contain: layout style paint !important;
   }
   
   /* Prevent focus zoom on iOS inputs */

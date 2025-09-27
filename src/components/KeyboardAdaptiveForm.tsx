@@ -4,7 +4,8 @@
  */
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { useKeyboardHeight } from '@/hooks/device/useKeyboardHeight';
+import { useStableKeyboardHeight } from '@/hooks/device/useStableKeyboardHeight';
+import { useKeyboardNavigation } from '@/contexts/KeyboardNavigationContext';
 import { useFormPanelSwipe } from '@/hooks/useFormPanelSwipe';
 import { useTaskOperations } from '@/hooks/useTaskOperations';
 import { useDadesApp } from '@/hooks/useDadesApp';
@@ -49,7 +50,8 @@ export const KeyboardAdaptiveForm: React.FC<KeyboardAdaptiveFormProps> = ({
   // Backend connections
   const { handleCreateTask } = useTaskOperations();
   const { data: dadesOptimitzades, folders } = useDadesApp();
-  const { height: keyboardHeight, isVisible: keyboardVisible } = useKeyboardHeight();
+  const { height: keyboardHeight, isVisible: keyboardVisible, isStable } = useStableKeyboardHeight();
+  const { setFormOpen } = useKeyboardNavigation();
   
   // Form panel swipe navigation
   const { currentPanel, setCurrentPanel, isDragging, dragOffset, touchHandlers } = useFormPanelSwipe({
@@ -60,22 +62,29 @@ export const KeyboardAdaptiveForm: React.FC<KeyboardAdaptiveFormProps> = ({
   // Posicionament dinàmic basat en l'altura del teclat
   const bottomOffset = keyboardVisible ? keyboardHeight + 20 : 40;
   
-  // Auto-focus quan s'obre el formulari
+  // Auto-focus i coordinació amb navigation
   useEffect(() => {
-    if (open && inputRef.current) {
-      const timer = setTimeout(() => {
-        inputRef.current?.focus();
-        if ('vibrate' in navigator) {
-          navigator.vibrate(10);
-        }
-      }, 300);
-      return () => clearTimeout(timer);
+    if (open) {
+      setFormOpen(true);
+      if (inputRef.current) {
+        const timer = setTimeout(() => {
+          inputRef.current?.focus();
+          if ('vibrate' in navigator) {
+            navigator.vibrate(10);
+          }
+        }, 300);
+        return () => clearTimeout(timer);
+      }
     }
-  }, [open]);
+  }, [open, setFormOpen]);
 
-  // Reset form quan es tanca
+  // Reset form i coordinació amb navigation
   useEffect(() => {
     if (!open) {
+      // Notificar que el formulari es tanca
+      setFormOpen(false);
+      
+      // Reset form state
       setTitle('');
       setCurrentPanel('center');
       setIsSubmitting(false);
@@ -88,7 +97,7 @@ export const KeyboardAdaptiveForm: React.FC<KeyboardAdaptiveFormProps> = ({
         due_date: ''
       });
     }
-  }, [open, setCurrentPanel]);
+  }, [open, setCurrentPanel, setFormOpen]);
 
   // Set default folder (inbox) when data loads
   useEffect(() => {
@@ -170,6 +179,7 @@ export const KeyboardAdaptiveForm: React.FC<KeyboardAdaptiveFormProps> = ({
 
       // Close form after short delay to show success
       setTimeout(() => {
+        setFormOpen(false); // Coordinated close
         onClose();
       }, 500);
 
