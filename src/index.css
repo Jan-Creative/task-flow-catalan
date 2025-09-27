@@ -2,9 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Import iPhone optimizations */
-@import './styles/iphone-optimized.css';
-
 /* TimeBlock Indicator Animations */
 @keyframes timeblock-siri-breathe {
   0% { 

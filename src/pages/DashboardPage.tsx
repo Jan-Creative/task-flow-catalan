@@ -172,9 +172,8 @@ const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar, on
           onStatusChange={handleStatusChange}
           onDelete={handleDelete}
           onOpenReminderConfig={() => setShowReminderConfig(true)}
-          onOpenTodayTimeBlocks={() => setShowTimeBlocks(true)}
-          onNavigateToPrepareTomorrow={() => window.location.href = '/prepare-tomorrow'}
-          onCreateTask={() => onEditTask?.(null)}
+          onOpenTimeBlocks={() => setShowTimeBlocks(true)}
+          showPrepareTomorrow={showPrepareTomorrow}
         />
         {/* Global modals */}
         <DailyReminderConfigModal open={showReminderConfig} onOpenChange={(o) => { console.debug('DailyReminderConfigModal onOpenChange', o); setShowReminderConfig(o); }} />
