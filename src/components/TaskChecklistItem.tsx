@@ -23,7 +23,7 @@ interface TaskChecklistItemProps {
   onStatusChange: (taskId: string, status: Task['status']) => void;
   onEdit: (task: Task) => void;
   onDelete: (taskId: string) => void;
-  viewMode?: "list" | "kanban";
+  viewMode?: "list" | "kanban" | "compact";
   completingTasks?: Set<string>;
 }
 
@@ -85,10 +85,11 @@ const TaskChecklistItem = memo(({
     isInProgress: task.status === 'en_proces',
     isCompleting: completingTasks?.has(task.id) || false,
     showStartButton: task.status === 'pendent',
-    formattedDate: task.due_date ? new Date(task.due_date).toLocaleDateString('ca-ES') : null
-  }), [task.status, task.id, task.due_date, completingTasks]);
+    formattedDate: task.due_date ? new Date(task.due_date).toLocaleDateString('ca-ES') : null,
+    isCompact: viewMode === 'compact'
+  }), [task.status, task.id, task.due_date, completingTasks, viewMode]);
 
-  const { isCompleted, isInProgress, isCompleting, showStartButton, formattedDate } = computedValues;
+  const { isCompleted, isInProgress, isCompleting, showStartButton, formattedDate, isCompact } = computedValues;
 
   return (
     <SwipeableItem
@@ -149,18 +150,20 @@ const TaskChecklistItem = memo(({
             )}
           </div>
 
-          <div className="flex items-center gap-2 text-xs text-white/70">
-            
-            {formattedDate && (
-              <>
-                <span>•</span>
-                <div className="flex items-center gap-1">
-                  <Calendar className="h-3 w-3" />
-                  <span>{formattedDate}</span>
-                </div>
-              </>
-            )}
-          </div>
+          {!isCompact && (
+            <div className="flex items-center gap-2 text-xs text-white/70">
+              
+              {formattedDate && (
+                <>
+                  <span>•</span>
+                  <div className="flex items-center gap-1">
+                    <Calendar className="h-3 w-3" />
+                    <span>{formattedDate}</span>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
         </Link>
 
         {/* Actions */}

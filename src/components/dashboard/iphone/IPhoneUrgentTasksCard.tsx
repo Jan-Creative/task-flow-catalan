@@ -76,18 +76,18 @@ export const IPhoneUrgentTasksCard = ({
   onDelete
 }: IPhoneUrgentTasksCardProps) => {
   return (
-    <div className="bg-card rounded-3xl shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-organic)] transition-all duration-300 p-6">
-      <div className="pb-6">
-        <h3 className="flex items-center gap-3 text-2xl font-semibold">
-          <AlertTriangle className="h-7 w-7 text-destructive" />
-          Tasques urgents
+    <div className="bg-card rounded-3xl shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-organic)] transition-all duration-300 p-4">
+      <div className="pb-3">
+        <h3 className="flex items-center gap-2 text-lg font-semibold">
+          <AlertTriangle className="h-5 w-5 text-destructive" />
+          Tasques urgents d'avui
         </h3>
       </div>
       
-      <div className="space-y-4">
+      <div className="space-y-2">
         {tasks.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground text-lg">No tens tasques urgents</p>
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">No tens tasques urgents avui</p>
           </div>
         ) : (
           tasks.map((task) => {
@@ -97,17 +97,17 @@ export const IPhoneUrgentTasksCard = ({
             return (
               <div 
                 key={task.id} 
-                className={`p-4 rounded-2xl border transition-all duration-200 ${styles.gradient} ${styles.border} ${styles.hover}`}
+                className={`p-3 rounded-2xl border transition-all duration-200 ${styles.gradient} ${styles.border} ${styles.hover}`}
               >
-                <div className="flex items-start gap-3 mb-3">
+                <div className="flex items-start gap-3 mb-2">
                   <div className="flex items-center gap-2">
-                    <UrgencyIcon className={`h-4 w-4 ${styles.icon}`} />
+                    <UrgencyIcon className={`h-3 w-3 ${styles.icon}`} />
                     <span className={`text-xs font-medium ${styles.icon}`}>
                       {task.urgencyReason}
                     </span>
                   </div>
                   <div className="ml-auto">
-                    <span className={`text-xs font-bold ${styles.icon}`}>
+                    <span className={`text-xs ${styles.icon}`}>
                       {task.urgencyScore}
                     </span>
                   </div>
@@ -118,7 +118,7 @@ export const IPhoneUrgentTasksCard = ({
                   onStatusChange={onStatusChange}
                   onEdit={onEdit}
                   onDelete={onDelete}
-                  viewMode="list"
+                  viewMode="compact"
                   completingTasks={completingTasks}
                 />
               </div>
