@@ -114,7 +114,7 @@ export const registerServiceWorker = async (): Promise<ServiceWorkerRegistration
     throw new Error('Service Workers no estan suportats');
   }
   
-  const registration = await navigator.serviceWorker.register('/web-push-sw.js', {
+  const registration = await navigator.serviceWorker.register('/sw-advanced.js', {
     scope: '/'
   });
   
