@@ -117,7 +117,14 @@ export default defineConfig(({ mode }) => ({
     cssCodeSplit: true,
     // Increase chunk size warning limit since this is an internal app
     chunkSizeWarningLimit: 1000, // 1MB instead of 500KB
-    // Enable CSS module tree-shaking
+    // Enable module preload for better performance
+    modulePreload: {
+      polyfill: true,
+      resolveDependencies: (filename, deps) => {
+        // Preload all dependencies
+        return deps;
+      }
+    },
     reportCompressedSize: false, // Speed up build by skipping gzip size reporting
   },
 }));
