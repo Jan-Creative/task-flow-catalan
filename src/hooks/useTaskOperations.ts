@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { useDadesApp } from './useDadesApp';
 import { useProperties } from './useProperties';
+import { logger } from '@/lib/logger';
 import type { CustomProperty } from '@/types';
 
 // ============= UNIFIED TASK OPERATIONS =============
@@ -23,9 +24,9 @@ export const useTaskOperations = () => {
       }
       
       // Create the task
-      console.debug('[useTaskOperations] create payload', { due_date: processedTaskData.due_date ?? null, hasDueDate: !!processedTaskData.due_date });
+      logger.debug('useTaskOperations', 'Creating task', { due_date: processedTaskData.due_date ?? null, hasDueDate: !!processedTaskData.due_date });
       const created = await createTask(processedTaskData);
-      console.debug('[useTaskOperations] created task due_date', created?.due_date ?? null);
+      logger.debug('useTaskOperations', 'Task created', { taskId: created?.id, due_date: created?.due_date ?? null });
       
       // Apply custom properties if any
       if (created?.id && customProperties && customProperties.length > 0) {
@@ -38,7 +39,7 @@ export const useTaskOperations = () => {
       
       return created;
     } catch (error) {
-      console.error("Error creating task with properties:", error);
+      logger.error('useTaskOperations', 'Error creating task with properties', error);
       // Don't re-throw here, let the UI handle the original error
       throw error;
     }
@@ -62,7 +63,7 @@ export const useTaskOperations = () => {
         );
       }
     } catch (error) {
-      console.error("Error updating task with properties:", error);
+      logger.error('useTaskOperations', 'Error updating task with properties', error);
       // Don't re-throw here, let the UI handle the original error
       throw error;
     }

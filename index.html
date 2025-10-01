@@ -40,38 +40,114 @@
     <link rel="preconnect" href="https://umfrvkakvgsypqcyyzke.supabase.co" crossorigin />
     <link rel="dns-prefetch" href="https://umfrvkakvgsypqcyyzke.supabase.co" />
     
-    <!-- Optimize resource loading - preload CSS asynchronously -->
+    <!-- Emergency Kill Switch & Boot Watchdog -->
     <script>
-      // Convert stylesheet links to preload to eliminate render-blocking
       (function() {
-        var observer = new MutationObserver(function(mutations) {
-          mutations.forEach(function(mutation) {
-            mutation.addedNodes.forEach(function(node) {
-              if (node.nodeName === 'LINK' && node.rel === 'stylesheet') {
-                var href = node.href;
-                // Replace with preload
-                node.rel = 'preload';
-                node.as = 'style';
-                node.onload = function() {
-                  this.onload = null;
-                  this.rel = 'stylesheet';
-                };
-                // Fallback for browsers that don't support preload
-                var noscript = document.createElement('noscript');
-                var fallback = document.createElement('link');
-                fallback.rel = 'stylesheet';
-                fallback.href = href;
-                noscript.appendChild(fallback);
-                node.parentNode.insertBefore(noscript, node.nextSibling);
-                observer.disconnect();
-              }
-            });
-          });
-        });
-        observer.observe(document.head, { childList: true });
+        'use strict';
         
-        // Auto-disconnect after 1s
-        setTimeout(function() { observer.disconnect(); }, 1000);
+        // 1. EMERGENCY KILL SWITCH: Reset SW and cache if ?reset-sw=1 in URL
+        if (window.location.search.includes('reset-sw=1')) {
+          console.log('🚨 Emergency reset triggered');
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(regs) {
+              regs.forEach(function(reg) { reg.unregister(); });
+            });
+          }
+          if ('caches' in window) {
+            caches.keys().then(function(names) {
+              names.forEach(function(name) { caches.delete(name); });
+            });
+          }
+          localStorage.clear();
+          sessionStorage.clear();
+          alert('Reset complet! Recarregant sense ?reset-sw=1...');
+          window.location.href = window.location.pathname;
+          return;
+        }
+        
+        // 2. ERROR LOGGING: Capture critical errors
+        var errors = [];
+        window.onerror = function(msg, url, line, col, error) {
+          errors.push({ msg: msg, url: url, line: line, col: col, error: error });
+          try {
+            localStorage.setItem('__APP_BOOT_ERRORS', JSON.stringify(errors));
+          } catch(e) {}
+          return false;
+        };
+        
+        window.addEventListener('unhandledrejection', function(event) {
+          errors.push({ type: 'promise', reason: event.reason });
+          try {
+            localStorage.setItem('__APP_BOOT_ERRORS', JSON.stringify(errors));
+          } catch(e) {}
+        });
+        
+        // 3. BOOT WATCHDOG: Show progress if app takes longer than expected
+        var bootTimeout = setTimeout(function() {
+          if (!window.__APP_BOOTED) {
+            console.warn('⏳ App taking longer than expected');
+            showBootProgress();
+          }
+        }, 3000); // Show progress after 3s
+        
+        var actualFailureTimeout;
+        
+        function showBootProgress() {
+          var root = document.getElementById('root');
+          if (root && !window.__APP_BOOTED) {
+            root.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;background:#000;color:#fff;font-family:system-ui,-apple-system,sans-serif;padding:20px;text-align:center"><div style="max-width:400px"><div style="width:50px;height:50px;border:3px solid #333;border-top:3px solid #fff;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 20px"></div><h2 style="margin:0 0 10px">⏳ Carregant l\'app</h2><p id="boot-status" style="opacity:0.8;margin:0 0 30px">Inicialitzant components...</p><button onclick="continueWaiting()" style="background:#667eea;color:#fff;border:none;padding:12px 24px;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;margin:0 10px 10px 0">⏰ Continuar esperant</button><button onclick="showBootError()" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.5);padding:12px 24px;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer">⚠️ Veure opcions d\'error</button><p style="margin-top:20px;font-size:12px;opacity:0.6">Normalment això només triga uns segons</p></div><style>@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}</style></div>';
+            
+            // Set longer timeout for actual failure
+            actualFailureTimeout = setTimeout(function() {
+              if (!window.__APP_BOOTED) {
+                console.error('❌ App definitely failed to boot');
+                showBootError();
+              }
+            }, 10000); // 10s total before showing error
+          }
+        }
+        
+        window.continueWaiting = function() {
+          var statusEl = document.getElementById('boot-status');
+          if (statusEl) {
+            statusEl.textContent = 'Encara carregant... Pot trigar una mica en dispositius lents.';
+          }
+          
+          // Extend timeout
+          clearTimeout(actualFailureTimeout);
+          actualFailureTimeout = setTimeout(function() {
+            if (!window.__APP_BOOTED) {
+              showBootError();
+            }
+          }, 15000); // Additional 15s
+        };
+        
+        window.showBootError = function() {
+          var root = document.getElementById('root');
+          if (root) {
+            var errorInfo = '';
+            try {
+              var storedErrors = localStorage.getItem('__APP_BOOT_ERRORS');
+              if (storedErrors) {
+                var parsedErrors = JSON.parse(storedErrors);
+                if (parsedErrors.length > 0) {
+                  errorInfo = '<div style="background:#1a1a1a;padding:15px;border-radius:8px;margin:20px 0;text-align:left;font-size:12px;max-height:150px;overflow-y:auto">';
+                  parsedErrors.forEach(function(err) {
+                    errorInfo += '<div style="margin-bottom:8px;padding:8px;background:#2a2a2a;border-radius:4px">' + (err.msg || err.reason || 'Unknown error') + '</div>';
+                  });
+                  errorInfo += '</div>';
+                }
+              }
+            } catch(e) {}
+            
+            root.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;background:#000;color:#fff;font-family:system-ui,-apple-system,sans-serif;padding:20px;text-align:center"><div style="max-width:500px"><h1 style="font-size:48px;margin:0 0 20px">⚠️</h1><h2 style="margin:0 0 10px">Error carregant l\'app</h2><p style="opacity:0.9;margin:0 0 20px">L\'aplicació no s\'ha pogut carregar correctament</p>' + errorInfo + '<div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center"><button onclick="window.location.href=\'?reset-sw=1\'" style="background:#ff4444;color:#fff;border:none;padding:12px 24px;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer">🔄 Reset complet</button><button onclick="window.location.reload()" style="background:#667eea;color:#fff;border:none;padding:12px 24px;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer">↻ Recarregar</button><button onclick="window.open(window.location.href)" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.5);padding:12px 24px;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer">🌐 Obrir al navegador</button></div><p style="margin-top:20px;font-size:12px;opacity:0.6">Si això continua passant, prova netejant la caché del navegador</p></div></div>';
+          }
+        };
+        
+        // Clear watchdog if app boots successfully
+        window.__clearBootWatchdog = function() {
+          clearTimeout(bootTimeout);
+        };
       })();
     </script>
   </head>
