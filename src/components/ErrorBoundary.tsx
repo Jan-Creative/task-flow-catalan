@@ -38,93 +38,40 @@ export class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div style={{ 
-          minHeight: '100vh', 
-          backgroundColor: '#1a1a1a',
-          color: '#ffffff',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '1rem',
-          fontFamily: 'system-ui, -apple-system, sans-serif'
-        }}>
-          <div style={{
-            backgroundColor: '#2a2a2a',
-            borderRadius: '8px',
-            padding: '2rem',
-            maxWidth: '500px',
-            width: '100%',
-            border: '1px solid #3a3a3a'
-          }}>
-            <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-              <AlertTriangle style={{ 
-                height: '48px', 
-                width: '48px', 
-                color: '#ef4444',
-                margin: '0 auto 1rem'
-              }} />
-              <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
-                Error de l'aplicació
-              </h1>
-              <p style={{ color: '#9ca3af' }}>
-                S'ha produït un error inesperat. Si us plau, intenta recarregar la pàgina.
-              </p>
-            </div>
-            
-            {this.state.error && (
-              <div style={{
-                backgroundColor: '#1a1a1a',
-                padding: '1rem',
-                borderRadius: '4px',
-                marginBottom: '1.5rem',
-                border: '1px solid #3a3a3a'
-              }}>
-                <p style={{ 
-                  fontSize: '0.875rem', 
-                  color: '#d1d5db',
-                  fontFamily: 'monospace',
-                  wordBreak: 'break-word'
-                }}>
-                  {this.state.error.message}
-                </p>
+        <div className="min-h-screen bg-background flex items-center justify-center p-4">
+          <Card className="w-full max-w-md">
+            <CardHeader className="text-center">
+              <div className="flex justify-center mb-4">
+                <AlertTriangle className="h-12 w-12 text-destructive" />
               </div>
-            )}
-            
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <button 
-                onClick={this.handleRetry}
-                style={{
-                  flex: 1,
-                  backgroundColor: '#3b82f6',
-                  color: 'white',
-                  padding: '0.75rem',
-                  borderRadius: '4px',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontSize: '0.875rem',
-                  fontWeight: '500'
-                }}
-              >
-                Tornar a intentar
-              </button>
-              <button 
-                onClick={() => window.location.reload()}
-                style={{
-                  flex: 1,
-                  backgroundColor: '#374151',
-                  color: 'white',
-                  padding: '0.75rem',
-                  borderRadius: '4px',
-                  border: '1px solid #4b5563',
-                  cursor: 'pointer',
-                  fontSize: '0.875rem',
-                  fontWeight: '500'
-                }}
-              >
-                Recarregar pàgina
-              </button>
-            </div>
-          </div>
+              <CardTitle>Alguna cosa ha anat malament</CardTitle>
+              <CardDescription>
+                S'ha produït un error inesperat. Si us plau, intenta recarregar la pàgina.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {this.state.error && (
+                <div className="p-3 bg-muted rounded-md">
+                  <p className="text-sm text-muted-foreground font-mono">
+                    {this.state.error.message}
+                  </p>
+                </div>
+              )}
+              <div className="flex gap-2">
+                <Button onClick={this.handleRetry} className="flex-1">
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Tornar a intentar
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => window.location.reload()}
+                  className="flex-1"
+                >
+                  Recarregar pàgina
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       );
     }

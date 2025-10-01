@@ -3,12 +3,12 @@
  * Implements professional caching strategies and offline capabilities
  */
 
-// Fixed cache version to avoid infinite update loops
-const SW_VERSION = 'v3';
-const CACHE_NAME = `taskflow-${SW_VERSION}`;
-const STATIC_CACHE = `taskflow-static-${SW_VERSION}`;
-const DYNAMIC_CACHE = `taskflow-dynamic-${SW_VERSION}`;
-const API_CACHE = `taskflow-api-${SW_VERSION}`;
+// Dynamic cache names with timestamp for guaranteed updates
+const BUILD_TIMESTAMP = Date.now();
+const CACHE_NAME = `taskflow-v${BUILD_TIMESTAMP}`;
+const STATIC_CACHE = `taskflow-static-v${BUILD_TIMESTAMP}`;
+const DYNAMIC_CACHE = `taskflow-dynamic-v${BUILD_TIMESTAMP}`;
+const API_CACHE = `taskflow-api-v${BUILD_TIMESTAMP}`;
 
 // Cache strategies
 const CACHE_STRATEGIES = {
@@ -20,11 +20,7 @@ const CACHE_STRATEGIES = {
 };
 
 // Resources to precache - Workbox will inject the manifest here
-// This placeholder will be replaced by workbox-build with the actual precache manifest
-const precacheManifest = self.__WB_MANIFEST;
-
-// Fallback resources if manifest is empty
-const PRECACHE_RESOURCES = precacheManifest.length > 0 ? precacheManifest : [
+const PRECACHE_RESOURCES = self.__WB_MANIFEST || [
   '/',
   '/manifest.json',
   '/offline.html'
@@ -73,45 +69,28 @@ const ROUTE_STRATEGIES = [
   }
 ];
 
-// PWA mode detection helper
-const isPWAMode = (clientUrl) => {
-  if (!clientUrl) return false;
-  const url = new URL(clientUrl);
-  return url.searchParams.has('pwa') || url.searchParams.has('nocache') ||
-         url.toString().includes('display-mode=standalone');
-};
-
-// Install event - minimal precaching for PWA performance
+// Install event - precache resources and force immediate activation
 self.addEventListener('install', event => {
   console.log('📦 SW installing with cache:', CACHE_NAME);
   event.waitUntil(
     (async () => {
-      try {
-        const cache = await caches.open(STATIC_CACHE);
-        // Only cache offline fallback and manifest - minimal footprint
-        const essentialResources = ['/offline.html', '/manifest.json'];
-        await Promise.allSettled(
-          essentialResources.map(url => 
-            cache.add(url).catch(err => console.warn(`Failed to cache ${url}:`, err))
-          )
-        );
-        console.log('✅ Essential precaching complete');
-      } catch (error) {
-        console.error('Precaching error:', error);
-      }
-      // Always skip waiting
+      const cache = await caches.open(STATIC_CACHE);
+      await cache.addAll(PRECACHE_RESOURCES);
+      // Force immediate activation for updates
       self.skipWaiting();
     })()
   );
 });
 
-// Activate event - cache cleanup and immediate control
+// Activate event - aggressive cache cleanup and immediate update
 self.addEventListener('activate', event => {
   console.log('🚀 SW activating with cache:', CACHE_NAME);
   event.waitUntil(
     (async () => {
       const cacheNames = await caches.keys();
       const validCaches = [CACHE_NAME, STATIC_CACHE, DYNAMIC_CACHE, API_CACHE];
+      
+      // Delete ALL old caches to force fresh content
       await Promise.all(
         cacheNames
           .filter(cacheName => !validCaches.includes(cacheName))
@@ -120,22 +99,29 @@ self.addEventListener('activate', event => {
             return caches.delete(cacheName);
           })
       );
-
+      
       // Take immediate control of all clients
       await self.clients.claim();
-      // Do not force reload to avoid loops
+      
+      // Force reload all clients to get fresh content
+      const clients = await self.clients.matchAll();
+      clients.forEach(client => {
+        console.log('📡 Notifying client of update');
+        client.postMessage({ 
+          type: 'SW_ACTIVATED',
+          cacheVersion: CACHE_NAME,
+          shouldReload: true
+        });
+      });
     })()
   );
 });
 
-// Fetch event - PWA-aware caching with network-first for standalone mode
+// Fetch event - implement caching strategies
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
   
   const url = new URL(event.request.url);
-  
-  // Check if request comes from PWA/standalone mode
-  const pwaMode = url.searchParams.has('pwa') || url.searchParams.has('nocache');
   
   // Find matching route strategy
   const routeConfig = ROUTE_STRATEGIES.find(route => 
@@ -143,18 +129,10 @@ self.addEventListener('fetch', event => {
   );
   
   if (routeConfig) {
-    // Force network-first in PWA mode for critical resources
-    if (pwaMode && (url.pathname.endsWith('.js') || url.pathname.endsWith('.css'))) {
-      event.respondWith(
-        fetch(event.request, { cache: 'no-store' })
-          .catch(() => handleRequest(event.request, routeConfig))
-      );
-    } else {
-      event.respondWith(handleRequest(event.request, routeConfig));
-    }
+    event.respondWith(handleRequest(event.request, routeConfig));
   } else {
     // Default strategy for app routes
-    event.respondWith(handleAppRoute(event.request, pwaMode));
+    event.respondWith(handleAppRoute(event.request));
   }
 });
 
@@ -187,11 +165,11 @@ async function networkFirst(request, cacheName, options = {}) {
     const networkResponse = await Promise.race([
       fetch(request),
       new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('timeout')),
-        (options.networkTimeoutSeconds || 3) * 1000)
+        setTimeout(() => reject(new Error('timeout')), 
+        options.networkTimeoutSeconds * 1000 || 3000)
       )
     ]);
-
+    
     if (networkResponse.status === 200) {
       cache.put(request, networkResponse.clone());
     }
@@ -253,46 +231,26 @@ async function handleRequest(request, routeConfig) {
   }
 }
 
-// Handle app routes (SPA navigation) - Enhanced with PWA mode support
-async function handleAppRoute(request, pwaMode = false) {
+// Handle app routes (SPA navigation) - Network first for HTML
+async function handleAppRoute(request) {
   const cache = await caches.open(DYNAMIC_CACHE);
-  const url = new URL(request.url);
   
-  // For navigation requests, ALWAYS network-first, NO CACHE in PWA mode
-  if (request.mode === 'navigate' || url.pathname === '/' || url.pathname.endsWith('.html')) {
+  // For navigation requests, always try network first to get fresh HTML
+  if (request.mode === 'navigate' || request.url.endsWith('/') || request.url.includes('.html')) {
     try {
-      // In PWA mode, always fetch fresh with no-store
-      const fetchOptions = pwaMode ? { cache: 'no-store' } : { cache: 'default' };
-      const response = await fetch(request, fetchOptions);
-      
-      // Don't cache HTML in PWA mode to ensure fresh app
-      if (!pwaMode && response.status === 200) {
+      const response = await fetch(request);
+      if (response.status === 200) {
         cache.put(request, response.clone());
       }
-      
       return response;
     } catch (error) {
-      // Fallback only if network completely fails
-      console.warn('Network failed, using cached fallback');
-      const cached = await cache.match('/') || 
-                     await cache.match('/offline.html') || 
-                     await cache.match('/index.html');
+      // Fallback to cached version
+      const cached = await cache.match('/') || await cache.match('/index.html');
       return cached || new Response('App offline', { status: 503 });
     }
   }
   
-  // For other resources, network-first in PWA mode
-  if (pwaMode) {
-    try {
-      const response = await fetch(request, { cache: 'reload' });
-      return response;
-    } catch (error) {
-      const cached = await cache.match(request);
-      return cached || new Response('Resource offline', { status: 503 });
-    }
-  }
-  
-  // Regular mode: cache-first for assets
+  // For other resources, use cache first
   try {
     const response = await fetch(request);
     if (response.status === 200) {

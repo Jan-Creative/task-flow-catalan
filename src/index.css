@@ -170,19 +170,6 @@ All colors MUST be HSL.
     /* Task completion animations */
     --completing-pulse: 0 0 0 4px hsl(var(--success) / 0.3);
     --completing-glow: 0 0 20px hsl(var(--success) / 0.5);
-
-    /* Status colors for tailwind.config.ts */
-    --status-success: 142 76% 36%;
-    --status-warning: 38 92% 50%;
-    --status-error: 0 84% 60%;
-    --status-info: 199 89% 48%;
-
-    /* Chart colors */
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
   }
 
   .light {
@@ -242,23 +229,16 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
-  html {
-    -webkit-text-size-adjust: 100%;
-    min-height: 100vh;
-  }
-
   body {
     @apply bg-background text-foreground;
     /* Força el tema fosc com a predeterminat */
     color-scheme: dark;
     overscroll-behavior: contain;
     -webkit-text-size-adjust: 100%;
-    min-height: 100vh;
   }
-
-  #root {
-    min-height: 100vh;
-    width: 100%;
+  
+  html {
+    -webkit-text-size-adjust: 100%;
   }
   
   /* iOS-specific stability optimizations */
