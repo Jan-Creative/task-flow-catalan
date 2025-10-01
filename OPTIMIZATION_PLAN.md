@@ -16,16 +16,16 @@
 - [x] `src/contexts/TaskContext.tsx` - ✅ Ja usa logger
 - [x] `src/hooks/useDadesApp.ts` - ✅ Migrat (5 console statements)
 - [x] `src/hooks/useTaskManager.ts` - ✅ Migrat (4 console statements)
-- [ ] `src/hooks/useProperties.ts`
-- [ ] `src/contexts/NotificationContext.tsx`
+- [x] `src/contexts/NotificationContext.tsx` - ✅ Migrat (11 console.error statements)
+- [x] `src/hooks/useConsolidatedTaskManager.ts` - ✅ Migrat (10 console.debug/error statements)
+- [ ] `src/hooks/useProperties.ts` - ✅ Sense console logs (silent error handling)
 - [ ] `src/services/NotificationManager.ts`
-- [ ] `src/hooks/useConsolidatedTaskManager.ts`
 - [ ] `src/hooks/useOptimizedTaskManager.ts`
 
 #### Estadístiques:
 - **Total console.* trobats:** 416
-- **Migrats:** ~19 (4.6%)
-- **Pendent:** ~397 (95.4%)
+- **Migrats:** ~40 (9.6%)
+- **Pendent:** ~376 (90.4%)
 
 #### Pròxims passos:
 1. Migrar contextos principals (TaskContext, NotificationContext)
