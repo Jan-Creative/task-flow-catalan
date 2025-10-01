@@ -49,13 +49,22 @@ export default defineConfig(({ mode }) => ({
         drop_console: true, // Remove console.log in production
         drop_debugger: true,
         pure_funcs: ['console.log', 'console.info', 'console.debug'],
-        passes: 2, // Run compression twice for better results
+        passes: 3, // Run compression 3 times for maximum results
+        unsafe: true, // Enable unsafe optimizations
+        unsafe_comps: true, // Unsafe comparisons optimizations
+        unsafe_math: true, // Optimize math expressions
+        unsafe_methods: true, // Optimize method calls
+        toplevel: true, // Mangle top-level scope
+        keep_fargs: false, // Remove unused function arguments
+        keep_fnames: false, // Remove function names when safe
       },
       mangle: {
         safari10: true, // Fix Safari 10+ compatibility
+        toplevel: true, // Mangle top-level names
       },
       format: {
         comments: false, // Remove all comments
+        ecma: 2020, // Use modern ECMAScript for smaller output
       },
     },
     // Optimize chunk splitting for better caching
