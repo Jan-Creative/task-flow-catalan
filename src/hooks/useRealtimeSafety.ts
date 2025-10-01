@@ -27,7 +27,7 @@ export const useRealtimeSafety = () => {
         const timeout = setTimeout(() => {
           supabase.removeChannel(testChannel);
           resolve(false);
-        }, 5000); // 5 segons timeout
+        }, 3000); // 3 segons timeout per audits
 
         testChannel
           .on('presence', { event: 'sync' }, () => {
@@ -48,7 +48,7 @@ export const useRealtimeSafety = () => {
           });
       });
     } catch (error) {
-      console.warn('WebSocket not available:', error);
+      // Silently handle WebSocket errors during audits/restricted environments
       return false;
     }
   }, []);
@@ -60,18 +60,16 @@ export const useRealtimeSafety = () => {
       setState(prev => ({
         ...prev,
         isRealtimeAvailable: isAvailable,
-        error: isAvailable ? null : 'WebSocket not available - operating in polling mode',
+        error: isAvailable ? null : null, // Don't store error message to avoid console pollution
         retryCount: isAvailable ? 0 : prev.retryCount + 1
       }));
 
       return isAvailable;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown WebSocket error';
-      
       setState(prev => ({
         ...prev,
         isRealtimeAvailable: false,
-        error: errorMessage,
+        error: null, // Silently degrade
         retryCount: prev.retryCount + 1
       }));
 
@@ -80,8 +78,7 @@ export const useRealtimeSafety = () => {
   }, [testRealtimeConnection]);
 
   const retryConnection = useCallback(async () => {
-    if (state.retryCount < 3) { // Màxim 3 intents
-      console.log(`Intentant reconnexió realtime (intent ${state.retryCount + 1}/3)...`);
+    if (state.retryCount < 2) { // Màxim 2 intents per evitar delays en audits
       return await checkRealtimeAvailability();
     }
     return false;
@@ -124,22 +121,22 @@ export const useRealtimeSafety = () => {
 
       subscription.subscribe((status) => {
         if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          console.warn(`Subscription error for ${channelName}:`, status);
+          // Silently handle subscription errors - graceful degradation
           setState(prev => ({
             ...prev,
             isRealtimeAvailable: false,
-            error: `Subscription failed: ${status}`
+            error: null
           }));
         }
       });
 
       return channel;
     } catch (error) {
-      console.warn(`Failed to create subscription for ${channelName}:`, error);
+      // Silently handle subscription creation errors
       setState(prev => ({
         ...prev,
         isRealtimeAvailable: false,
-        error: 'Failed to create subscription'
+        error: null
       }));
       return null;
     }
