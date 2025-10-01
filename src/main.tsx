@@ -7,14 +7,6 @@ import { initializePerformanceOptimizations } from "@/lib/performanceOptimizer";
 import App from "./App.tsx";
 import "./index.css";
 
-// Global declarations for boot watchdog
-declare global {
-  interface Window {
-    __APP_BOOTED?: boolean;
-    __clearBootWatchdog?: () => void;
-  }
-}
-
 // Initialize performance optimizations
 initializePerformanceOptimizations();
 
@@ -71,8 +63,8 @@ function setupIOSProtection() {
 // Initialize iOS protection
 setupIOSProtection();
 
-// Manual Service Worker registration with bypass option
-if ('serviceWorker' in navigator && !window.location.search.includes('no-sw=1')) {
+// Manual Service Worker registration
+if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
       // Cleanup legacy or incorrect Service Worker registrations
@@ -122,11 +114,13 @@ if ('serviceWorker' in navigator && !window.location.search.includes('no-sw=1'))
         }
       });
 
-      // Listen for SW messages (but don't auto-reload anymore)
+      // Listen for SW messages and reload when needed
       navigator.serviceWorker.addEventListener('message', (event) => {
-        if (event.data?.type === 'SW_ACTIVATED') {
-          console.log('✅ SW updated successfully');
-          // Don't force reload - let user refresh naturally
+        if (event.data?.type === 'SW_ACTIVATED' && event.data?.shouldReload) {
+          console.log('🔄 SW updated, reloading app...');
+          setTimeout(() => {
+            window.location.reload();
+          }, 100);
         }
       });
       
@@ -136,7 +130,6 @@ if ('serviceWorker' in navigator && !window.location.search.includes('no-sw=1'))
   });
 }
 
-// Render app and signal successful boot
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <EnhancedErrorBoundary context="Aplicació Principal" showDetails={true}>
@@ -148,12 +141,3 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     </EnhancedErrorBoundary>
   </React.StrictMode>
 );
-
-// Signal successful boot to disable watchdog
-setTimeout(() => {
-  window.__APP_BOOTED = true;
-  if (window.__clearBootWatchdog) {
-    window.__clearBootWatchdog();
-  }
-  console.log('✅ App booted successfully');
-}, 100);

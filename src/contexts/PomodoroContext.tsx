@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/lib/toastUtils';
-import { logger } from '@/lib/logger';
 
 interface PomodoroSession {
   id: string;
@@ -74,7 +73,7 @@ export const PomodoroProvider = ({ children }: { children: React.ReactNode }) =>
           timestamp: Date.now()
         }));
       } catch (error) {
-        logger.error('PomodoroContext', 'Error saving pomodoro state', error);
+        console.error('Error saving pomodoro state:', error);
       }
       return updatedState;
     });
@@ -129,7 +128,7 @@ export const PomodoroProvider = ({ children }: { children: React.ReactNode }) =>
       return true;
       
     } catch (error) {
-      logger.error('PomodoroContext', 'Error loading pomodoro state', error);
+      console.error('Error loading pomodoro state:', error);
       localStorage.removeItem(STORAGE_KEY);
     }
     return false;
@@ -174,7 +173,7 @@ export const PomodoroProvider = ({ children }: { children: React.ReactNode }) =>
       if (error) throw error;
       return data;
     } catch (error) {
-      logger.error('PomodoroContext', 'Error creating session', error);
+      console.error('Error creating session:', error);
       throw error;
     }
   };
@@ -190,7 +189,7 @@ export const PomodoroProvider = ({ children }: { children: React.ReactNode }) =>
         })
         .eq('id', sessionId);
     } catch (error) {
-      logger.error('PomodoroContext', 'Error completing session', error);
+      console.error('Error completing session:', error);
     }
   };
 
@@ -216,7 +215,7 @@ export const PomodoroProvider = ({ children }: { children: React.ReactNode }) =>
         totalWorkTime: totalTime
       }));
     } catch (error) {
-      logger.error('PomodoroContext', 'Error updating stats', error);
+      console.error('Error updating stats:', error);
     }
   }, []);
 
@@ -238,7 +237,7 @@ export const PomodoroProvider = ({ children }: { children: React.ReactNode }) =>
       
       return { sessionsToday, totalMinutesToday };
     } catch (error) {
-      logger.error('PomodoroContext', 'Error getting generic stats', error);
+      console.error('Error getting generic stats:', error);
       return { sessionsToday: 0, totalMinutesToday: 0 };
     }
   }, []);
@@ -259,7 +258,7 @@ export const PomodoroProvider = ({ children }: { children: React.ReactNode }) =>
                 timestamp: Date.now()
               }));
             } catch (error) {
-              logger.error('PomodoroContext', 'Error auto-saving state', error);
+              console.error('Error auto-saving state:', error);
             }
           }
           
@@ -328,7 +327,7 @@ export const PomodoroProvider = ({ children }: { children: React.ReactNode }) =>
           }
           
         } catch (error) {
-          logger.error('PomodoroContext', 'Error handling completion', error);
+          console.error('Error handling completion:', error);
         }
       };
       
@@ -348,9 +347,9 @@ export const PomodoroProvider = ({ children }: { children: React.ReactNode }) =>
         .is('completed_at', null)
         .lt('started_at', oneDayAgo);
         
-      logger.info('PomodoroContext', 'Cleaned up failed sessions');
+      console.log('✅ Cleaned up failed sessions');
     } catch (error) {
-      logger.error('PomodoroContext', 'Error cleaning up failed sessions', error);
+      console.error('Error cleaning up failed sessions:', error);
     }
   }, []);
 
@@ -369,11 +368,11 @@ export const PomodoroProvider = ({ children }: { children: React.ReactNode }) =>
 
   const startTimer = async (taskId: string) => {
     try {
-      logger.debug('PomodoroContext', 'Starting task-based timer', { taskId, isBreak: state.isBreak, currentSession: state.currentSessionId });
+      console.log('🔄 Starting task-based timer:', { taskId, isBreak: state.isBreak, currentSession: state.currentSessionId });
       
       // Prevent starting if there's already an active timer
       if (state.currentSessionId && state.timeLeft > 0) {
-        logger.warn('PomodoroContext', 'Timer already active, cannot start new one');
+        console.warn('⚠️ Timer already active, cannot start new one');
         toast({
           title: "Timer ja actiu",
           description: "Ja tens un timer en marxa"
@@ -386,7 +385,7 @@ export const PomodoroProvider = ({ children }: { children: React.ReactNode }) =>
       const duration = state.isBreak ? state.breakDuration : state.workDuration;
       const now = Date.now();
       
-      logger.info('PomodoroContext', 'Task session created', { sessionId: session.id, duration, sessionType });
+      console.log('✅ Task session created:', { session, duration, sessionType });
       
       saveState({
         isActive: true,
@@ -405,10 +404,10 @@ export const PomodoroProvider = ({ children }: { children: React.ReactNode }) =>
         description: `${duration} minuts de ${state.isBreak ? 'descans' : 'focus'}`
       });
       
-      logger.info('PomodoroContext', 'Task timer started successfully');
+      console.log('✅ Task timer started successfully');
       
     } catch (error) {
-      logger.error('PomodoroContext', 'Error starting task timer', error);
+      console.error('❌ Error starting task timer:', error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -420,11 +419,11 @@ export const PomodoroProvider = ({ children }: { children: React.ReactNode }) =>
 
   const startGenericTimer = async (durationMinutes: number) => {
     try {
-      logger.debug('PomodoroContext', 'Starting generic timer', { durationMinutes });
+      console.log('🔄 Starting generic timer:', { durationMinutes });
       
       // Create session first to avoid temporary IDs
       const session = await createSession(null, 'generic', durationMinutes);
-      logger.info('PomodoroContext', 'Generic session created', { sessionId: session.id });
+      console.log('✅ Generic session created:', session);
       
       const now = Date.now();
       
@@ -443,10 +442,10 @@ export const PomodoroProvider = ({ children }: { children: React.ReactNode }) =>
         description: `${durationMinutes} minuts de focus`
       });
       
-      logger.info('PomodoroContext', 'Generic timer started successfully');
+      console.log('✅ Generic timer started successfully');
       
     } catch (error) {
-      logger.error('PomodoroContext', 'Error starting generic timer', error);
+      console.error('❌ Error starting generic timer:', error);
       
       toast({
         variant: "destructive",
@@ -458,7 +457,7 @@ export const PomodoroProvider = ({ children }: { children: React.ReactNode }) =>
   };
 
   const pauseTimer = () => {
-    logger.debug('PomodoroContext', 'Pausing timer');
+    console.log('⏸️ Pausing timer');
     saveState({ 
       isActive: false,
       // Update startTime to reflect the pause
@@ -467,7 +466,7 @@ export const PomodoroProvider = ({ children }: { children: React.ReactNode }) =>
   };
 
   const resumeTimer = () => {
-    logger.debug('PomodoroContext', 'Resuming timer');
+    console.log('▶️ Resuming timer');
     if (state.currentSessionId && state.timeLeft > 0) {
       saveState({ 
         isActive: true,
@@ -481,7 +480,7 @@ export const PomodoroProvider = ({ children }: { children: React.ReactNode }) =>
   };
 
   const resetTimer = async () => {
-    logger.debug('PomodoroContext', 'Resetting timer');
+    console.log('🔄 Resetting timer');
     if (state.currentSessionId) {
       try {
         // Mark as completed but not successful for tracking
@@ -493,7 +492,7 @@ export const PomodoroProvider = ({ children }: { children: React.ReactNode }) =>
           })
           .eq('id', state.currentSessionId);
       } catch (error) {
-        logger.error('PomodoroContext', 'Error updating session on reset', error);
+        console.error('Error updating session on reset:', error);
       }
     }
     clearState();

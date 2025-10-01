@@ -5,7 +5,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { logger } from '@/lib/logger';
 
 // Interfaces
 export interface NotificationPayload {
@@ -108,7 +107,7 @@ class NotificationManager {
       try {
         listener(event);
       } catch (error) {
-        logger.error('NotificationManager', 'Error en listener de notificació', error);
+        console.error('❌ Error en listener de notificació:', error);
       }
     });
   }
@@ -192,10 +191,10 @@ class NotificationManager {
         .like('metadata->block_id', blockId);
 
       if (error) {
-        logger.error('NotificationManager', 'Error cancel·lant notificacions a BD', error);
+        console.error('❌ Error cancel·lant notificacions a BD:', error);
       }
     } catch (error) {
-      logger.error('NotificationManager', 'Error en operació de cancel·lació BD', error);
+      console.error('❌ Error en operació de cancel·lació BD:', error);
     }
 
     return cancelledCount;
@@ -209,7 +208,7 @@ class NotificationManager {
     if (now - this.circuitBreaker.lastFailureTime > this.circuitBreaker.timeout) {
       this.circuitBreaker.isOpen = false;
       this.circuitBreaker.failureCount = 0;
-      logger.info('NotificationManager', 'Circuit breaker reset');
+      console.log('🔄 Circuit breaker reset');
       return false;
     }
     
@@ -222,10 +221,7 @@ class NotificationManager {
     
     if (this.circuitBreaker.failureCount >= this.circuitBreaker.threshold) {
       this.circuitBreaker.isOpen = true;
-      logger.warn('NotificationManager', 'Circuit breaker obert - massa fallades', { 
-        failureCount: this.circuitBreaker.failureCount,
-        threshold: this.circuitBreaker.threshold 
-      });
+      console.log('🔴 Circuit breaker obert - massa fallades');
     }
   }
 
@@ -353,12 +349,7 @@ class NotificationManager {
         });
       }, delay);
 
-      logger.info('NotificationManager', `Reintent programat`, { 
-        correlationId: id, 
-        retryCount, 
-        maxRetries, 
-        delayMs: delay 
-      });
+      console.log(`🔄 Reintent ${retryCount}/${maxRetries} per ${id} en ${delay}ms`);
     } else {
       // Fallada definitiva
       this.queue.delete(id);
@@ -430,24 +421,14 @@ class NotificationManager {
   }
 
   private logNotification(status: string, request: NotificationRequest, error?: Error): void {
-    const logData = {
-      status,
-      title: request.payload.title,
-      correlationId: request.correlationId,
+    const prefix = status === 'SENT' ? '✅' : status === 'FAILED' ? '❌' : '📤';
+    console.log(`${prefix} [${status}] ${request.payload.title} (${request.correlationId})`, {
       type: request.payload.type,
       priority: request.payload.priority,
       scheduledAt: request.payload.scheduledAt,
       retryCount: request.retryCount,
       error: error?.message
-    };
-
-    if (status === 'FAILED') {
-      logger.error('NotificationManager', 'Notification failed', logData);
-    } else if (status === 'SENT') {
-      logger.info('NotificationManager', 'Notification sent', logData);
-    } else {
-      logger.debug('NotificationManager', 'Notification queued', logData);
-    }
+    });
   }
 
   // API d'estat per debugging

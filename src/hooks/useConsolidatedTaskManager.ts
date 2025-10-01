@@ -8,7 +8,6 @@ import { useDadesApp } from './useDadesApp';
 import { useTaskOperations } from './useTaskOperations';
 import { useProperties } from './useProperties';
 import { toast } from 'sonner';
-import { logger } from '@/lib/logger';
 import type { Task, CreateTaskData, UpdateTaskData, CustomProperty } from '@/types';
 
 export const useConsolidatedTaskManager = () => {
@@ -31,12 +30,12 @@ export const useConsolidatedTaskManager = () => {
     customProperties?: CustomProperty[]
   ) => {
     try {
-      logger.debug('useConsolidatedTaskManager', 'Creating task', { taskData, hasCustomProperties: !!customProperties?.length });
+      console.debug('Creating task:', { taskData, customProperties });
       const result = await handleCreateTask(taskData, customProperties);
-      logger.debug('useConsolidatedTaskManager', 'Task created successfully', { taskId: result?.id });
+      console.debug('Task created successfully:', result);
       return result;
     } catch (error) {
-      logger.error('useConsolidatedTaskManager', 'Failed to create task', error);
+      console.error('Failed to create task:', error);
       toast.error("No s'ha pogut crear la tasca. Torna-ho a intentar.");
       throw error;
     }
@@ -49,11 +48,11 @@ export const useConsolidatedTaskManager = () => {
     customProperties?: CustomProperty[]
   ) => {
     try {
-      logger.debug('useConsolidatedTaskManager', 'Updating task', { taskId, updateFields: Object.keys(taskData), hasCustomProperties: !!customProperties?.length });
+      console.debug('Updating task:', { taskId, taskData, customProperties });
       await handleEditTask(taskId, taskData, customProperties);
-      logger.debug('useConsolidatedTaskManager', 'Task updated successfully', { taskId });
+      console.debug('Task updated successfully');
     } catch (error) {
-      logger.error('useConsolidatedTaskManager', 'Failed to update task', error);
+      console.error('Failed to update task:', error);
       toast.error("No s'ha pogut actualitzar la tasca. Torna-ho a intentar.");
       throw error;
     }
@@ -62,11 +61,11 @@ export const useConsolidatedTaskManager = () => {
   // Centralized task status update
   const updateStatus = useCallback(async (taskId: string, status: Task['status']) => {
     try {
-      logger.debug('useConsolidatedTaskManager', 'Updating task status', { taskId, status });
+      console.debug('Updating task status:', { taskId, status });
       await updateTaskStatus(taskId, status);
-      logger.debug('useConsolidatedTaskManager', 'Task status updated successfully', { taskId });
+      console.debug('Task status updated successfully');
     } catch (error) {
-      logger.error('useConsolidatedTaskManager', 'Failed to update task status', error);
+      console.error('Failed to update task status:', error);
       toast.error("No s'ha pogut actualitzar l'estat de la tasca.");
       throw error;
     }
@@ -75,11 +74,11 @@ export const useConsolidatedTaskManager = () => {
   // Centralized task deletion
   const deleteTask = useCallback(async (taskId: string) => {
     try {
-      logger.debug('useConsolidatedTaskManager', 'Deleting task', { taskId });
+      console.debug('Deleting task:', { taskId });
       await deleteSingleTask(taskId);
-      logger.debug('useConsolidatedTaskManager', 'Task deleted successfully', { taskId });
+      console.debug('Task deleted successfully');
     } catch (error) {
-      logger.error('useConsolidatedTaskManager', 'Failed to delete task', error);
+      console.error('Failed to delete task:', error);
       toast.error("No s'ha pogut eliminar la tasca. Torna-ho a intentar.");
       throw error;
     }
@@ -92,11 +91,11 @@ export const useConsolidatedTaskManager = () => {
     optionId: string
   ) => {
     try {
-      logger.debug('useConsolidatedTaskManager', 'Updating task property', { taskId, propertyId, optionId });
+      console.debug('Updating task property:', { taskId, propertyId, optionId });
       await setTaskProperty(taskId, propertyId, optionId);
-      logger.debug('useConsolidatedTaskManager', 'Task property updated successfully', { taskId });
+      console.debug('Task property updated successfully');
     } catch (error) {
-      logger.error('useConsolidatedTaskManager', 'Failed to update task property', error);
+      console.error('Failed to update task property:', error);
       toast.error("No s'ha pogut actualitzar la propietat de la tasca.");
       throw error;
     }
