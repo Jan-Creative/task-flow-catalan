@@ -40,38 +40,65 @@
     <link rel="preconnect" href="https://umfrvkakvgsypqcyyzke.supabase.co" crossorigin />
     <link rel="dns-prefetch" href="https://umfrvkakvgsypqcyyzke.supabase.co" />
     
-    <!-- Optimize resource loading - preload CSS asynchronously -->
+    <!-- Emergency Kill Switch & Boot Watchdog -->
     <script>
-      // Convert stylesheet links to preload to eliminate render-blocking
       (function() {
-        var observer = new MutationObserver(function(mutations) {
-          mutations.forEach(function(mutation) {
-            mutation.addedNodes.forEach(function(node) {
-              if (node.nodeName === 'LINK' && node.rel === 'stylesheet') {
-                var href = node.href;
-                // Replace with preload
-                node.rel = 'preload';
-                node.as = 'style';
-                node.onload = function() {
-                  this.onload = null;
-                  this.rel = 'stylesheet';
-                };
-                // Fallback for browsers that don't support preload
-                var noscript = document.createElement('noscript');
-                var fallback = document.createElement('link');
-                fallback.rel = 'stylesheet';
-                fallback.href = href;
-                noscript.appendChild(fallback);
-                node.parentNode.insertBefore(noscript, node.nextSibling);
-                observer.disconnect();
-              }
-            });
-          });
-        });
-        observer.observe(document.head, { childList: true });
+        'use strict';
         
-        // Auto-disconnect after 1s
-        setTimeout(function() { observer.disconnect(); }, 1000);
+        // 1. EMERGENCY KILL SWITCH: Reset SW and cache if ?reset-sw=1 in URL
+        if (window.location.search.includes('reset-sw=1')) {
+          console.log('🚨 Emergency reset triggered');
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(regs) {
+              regs.forEach(function(reg) { reg.unregister(); });
+            });
+          }
+          if ('caches' in window) {
+            caches.keys().then(function(names) {
+              names.forEach(function(name) { caches.delete(name); });
+            });
+          }
+          localStorage.clear();
+          sessionStorage.clear();
+          alert('Reset complet! Recarregant sense ?reset-sw=1...');
+          window.location.href = window.location.pathname;
+          return;
+        }
+        
+        // 2. ERROR LOGGING: Capture critical errors
+        var errors = [];
+        window.onerror = function(msg, url, line, col, error) {
+          errors.push({ msg: msg, url: url, line: line, col: col, error: error });
+          try {
+            localStorage.setItem('__APP_BOOT_ERRORS', JSON.stringify(errors));
+          } catch(e) {}
+          return false;
+        };
+        
+        window.addEventListener('unhandledrejection', function(event) {
+          errors.push({ type: 'promise', reason: event.reason });
+          try {
+            localStorage.setItem('__APP_BOOT_ERRORS', JSON.stringify(errors));
+          } catch(e) {}
+        });
+        
+        // 3. BOOT WATCHDOG: Show fallback UI if app doesn't boot in 5s
+        var bootTimeout = setTimeout(function() {
+          if (!window.__APP_BOOTED) {
+            console.error('❌ App failed to boot in 5s');
+            
+            // Show fallback UI
+            var root = document.getElementById('root');
+            if (root) {
+              root.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;font-family:system-ui,-apple-system,sans-serif;padding:20px;text-align:center"><div style="max-width:400px"><h1 style="font-size:48px;margin:0 0 20px">⚠️</h1><h2 style="margin:0 0 10px">Error carregant l\'app</h2><p style="opacity:0.9;margin:0 0 30px">L\'aplicació no s\'ha pogut carregar correctament</p><button onclick="window.location.href=\'?reset-sw=1\'" style="background:#fff;color:#667eea;border:none;padding:12px 24px;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;margin:0 10px 10px 0">Reset complet</button><button onclick="window.location.reload()" style="background:rgba(255,255,255,0.2);color:#fff;border:1px solid #fff;padding:12px 24px;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;margin:0 0 10px 0">Recarregar</button><button onclick="window.open(window.location.href)" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.5);padding:12px 24px;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer">Obrir al navegador</button></div></div>';
+            }
+          }
+        }, 5000);
+        
+        // Clear watchdog if app boots successfully
+        window.__clearBootWatchdog = function() {
+          clearTimeout(bootTimeout);
+        };
       })();
     </script>
   </head>

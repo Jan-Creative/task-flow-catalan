@@ -20,7 +20,9 @@ const CACHE_STRATEGIES = {
 };
 
 // Resources to precache - Workbox will inject the manifest here
-const PRECACHE_RESOURCES = self.__WB_MANIFEST || [
+const precacheManifest = self.__WB_MANIFEST;
+
+const PRECACHE_RESOURCES = (precacheManifest && precacheManifest.length > 0) ? precacheManifest : [
   '/',
   '/manifest.json',
   '/offline.html'
@@ -82,7 +84,7 @@ self.addEventListener('install', event => {
   );
 });
 
-// Activate event - aggressive cache cleanup and immediate update
+// Activate event - gentle cache cleanup, NO forced reloads
 self.addEventListener('activate', event => {
   console.log('🚀 SW activating with cache:', CACHE_NAME);
   event.waitUntil(
@@ -90,7 +92,7 @@ self.addEventListener('activate', event => {
       const cacheNames = await caches.keys();
       const validCaches = [CACHE_NAME, STATIC_CACHE, DYNAMIC_CACHE, API_CACHE];
       
-      // Delete ALL old caches to force fresh content
+      // Delete old caches
       await Promise.all(
         cacheNames
           .filter(cacheName => !validCaches.includes(cacheName))
@@ -100,17 +102,17 @@ self.addEventListener('activate', event => {
           })
       );
       
-      // Take immediate control of all clients
+      // Take control of all clients
       await self.clients.claim();
       
-      // Force reload all clients to get fresh content
+      // Notify clients (but don't force reload)
       const clients = await self.clients.matchAll();
       clients.forEach(client => {
-        console.log('📡 Notifying client of update');
+        console.log('📡 Notifying client of activation');
         client.postMessage({ 
           type: 'SW_ACTIVATED',
           cacheVersion: CACHE_NAME,
-          shouldReload: true
+          shouldReload: false
         });
       });
     })()
@@ -231,12 +233,28 @@ async function handleRequest(request, routeConfig) {
   }
 }
 
-// Handle app routes (SPA navigation) - Network first for HTML
+// Handle app routes (SPA navigation) - SAFE network-first with no-store for HTML
 async function handleAppRoute(request) {
   const cache = await caches.open(DYNAMIC_CACHE);
   
-  // For navigation requests, always try network first to get fresh HTML
+  // For navigation requests, always try network first with cache: 'no-store'
   if (request.mode === 'navigate' || request.url.endsWith('/') || request.url.includes('.html')) {
+    try {
+      // Force fresh HTML from network with no-store
+      const response = await fetch(request, { cache: 'no-store' });
+      if (response.status === 200) {
+        cache.put(request, response.clone());
+      }
+      return response;
+    } catch (error) {
+      // Only use cache if network completely fails
+      const cached = await cache.match('/') || await cache.match('/index.html');
+      return cached || new Response('App offline', { status: 503 });
+    }
+  }
+  
+  // For JS/CSS: network-first (no stale-while-revalidate to avoid stale code)
+  if (request.url.match(/\.(js|css)$/)) {
     try {
       const response = await fetch(request);
       if (response.status === 200) {
@@ -244,13 +262,16 @@ async function handleAppRoute(request) {
       }
       return response;
     } catch (error) {
-      // Fallback to cached version
-      const cached = await cache.match('/') || await cache.match('/index.html');
-      return cached || new Response('App offline', { status: 503 });
+      // Fallback to cache only if offline
+      const cached = await cache.match(request);
+      return cached || new Response('Resource offline', { status: 503 });
     }
   }
   
-  // For other resources, use cache first
+  // For other resources, cache first is fine
+  const cached = await cache.match(request);
+  if (cached) return cached;
+  
   try {
     const response = await fetch(request);
     if (response.status === 200) {
@@ -258,8 +279,7 @@ async function handleAppRoute(request) {
     }
     return response;
   } catch (error) {
-    const cached = await cache.match(request);
-    return cached || new Response('Resource offline', { status: 503 });
+    return new Response('Resource offline', { status: 503 });
   }
 }
 
