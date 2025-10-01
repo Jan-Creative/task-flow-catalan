@@ -40,21 +40,29 @@
     <link rel="preconnect" href="https://umfrvkakvgsypqcyyzke.supabase.co" crossorigin />
     <link rel="dns-prefetch" href="https://umfrvkakvgsypqcyyzke.supabase.co" />
     
-    <!-- Optimize resource loading -->
+    <!-- Optimize resource loading - preload CSS asynchronously -->
     <script>
-      // Load CSS asynchronously to prevent render-blocking
+      // Convert stylesheet links to preload to eliminate render-blocking
       (function() {
         var observer = new MutationObserver(function(mutations) {
           mutations.forEach(function(mutation) {
             mutation.addedNodes.forEach(function(node) {
               if (node.nodeName === 'LINK' && node.rel === 'stylesheet') {
-                // Load CSS asynchronously using media attribute trick
-                var media = node.media || 'all';
-                node.media = 'print';
+                var href = node.href;
+                // Replace with preload
+                node.rel = 'preload';
+                node.as = 'style';
                 node.onload = function() {
-                  node.media = media;
-                  node.onload = null;
+                  this.onload = null;
+                  this.rel = 'stylesheet';
                 };
+                // Fallback for browsers that don't support preload
+                var noscript = document.createElement('noscript');
+                var fallback = document.createElement('link');
+                fallback.rel = 'stylesheet';
+                fallback.href = href;
+                noscript.appendChild(fallback);
+                node.parentNode.insertBefore(noscript, node.nextSibling);
                 observer.disconnect();
               }
             });
