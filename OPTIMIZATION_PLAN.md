@@ -18,14 +18,14 @@
 - [x] `src/hooks/useTaskManager.ts` - ✅ Migrat (4 console statements)
 - [x] `src/contexts/NotificationContext.tsx` - ✅ Migrat (11 console.error statements)
 - [x] `src/hooks/useConsolidatedTaskManager.ts` - ✅ Migrat (10 console.debug/error statements)
+- [x] `src/services/NotificationManager.ts` - ✅ Migrat (7 console statements)
+- [x] `src/hooks/useOptimizedTaskManager.ts` - ✅ Migrat (4 console statements)
 - [ ] `src/hooks/useProperties.ts` - ✅ Sense console logs (silent error handling)
-- [ ] `src/services/NotificationManager.ts`
-- [ ] `src/hooks/useOptimizedTaskManager.ts`
 
 #### Estadístiques:
 - **Total console.* trobats:** 416
-- **Migrats:** ~40 (9.6%)
-- **Pendent:** ~376 (90.4%)
+- **Migrats:** ~51 (12.3%)
+- **Pendent:** ~365 (87.7%)
 
 #### Pròxims passos:
 1. Migrar contextos principals (TaskContext, NotificationContext)
