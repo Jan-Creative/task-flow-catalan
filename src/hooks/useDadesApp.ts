@@ -5,6 +5,7 @@ import { toast } from "@/lib/toastUtils";
 import { useAuth } from "./useAuth";
 import { useProperties } from "./useProperties";
 import { useAuthGuard } from "./useAuthGuard";
+import { logger } from "@/lib/logger";
 
 import type { 
   Tasca, 
@@ -122,12 +123,11 @@ export const useDadesApp = () => {
   const crearTasca = useCallback(async (taskData: CrearTascaData) => {
     return withAuthGuard(async () => {
       if (!user) {
-        console.error('User not authenticated in crearTasca');
+        logger.error('useDadesApp', 'User not authenticated in crearTasca');
         throw new Error("User not authenticated");
       }
 
-      console.debug('Authenticated, proceeding with task creation');
-      console.debug('Current user:', user.id);
+      logger.debug('useDadesApp', 'Authenticated, proceeding with task creation', { userId: user.id });
 
     // Normalize and map old English values to Catalan (safeguard)
     const statusMapping: Record<string, string> = {
@@ -152,7 +152,7 @@ export const useDadesApp = () => {
       is_today: taskData.is_today || false
     };
 
-    console.debug('Creating task with normalized data:', taskDataNormalized);
+    logger.debug('useDadesApp', 'Creating task with normalized data', taskDataNormalized);
 
     const optimisticTask = {
       ...taskDataNormalized,
@@ -195,7 +195,7 @@ export const useDadesApp = () => {
         folder_id: finalFolderId ?? null
       };
 
-      console.debug('Inserting to database:', insertData);
+      logger.debug('useDadesApp', 'Inserting task to database', insertData);
 
       const { data: newTask, error } = await supabase
         .from("tasks")
@@ -268,7 +268,7 @@ export const useDadesApp = () => {
       priority: taskData.priority || 'mitjana'
     };
 
-    console.debug('Updating task with normalized data:', taskDataNormalized);
+    logger.debug('useDadesApp', 'Updating task with normalized data', taskDataNormalized);
 
     // Optimistic update
     queryClient.setQueryData([CLAU_CACHE_DADES, user?.id], (old: any) => {

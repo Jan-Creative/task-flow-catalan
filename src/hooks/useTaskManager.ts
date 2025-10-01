@@ -6,6 +6,7 @@ import { useCallback } from 'react';
 import { useConsolidatedTaskManager } from './useConsolidatedTaskManager';
 import { useTasksSubtasksProgress } from './useTasksSubtasksProgress';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 import type { Task, CreateTaskData, UpdateTaskData, CustomProperty } from '@/types';
 
 export const useTaskManager = () => {
@@ -35,7 +36,10 @@ export const useTaskManager = () => {
     customProperties?: CustomProperty[]
   ) => {
     try {
-      console.debug('Creating task through unified manager:', { taskData, customProperties });
+      logger.debug('useTaskManager', 'Creating task through unified manager', { 
+        taskData, 
+        hasCustomProperties: !!customProperties?.length 
+      });
       const result = await rawCreateTask(taskData, customProperties);
       
       // Refresh progress data if task was created successfully
@@ -44,7 +48,7 @@ export const useTaskManager = () => {
       toast.success("Tasca creada correctament");
       return result;
     } catch (error) {
-      console.error('Failed to create task:', error);
+      logger.error('useTaskManager', 'Failed to create task', error);
       toast.error("Error al crear la tasca. Torna-ho a intentar.");
       throw error;
     }
@@ -57,7 +61,11 @@ export const useTaskManager = () => {
     customProperties?: CustomProperty[]
   ) => {
     try {
-      console.debug('Updating task through unified manager:', { taskId, taskData, customProperties });
+      logger.debug('useTaskManager', 'Updating task through unified manager', { 
+        taskId, 
+        updateFields: Object.keys(taskData),
+        hasCustomProperties: !!customProperties?.length 
+      });
       await rawUpdateTask(taskId, taskData, customProperties);
       
       // Refresh progress data if task was updated successfully
@@ -65,7 +73,7 @@ export const useTaskManager = () => {
       
       toast.success("Tasca actualitzada correctament");
     } catch (error) {
-      console.error('Failed to update task:', error);
+      logger.error('useTaskManager', 'Failed to update task', error);
       toast.error("Error al actualitzar la tasca. Torna-ho a intentar.");
       throw error;
     }
