@@ -74,9 +74,19 @@ self.addEventListener('install', event => {
   console.log('📦 SW installing with cache:', CACHE_NAME);
   event.waitUntil(
     (async () => {
-      const cache = await caches.open(STATIC_CACHE);
-      await cache.addAll(PRECACHE_RESOURCES);
-      // Force immediate activation for updates
+      try {
+        const cache = await caches.open(STATIC_CACHE);
+        // Use Promise.allSettled to not fail on individual resource errors
+        await Promise.allSettled(
+          PRECACHE_RESOURCES.map(url => 
+            cache.add(url).catch(err => console.warn(`Failed to cache ${url}:`, err))
+          )
+        );
+        console.log('✅ Precaching complete');
+      } catch (error) {
+        console.error('Precaching error:', error);
+      }
+      // Always skip waiting even if precaching fails
       self.skipWaiting();
     })()
   );
@@ -231,20 +241,20 @@ async function handleRequest(request, routeConfig) {
   }
 }
 
-// Handle app routes (SPA navigation) - Network first for HTML
+// Handle app routes (SPA navigation) - Network first for HTML, no cache for root
 async function handleAppRoute(request) {
   const cache = await caches.open(DYNAMIC_CACHE);
+  const url = new URL(request.url);
   
-  // For navigation requests, always try network first to get fresh HTML
-  if (request.mode === 'navigate' || request.url.endsWith('/') || request.url.includes('.html')) {
+  // For navigation requests, ALWAYS try network first with NO CACHING for index.html
+  if (request.mode === 'navigate' || url.pathname === '/' || url.pathname.endsWith('.html')) {
     try {
-      const response = await fetch(request);
-      if (response.status === 200) {
-        cache.put(request, response.clone());
-      }
+      // Always fetch fresh from network, don't cache HTML to avoid stale app
+      const response = await fetch(request, { cache: 'no-store' });
       return response;
     } catch (error) {
-      // Fallback to cached version
+      // Only fallback to cache if network completely fails
+      console.warn('Network failed, using cached fallback');
       const cached = await cache.match('/') || await cache.match('/index.html');
       return cached || new Response('App offline', { status: 503 });
     }
