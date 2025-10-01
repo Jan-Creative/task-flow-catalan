@@ -52,11 +52,23 @@
     <!-- Aggressive async CSS loading using media trick -->
     <script>
       (function() {
+        var processedStylesheets = new Set();
+        
         // Intercept Vite-injected stylesheets and make them non-render-blocking
         var observer = new MutationObserver(function(mutations) {
           mutations.forEach(function(mutation) {
             mutation.addedNodes.forEach(function(node) {
               if (node.tagName === 'LINK' && node.rel === 'stylesheet') {
+                var href = node.href;
+                
+                // Skip if already processed to prevent duplicate loads
+                if (processedStylesheets.has(href)) {
+                  node.parentNode.removeChild(node);
+                  return;
+                }
+                
+                processedStylesheets.add(href);
+                
                 // Use media="print" trick - loads async without blocking render
                 node.media = 'print';
                 node.onload = function() {
@@ -66,7 +78,9 @@
                 // Fallback in case onload doesn't fire
                 requestAnimationFrame(function() {
                   requestAnimationFrame(function() {
-                    node.media = 'all';
+                    if (node.media === 'print') {
+                      node.media = 'all';
+                    }
                   });
                 });
               }
