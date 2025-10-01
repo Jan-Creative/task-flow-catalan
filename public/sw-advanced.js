@@ -20,7 +20,11 @@ const CACHE_STRATEGIES = {
 };
 
 // Resources to precache - Workbox will inject the manifest here
-const PRECACHE_RESOURCES = self.__WB_MANIFEST || [
+// This placeholder will be replaced by workbox-build with the actual precache manifest
+const precacheManifest = self.__WB_MANIFEST;
+
+// Fallback resources if manifest is empty
+const PRECACHE_RESOURCES = precacheManifest.length > 0 ? precacheManifest : [
   '/',
   '/manifest.json',
   '/offline.html'
