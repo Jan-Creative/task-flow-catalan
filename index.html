@@ -42,14 +42,19 @@
     
     <!-- Optimize resource loading -->
     <script>
-      // Inject preload hints for critical CSS to reduce render-blocking
+      // Load CSS asynchronously to prevent render-blocking
       (function() {
-        // Find and prioritize CSS loading
-        const observer = new MutationObserver(function(mutations) {
+        var observer = new MutationObserver(function(mutations) {
           mutations.forEach(function(mutation) {
             mutation.addedNodes.forEach(function(node) {
               if (node.nodeName === 'LINK' && node.rel === 'stylesheet') {
-                node.fetchPriority = 'high';
+                // Load CSS asynchronously using media attribute trick
+                var media = node.media || 'all';
+                node.media = 'print';
+                node.onload = function() {
+                  node.media = media;
+                  node.onload = null;
+                };
                 observer.disconnect();
               }
             });
@@ -57,7 +62,7 @@
         });
         observer.observe(document.head, { childList: true });
         
-        // Auto-disconnect after 1s to prevent long-running observer
+        // Auto-disconnect after 1s
         setTimeout(function() { observer.disconnect(); }, 1000);
       })();
     </script>
