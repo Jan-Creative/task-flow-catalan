@@ -40,47 +40,55 @@
     <link rel="preconnect" href="https://umfrvkakvgsypqcyyzke.supabase.co" crossorigin />
     <link rel="dns-prefetch" href="https://umfrvkakvgsypqcyyzke.supabase.co" />
     
-    <!-- Async CSS loading to eliminate render-blocking resources -->
+    <!-- Critical CSS inline to eliminate render-blocking -->
+    <style>
+      /* Minimal critical styles for instant paint */
+      html,body,#root{margin:0;padding:0;min-height:100vh;width:100%;background:#070707;color:#f5f5f5;font-family:system-ui,-apple-system,sans-serif}
+      body{color-scheme:dark;overscroll-behavior:contain;-webkit-text-size-adjust:100%}
+      #root{display:flex;flex-direction:column}
+      *{box-sizing:border-box}
+    </style>
+    
+    <!-- Async CSS loading using preload + onload trick -->
     <script>
-      // Load CSS asynchronously using media attribute trick
       (function() {
-        function loadCSSAsync(link) {
-          // Use media="print" initially to make it non-render-blocking
-          link.media = 'print';
-          link.onload = function() {
-            // Once loaded, switch to media="all" to apply styles
-            this.media = 'all';
-            this.onload = null;
-          };
-          // Ensure styles apply even if onload doesn't fire
-          setTimeout(function() {
-            link.media = 'all';
-          }, 100);
-        }
-        
-        // Handle Vite-injected stylesheets
+        // Intercept and convert stylesheet links to preload for async loading
         var observer = new MutationObserver(function(mutations) {
           mutations.forEach(function(mutation) {
             mutation.addedNodes.forEach(function(node) {
               if (node.tagName === 'LINK' && node.rel === 'stylesheet') {
-                loadCSSAsync(node);
+                var href = node.href;
+                // Convert to preload for async loading
+                node.rel = 'preload';
+                node.as = 'style';
+                node.onload = function() {
+                  // Once loaded, convert to stylesheet
+                  this.rel = 'stylesheet';
+                  this.onload = null;
+                };
+                // Fallback: ensure it converts even if onload doesn't fire
+                setTimeout(function() {
+                  if (node.rel === 'preload') {
+                    node.rel = 'stylesheet';
+                  }
+                }, 50);
               }
             });
           });
         });
         
-        observer.observe(document.head, { childList: true, subtree: false });
+        observer.observe(document.head, { childList: true });
         
-        // Cleanup after page load
+        // Stop observing after page load
         window.addEventListener('load', function() {
-          setTimeout(function() { observer.disconnect(); }, 1000);
+          setTimeout(function() { observer.disconnect(); }, 500);
         });
       })();
     </script>
     <noscript>
-      <!-- Fallback for no-JS: CSS will load normally -->
+      <!-- No-JS fallback: inline essential styles -->
       <style>
-        #root { min-height: 100vh; background: #070707; color: #f5f5f5; }
+        html,body,#root{min-height:100vh;background:#070707;color:#f5f5f5}
       </style>
     </noscript>
   </head>
