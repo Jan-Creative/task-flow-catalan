@@ -64,54 +64,7 @@ interface DeferredTaskProviderProps {
 }
 
 export const DeferredTaskProvider = ({ children }: DeferredTaskProviderProps) => {
-  const [shouldLoadData, setShouldLoadData] = useState(false);
-  const [dataReady, setDataReady] = useState(false);
-
-  // Start loading data after a short delay to not block critical boot
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      logger.info('DeferredTaskContext', 'Starting background data loading');
-      setShouldLoadData(true);
-    }, 500); // Load after 500ms
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Conditional data hooks - only load when shouldLoadData is true
-  const emptyStats: EstadistiquesTasques = {
-    total: 0,
-    completades: 0,
-    enProces: 0,
-    pendents: 0
-  };
-
-  const dataHooks = shouldLoadData ? {
-    tasks: [],
-    folders: [],
-    createTask: async () => {},
-    updateTask: async () => {},
-    deleteTask: async () => {},
-    loading: false,
-    error: null,
-    refreshData: () => {},
-    taskStats: emptyStats,
-    properties: [],
-    setTaskProperty: async () => {}
-  } : {
-    tasks: [],
-    folders: [],
-    createTask: async () => {},
-    updateTask: async () => {},
-    deleteTask: async () => {},
-    loading: true,
-    error: null,
-    refreshData: () => {},
-    taskStats: emptyStats,
-    properties: [],
-    setTaskProperty: async () => {}
-  };
-
-  // Use actual hooks only when ready
+  // Load data immediately - no artificial delays
   const {
     tasks,
     folders,
@@ -122,24 +75,14 @@ export const DeferredTaskProvider = ({ children }: DeferredTaskProviderProps) =>
     error,
     refreshData,
     taskStats
-  } = shouldLoadData ? useDadesApp() : dataHooks;
+  } = useDadesApp();
 
-  const { properties, setTaskProperty } = shouldLoadData ? useProperties() : { properties: [], setTaskProperty: async () => {} };
-
-  // Mark data as ready when loading is complete
-  useEffect(() => {
-    if (shouldLoadData && !loading && !dataReady) {
-      setDataReady(true);
-      logger.info('DeferredTaskContext', 'Background data loading complete');
-    }
-  }, [shouldLoadData, loading, dataReady]);
+  const { properties, setTaskProperty } = useProperties();
+  
+  const dataReady = !loading;
 
   // Stable callbacks to prevent unnecessary re-renders
   const createTask = useStableCallback(async (taskData: TaskCreateData, customProperties?: PropertyWithOptions[]) => {
-    if (!shouldLoadData) {
-      logger.warn('DeferredTaskContext', 'Attempted to create task before data loading started');
-      return;
-    }
     logger.info('DeferredTaskContext', 'Creating task', { 
       title: taskData.title, 
       hasCustomProperties: !!customProperties?.length 
@@ -148,10 +91,6 @@ export const DeferredTaskProvider = ({ children }: DeferredTaskProviderProps) =>
   });
 
   const updateTask = useStableCallback(async (taskId: ID, updates: TaskUpdateData) => {
-    if (!shouldLoadData) {
-      logger.warn('DeferredTaskContext', 'Attempted to update task before data loading started');
-      return;
-    }
     logger.info('DeferredTaskContext', 'Updating task', { 
       taskId, 
       updateFields: Object.keys(updates) 
@@ -160,10 +99,6 @@ export const DeferredTaskProvider = ({ children }: DeferredTaskProviderProps) =>
   });
 
   const deleteTask = useStableCallback(async (taskId: ID) => {
-    if (!shouldLoadData) {
-      logger.warn('DeferredTaskContext', 'Attempted to delete task before data loading started');
-      return;
-    }
     logger.info('DeferredTaskContext', 'Deleting task', { taskId });
     await rawDeleteTask(taskId);
   });

@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { EnhancedErrorBoundary } from "@/components/ui/enhanced-error-boundary";
-import { OptimizedAppProvider } from "@/components/ui/optimized-context-provider";
+import { CombinedAppProvider } from "@/components/ui/combined-app-provider";
 import { KeyboardNavigationProvider } from "@/contexts/KeyboardNavigationContext";
 import { initializePerformanceOptimizations } from "@/lib/performanceOptimizer";
 import App from "./App.tsx";
@@ -137,16 +137,17 @@ if ('serviceWorker' in navigator && !window.location.search.includes('no-sw=1'))
 }
 
 // Render app and signal successful boot
+// StrictMode temporarily disabled to fix React 18 "Should have a queue" error
+const isMinimalMode = window.location.search.includes('minimal=1');
+
 ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <EnhancedErrorBoundary context="Aplicació Principal" showDetails={true}>
-      <OptimizedAppProvider>
-        <KeyboardNavigationProvider>
-          <App />
-        </KeyboardNavigationProvider>
-      </OptimizedAppProvider>
-    </EnhancedErrorBoundary>
-  </React.StrictMode>
+  <EnhancedErrorBoundary context="Aplicació Principal" showDetails={true}>
+    <CombinedAppProvider minimal={isMinimalMode}>
+      <KeyboardNavigationProvider>
+        <App />
+      </KeyboardNavigationProvider>
+    </CombinedAppProvider>
+  </EnhancedErrorBoundary>
 );
 
 // Signal successful boot to disable watchdog
