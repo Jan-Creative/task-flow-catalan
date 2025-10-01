@@ -95,43 +95,6 @@ export default defineConfig(({ mode }) => ({
     // Optimize chunk splitting for better caching
     rollupOptions: {
       output: {
-        // Aggressive code splitting for better performance
-        manualChunks: {
-          // Core React libraries
-          'react-core': ['react', 'react-dom'],
-          'react-router': ['react-router-dom'],
-          
-          // UI libraries
-          'radix-ui': [
-            '@radix-ui/react-dialog', 
-            '@radix-ui/react-popover', 
-            '@radix-ui/react-select',
-            '@radix-ui/react-accordion',
-            '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-tabs',
-            '@radix-ui/react-tooltip'
-          ],
-          
-          // Data libraries
-          'data-libs': ['@tanstack/react-query', '@supabase/supabase-js'],
-          
-          // Form libraries
-          'form-libs': ['react-hook-form', '@hookform/resolvers', 'zod'],
-          
-          // Date libraries
-          'date-libs': ['date-fns', 'react-day-picker'],
-          
-          // Rich text editor
-          'editor': ['@tiptap/react', '@tiptap/starter-kit', '@tiptap/extension-heading'],
-          
-          // Charts and visualization
-          'charts': ['recharts'],
-          
-          // Heavy components that should be separate
-          'task-components': ['src/components/CreateTaskModal.tsx'],
-          'calendar-components': ['src/pages/CalendarPage.tsx'],
-          'settings-components': ['src/pages/SettingsPage.tsx']
-        },
         // Use content-based hashing for better cache invalidation
         chunkFileNames: 'assets/[name]-[hash].js',
         entryFileNames: 'assets/[name]-[hash].js',
@@ -150,7 +113,7 @@ export default defineConfig(({ mode }) => ({
     assetsInlineLimit: 4096, // Inline small assets
     sourcemap: false, // Disable sourcemaps in production for smaller files
     // Enable CSS minification
-    cssMinify: 'lightningcss',
+    cssMinify: true,
     cssCodeSplit: true,
     // Increase chunk size warning limit since this is an internal app
     chunkSizeWarningLimit: 1000, // 1MB instead of 500KB
