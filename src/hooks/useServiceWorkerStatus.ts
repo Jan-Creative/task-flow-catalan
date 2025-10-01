@@ -25,7 +25,7 @@ export const useServiceWorkerStatus = () => {
       return;
     }
 
-    navigator.serviceWorker.getRegistration('/sw-advanced.js')
+    navigator.serviceWorker.getRegistration()
       .then(registration => {
         if (!registration) {
           setStatus(prev => ({ 
@@ -64,7 +64,7 @@ export const useServiceWorkerStatus = () => {
   }, []);
 
   const forceUpdate = useCallback(() => {
-    navigator.serviceWorker.getRegistration('/sw-advanced.js')
+    navigator.serviceWorker.getRegistration()
       .then(registration => {
         if (registration?.waiting) {
           registration.waiting.postMessage({ type: 'SKIP_WAITING' });

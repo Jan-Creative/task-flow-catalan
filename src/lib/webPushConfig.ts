@@ -113,6 +113,20 @@ export const registerServiceWorker = async (): Promise<ServiceWorkerRegistration
   if (!('serviceWorker' in navigator)) {
     throw new Error('Service Workers no estan suportats');
   }
+
+  // Reutilitza el registre existent si ja és el correcte
+  let existing = await navigator.serviceWorker.getRegistration();
+  const isCorrect = !!existing && (
+    existing.active?.scriptURL?.endsWith('/sw-advanced.js') ||
+    existing.waiting?.scriptURL?.endsWith('/sw-advanced.js') ||
+    existing.installing?.scriptURL?.endsWith('/sw-advanced.js')
+  );
+
+  if (isCorrect && existing) {
+    await waitForServiceWorkerReady(existing);
+    console.log('✅ Service Worker ja registrat i actiu:', existing);
+    return existing;
+  }
   
   const registration = await navigator.serviceWorker.register('/sw-advanced.js', {
     scope: '/'

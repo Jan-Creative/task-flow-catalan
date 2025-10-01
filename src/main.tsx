@@ -67,15 +67,43 @@ setupIOSProtection();
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
-      const registration = await navigator.serviceWorker.register('/sw-advanced.js', {
-        scope: '/'
-      });
-      
-      console.log('Service Worker registrat correctament:', registration.scope);
-      
+      // Cleanup legacy or incorrect Service Worker registrations
+      const existingRegs = await navigator.serviceWorker.getRegistrations();
+      for (const reg of existingRegs) {
+        const url =
+          reg.active?.scriptURL ||
+          reg.waiting?.scriptURL ||
+          reg.installing?.scriptURL ||
+          '';
+        if (url && !url.endsWith('/sw-advanced.js')) {
+          try {
+            console.log('🧹 Unregistering legacy Service Worker:', url);
+            await reg.unregister();
+          } catch (e) {
+            console.warn('Failed to unregister legacy Service Worker', e);
+          }
+        }
+      }
+
+      // Reuse existing correct registration if present, otherwise register
+      let registration = await navigator.serviceWorker.getRegistration();
+      const hasCorrectSW =
+        !!registration &&
+        (registration.active?.scriptURL?.endsWith('/sw-advanced.js') ||
+          registration.waiting?.scriptURL?.endsWith('/sw-advanced.js') ||
+          registration.installing?.scriptURL?.endsWith('/sw-advanced.js'));
+
+      if (!hasCorrectSW) {
+        registration = await navigator.serviceWorker.register('/sw-advanced.js', {
+          scope: '/',
+        });
+      }
+
+      console.log('Service Worker registrat correctament:', registration!.scope);
+
       // Listen for updates and force immediate activation
-      registration.addEventListener('updatefound', () => {
-        const newWorker = registration.installing;
+      registration!.addEventListener('updatefound', () => {
+        const newWorker = registration!.installing;
         if (newWorker) {
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
@@ -90,7 +118,6 @@ if ('serviceWorker' in navigator) {
       navigator.serviceWorker.addEventListener('message', (event) => {
         if (event.data?.type === 'SW_ACTIVATED' && event.data?.shouldReload) {
           console.log('🔄 SW updated, reloading app...');
-          // Small delay to ensure SW is fully ready
           setTimeout(() => {
             window.location.reload();
           }, 100);

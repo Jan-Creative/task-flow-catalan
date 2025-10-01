@@ -20,7 +20,7 @@ export const useAppUpdater = () => {
     if (!('serviceWorker' in navigator)) return;
 
     try {
-      const registration = await navigator.serviceWorker.getRegistration('/sw-advanced.js');
+      const registration = await navigator.serviceWorker.getRegistration();
       if (registration) {
         await registration.update();
         setStatus(prev => ({ 
@@ -50,10 +50,10 @@ export const useAppUpdater = () => {
       const cacheNames = await caches.keys();
       await Promise.all(cacheNames.map(name => caches.delete(name)));
       
-      // Unregister current SW
-      const registration = await navigator.serviceWorker.getRegistration('/sw-advanced.js');
-      if (registration) {
-        await registration.unregister();
+      // Unregister all Service Workers
+      if ('serviceWorker' in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map(reg => reg.unregister()));
       }
       
       // Force reload
