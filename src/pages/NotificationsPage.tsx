@@ -8,7 +8,6 @@ import { CustomNotificationCard } from '@/components/notifications/CustomNotific
 import { NotificationBlocksCard } from '@/components/notifications/NotificationBlocksCard';
 import { NotificationHistoryCard } from '@/components/notifications/NotificationHistoryCard';
 import { UpcomingNotificationsCard } from '@/components/notifications/UpcomingNotificationsCard';
-import { NotificationDebugPanel } from '@/components/notifications/NotificationDebugPanel';
 import "@/styles/background-effects.css";
 
 const NotificationsPage: React.FC = () => {
@@ -37,11 +36,6 @@ const NotificationsPage: React.FC = () => {
       {/* Layout de targetes individuals estil TaskDetailPage */}
       <div className="relative z-20 p-4 pb-24">
         <div className="max-w-7xl mx-auto">
-          
-          {/* Debug Panel - Sempre visible a la part superior */}
-          <div className="mb-6 animate-fade-in">
-            <NotificationDebugPanel />
-          </div>
           
           {/* Desktop XL Layout - Grid Complex (1440px+) */}
           <div className="hidden 2xl:grid 2xl:grid-cols-6 gap-6 min-h-[600px] auto-rows-fr">
