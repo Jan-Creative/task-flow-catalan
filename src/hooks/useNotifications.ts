@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/lib/toastUtils';
 import { useAuth } from '@/hooks/useAuth';
+import { logger } from '@/lib/logger';
 import {
   isWebPushSupported,
   canUseWebPush,
@@ -91,7 +92,7 @@ export const useNotifications = () => {
       checkExistingSubscription();
     }
     
-    console.log('🔍 Web Push Support:', { 
+    logger.debug('useNotifications', 'Web Push Support', { 
       supported, 
       usable, 
       declarative,
@@ -111,7 +112,7 @@ export const useNotifications = () => {
         if (registration) {
           const existingSubscription = await registration.pushManager.getSubscription();
           if (existingSubscription) {
-            console.log('🔍 Subscripció Web Push existent detectada');
+            logger.info('useNotifications', 'Existing Web Push subscription detected');
             setSubscription(existingSubscription);
             setIsSubscribed(true);
             
@@ -124,7 +125,7 @@ export const useNotifications = () => {
         }
       }
     } catch (error) {
-      console.error('❌ Error verificant subscripció existent:', error);
+      logger.error('useNotifications', 'Error checking existing subscription', error);
     }
   }, []);
 
@@ -133,12 +134,12 @@ export const useNotifications = () => {
    */
   const loadSubscriptions = useCallback(async () => {
     if (!user) {
-      console.log('⚠️ loadSubscriptions: no user');
+      logger.debug('useNotifications', 'loadSubscriptions: no user');
       return;
     }
 
     try {
-      console.log('🔍 Carregant subscripcions per usuari:', user.id);
+      logger.debug('useNotifications', 'Loading subscriptions for user', { userId: user.id });
       const { data, error } = await supabase
         .from('web_push_subscriptions')
         .select('*')
@@ -146,21 +147,21 @@ export const useNotifications = () => {
         .eq('is_active', true);
 
       if (error) {
-        console.error('❌ Error carregant subscripcions:', error);
+        logger.error('useNotifications', 'Error loading subscriptions', error);
         throw error;
       }
       
-      console.log('📋 Subscripcions trobades:', data?.length || 0);
+      logger.debug('useNotifications', 'Subscriptions loaded', { count: data?.length || 0 });
       setSubscriptions(data || []);
       
       if (data && data.length > 0) {
         setIsSubscribed(true);
-        console.log('✅ Subscripcions actives carregades');
+        logger.info('useNotifications', 'Active subscriptions loaded');
       } else {
-        console.log('⚠️ No hi ha subscripcions actives');
+        logger.debug('useNotifications', 'No active subscriptions found');
       }
     } catch (error) {
-      console.error('❌ Error carregant subscripcions:', error);
+      logger.error('useNotifications', 'Error loading subscriptions', error);
       setSubscriptions([]);
     }
   }, [user]);
@@ -170,12 +171,12 @@ export const useNotifications = () => {
    */
   const loadPreferences = useCallback(async () => {
     if (!user) {
-      console.log('⚠️ loadPreferences: no user');
+      logger.debug('useNotifications', 'loadPreferences: no user');
       return;
     }
 
     try {
-      console.log('🔍 Carregant preferències per usuari:', user.id);
+      logger.debug('useNotifications', 'Loading preferences for user', { userId: user.id });
       const { data, error } = await supabase
         .from('notification_preferences')
         .select('*')
@@ -183,14 +184,14 @@ export const useNotifications = () => {
         .maybeSingle();
 
       if (error) {
-        console.error('❌ Error carregant preferències:', error);
+        logger.error('useNotifications', 'Error loading preferences', error);
         throw error;
       }
       
-      console.log('📋 Preferències trobades:', !!data);
+      logger.debug('useNotifications', 'Preferences loaded', { hasPreferences: !!data });
       setPreferences(data);
     } catch (error) {
-      console.error('❌ Error carregant preferències:', error);
+      logger.error('useNotifications', 'Error loading preferences', error);
       setPreferences(null);
     }
   }, [user]);
@@ -208,8 +209,7 @@ export const useNotifications = () => {
    */
   const initializeNotifications = useCallback(async (): Promise<boolean> => {
     try {
-      console.log('🚀 Iniciant sistema de notificacions...');
-      console.log('📱 Context:', { 
+      logger.info('useNotifications', 'Initializing notifications system', { 
         isSafari: isSafari(), 
         isPWA: isPWA(), 
         canUse, 
@@ -221,34 +221,34 @@ export const useNotifications = () => {
           ? 'Safari requereix que l\'app estigui instal·lada com PWA per utilitzar notificacions' 
           : 'Web Push no és compatible amb aquest navegador';
         
-        console.warn('⚠️', errorMsg);
+        logger.warn('useNotifications', errorMsg);
         throw new Error(errorMsg);
       }
 
       // Sol·licitar permisos
-      console.log('🔐 Sol·licitant permisos de notificació...');
+      logger.debug('useNotifications', 'Requesting notification permission');
       const permission = await requestNotificationPermission();
       setPermissionStatus(permission);
       
       if (permission !== 'granted') {
         throw new Error('Permisos de notificació no concedits');
       }
-      console.log('✅ Permisos concedits');
+      logger.info('useNotifications', 'Notification permission granted');
 
       // Registrar service worker amb retry logic
-      console.log('🔧 Registrant Service Worker...');
+      logger.debug('useNotifications', 'Registering Service Worker');
       const registration = await registerServiceWorker();
-      console.log('✅ Service Worker registrat i actiu');
+      logger.info('useNotifications', 'Service Worker registered and active');
       
       // Verificar subscripció existent
-      console.log('🔍 Verificant subscripció existent...');
+      logger.debug('useNotifications', 'Checking existing subscription');
       let pushSubscription = await getExistingSubscription(registration);
       
       if (!pushSubscription) {
-        console.log('🆕 Creant nova subscripció Web Push...');
+        logger.info('useNotifications', 'Creating new Web Push subscription');
         pushSubscription = await createPushSubscription(registration);
       } else {
-        console.log('♻️ Utilitzant subscripció existent');
+        logger.info('useNotifications', 'Using existing subscription');
       }
       
       setSubscription(pushSubscription);
@@ -256,17 +256,17 @@ export const useNotifications = () => {
 
       // Guardar subscripció a la BD amb millor logging
       if (user && pushSubscription) {
-        console.log('💾 Guardant subscripció a la base de dades...');
+        logger.debug('useNotifications', 'Saving subscription to database');
         const saved = await saveSubscription(pushSubscription);
         if (saved) {
-          console.log('✅ Subscripció guardada correctament');
+          logger.info('useNotifications', 'Subscription saved successfully');
         } else {
-          console.error('❌ Error guardant subscripció');
+          logger.error('useNotifications', 'Failed to save subscription');
         }
       }
 
       setIsInitialized(true);
-      console.log('🎉 Sistema de notificacions inicialitzat correctament');
+      logger.info('useNotifications', 'Notifications system initialized successfully');
       
       toast({
         title: "✅ Notificacions habilitades",
@@ -275,7 +275,7 @@ export const useNotifications = () => {
       
       return true;
     } catch (error) {
-      console.error('❌ Error inicialitzant notificacions:', error);
+      logger.error('useNotifications', 'Error initializing notifications', error);
       
       // Missatges d'error més específics per Safari/iOS
       let errorMessage = 'No s\'han pogut configurar les notificacions';
@@ -304,7 +304,7 @@ export const useNotifications = () => {
    */
   const saveSubscription = useCallback(async (pushSubscription: PushSubscription): Promise<boolean> => {
     if (!user) {
-      console.warn('⚠️ No es pot guardar subscripció sense usuari');
+      logger.warn('useNotifications', 'Cannot save subscription without user');
       return false;
     }
 
@@ -312,7 +312,7 @@ export const useNotifications = () => {
       const subscriptionData = formatSubscriptionForDatabase(pushSubscription);
       const deviceInfo = getDeviceInfo();
 
-      console.log('💾 Intentant guardar subscripció:', {
+      logger.debug('useNotifications', 'Attempting to save subscription', {
         endpoint: subscriptionData.endpoint.substring(0, 50) + '...',
         deviceType: deviceInfo.deviceType,
         userId: user.id
@@ -348,15 +348,15 @@ export const useNotifications = () => {
         .select();
 
       if (error) {
-        console.error('❌ Error BD guardant subscripció:', error);
+        logger.error('useNotifications', 'Database error saving subscription', error);
         throw error;
       }
       
-      console.log('✅ Subscripció guardada amb identificador únic:', deviceFingerprint);
+      logger.info('useNotifications', 'Subscription saved with unique identifier', { deviceFingerprint });
       await loadSubscriptions(); // Recarregar per verificar
       return true;
     } catch (error) {
-      console.error('❌ Error guardant subscripció:', error);
+      logger.error('useNotifications', 'Error saving subscription', error);
       toast({
         title: "⚠️ Advertència",
         description: "No s'ha pogut guardar la subscripció a la BD",
@@ -437,7 +437,7 @@ export const useNotifications = () => {
       
       return data;
     } catch (error) {
-      console.error('❌ Error creant recordatori:', error);
+      logger.error('useNotifications', 'Error creating reminder', error);
       toast({
         title: "❌ Error",
         description: "No s'ha pogut crear el recordatori",
@@ -479,7 +479,7 @@ export const useNotifications = () => {
         description: "La notificació s'ha programat correctament",
       });
     } catch (error) {
-      console.error('❌ Error creant notificació:', error);
+      logger.error('useNotifications', 'Error creating custom notification', error);
       toast({
         title: "❌ Error",
         description: "No s'ha pogut crear la notificació",
@@ -511,7 +511,7 @@ export const useNotifications = () => {
         description: "El recordatori s'ha cancel·lat correctament",
       });
     } catch (error) {
-      console.error('❌ Error cancel·lant recordatori:', error);
+      logger.error('useNotifications', 'Error cancelling reminder', error);
       toast({
         title: "❌ Error",
         description: "No s'ha pogut cancel·lar el recordatori",
@@ -529,13 +529,13 @@ export const useNotifications = () => {
       
       if (error) throw error;
       
-      console.log('✅ Processador executat:', data);
+      logger.info('useNotifications', 'Reminders processor executed', data);
       toast({
         title: "✅ Processador executat",
         description: `Processats: ${data?.processed || 0}, Enviats: ${data?.sent || 0}`,
       });
     } catch (error) {
-      console.error('❌ Error executant processador:', error);
+      logger.error('useNotifications', 'Error executing reminders processor', error);
       toast({
         title: "❌ Error",
         description: "No s'ha pogut executar el processador",
@@ -558,7 +558,7 @@ export const useNotifications = () => {
     }
 
     try {
-      console.log('🧪 Enviant notificació de prova...');
+      logger.debug('useNotifications', 'Sending test notification');
       
       // Primer verificar que tenim subscripcions locals
       if (subscriptions.length === 0) {
@@ -578,11 +578,11 @@ export const useNotifications = () => {
       });
 
       if (error) {
-        console.error('❌ Error invocant send-notification:', error);
+        logger.error('useNotifications', 'Error invoking send-notification', error);
         throw error;
       }
       
-      console.log('📋 Resposta send-notification:', data);
+      logger.debug('useNotifications', 'send-notification response', data);
       
       // Verificar la resposta de l'edge function
       if (data?.success === false) {
@@ -620,7 +620,7 @@ export const useNotifications = () => {
       
       return data; // Return response data for diagnostics
     } catch (error) {
-      console.error('❌ Error enviant prova:', error);
+      logger.error('useNotifications', 'Error sending test notification', error);
       toast({
         title: "❌ Error",
         description: "No s'ha pogut enviar la notificació de prova",
@@ -644,7 +644,7 @@ export const useNotifications = () => {
     }
 
     try {
-      console.log('🔄 Reinicialitzant subscripcions...');
+      logger.info('useNotifications', 'Resetting subscriptions');
       
       // 1. Desactivar totes les subscripcions existents
       await supabase
@@ -669,7 +669,7 @@ export const useNotifications = () => {
         description: "Les subscripcions s'han reinicialitzat correctament",
       });
     } catch (error: any) {
-      console.error('❌ Error reinicialitzant subscripcions:', error);
+      logger.error('useNotifications', 'Error resetting subscriptions', error);
       toast({
         title: "❌ Error",
         description: "Error reinicialitzant les subscripcions",
@@ -706,7 +706,7 @@ export const useNotifications = () => {
     if (!user) return;
     
     try {
-      console.log('🧹 Netejant subscripcions duplicades...');
+      logger.info('useNotifications', 'Cleaning duplicate subscriptions');
       
       // Mantenir només la subscripció més recent
       const { error } = await supabase
@@ -723,9 +723,9 @@ export const useNotifications = () => {
       if (error) throw error;
 
       await loadSubscriptions();
-      console.log('✅ Subscripcions netejades');
+      logger.info('useNotifications', 'Subscriptions cleaned');
     } catch (error) {
-      console.error('❌ Error netejant subscripcions:', error);
+      logger.error('useNotifications', 'Error cleaning duplicate subscriptions', error);
     }
   }, [user, loadSubscriptions]);
 
@@ -736,7 +736,7 @@ export const useNotifications = () => {
     if (!user) return;
     
     try {
-      console.log('🗑️ Purgant totes les subscripcions...');
+      logger.info('useNotifications', 'Purging all subscriptions');
       
       const { error } = await supabase
         .from('web_push_subscriptions')
@@ -757,15 +757,15 @@ export const useNotifications = () => {
         const browserSub = await registration.pushManager.getSubscription();
         if (browserSub) {
           await browserSub.unsubscribe();
-          console.log('✅ Browser subscription also unsubscribed');
+          logger.info('useNotifications', 'Browser subscription also unsubscribed');
         }
       } catch (error) {
-        console.log('⚠️ Could not unsubscribe browser subscription:', error);
+        logger.warn('useNotifications', 'Could not unsubscribe browser subscription', error);
       }
       
-      console.log('✅ Totes les subscripcions purgades');
+      logger.info('useNotifications', 'All subscriptions purged');
     } catch (error) {
-      console.error('❌ Error purgant subscripcions:', error);
+      logger.error('useNotifications', 'Error purging subscriptions', error);
     }
   }, [user]);
 
