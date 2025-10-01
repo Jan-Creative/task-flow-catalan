@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { EnhancedErrorBoundary } from "@/components/ui/enhanced-error-boundary";
 import { OptimizedAppProvider } from "@/components/ui/optimized-context-provider";
+import MinimalProvider from "@/components/ui/minimal-provider";
 import { KeyboardNavigationProvider } from "@/contexts/KeyboardNavigationContext";
 import { initializePerformanceOptimizations } from "@/lib/performanceOptimizer";
 import App from "./App.tsx";
@@ -12,6 +13,11 @@ console.log('🚀 Lovable App: Initialization started');
 console.log('📱 User Agent:', navigator.userAgent);
 console.log('🌐 Location:', window.location.href);
 console.log('📊 Viewport:', window.innerWidth, 'x', window.innerHeight);
+
+// URL flags
+const params = new URLSearchParams(window.location.search);
+const SAFE_MODE = params.has('safe');
+const DISABLE_SW = params.has('no-sw') || localStorage.getItem('disableSW') === '1';
 
 // Initialize performance optimizations
 try {
@@ -76,21 +82,29 @@ setupIOSProtection();
 
 // Render app function
 function renderApp() {
-  console.log('🎨 Rendering React app...');
+  console.log('🎨 Rendering React app... (safe mode:', SAFE_MODE, ", disable SW:", DISABLE_SW, ")");
   try {
     const rootElement = document.getElementById("root");
     if (!rootElement) {
       throw new Error('Root element not found');
     }
 
+    const Providers = ({ children }: { children: React.ReactNode }) => (
+      SAFE_MODE ? (
+        <MinimalProvider>{children}</MinimalProvider>
+      ) : (
+        <OptimizedAppProvider>{children}</OptimizedAppProvider>
+      )
+    );
+
     ReactDOM.createRoot(rootElement).render(
       <React.StrictMode>
         <EnhancedErrorBoundary context="Aplicació Principal" showDetails={true}>
-          <OptimizedAppProvider>
+          <Providers>
             <KeyboardNavigationProvider>
               <App />
             </KeyboardNavigationProvider>
-          </OptimizedAppProvider>
+          </Providers>
         </EnhancedErrorBoundary>
       </React.StrictMode>
     );
@@ -117,73 +131,73 @@ function renderApp() {
   }
 }
 
-// Service Worker registration with timeout fallback
+// Service Worker registration with debug/safe flags
 if ('serviceWorker' in navigator) {
   console.log('🔧 Service Worker support detected');
-  
-  // Set timeout to render app even if SW takes too long
-  const swTimeout = setTimeout(() => {
-    console.warn('⚠️ Service Worker timeout - rendering app anyway');
-    renderApp();
-  }, 2000); // 2 second timeout
 
-  window.addEventListener('load', async () => {
-    try {
-      console.log('🧹 Checking for legacy Service Workers...');
-      const existingRegs = await navigator.serviceWorker.getRegistrations();
-      
-      for (const reg of existingRegs) {
-        const url = reg.active?.scriptURL || reg.waiting?.scriptURL || reg.installing?.scriptURL || '';
-        if (url && !url.endsWith('/sw-advanced.js')) {
-          console.log('🗑️ Removing legacy Service Worker:', url);
-          await reg.unregister().catch(e => console.warn('Failed to unregister:', e));
-        }
-      }
-
-      // Register or reuse Service Worker
-      let registration = await navigator.serviceWorker.getRegistration();
-      const hasCorrectSW = !!registration && 
-        (registration.active?.scriptURL?.endsWith('/sw-advanced.js') ||
-         registration.waiting?.scriptURL?.endsWith('/sw-advanced.js') ||
-         registration.installing?.scriptURL?.endsWith('/sw-advanced.js'));
-
-      if (!hasCorrectSW) {
-        console.log('📦 Registering Service Worker...');
-        registration = await navigator.serviceWorker.register('/sw-advanced.js', { scope: '/' });
-      }
-
-      console.log('✅ Service Worker registered:', registration!.scope);
-      clearTimeout(swTimeout);
-
-      // Listen for updates
-      registration!.addEventListener('updatefound', () => {
-        const newWorker = registration!.installing;
-        if (newWorker) {
-          newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              console.log('🔄 New SW version available');
-              newWorker.postMessage({ type: 'SKIP_WAITING' });
-            }
-          });
-        }
-      });
-
-      // Listen for SW activation messages
-      navigator.serviceWorker.addEventListener('message', (event) => {
-        if (event.data?.type === 'SW_ACTIVATED' && event.data?.shouldReload) {
-          console.log('🔄 SW activated, reloading...');
-          setTimeout(() => window.location.reload(), 100);
-        }
-      });
-
+  if (DISABLE_SW) {
+    console.warn('🧪 SW disabled via flag (?no-sw=1 or localStorage.disableSW=1)');
+    window.addEventListener('load', async () => {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r => r.unregister().catch(() => {})));
       renderApp();
-      
-    } catch (error) {
-      console.error('❌ Service Worker error:', error);
-      clearTimeout(swTimeout);
-      renderApp(); // Render app even if SW fails
-    }
-  });
+    });
+  } else {
+    // Set timeout to render app even if SW takes too long
+    const swTimeout = setTimeout(() => {
+      console.warn('⚠️ Service Worker timeout - rendering app anyway');
+      renderApp();
+    }, 2000);
+
+    window.addEventListener('load', async () => {
+      try {
+        console.log('🧹 Checking for legacy Service Workers...');
+        const existingRegs = await navigator.serviceWorker.getRegistrations();
+        for (const reg of existingRegs) {
+          const url = reg.active?.scriptURL || reg.waiting?.scriptURL || reg.installing?.scriptURL || '';
+          if (url && !url.endsWith('/sw-advanced.js')) {
+            console.log('🗑️ Removing legacy Service Worker:', url);
+            await reg.unregister().catch(e => console.warn('Failed to unregister:', e));
+          }
+        }
+
+        // Register or reuse Service Worker
+        let registration = await navigator.serviceWorker.getRegistration();
+        const hasCorrectSW = !!registration && (
+          registration.active?.scriptURL?.endsWith('/sw-advanced.js') ||
+          registration.waiting?.scriptURL?.endsWith('/sw-advanced.js') ||
+          registration.installing?.scriptURL?.endsWith('/sw-advanced.js')
+        );
+
+        if (!hasCorrectSW) {
+          console.log('📦 Registering Service Worker...');
+          registration = await navigator.serviceWorker.register('/sw-advanced.js', { scope: '/' });
+        }
+
+        console.log('✅ Service Worker registered:', registration!.scope);
+        clearTimeout(swTimeout);
+
+        // Listen for updates
+        registration!.addEventListener('updatefound', () => {
+          const newWorker = registration!.installing;
+          if (newWorker) {
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                console.log('🔄 New SW version installed');
+                // Do NOT auto-reload to avoid loops
+              }
+            });
+          }
+        });
+
+        renderApp();
+      } catch (error) {
+        console.error('❌ Service Worker error:', error);
+        renderApp(); // Render app even if SW fails
+        clearTimeout(swTimeout);
+      }
+    });
+  }
 } else {
   console.log('⚠️ Service Worker not supported');
   renderApp();

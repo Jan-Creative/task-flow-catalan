@@ -3,12 +3,12 @@
  * Implements professional caching strategies and offline capabilities
  */
 
-// Dynamic cache names with timestamp for guaranteed updates
-const BUILD_TIMESTAMP = Date.now();
-const CACHE_NAME = `taskflow-v${BUILD_TIMESTAMP}`;
-const STATIC_CACHE = `taskflow-static-v${BUILD_TIMESTAMP}`;
-const DYNAMIC_CACHE = `taskflow-dynamic-v${BUILD_TIMESTAMP}`;
-const API_CACHE = `taskflow-api-v${BUILD_TIMESTAMP}`;
+// Fixed cache version to avoid infinite update loops
+const SW_VERSION = 'v3';
+const CACHE_NAME = `taskflow-${SW_VERSION}`;
+const STATIC_CACHE = `taskflow-static-${SW_VERSION}`;
+const DYNAMIC_CACHE = `taskflow-dynamic-${SW_VERSION}`;
+const API_CACHE = `taskflow-api-${SW_VERSION}`;
 
 // Cache strategies
 const CACHE_STRATEGIES = {
@@ -92,15 +92,13 @@ self.addEventListener('install', event => {
   );
 });
 
-// Activate event - aggressive cache cleanup and immediate update
+// Activate event - cache cleanup and immediate control
 self.addEventListener('activate', event => {
   console.log('🚀 SW activating with cache:', CACHE_NAME);
   event.waitUntil(
     (async () => {
       const cacheNames = await caches.keys();
       const validCaches = [CACHE_NAME, STATIC_CACHE, DYNAMIC_CACHE, API_CACHE];
-      
-      // Delete ALL old caches to force fresh content
       await Promise.all(
         cacheNames
           .filter(cacheName => !validCaches.includes(cacheName))
@@ -109,20 +107,10 @@ self.addEventListener('activate', event => {
             return caches.delete(cacheName);
           })
       );
-      
+
       // Take immediate control of all clients
       await self.clients.claim();
-      
-      // Force reload all clients to get fresh content
-      const clients = await self.clients.matchAll();
-      clients.forEach(client => {
-        console.log('📡 Notifying client of update');
-        client.postMessage({ 
-          type: 'SW_ACTIVATED',
-          cacheVersion: CACHE_NAME,
-          shouldReload: true
-        });
-      });
+      // Do not force reload to avoid loops
     })()
   );
 });
@@ -175,11 +163,11 @@ async function networkFirst(request, cacheName, options = {}) {
     const networkResponse = await Promise.race([
       fetch(request),
       new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('timeout')), 
-        options.networkTimeoutSeconds * 1000 || 3000)
+        setTimeout(() => reject(new Error('timeout')),
+        (options.networkTimeoutSeconds || 3) * 1000)
       )
     ]);
-    
+
     if (networkResponse.status === 200) {
       cache.put(request, networkResponse.clone());
     }
@@ -255,7 +243,7 @@ async function handleAppRoute(request) {
     } catch (error) {
       // Only fallback to cache if network completely fails
       console.warn('Network failed, using cached fallback');
-      const cached = await cache.match('/') || await cache.match('/index.html');
+      const cached = await cache.match('/') || await cache.match('/offline.html') || await cache.match('/index.html');
       return cached || new Response('App offline', { status: 503 });
     }
   }
