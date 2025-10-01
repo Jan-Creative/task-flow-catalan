@@ -80,50 +80,79 @@ function setupIOSProtection() {
 // Initialize iOS protection
 setupIOSProtection();
 
-// Render app function
+// Render app function with PWA detection
 function renderApp() {
-  console.log('🎨 Rendering React app... (safe mode:', SAFE_MODE, ", disable SW:", DISABLE_SW, ")");
+  // Detect PWA/Standalone mode
+  const isPWA = window.matchMedia('(display-mode: standalone)').matches ||
+                (window.navigator as any).standalone === true ||
+                document.referrer.includes('android-app://');
+  
+  console.log('🎨 Rendering React app... (safe mode:', SAFE_MODE, ", disable SW:", DISABLE_SW, "PWA:", isPWA, ")");
+  
   try {
     const rootElement = document.getElementById("root");
     if (!rootElement) {
       throw new Error('Root element not found');
     }
 
-    const Providers = ({ children }: { children: React.ReactNode }) => (
-      SAFE_MODE ? (
-        <MinimalProvider>{children}</MinimalProvider>
-      ) : (
-        <OptimizedAppProvider>{children}</OptimizedAppProvider>
-      )
-    );
+    // Choose provider based on mode
+    let ProviderComponent: React.ComponentType<{ children: React.ReactNode; isPWA?: boolean }>;
+    
+    if (SAFE_MODE) {
+      ProviderComponent = MinimalProvider;
+    } else if (isPWA) {
+      // Dynamically import PWA optimized provider for standalone mode
+      import('./components/ui/pwa-optimized-provider').then(module => {
+        ProviderComponent = module.PWAOptimizedProvider;
+        renderWithProvider();
+      });
+      return; // Exit early, will render after import
+    } else {
+      ProviderComponent = OptimizedAppProvider;
+    }
 
-    ReactDOM.createRoot(rootElement).render(
-      <React.StrictMode>
-        <EnhancedErrorBoundary context="Aplicació Principal" showDetails={true}>
-          <Providers>
-            <KeyboardNavigationProvider>
-              <App />
-            </KeyboardNavigationProvider>
-          </Providers>
-        </EnhancedErrorBoundary>
-      </React.StrictMode>
-    );
-    console.log('✅ App rendered successfully');
+    renderWithProvider();
+
+    function renderWithProvider() {
+      ReactDOM.createRoot(rootElement).render(
+        <React.StrictMode>
+          <EnhancedErrorBoundary context="Aplicació Principal" showDetails={true}>
+            <ProviderComponent isPWA={isPWA}>
+              <KeyboardNavigationProvider>
+                <App />
+              </KeyboardNavigationProvider>
+            </ProviderComponent>
+          </EnhancedErrorBoundary>
+        </React.StrictMode>
+      );
+      console.log('✅ App rendered successfully', isPWA ? '(PWA Mode)' : '(Browser Mode)');
+    }
   } catch (error) {
     console.error('❌ Critical error rendering app:', error);
-    // Fallback: show error directly in DOM
+    // Enhanced fallback with emergency reset
     const root = document.getElementById("root");
     if (root) {
       root.innerHTML = `
-        <div style="min-height: 100vh; background: #0a0a0a; color: white; display: flex; align-items: center; justify-content: center; padding: 1rem; font-family: system-ui, -apple-system, sans-serif;">
-          <div style="max-width: 500px; width: 100%; background: #1a1a1a; padding: 2rem; border-radius: 12px; border: 1px solid #2a2a2a;">
-            <div style="color: #ef4444; font-size: 2rem; margin-bottom: 1rem; text-align: center;">⚠️</div>
-            <h1 style="color: #ef4444; margin-bottom: 1rem; font-size: 1.5rem; text-align: center;">Error Crític</h1>
-            <p style="margin-bottom: 1rem; color: #9ca3af; text-align: center;">No s'ha pogut carregar l'aplicació.</p>
-            <pre style="background: #0a0a0a; padding: 1rem; border-radius: 6px; overflow: auto; font-size: 0.75rem; color: #d1d5db; border: 1px solid #2a2a2a;">${error}</pre>
-            <button onclick="window.location.reload()" style="width: 100%; background: #3b82f6; color: white; padding: 0.875rem; border: none; border-radius: 6px; cursor: pointer; margin-top: 1rem; font-size: 1rem; font-weight: 500;">
-              Recarregar Aplicació
+        <div style="min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; display: flex; align-items: center; justify-content: center; padding: 1rem; font-family: system-ui, -apple-system, sans-serif;">
+          <div style="max-width: 500px; width: 100%; background: rgba(255,255,255,0.95); color: #1a1a1a; padding: 2rem; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+            <div style="color: #ef4444; font-size: 3rem; margin-bottom: 1rem; text-align: center;">⚠️</div>
+            <h1 style="color: #ef4444; margin-bottom: 1rem; font-size: 1.5rem; text-align: center; font-weight: 600;">Error Crític</h1>
+            <p style="margin-bottom: 1.5rem; color: #6b7280; text-align: center;">No s'ha pogut carregar l'aplicació.</p>
+            <button onclick="(async()=>{if('caches'in window){const n=await caches.keys();await Promise.all(n.map(c=>caches.delete(c)))}if('serviceWorker'in navigator){const r=await navigator.serviceWorker.getRegistrations();for(const reg of r)await reg.unregister()}localStorage.clear();sessionStorage.clear();location.href=location.origin+'?nocache='+Date.now()})()" 
+                    style="width: 100%; background: #ef4444; color: white; padding: 1rem; border: none; border-radius: 8px; cursor: pointer; margin-bottom: 0.75rem; font-size: 1rem; font-weight: 600; box-shadow: 0 4px 12px rgba(239,68,68,0.3);">
+              🔄 Reset d'Emergència
             </button>
+            <button onclick="window.open(location.origin,'_blank')" 
+                    style="width: 100%; background: #3b82f6; color: white; padding: 1rem; border: none; border-radius: 8px; cursor: pointer; margin-bottom: 0.75rem; font-size: 1rem; font-weight: 600; box-shadow: 0 4px 12px rgba(59,130,246,0.3);">
+              🌐 Obrir en Navegador
+            </button>
+            <button onclick="location.reload()" 
+                    style="width: 100%; background: #6b7280; color: white; padding: 0.875rem; border: none; border-radius: 8px; cursor: pointer; font-size: 0.95rem;">
+              Recarregar Simple
+            </button>
+            <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #e5e7eb; text-align: center; font-size: 0.75rem; color: #9ca3af;">
+              Si el problema persisteix, utilitza "Reset d'Emergència"
+            </div>
           </div>
         </div>
       `;
