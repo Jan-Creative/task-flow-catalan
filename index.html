@@ -40,40 +40,49 @@
     <link rel="preconnect" href="https://umfrvkakvgsypqcyyzke.supabase.co" crossorigin />
     <link rel="dns-prefetch" href="https://umfrvkakvgsypqcyyzke.supabase.co" />
     
-    <!-- Optimize resource loading - preload CSS asynchronously -->
+    <!-- Async CSS loading to eliminate render-blocking resources -->
     <script>
-      // Convert stylesheet links to preload to eliminate render-blocking
+      // Load CSS asynchronously using media attribute trick
       (function() {
+        function loadCSSAsync(link) {
+          // Use media="print" initially to make it non-render-blocking
+          link.media = 'print';
+          link.onload = function() {
+            // Once loaded, switch to media="all" to apply styles
+            this.media = 'all';
+            this.onload = null;
+          };
+          // Ensure styles apply even if onload doesn't fire
+          setTimeout(function() {
+            link.media = 'all';
+          }, 100);
+        }
+        
+        // Handle Vite-injected stylesheets
         var observer = new MutationObserver(function(mutations) {
           mutations.forEach(function(mutation) {
             mutation.addedNodes.forEach(function(node) {
-              if (node.nodeName === 'LINK' && node.rel === 'stylesheet') {
-                var href = node.href;
-                // Replace with preload
-                node.rel = 'preload';
-                node.as = 'style';
-                node.onload = function() {
-                  this.onload = null;
-                  this.rel = 'stylesheet';
-                };
-                // Fallback for browsers that don't support preload
-                var noscript = document.createElement('noscript');
-                var fallback = document.createElement('link');
-                fallback.rel = 'stylesheet';
-                fallback.href = href;
-                noscript.appendChild(fallback);
-                node.parentNode.insertBefore(noscript, node.nextSibling);
-                observer.disconnect();
+              if (node.tagName === 'LINK' && node.rel === 'stylesheet') {
+                loadCSSAsync(node);
               }
             });
           });
         });
-        observer.observe(document.head, { childList: true });
         
-        // Auto-disconnect after 1s
-        setTimeout(function() { observer.disconnect(); }, 1000);
+        observer.observe(document.head, { childList: true, subtree: false });
+        
+        // Cleanup after page load
+        window.addEventListener('load', function() {
+          setTimeout(function() { observer.disconnect(); }, 1000);
+        });
       })();
     </script>
+    <noscript>
+      <!-- Fallback for no-JS: CSS will load normally -->
+      <style>
+        #root { min-height: 100vh; background: #070707; color: #f5f5f5; }
+      </style>
+    </noscript>
   </head>
 
   <body>
