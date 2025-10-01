@@ -48,23 +48,48 @@ export default defineConfig(({ mode }) => ({
       compress: {
         drop_console: true, // Remove console.log in production
         drop_debugger: true,
-        pure_funcs: ['console.log', 'console.info', 'console.debug'],
-        passes: 3, // Run compression 3 times for maximum results
+        pure_funcs: ['console.log', 'console.info', 'console.debug', 'console.warn'],
+        passes: 4, // Run compression 4 times for maximum results
         unsafe: true, // Enable unsafe optimizations
         unsafe_comps: true, // Unsafe comparisons optimizations
         unsafe_math: true, // Optimize math expressions
         unsafe_methods: true, // Optimize method calls
+        unsafe_proto: true, // Optimize prototype access
+        unsafe_regexp: true, // Optimize regular expressions
+        unsafe_undefined: true, // Replace void 0 with undefined
         toplevel: true, // Mangle top-level scope
         keep_fargs: false, // Remove unused function arguments
         keep_fnames: false, // Remove function names when safe
+        dead_code: true, // Remove unreachable code
+        collapse_vars: true, // Collapse single-use variables
+        reduce_vars: true, // Optimize variable assignments
+        inline: 3, // Maximum inlining
+        join_vars: true, // Join consecutive var statements
+        side_effects: true, // Remove expressions with no side effects
+        conditionals: true, // Optimize if-s and conditional expressions
+        booleans: true, // Optimize boolean expressions
+        loops: true, // Optimize loops
+        unused: true, // Drop unused variables/functions
+        hoist_funs: true, // Hoist function declarations
+        hoist_vars: true, // Hoist var declarations
+        if_return: true, // Optimize if/return and if/continue
+        evaluate: true, // Evaluate constant expressions
+        sequences: true, // Join consecutive simple statements
+        comparisons: true, // Optimize comparisons
+        arrows: true, // Convert functions to arrow functions where possible
       },
       mangle: {
         safari10: true, // Fix Safari 10+ compatibility
         toplevel: true, // Mangle top-level names
+        properties: {
+          regex: /^_/, // Mangle properties starting with underscore
+        },
       },
       format: {
         comments: false, // Remove all comments
         ecma: 2020, // Use modern ECMAScript for smaller output
+        ascii_only: true, // Escape non-ASCII characters
+        semicolons: false, // Use ASI to save bytes
       },
     },
     // Optimize chunk splitting for better caching
@@ -111,14 +136,25 @@ export default defineConfig(({ mode }) => ({
         chunkFileNames: 'assets/[name]-[hash].js',
         entryFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[name]-[hash].[ext]',
+        // Compact output
+        compact: true,
+      },
+      treeshake: {
+        // Enable aggressive tree-shaking
+        moduleSideEffects: false,
+        propertyReadSideEffects: false,
+        tryCatchDeoptimization: false,
       },
     },
     // Optimize asset handling
     assetsInlineLimit: 4096, // Inline small assets
     sourcemap: false, // Disable sourcemaps in production for smaller files
     // Enable CSS minification
-    cssMinify: true,
+    cssMinify: 'lightningcss',
+    cssCodeSplit: true,
     // Increase chunk size warning limit since this is an internal app
     chunkSizeWarningLimit: 1000, // 1MB instead of 500KB
+    // Enable CSS module tree-shaking
+    reportCompressedSize: false, // Speed up build by skipping gzip size reporting
   },
 }));
