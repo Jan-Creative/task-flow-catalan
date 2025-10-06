@@ -51,15 +51,8 @@ interface CombinedAppProviderProps {
 }
 
 export const CombinedAppProvider = ({ children, minimal = false, disabledProviders = [] }: CombinedAppProviderProps) => {
-  const isDisabled = React.useCallback((name: string) => disabledProviders.includes(name), [disabledProviders]);
-
-  // Log React version for diagnostics
-  React.useEffect(() => {
-    bootTracer.trace('React', `Version: ${React.version}`, {
-      isSafari: /^((?!chrome|android).)*safari/i.test(navigator.userAgent),
-      isIOS: /iPad|iPhone|iPod/.test(navigator.userAgent)
-    });
-  }, []);
+  // Simple function - NO HOOKS to avoid dispatcher issues
+  const isDisabled = (name: string) => disabledProviders.includes(name);
 
   // Minimal mode: only essential providers
   if (minimal) {
