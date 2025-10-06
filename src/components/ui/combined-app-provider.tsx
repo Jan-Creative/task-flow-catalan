@@ -28,6 +28,22 @@ import { createOptimizedQueryClient } from '@/lib/optimizedCache';
 
 const queryClient = createOptimizedQueryClient();
 
+// Safe TooltipProvider wrapper - only initializes after mount
+const SafeTooltipProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [mounted, setMounted] = React.useState(false);
+  
+  React.useEffect(() => {
+    setMounted(true);
+    bootTracer.trace('TooltipProvider', 'Mounted safely after React init');
+  }, []);
+
+  if (!mounted) {
+    return <>{children}</>;
+  }
+
+  return <TooltipProvider>{children}</TooltipProvider>;
+};
+
 interface CombinedAppProviderProps {
   children: React.ReactNode;
   minimal?: boolean; // Emergency minimal mode
@@ -36,6 +52,14 @@ interface CombinedAppProviderProps {
 
 export const CombinedAppProvider = ({ children, minimal = false, disabledProviders = [] }: CombinedAppProviderProps) => {
   const isDisabled = React.useCallback((name: string) => disabledProviders.includes(name), [disabledProviders]);
+
+  // Log React version for diagnostics
+  React.useEffect(() => {
+    bootTracer.trace('React', `Version: ${React.version}`, {
+      isSafari: /^((?!chrome|android).)*safari/i.test(navigator.userAgent),
+      isIOS: /iPad|iPhone|iPod/.test(navigator.userAgent)
+    });
+  }, []);
 
   // Minimal mode: only essential providers
   if (minimal) {
@@ -58,9 +82,11 @@ export const CombinedAppProvider = ({ children, minimal = false, disabledProvide
           enableSystem
           disableTransitionOnChange
         >
-          <TooltipProvider>
-            {minimalContent}
-          </TooltipProvider>
+          {isDisabled('Tooltip') ? minimalContent : (
+            <SafeTooltipProvider>
+              {minimalContent}
+            </SafeTooltipProvider>
+          )}
         </ThemeProvider>
       </QueryClientProvider>
     );
@@ -101,9 +127,11 @@ export const CombinedAppProvider = ({ children, minimal = false, disabledProvide
         enableSystem
         disableTransitionOnChange
       >
-        <TooltipProvider>
-          {content}
-        </TooltipProvider>
+        {isDisabled('Tooltip') ? content : (
+          <SafeTooltipProvider>
+            {content}
+          </SafeTooltipProvider>
+        )}
       </ThemeProvider>
     </QueryClientProvider>
   );

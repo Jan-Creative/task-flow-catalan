@@ -33,6 +33,16 @@ export const BootDiagnosticsOverlay: React.FC<BootDiagnosticsOverlayProps> = ({ 
     })),
   [events, firstTime]);
 
+  // Extract React version and browser info from events
+  const reactInfo = useMemo(() => {
+    const reactEvent = events.find(e => e.phase === 'React');
+    if (!reactEvent?.msg) return null;
+    return {
+      version: reactEvent.msg,
+      data: reactEvent.data as { isSafari?: boolean; isIOS?: boolean } | undefined
+    };
+  }, [events]);
+
   const handleCompleteReset = async () => {
     if (!confirm('Això esborrarà el Service Worker, caches, localStorage i sessionStorage. Continuar?')) {
       return;
@@ -79,6 +89,20 @@ export const BootDiagnosticsOverlay: React.FC<BootDiagnosticsOverlayProps> = ({ 
         </CardHeader>
         <Separator />
         <CardContent className="p-0">
+          {reactInfo && (
+            <>
+              <div className="p-3 bg-muted/30 space-y-1">
+                <div className="text-xs font-medium">{reactInfo.version}</div>
+                {reactInfo.data && (
+                  <div className="flex gap-2">
+                    {reactInfo.data.isSafari && <Badge variant="outline" className="text-xs">Safari</Badge>}
+                    {reactInfo.data.isIOS && <Badge variant="outline" className="text-xs">iOS</Badge>}
+                  </div>
+                )}
+              </div>
+              <Separator />
+            </>
+          )}
           <ScrollArea className="h-[58vh]">
             <div className="divide-y">
               {items.length === 0 && (
