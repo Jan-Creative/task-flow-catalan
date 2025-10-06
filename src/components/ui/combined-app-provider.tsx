@@ -37,12 +37,6 @@ interface CombinedAppProviderProps {
 export const CombinedAppProvider = ({ children, minimal = false, disabledProviders = [] }: CombinedAppProviderProps) => {
   const isDisabled = React.useCallback((name: string) => disabledProviders.includes(name), [disabledProviders]);
 
-  const ProviderGuard: React.FC<{ name: string; children: React.ReactNode }> = ({ name, children }) => (
-    <EnhancedErrorBoundary context={`Provider:${name}`} fallback={null} onError={(error) => bootTracer.error(`Provider:${name}`, error)}>
-      {children}
-    </EnhancedErrorBoundary>
-  );
-
   // Minimal mode: only essential providers
   if (minimal) {
     let minimalContent = (
@@ -53,11 +47,7 @@ export const CombinedAppProvider = ({ children, minimal = false, disabledProvide
     );
 
     if (!isDisabled('Offline')) {
-      minimalContent = (
-        <ProviderGuard name="Offline">
-          <OfflineProvider>{minimalContent}</OfflineProvider>
-        </ProviderGuard>
-      );
+      minimalContent = <OfflineProvider>{minimalContent}</OfflineProvider>;
     }
 
     return (
@@ -86,11 +76,7 @@ export const CombinedAppProvider = ({ children, minimal = false, disabledProvide
 
   const wrapProvider = (name: string, Provider: React.ComponentType<any>, props: Record<string, any> = {}) => {
     if (isDisabled(name)) return;
-    content = (
-      <ProviderGuard name={name}>
-        <Provider {...props}>{content}</Provider>
-      </ProviderGuard>
-    );
+    content = <Provider {...props}>{content}</Provider>;
   };
 
   // Innermost to outermost (reverse of visual nesting)
