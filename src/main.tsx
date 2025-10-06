@@ -80,7 +80,9 @@ bootTracer.trace('React', `Version: ${React.version}`, {
 });
 
 // Manual Service Worker registration with bypass option
-if ('serviceWorker' in navigator && !window.location.search.includes('no-sw=1')) {
+// Disable SW in safari-ultra-safe mode
+const isSafariUltraSafe = window.location.search.includes('safari-ultra-safe=1');
+if ('serviceWorker' in navigator && !window.location.search.includes('no-sw=1') && !isSafariUltraSafe) {
   window.addEventListener('load', async () => {
     try {
       // Handle ?reset=1 parameter for complete reset
@@ -165,13 +167,14 @@ const params = new URLSearchParams(window.location.search);
 const isMinimalMode = params.get('minimal') === '1';
 const safeMode = params.get('safe') === '1';
 const probeMode = params.get('probe') === '1';
+const safariUltraSafe = params.get('safari-ultra-safe') === '1';
 const showBootDebug = params.get('bootdebug') === '1';
 const disabledProviders = (params.get('disable') || '')
   .split(',')
   .map((s) => s.trim())
   .filter(Boolean);
 
-bootTracer.mark('render:start', { isMinimalMode, safeMode, probeMode, disabledProviders });
+bootTracer.mark('render:start', { isMinimalMode, safeMode, probeMode, safariUltraSafe, disabledProviders });
 
 const root = ReactDOM.createRoot(document.getElementById("root")!);
 
@@ -199,7 +202,11 @@ if (probeMode) {
   bootTracer.mark('render:app');
   root.render(
     <EnhancedErrorBoundary context="Aplicació Principal" showDetails={true}>
-      <CombinedAppProvider minimal={isMinimalMode || safeMode} disabledProviders={disabledProviders}>
+      <CombinedAppProvider 
+        minimal={isMinimalMode || safeMode} 
+        safariUltraSafe={safariUltraSafe}
+        disabledProviders={disabledProviders}
+      >
         {showBootDebug && <BootDiagnosticsOverlay />}
         <App />
       </CombinedAppProvider>

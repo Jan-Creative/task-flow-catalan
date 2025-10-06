@@ -47,12 +47,32 @@ const SafeTooltipProvider: React.FC<{ children: React.ReactNode }> = ({ children
 interface CombinedAppProviderProps {
   children: React.ReactNode;
   minimal?: boolean; // Emergency minimal mode
+  safariUltraSafe?: boolean; // Ultra-safe mode for Safari debugging
   disabledProviders?: string[]; // Names of providers to disable via ?disable=
 }
 
-export const CombinedAppProvider = ({ children, minimal = false, disabledProviders = [] }: CombinedAppProviderProps) => {
+export const CombinedAppProvider = ({ children, minimal = false, safariUltraSafe = false, disabledProviders = [] }: CombinedAppProviderProps) => {
   // Simple function - NO HOOKS to avoid dispatcher issues
   const isDisabled = (name: string) => disabledProviders.includes(name);
+
+  // Safari Ultra-Safe mode: ONLY QueryClient + ThemeProvider + Toaster
+  // No TooltipProvider, no custom contexts
+  if (safariUltraSafe) {
+    bootTracer.trace('CombinedAppProvider', '🔴 SAFARI ULTRA-SAFE MODE - Only essential providers');
+    return (
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <Toaster />
+          {children}
+        </ThemeProvider>
+      </QueryClientProvider>
+    );
+  }
 
   // Minimal mode: only essential providers
   if (minimal) {
