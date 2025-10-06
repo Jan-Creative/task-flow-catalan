@@ -22,6 +22,7 @@ import { PomodoroProvider } from '@/contexts/PomodoroContext';
 import { PropertyDialogProvider } from '@/contexts/PropertyDialogContext';
 import { IPadNavigationProvider } from '@/contexts/IPadNavigationContext';
 import { MacNavigationProvider } from '@/contexts/MacNavigationContext';
+import { KeyboardNavigationProvider } from '@/contexts/KeyboardNavigationContext';
 
 import { createOptimizedQueryClient } from '@/lib/optimizedCache';
 
@@ -93,6 +94,7 @@ export const CombinedAppProvider = ({ children, minimal = false, disabledProvide
   };
 
   // Innermost to outermost (reverse of visual nesting)
+  wrapProvider('KeyboardNavigation', KeyboardNavigationProvider);
   wrapProvider('MacNavigation', MacNavigationProvider);
   wrapProvider('IPadNavigation', IPadNavigationProvider);
   wrapProvider('PropertyDialog', PropertyDialogProvider);

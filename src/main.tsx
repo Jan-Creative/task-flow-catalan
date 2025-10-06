@@ -77,6 +77,19 @@ setupIOSProtection();
 if ('serviceWorker' in navigator && !window.location.search.includes('no-sw=1')) {
   window.addEventListener('load', async () => {
     try {
+      // Handle ?reset=1 parameter for complete reset
+      if (window.location.search.includes('reset=1')) {
+        console.log('🚨 Complete reset via ?reset=1');
+        const regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map(reg => reg.unregister()));
+        const cacheNames = await caches.keys();
+        await Promise.all(cacheNames.map(name => caches.delete(name)));
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.href = '/?minimal=1&bootdebug=1&no-sw=1';
+        return;
+      }
+
       // Cleanup legacy or incorrect Service Worker registrations
       const existingRegs = await navigator.serviceWorker.getRegistrations();
       for (const reg of existingRegs) {
@@ -104,7 +117,9 @@ if ('serviceWorker' in navigator && !window.location.search.includes('no-sw=1'))
           registration.installing?.scriptURL?.endsWith('/sw-advanced.js'));
 
       if (!hasCorrectSW) {
-        registration = await navigator.serviceWorker.register('/sw-advanced.js', {
+        // Register with version parameter to force update
+        const SW_VERSION = '20251006';
+        registration = await navigator.serviceWorker.register(`/sw-advanced.js?v=${SW_VERSION}`, {
           scope: '/',
         });
       }
@@ -179,10 +194,8 @@ if (probeMode) {
   root.render(
     <EnhancedErrorBoundary context="Aplicació Principal" showDetails={true}>
       <CombinedAppProvider minimal={isMinimalMode || safeMode} disabledProviders={disabledProviders}>
-        <KeyboardNavigationProvider>
-          {showBootDebug && <BootDiagnosticsOverlay />}
-          <App />
-        </KeyboardNavigationProvider>
+        {showBootDebug && <BootDiagnosticsOverlay />}
+        <App />
       </CombinedAppProvider>
     </EnhancedErrorBoundary>
   );

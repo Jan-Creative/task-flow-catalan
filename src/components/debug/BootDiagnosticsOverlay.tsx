@@ -33,6 +33,36 @@ export const BootDiagnosticsOverlay: React.FC<BootDiagnosticsOverlayProps> = ({ 
     })),
   [events, firstTime]);
 
+  const handleCompleteReset = async () => {
+    if (!confirm('Això esborrarà el Service Worker, caches, localStorage i sessionStorage. Continuar?')) {
+      return;
+    }
+    
+    try {
+      // Unregister all service workers
+      if ('serviceWorker' in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map(reg => reg.unregister()));
+      }
+      
+      // Clear all caches
+      if ('caches' in window) {
+        const names = await caches.keys();
+        await Promise.all(names.map(name => caches.delete(name)));
+      }
+      
+      // Clear storage
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // Redirect to minimal mode
+      window.location.href = '/?minimal=1&bootdebug=1&no-sw=1';
+    } catch (error) {
+      console.error('Error during reset:', error);
+      alert('Error durant el reset: ' + error);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-[100] flex items-start justify-end p-4 pointer-events-none">
       <Card className="w-[420px] max-h-[80vh] pointer-events-auto shadow-xl border bg-background/95 backdrop-blur">
@@ -77,6 +107,7 @@ export const BootDiagnosticsOverlay: React.FC<BootDiagnosticsOverlayProps> = ({ 
             <Button size="sm" variant="outline" onClick={() => window.location.search += (window.location.search ? '&' : '?') + 'probe=1'}>Probe</Button>
             <Button size="sm" variant="outline" onClick={() => window.location.search += (window.location.search ? '&' : '?') + 'safe=1'}>Safe</Button>
             <Button size="sm" variant="secondary" onClick={() => window.location.reload()}>Reload</Button>
+            <Button size="sm" variant="destructive" onClick={handleCompleteReset}>🔄 Reset Complet</Button>
           </div>
         </CardContent>
       </Card>

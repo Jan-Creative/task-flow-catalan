@@ -45,8 +45,8 @@
       (function() {
         'use strict';
         
-        // 1. EMERGENCY KILL SWITCH: Reset SW and cache if ?reset-sw=1 in URL
-        if (window.location.search.includes('reset-sw=1')) {
+        // 1. EMERGENCY KILL SWITCH: Reset SW and cache if ?reset-sw=1 or ?reset=1 in URL
+        if (window.location.search.includes('reset-sw=1') || window.location.search.includes('reset=1')) {
           console.log('🚨 Emergency reset triggered');
           if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(function(regs) {
@@ -60,8 +60,8 @@
           }
           localStorage.clear();
           sessionStorage.clear();
-          alert('Reset complet! Recarregant sense ?reset-sw=1...');
-          window.location.href = window.location.pathname;
+          alert('Reset complet! Recarregant en mode minimal...');
+          window.location.href = '/?minimal=1&bootdebug=1&no-sw=1';
           return;
         }
         

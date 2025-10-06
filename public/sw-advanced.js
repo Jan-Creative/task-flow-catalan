@@ -43,9 +43,10 @@ const ROUTE_STRATEGIES = [
   },
   {
     pattern: /\.(js|css)$/,
-    strategy: CACHE_STRATEGIES.STALE_WHILE_REVALIDATE,
+    strategy: CACHE_STRATEGIES.NETWORK_FIRST,
     cache: STATIC_CACHE,
     options: {
+      networkTimeoutSeconds: 3,
       cacheableResponse: {
         statuses: [0, 200]
       }
