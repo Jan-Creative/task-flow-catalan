@@ -6,6 +6,8 @@ import { KeyboardNavigationProvider } from "@/contexts/KeyboardNavigationContext
 import { initializePerformanceOptimizations } from "@/lib/performanceOptimizer";
 import App from "./App.tsx";
 import "./index.css";
+import bootTracer from "@/lib/bootTracer";
+import BootDiagnosticsOverlay from "@/components/debug/BootDiagnosticsOverlay";
 
 // Global declarations for boot watchdog
 declare global {
@@ -138,17 +140,54 @@ if ('serviceWorker' in navigator && !window.location.search.includes('no-sw=1'))
 
 // Render app and signal successful boot
 // StrictMode temporarily disabled to fix React 18 "Should have a queue" error
-const isMinimalMode = window.location.search.includes('minimal=1');
+const params = new URLSearchParams(window.location.search);
+const isMinimalMode = params.get('minimal') === '1';
+const safeMode = params.get('safe') === '1';
+const probeMode = params.get('probe') === '1';
+const showBootDebug = params.get('bootdebug') === '1';
+const disabledProviders = (params.get('disable') || '')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
-  <EnhancedErrorBoundary context="Aplicació Principal" showDetails={true}>
-    <CombinedAppProvider minimal={isMinimalMode}>
-      <KeyboardNavigationProvider>
-        <App />
-      </KeyboardNavigationProvider>
-    </CombinedAppProvider>
-  </EnhancedErrorBoundary>
-);
+bootTracer.mark('render:start', { isMinimalMode, safeMode, probeMode, disabledProviders });
+
+const root = ReactDOM.createRoot(document.getElementById("root")!);
+
+function ProbeApp() {
+  return (
+    <div className="min-h-screen grid place-items-center">
+      <div className="max-w-md space-y-2 text-center">
+        <h1 className="text-xl font-semibold">Probe Mode</h1>
+        <p className="text-sm opacity-80">React root renders fine. Use bootdebug=1 for trace.</p>
+        <p className="text-xs opacity-60">UA: {navigator.userAgent}</p>
+      </div>
+    </div>
+  );
+}
+
+if (probeMode) {
+  bootTracer.mark('render:probe');
+  root.render(
+    <EnhancedErrorBoundary context="Probe" showDetails={true}>
+      <ProbeApp />
+      {showBootDebug && <BootDiagnosticsOverlay />}
+    </EnhancedErrorBoundary>
+  );
+} else {
+  bootTracer.mark('render:app');
+  root.render(
+    <EnhancedErrorBoundary context="Aplicació Principal" showDetails={true}>
+      <CombinedAppProvider minimal={isMinimalMode || safeMode} disabledProviders={disabledProviders}>
+        <KeyboardNavigationProvider>
+          {showBootDebug && <BootDiagnosticsOverlay />}
+          <App />
+        </KeyboardNavigationProvider>
+      </CombinedAppProvider>
+    </EnhancedErrorBoundary>
+  );
+}
+
 
 // Signal successful boot to disable watchdog
 setTimeout(() => {
