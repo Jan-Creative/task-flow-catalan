@@ -112,7 +112,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 S'ha produït un error inesperat. Pots intentar recarregar la pàgina o tornar a l'inici.
               </p>
               
-              {process.env.NODE_ENV === 'development' && this.state.error && (
+              {import.meta.env.DEV && this.state.error && (
                 <details className="text-xs bg-muted p-2 rounded">
                   <summary className="cursor-pointer font-medium">
                     Detalls de l'error (desenvolupament)

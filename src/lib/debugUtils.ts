@@ -13,7 +13,7 @@ export interface LogEntry {
 }
 
 class Logger {
-  private isDevelopment = process.env.NODE_ENV === 'development';
+  private isDevelopment = import.meta.env.DEV;
   private logs: LogEntry[] = [];
   private maxLogs = 100; // Keep last 100 logs for debugging
 

@@ -24,17 +24,17 @@ const validateEnvVar = (name: string, value: string | undefined, required = true
 
 // ============= CONFIGURATION =============
 const getConfig = (): AppConfig => {
-  const nodeEnv = process.env.NODE_ENV || 'development';
+  const nodeEnv = import.meta.env.MODE || 'development';
   
   return {
-    isDevelopment: nodeEnv === 'development',
-    isProduction: nodeEnv === 'production',
+    isDevelopment: import.meta.env.DEV,
+    isProduction: import.meta.env.PROD,
     isTest: nodeEnv === 'test',
-    logLevel: (process.env.LOG_LEVEL as any) || (nodeEnv === 'production' ? 'warn' : 'debug'),
-    enablePerformanceMonitoring: nodeEnv === 'development',
-    enableAnalytics: nodeEnv === 'production',
-    apiUrl: process.env.VITE_API_URL || 'https://umfrvkakvgsypqcyyzke.supabase.co',
-    version: process.env.npm_package_version || '1.0.0'
+    logLevel: (import.meta.env.VITE_LOG_LEVEL as any) || (import.meta.env.PROD ? 'warn' : 'debug'),
+    enablePerformanceMonitoring: import.meta.env.DEV,
+    enableAnalytics: import.meta.env.PROD,
+    apiUrl: import.meta.env.VITE_API_URL || 'https://umfrvkakvgsypqcyyzke.supabase.co',
+    version: '1.0.0'
   };
 };
 
@@ -62,7 +62,7 @@ export const validateConfig = (): void => {
       throw new Error('API URL is required');
     }
     
-    console.log(`🚀 App initialized in ${process.env.NODE_ENV} mode`);
+    console.log(`🚀 App initialized in ${import.meta.env.MODE} mode`);
     if (config.isDevelopment) {
       console.log('🔧 Development features enabled:', features);
     }

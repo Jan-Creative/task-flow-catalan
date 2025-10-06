@@ -68,7 +68,7 @@ export interface AppConfig {
 
 // ============= CONFIGURATION FACTORY =============
 const createEnvironment = (): AppEnvironment => ({
-  NODE_ENV: (process.env.NODE_ENV as AppEnvironment['NODE_ENV']) || 'development',
+  NODE_ENV: import.meta.env.DEV ? 'development' : (import.meta.env.PROD ? 'production' : 'test'),
   BUILD_MODE: determineBuildMode(),
   SUPABASE_URL: 'https://umfrvkakvgsypqcyyzke.supabase.co',
   SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVtZnJ2a2FrdmdzeXBxY3l5emtlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ4MzM3NDksImV4cCI6MjA3MDQwOTc0OX0.unXiHHRqKsM_0vRU20nJz7aE-hyV-t1PXH0k0VfEeR4',
@@ -93,7 +93,7 @@ const createSecuritySettings = (env: AppEnvironment): SecuritySettings => ({
   enableSecurityHeaders: env.BUILD_MODE === 'production',
   allowedOrigins: [
     'https://umfrvkakvgsypqcyyzke.supabase.co',
-    ...(env.NODE_ENV === 'development' ? ['http://localhost:3000', 'http://localhost:5173'] : [])
+    ...(import.meta.env.DEV ? ['http://localhost:3000', 'http://localhost:5173'] : [])
   ]
 });
 

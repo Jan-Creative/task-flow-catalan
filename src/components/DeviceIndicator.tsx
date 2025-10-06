@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 const DeviceIndicator = () => {
   const { type, orientation, width, height, isTouch } = useDeviceDetection();
 
-  if (process.env.NODE_ENV !== 'development') {
+  if (!import.meta.env.DEV) {
     return null; // Only show in development
   }
 

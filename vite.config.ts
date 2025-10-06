@@ -36,12 +36,16 @@ export default defineConfig(({ mode }) => ({
       manifest: false
     })
   ].filter(Boolean),
-resolve: {
-  alias: {
-    "@": path.resolve(__dirname, "./src"),
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+    dedupe: ['react', 'react-dom'],
   },
-  dedupe: ['react', 'react-dom'],
-},
+  define: {
+    'process.env.NODE_ENV': JSON.stringify(mode === 'development' ? 'development' : 'production'),
+    'process.env': {}
+  },
   build: {
     // Enable aggressive minification
     minify: 'terser',

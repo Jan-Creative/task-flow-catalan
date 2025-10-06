@@ -62,7 +62,7 @@ export class EnhancedErrorBoundary extends Component<Props, State> {
     this.props.onError?.(error, errorInfo);
     
     // TODO: Enviar a servei de monitorització
-    if (process.env.NODE_ENV === 'production') {
+    if (import.meta.env.PROD) {
       // Aquí podríem enviar l'error a Sentry, LogRocket, etc.
       console.warn('Error report ready for monitoring service:', errorReport);
     }
@@ -92,7 +92,7 @@ export class EnhancedErrorBoundary extends Component<Props, State> {
       }
 
       const context = this.props.context;
-      const isProductionError = !this.props.showDetails && process.env.NODE_ENV === 'production';
+      const isProductionError = !this.props.showDetails && import.meta.env.PROD;
 
       return (
         <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -111,7 +111,7 @@ export class EnhancedErrorBoundary extends Component<Props, State> {
             
             <CardContent className="space-y-4">
               {/* Error details (només en development o si showDetails=true) */}
-              {(this.props.showDetails || process.env.NODE_ENV === 'development') && this.state.error && (
+              {(this.props.showDetails || import.meta.env.DEV) && this.state.error && (
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 text-sm font-medium text-destructive">
                     <Bug className="h-4 w-4" />
