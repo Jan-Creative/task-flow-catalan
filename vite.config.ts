@@ -3,17 +3,25 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { VitePWA } from 'vite-plugin-pwa';
+import legacy from '@vitejs/plugin-legacy';
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
-  server: {
-    host: "::",
-    port: 8080,
-  },
-  plugins: [
-    react(),
-    mode === 'development' && componentTagger(),
-    VitePWA({
+export default defineConfig(({ mode }) => {
+  const isSafeBuild = process.env.VITE_SAFE_BUILD === '1';
+  
+  return {
+    server: {
+      host: "::",
+      port: 8080,
+    },
+    plugins: [
+      react(),
+      mode === 'development' && componentTagger(),
+      legacy({
+        targets: ['defaults', 'not IE 11', 'iOS >= 12', 'Safari >= 13'],
+        modernPolyfills: true,
+      }),
+      VitePWA({
       strategies: 'injectManifest',
       srcDir: 'public',
       filename: 'sw-advanced.js',
@@ -47,54 +55,40 @@ export default defineConfig(({ mode }) => ({
     'process.env': {}
   },
   build: {
-    // Enable aggressive minification
+    // Target Safari 14+ and ES2018 for better compatibility
+    target: ['es2018', 'safari14'],
+    // Enable minification with Safari-friendly settings
     minify: 'terser',
     terserOptions: {
       compress: {
-        drop_console: true, // Remove console.log in production
+        drop_console: !isSafeBuild, // Keep console in safe mode for debugging
         drop_debugger: true,
-        pure_funcs: ['console.log', 'console.info', 'console.debug', 'console.warn'],
-        passes: 4, // Run compression 4 times for maximum results
-        unsafe: true, // Enable unsafe optimizations
-        unsafe_comps: true, // Unsafe comparisons optimizations
-        unsafe_math: true, // Optimize math expressions
-        unsafe_methods: true, // Optimize method calls
-        unsafe_proto: true, // Optimize prototype access
-        unsafe_regexp: true, // Optimize regular expressions
-        unsafe_undefined: true, // Replace void 0 with undefined
-        toplevel: true, // Mangle top-level scope
-        keep_fargs: false, // Remove unused function arguments
-        keep_fnames: false, // Remove function names when safe
-        dead_code: true, // Remove unreachable code
-        collapse_vars: true, // Collapse single-use variables
-        reduce_vars: true, // Optimize variable assignments
-        inline: 3, // Maximum inlining
-        join_vars: true, // Join consecutive var statements
-        side_effects: true, // Remove expressions with no side effects
-        conditionals: true, // Optimize if-s and conditional expressions
-        booleans: true, // Optimize boolean expressions
-        loops: true, // Optimize loops
-        unused: true, // Drop unused variables/functions
-        hoist_funs: true, // Hoist function declarations
-        hoist_vars: true, // Hoist var declarations
-        if_return: true, // Optimize if/return and if/continue
-        evaluate: true, // Evaluate constant expressions
-        sequences: true, // Join consecutive simple statements
-        comparisons: true, // Optimize comparisons
-        arrows: true, // Convert functions to arrow functions where possible
+        pure_funcs: !isSafeBuild ? ['console.log', 'console.info', 'console.debug', 'console.warn'] : [],
+        passes: isSafeBuild ? 1 : 2, // Fewer passes in safe mode
+        // Remove all unsafe optimizations for Safari compatibility
+        dead_code: true,
+        collapse_vars: true,
+        reduce_vars: true,
+        inline: 2, // Moderate inlining
+        join_vars: true,
+        conditionals: true,
+        booleans: true,
+        loops: true,
+        unused: true,
+        if_return: true,
+        evaluate: true,
+        sequences: true,
+        comparisons: true,
       },
       mangle: {
-        safari10: true, // Fix Safari 10+ compatibility
-        toplevel: true, // Mangle top-level names
-        properties: {
-          regex: /^_/, // Mangle properties starting with underscore
-        },
+        safari10: true, // Essential for Safari compatibility
+        // No toplevel or property mangling to avoid Safari issues
       },
       format: {
-        comments: false, // Remove all comments
-        ecma: 2020, // Use modern ECMAScript for smaller output
-        ascii_only: true, // Escape non-ASCII characters
-        semicolons: false, // Use ASI to save bytes
+        comments: false,
+        ecma: 2018, // Match build target
+        ascii_only: true,
+        semicolons: true, // Use semicolons for better compatibility
       },
     },
     // Optimize chunk splitting for better caching
@@ -116,7 +110,7 @@ export default defineConfig(({ mode }) => ({
     },
     // Optimize asset handling
     assetsInlineLimit: 4096, // Inline small assets
-    sourcemap: false, // Disable sourcemaps in production for smaller files
+    sourcemap: isSafeBuild, // Enable sourcemaps in safe mode for debugging
     // Enable CSS minification
     cssMinify: true,
     cssCodeSplit: true,
@@ -132,4 +126,5 @@ export default defineConfig(({ mode }) => ({
     },
     reportCompressedSize: false, // Speed up build by skipping gzip size reporting
   },
-}));
+};
+});
