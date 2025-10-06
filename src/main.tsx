@@ -73,6 +73,12 @@ function setupIOSProtection() {
 // Initialize iOS protection
 setupIOSProtection();
 
+// Log React environment early (no hooks)
+bootTracer.trace('React', `Version: ${React.version}`, {
+  isSafari: /^((?!chrome|android).)*safari/i.test(navigator.userAgent),
+  isIOS: /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+});
+
 // Manual Service Worker registration with bypass option
 if ('serviceWorker' in navigator && !window.location.search.includes('no-sw=1')) {
   window.addEventListener('load', async () => {
