@@ -8,6 +8,7 @@ import App from "./App.tsx";
 import "./index.css";
 import bootTracer from "@/lib/bootTracer";
 import BootDiagnosticsOverlay from "@/components/debug/BootDiagnosticsOverlay";
+import { logger } from "@/lib/logger";
 
 // Global declarations for boot watchdog
 declare global {
@@ -61,7 +62,7 @@ function setupIOSProtection() {
     if (window.location.search.includes('debug-zoom=1')) {
       if ('visualViewport' in window) {
         const showScale = () => {
-          console.log('Viewport scale:', window.visualViewport?.scale);
+          logger.debug('iOS', 'Viewport scale', { scale: window.visualViewport?.scale });
         };
         window.visualViewport?.addEventListener('resize', showScale);
         showScale();
@@ -87,7 +88,7 @@ if ('serviceWorker' in navigator && !window.location.search.includes('no-sw=1') 
     try {
       // Handle ?reset=1 parameter for complete reset
       if (window.location.search.includes('reset=1')) {
-        console.log('🚨 Complete reset via ?reset=1');
+        logger.warn('ServiceWorker', 'Complete reset via ?reset=1');
         const regs = await navigator.serviceWorker.getRegistrations();
         await Promise.all(regs.map(reg => reg.unregister()));
         const cacheNames = await caches.keys();
@@ -108,10 +109,10 @@ if ('serviceWorker' in navigator && !window.location.search.includes('no-sw=1') 
           '';
         if (url && !url.endsWith('/sw-advanced.js')) {
           try {
-            console.log('🧹 Unregistering legacy Service Worker:', url);
+            logger.info('ServiceWorker', 'Unregistering legacy Service Worker', { url });
             await reg.unregister();
           } catch (e) {
-            console.warn('Failed to unregister legacy Service Worker', e);
+            logger.warn('ServiceWorker', 'Failed to unregister legacy Service Worker', e);
           }
         }
       }
@@ -132,7 +133,7 @@ if ('serviceWorker' in navigator && !window.location.search.includes('no-sw=1') 
         });
       }
 
-      console.log('Service Worker registrat correctament:', registration!.scope);
+      logger.info('ServiceWorker', 'Registered successfully', { scope: registration!.scope });
 
       // Listen for updates and force immediate activation
       registration!.addEventListener('updatefound', () => {
@@ -140,7 +141,7 @@ if ('serviceWorker' in navigator && !window.location.search.includes('no-sw=1') 
         if (newWorker) {
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              console.log('🔄 Nova versió del SW disponible, activant immediatament...');
+              logger.info('ServiceWorker', 'New version available, activating immediately');
               newWorker.postMessage({ type: 'SKIP_WAITING' });
             }
           });
@@ -150,13 +151,13 @@ if ('serviceWorker' in navigator && !window.location.search.includes('no-sw=1') 
       // Listen for SW messages (but don't auto-reload anymore)
       navigator.serviceWorker.addEventListener('message', (event) => {
         if (event.data?.type === 'SW_ACTIVATED') {
-          console.log('✅ SW updated successfully');
+          logger.info('ServiceWorker', 'Updated successfully');
           // Don't force reload - let user refresh naturally
         }
       });
       
     } catch (error) {
-      console.error('Error registrant el Service Worker:', error);
+      logger.error('ServiceWorker', 'Registration failed', error);
     }
   });
 }
@@ -230,5 +231,5 @@ setTimeout(() => {
   if (window.__clearBootWatchdog) {
     window.__clearBootWatchdog();
   }
-  console.log('✅ App booted successfully');
+  logger.info('App', 'Boot successful');
 }, 100);
