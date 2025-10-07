@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useNotes } from "@/contexts/NotesContext";
 import { toast } from "@/lib/toastUtils";
-import { RichTextEditor, RichTextEditorRef } from "./RichTextEditor";
+import { RichTextEditorLazy } from "@/lib/lazyLoading";
+import type { RichTextEditorRef } from "./RichTextEditor";
 
 interface NoteEditorProps {
   noteId: string;
@@ -213,7 +214,7 @@ export const NoteEditor = ({ noteId }: NoteEditorProps) => {
 
       {/* Rich Text Editor */}
       <div className="flex-1">
-        <RichTextEditor
+        <RichTextEditorLazy
           ref={editorRef}
           value={content}
           onChange={handleContentChange}

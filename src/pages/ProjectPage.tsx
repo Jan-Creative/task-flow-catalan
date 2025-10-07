@@ -3,8 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Briefcase } from "lucide-react";
 import ProjectDashboard from "@/components/dashboard/ProjectDashboard";
-import CreateProjectModal from "@/components/projects/CreateProjectModal";
-import { CreateTaskModalLazy, LazyModal } from '@/lib/lazyLoading';
+import { CreateProjectModalLazy, CreateTaskModalLazy, LazyModal } from '@/lib/lazyLoading';
 import { ProjectNavigationProvider } from "@/contexts/ProjectNavigationContext";
 import ProjectSidebar from "@/components/navigation/ProjectSidebar";
 import ProjectFloatingRestoreButton from "@/components/navigation/ProjectFloatingRestoreButton";
@@ -107,19 +106,21 @@ const ProjectPage = () => {
         </div>
 
         {/* Modals */}
-        <CreateProjectModal
-          open={showCreateProject}
-          onOpenChange={(open) => {
-            setShowCreateProject(open);
-            if (!open && isTemp) {
-              navigate("/?tab=carpetes");
-            }
-          }}
-          onCreated={(id) => {
-            setShowCreateProject(false);
-            navigate(`/project/${id}`);
-          }}
-        />
+        <LazyModal>
+          <CreateProjectModalLazy
+            open={showCreateProject}
+            onOpenChange={(open) => {
+              setShowCreateProject(open);
+              if (!open && isTemp) {
+                navigate("/?tab=carpetes");
+              }
+            }}
+            onCreated={(id) => {
+              setShowCreateProject(false);
+              navigate(`/project/${id}`);
+            }}
+          />
+        </LazyModal>
 
         {showCreateTaskModal && (
           <LazyModal>

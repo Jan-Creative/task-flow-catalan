@@ -10,7 +10,7 @@ import { FolderItem } from "@/components/FolderItem";
 import { UnifiedFolderModal } from "@/components/folders/UnifiedFolderModal";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import CreateProjectModal from "@/components/projects/CreateProjectModal";
+import { CreateProjectModalLazy, LazyModal } from "@/lib/lazyLoading";
 
 const FoldersPage = React.memo(() => {
   const { tasks, folders, createFolder, updateFolder, deleteFolder, loading } = useDadesApp();
@@ -285,11 +285,13 @@ const FoldersPage = React.memo(() => {
       </Dialog>
 
       {/* Create project modal */}
-      <CreateProjectModal
-        open={showCreateProject}
-        onOpenChange={setShowCreateProject}
-        onCreated={(id) => navigate(`/project/${id}`)}
-      />
+      <LazyModal>
+        <CreateProjectModalLazy
+          open={showCreateProject}
+          onOpenChange={setShowCreateProject}
+          onCreated={(id) => navigate(`/project/${id}`)}
+        />
+      </LazyModal>
 
       {/* Delete folder confirmation dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>

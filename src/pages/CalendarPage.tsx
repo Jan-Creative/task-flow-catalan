@@ -8,7 +8,7 @@ import TasksSidebar from "@/components/calendar/TasksSidebar";
 import CalendarViewSelector, { CalendarView } from "@/components/calendar/CalendarViewSelector";
 import CalendarControlBar from "@/components/calendar/CalendarControlBar";
 import { CreateEventPopover } from "@/components/calendar/CreateEventModal";
-import { EventModal } from "@/components/calendar/EventModal";
+import { EventModalLazy, LazyModal } from "@/lib/lazyLoading";
 import { CalendarSelectionProvider, useCalendarSelection } from "@/contexts/CalendarSelectionContext";
 import { useKeyboardShortcuts } from "@/contexts/KeyboardShortcutsContext";
 import { useEvents } from "@/hooks/useEvents";
@@ -206,19 +206,21 @@ const CalendarPageContent = () => {
       )}
 
       {editEventData && (
-        <EventModal
-          editingEvent={editEventData.event}
-          isEditing={true}
-          open={editEventData.isOpen}
-          onOpenChange={(open) => {
-            if (!open) handleEditEventClose();
-          }}
-          useHiddenTrigger={true}
-          onDelete={() => {
-            clearSelection();
-            handleEditEventClose();
-          }}
-        />
+        <LazyModal>
+          <EventModalLazy
+            editingEvent={editEventData.event}
+            isEditing={true}
+            open={editEventData.isOpen}
+            onOpenChange={(open) => {
+              if (!open) handleEditEventClose();
+            }}
+            useHiddenTrigger={true}
+            onDelete={() => {
+              clearSelection();
+              handleEditEventClose();
+            }}
+          />
+        </LazyModal>
       )}
     </div>
   );

@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { useBackground } from '@/contexts/BackgroundContext';
-import { DarkVeilBackground } from './DarkVeilBackground';
+import { DarkVeilBackgroundLazy, LazyBackground } from '@/lib/lazyLoading';
 import { MeshGradientBackground } from './MeshGradientBackground';
 import { ParticlesBackground } from './ParticlesBackground';
 import { GeometricBackground } from './GeometricBackground';
@@ -17,13 +17,15 @@ export const BackgroundRenderer: React.FC = () => {
     switch (settings.type) {
       case 'dark-veil':
         return (
-          <DarkVeilBackground
-            speed={settings.speed}
-            hueShift={settings.hueShift}
-            noiseIntensity={settings.intensity}
-            scanlineIntensity={settings.intensity * 0.3}
-            warpAmount={settings.intensity * 0.2}
-          />
+          <LazyBackground>
+            <DarkVeilBackgroundLazy
+              speed={settings.speed}
+              hueShift={settings.hueShift}
+              noiseIntensity={settings.intensity}
+              scanlineIntensity={settings.intensity * 0.3}
+              warpAmount={settings.intensity * 0.2}
+            />
+          </LazyBackground>
         );
       case 'mesh-gradient':
         return (
