@@ -3,6 +3,7 @@ import { CalendarEvent, EventDragCallbacks, CalendarConstraints } from '@/types/
 import { ID } from '@/types/common';
 import { useEvents } from './useEvents';
 import { isSameDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
+import { logger } from '@/lib/logger';
 
 const DEFAULT_CONSTRAINTS: CalendarConstraints = {
   minHour: 8,
@@ -92,9 +93,9 @@ export const useCalendarEvents = (constraints: Partial<CalendarConstraints> = {}
       // Use the hook's moveEvent function
       await moveEventFromHook(eventId.toString(), newStartDateTime, newEndDateTime);
       
-      console.log(`Event ${eventId} moved to ${newStartDateTime.toISOString()}`);
+      logger.debug('useCalendarEvents', `Event ${eventId} moved to ${newStartDateTime.toISOString()}`);
     } catch (err) {
-      console.error('Error moving event:', err);
+      logger.error('useCalendarEvents', 'Error moving event', err);
       throw err;
     }
   }, [isValidTimeSlot, moveEventFromHook]);
@@ -111,9 +112,9 @@ export const useCalendarEvents = (constraints: Partial<CalendarConstraints> = {}
       
       await updateEventFromHook({ id: eventId.toString(), ...updateData });
       
-      console.log(`Event ${eventId} updated:`, updates);
+      logger.debug('useCalendarEvents', `Event ${eventId} updated`, updates);
     } catch (err) {
-      console.error('Error updating event:', err);
+      logger.error('useCalendarEvents', 'Error updating event', err);
       throw err;
     }
   }, [updateEventFromHook]);
@@ -134,9 +135,9 @@ export const useCalendarEvents = (constraints: Partial<CalendarConstraints> = {}
 
       await createEventFromHook(createData);
       
-      console.log('Event created:', createData);
+      logger.debug('useCalendarEvents', 'Event created', createData);
     } catch (err) {
-      console.error('Error creating event:', err);
+      logger.error('useCalendarEvents', 'Error creating event', err);
       throw err;
     }
   }, [createEventFromHook]);

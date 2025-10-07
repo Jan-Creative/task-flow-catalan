@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import type { DailyChallenge, CreateChallengeData, ChallengeDifficulty, ChallengeCategory } from '@/types/challenges';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 export const useDailyChallenges = () => {
   const [challenges, setChallenges] = useState<DailyChallenge[]>([]);
@@ -37,7 +38,7 @@ export const useDailyChallenges = () => {
 
       setChallenges(typedChallenges);
     } catch (err) {
-      console.error('Error fetching challenges:', err);
+      logger.error('useDailyChallenges', 'Error fetching challenges', err);
       setError(err instanceof Error ? err.message : 'Error desconegut');
       toast.error('Error carregant els reptes');
     } finally {
@@ -75,7 +76,7 @@ export const useDailyChallenges = () => {
       toast.success('Repte creat correctament');
       return typedChallenge;
     } catch (err) {
-      console.error('Error creating challenge:', err);
+      logger.error('useDailyChallenges', 'Error creating challenge', err);
       setError(err instanceof Error ? err.message : 'Error desconegut');
       toast.error('Error creant el repte');
       return null;
@@ -116,7 +117,7 @@ export const useDailyChallenges = () => {
       toast.success(newCompletedStatus ? 'Repte completat!' : 'Repte marcat com a pendent');
       return true;
     } catch (err) {
-      console.error('Error updating challenge:', err);
+      logger.error('useDailyChallenges', 'Error updating challenge', err);
       setError(err instanceof Error ? err.message : 'Error desconegut');
       toast.error('Error actualitzant el repte');
       return false;
@@ -146,7 +147,7 @@ export const useDailyChallenges = () => {
       toast.success('Repte actualitzat correctament');
       return true;
     } catch (err) {
-      console.error('Error updating challenge:', err);
+      logger.error('useDailyChallenges', 'Error updating challenge', err);
       setError(err instanceof Error ? err.message : 'Error desconegut');
       toast.error('Error actualitzant el repte');
       return false;
@@ -173,7 +174,7 @@ export const useDailyChallenges = () => {
       toast.success('Repte eliminat correctament');
       return true;
     } catch (err) {
-      console.error('Error deleting challenge:', err);
+      logger.error('useDailyChallenges', 'Error deleting challenge', err);
       setError(err instanceof Error ? err.message : 'Error desconegut');
       toast.error('Error eliminant el repte');
       return false;

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/lib/toastUtils';
+import { logger } from '@/lib/logger';
 
 export interface Note {
   id: string;
@@ -52,7 +53,7 @@ export const useNotes = () => {
 
       setNotes(data || []);
     } catch (error) {
-      console.error('Error fetching notes:', error);
+      logger.error('useNotes', 'Error fetching notes', error);
       toast.error('Error carregant les notes');
     } finally {
       setLoading(false);
@@ -86,7 +87,7 @@ export const useNotes = () => {
       toast.success('Nota creada correctament');
       return newNote;
     } catch (error) {
-      console.error('Error creating note:', error);
+      logger.error('useNotes', 'Error creating note', error);
       toast.error('Error creant la nota');
       return null;
     } finally {
@@ -113,7 +114,7 @@ export const useNotes = () => {
       
       return true;
     } catch (error) {
-      console.error('Error updating note:', error);
+      logger.error('useNotes', 'Error updating note', error);
       toast.error('Error actualitzant la nota');
       return false;
     } finally {
@@ -135,7 +136,7 @@ export const useNotes = () => {
       toast.success('Nota eliminada correctament');
       return true;
     } catch (error) {
-      console.error('Error deleting note:', error);
+      logger.error('useNotes', 'Error deleting note', error);
       toast.error('Error eliminant la nota');
       return false;
     } finally {

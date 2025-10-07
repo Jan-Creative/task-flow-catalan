@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { toast } from 'sonner';
 import { CalendarEvent } from '@/types/calendar';
+import { logger } from '@/lib/logger';
 
 interface CreateEventData {
   title: string;
@@ -109,7 +110,7 @@ export function useEvents() {
       toast.success("Esdeveniment creat correctament");
     },
     onError: (error) => {
-      console.error('Error creating event:', error);
+      logger.error('useEvents', 'Error creating event', error);
       toast.error("No s'ha pogut crear l'esdeveniment");
     },
   });
@@ -145,7 +146,7 @@ export function useEvents() {
       toast.success("Esdeveniment actualitzat correctament");
     },
     onError: (error) => {
-      console.error('Error updating event:', error);
+      logger.error('useEvents', 'Error updating event', error);
       toast.error("No s'ha pogut actualitzar l'esdeveniment");
     },
   });
@@ -168,7 +169,7 @@ export function useEvents() {
       toast.success("Esdeveniment eliminat correctament");
     },
     onError: (error) => {
-      console.error('Error deleting event:', error);
+      logger.error('useEvents', 'Error deleting event', error);
       toast.error("No s'ha pogut eliminar l'esdeveniment");
     },
   });

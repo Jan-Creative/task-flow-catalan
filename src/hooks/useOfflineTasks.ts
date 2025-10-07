@@ -10,6 +10,7 @@ import { useOfflineContext } from '@/contexts/OfflineContext';
 import { useDadesApp } from './useDadesApp';
 import { offlineStorage } from '@/lib/offlineStorage';
 import type { Tasca, CrearTascaData, ActualitzarTascaData } from '@/types';
+import { logger } from '@/lib/logger';
 
 export const useOfflineTasks = () => {
   const { user } = useAuth();
@@ -43,7 +44,7 @@ export const useOfflineTasks = () => {
           lastUpdated: Date.now()
         });
       } catch (error) {
-        console.error('❌ Failed to load offline data:', error);
+        logger.error('useOfflineTasks', 'Failed to load offline data', error);
       }
     };
 
@@ -123,7 +124,7 @@ export const useOfflineTasks = () => {
         return tempTask;
       }
     } catch (error) {
-      console.error('❌ Failed to create task:', error);
+      logger.error('useOfflineTasks', 'Failed to create task', error);
       throw error;
     }
   }, [user, isOnline, isOfflineMode, onlineData.createTask, addMutation]);
@@ -160,7 +161,7 @@ export const useOfflineTasks = () => {
         return updatedTask;
       }
     } catch (error) {
-      console.error('❌ Failed to update task:', error);
+      logger.error('useOfflineTasks', 'Failed to update task', error);
       throw error;
     }
   }, [user, isOnline, isOfflineMode, tasks, onlineData.updateTask, addMutation]);
@@ -200,7 +201,7 @@ export const useOfflineTasks = () => {
         }));
       }
     } catch (error) {
-      console.error('❌ Failed to delete task:', error);
+      logger.error('useOfflineTasks', 'Failed to delete task', error);
       throw error;
     }
   }, [user, isOnline, isOfflineMode, onlineData.deleteTask, addMutation]);
