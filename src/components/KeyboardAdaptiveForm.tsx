@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 import { SmoothPriorityBadge } from '@/components/ui/smooth-priority-badge';
 import { format } from 'date-fns';
 import { ca } from 'date-fns/locale';
+import { logger } from '@/lib/logger';
 
 interface TaskFormOptions {
   isToday?: boolean;
@@ -173,7 +174,7 @@ export const KeyboardAdaptiveForm: React.FC<KeyboardAdaptiveFormProps> = ({
         isToday: formOptions.isToday
       };
 
-      console.debug('Creating task with data:', taskData);
+      logger.debug('KeyboardAdaptiveForm', 'Creating task with data', taskData);
 
       // Create task using backend hook
       await handleCreateTask(taskData);
@@ -191,7 +192,7 @@ export const KeyboardAdaptiveForm: React.FC<KeyboardAdaptiveFormProps> = ({
       }, 500);
 
     } catch (error) {
-      console.error('Error creating task:', error);
+      logger.error('KeyboardAdaptiveForm', 'Error creating task', error);
       setSubmitStatus('error');
       
       if ('vibrate' in navigator) {
