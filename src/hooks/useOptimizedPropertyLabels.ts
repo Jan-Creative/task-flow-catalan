@@ -94,8 +94,8 @@ export const useOptimizedPropertyLabels = () => {
       return formattedProperties;
     },
     enabled: !!user,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 30 * 60 * 1000, // 30 minutes
+    staleTime: 30 * 60 * 1000, // 30 minutes - Properties change rarely
+    gcTime: 60 * 60 * 1000, // 1 hour - Keep longer in memory
     initialData: cachedProperties.length > 0 ? cachedProperties : undefined,
   });
 

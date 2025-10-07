@@ -70,6 +70,9 @@ export function useEvents() {
       }));
     },
     enabled: !!user,
+    staleTime: 2 * 60 * 1000, // 2 minutes - Events change frequently
+    gcTime: 10 * 60 * 1000, // 10 minutes
+    refetchOnWindowFocus: true, // Refresh when user returns
   });
 
   // Create event mutation

@@ -144,7 +144,7 @@ export const useSmartCache = <T>(
   } = {}
 ) => {
   const queryClient = useQueryClient();
-  const { staleTime = 5 * 60 * 1000, optimisticUpdates = false, backgroundRefetch = true } = options;
+  const { staleTime = 3 * 60 * 1000, optimisticUpdates = false, backgroundRefetch = true } = options;
 
   // Optimistic update function
   const optimisticUpdate = useCallback((updater: (old: T | undefined) => T) => {

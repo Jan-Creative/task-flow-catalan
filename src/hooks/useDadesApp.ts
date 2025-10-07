@@ -70,11 +70,11 @@ export const useDadesApp = () => {
       };
     },
     enabled: !!user,
-    staleTime: 1000 * 60 * 15, // 15 minutes - Extended cache
-    gcTime: 1000 * 60 * 30, // 30 minutes  
-    refetchOnWindowFocus: false,
-    refetchOnMount: false, // Prevent unnecessary refetches
-    refetchOnReconnect: false,
+    staleTime: 2 * 60 * 1000, // 2 minutes - Fresher data for dynamic tasks
+    gcTime: 10 * 60 * 1000, // 10 minutes - Keep in memory longer
+    refetchOnWindowFocus: true, // Auto-refresh when user returns
+    refetchOnMount: true, // Refresh on component mount for latest data
+    refetchOnReconnect: true, // Refresh when connection restored
     refetchInterval: false, // Disable automatic background refetching
     notifyOnChangeProps: ['data', 'error'] // Only notify on data/error changes
   });
