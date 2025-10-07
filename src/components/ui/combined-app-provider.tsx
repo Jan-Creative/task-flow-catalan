@@ -1,38 +1,34 @@
 /**
- * Combined App Provider - Flat context architecture for optimal React 18 performance
- * All contexts loaded synchronously without nesting to prevent queue issues
+ * Combined App Provider - Orchestrated provider system with phased loading
+ * Uses provider-engine for isolated error handling and progressive mounting
  */
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { ThemeProvider } from 'next-themes';
-import { TooltipProvider } from '@/components/ui/tooltip';
+import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { Toaster } from '@/components/ui/sonner';
-import { EnhancedErrorBoundary } from '@/components/ui/enhanced-error-boundary';
-import bootTracer from '@/lib/bootTracer';
-
-// All providers imported directly - no progressive loading
-import { OfflineProvider } from '@/contexts/OfflineContext';
-import { UnifiedTaskProvider } from '@/contexts/UnifiedTaskContext';
-import { NotificationProvider } from '@/contexts/NotificationContext';
-import { SecurityProvider } from '@/contexts/SecurityContext';
-import { BackgroundProvider } from '@/contexts/BackgroundContext';
-import { KeyboardShortcutsProvider } from '@/contexts/KeyboardShortcutsContext';
-import { PomodoroProvider } from '@/contexts/PomodoroContext';
-import { PropertyDialogProvider } from '@/contexts/PropertyDialogContext';
-import { IPadNavigationProvider } from '@/contexts/IPadNavigationContext';
-import { MacNavigationProvider } from '@/contexts/MacNavigationContext';
-import { KeyboardNavigationProvider } from '@/contexts/KeyboardNavigationContext';
-
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { createOptimizedQueryClient } from '@/lib/optimizedCache';
+import { bootTracer } from '@/lib/bootTracer';
+
+// New Provider Engine
+import { 
+  CanaryProvider, 
+  OrchestratedProviders, 
+  checkReactDuplication 
+} from '@/components/ui/provider-engine';
+import { PROVIDER_REGISTRY, getProvidersUpToPhase } from '@/contexts/providers/registry';
+
+// Legacy imports for backward compatibility
+import { OfflineProvider } from '@/contexts/OfflineContext';
 
 const queryClient = createOptimizedQueryClient();
 
 // Safe TooltipProvider wrapper - only initializes after mount
 const SafeTooltipProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [mounted, setMounted] = React.useState(false);
+  const [mounted, setMounted] = useState(false);
   
-  React.useEffect(() => {
+  useEffect(() => {
     setMounted(true);
     bootTracer.trace('TooltipProvider', 'Mounted safely after React init');
   }, []);
@@ -49,19 +45,29 @@ interface CombinedAppProviderProps {
   minimal?: boolean; // Emergency minimal mode
   safariUltraSafe?: boolean; // Ultra-safe mode for Safari debugging
   disabledProviders?: string[]; // Names of providers to disable via ?disable=
+  useLegacyProviders?: boolean; // Fallback to old provider composition
 }
 
-export const CombinedAppProvider = ({ children, minimal = false, safariUltraSafe = false, disabledProviders = [] }: CombinedAppProviderProps) => {
-  // Simple function - NO HOOKS to avoid dispatcher issues
-  const isDisabled = (name: string) => disabledProviders.includes(name);
+export const CombinedAppProvider = ({ 
+  children, 
+  minimal = false, 
+  safariUltraSafe = false, 
+  disabledProviders = [],
+  useLegacyProviders = false
+}: CombinedAppProviderProps) => {
+  
+  // Check for React duplication on mount
+  useEffect(() => {
+    checkReactDuplication();
+  }, []);
 
   // Safari Ultra-Safe mode: ONLY QueryClient + ThemeProvider + Toaster
-  // No TooltipProvider, no custom contexts
+  // No TooltipProvider, no custom contexts, no Service Worker
   if (safariUltraSafe) {
     bootTracer.trace('CombinedAppProvider', '🔴 SAFARI ULTRA-SAFE MODE - Only essential providers');
     return (
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider
+        <NextThemesProvider
           attribute="class"
           defaultTheme="dark"
           enableSystem
@@ -69,83 +75,73 @@ export const CombinedAppProvider = ({ children, minimal = false, safariUltraSafe
         >
           <Toaster />
           {children}
-        </ThemeProvider>
+        </NextThemesProvider>
       </QueryClientProvider>
     );
   }
 
-  // Minimal mode: only essential providers
+  // Minimal mode: Phase 1 providers only + optional Offline
   if (minimal) {
-    let minimalContent = (
-      <>
-        <Toaster />
-        {children}
-      </>
-    );
-
-    if (!isDisabled('Offline')) {
-      minimalContent = <OfflineProvider>{minimalContent}</OfflineProvider>;
-    }
-
+    bootTracer.trace('CombinedAppProvider', '⚠️ Minimal mode - Phase 1 providers only');
+    
+    const phase1Providers = getProvidersUpToPhase(1);
+    
     return (
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider
+        <NextThemesProvider
           attribute="class"
           defaultTheme="dark"
           enableSystem
           disableTransitionOnChange
         >
-          {isDisabled('Tooltip') ? minimalContent : (
-            <SafeTooltipProvider>
-              {minimalContent}
-            </SafeTooltipProvider>
-          )}
-        </ThemeProvider>
+          <SafeTooltipProvider>
+            <Toaster />
+            <CanaryProvider>
+              <OrchestratedProviders
+                providers={phase1Providers}
+                disabledProviders={disabledProviders}
+                maxPhase={1}
+              >
+                {!disabledProviders.includes('Offline') ? (
+                  <OfflineProvider>{children}</OfflineProvider>
+                ) : (
+                  children
+                )}
+              </OrchestratedProviders>
+            </CanaryProvider>
+          </SafeTooltipProvider>
+        </NextThemesProvider>
       </QueryClientProvider>
     );
   }
 
-  // Full mode: compose providers dynamically in reverse nesting order
-  let content: React.ReactNode = (
-    <>
-      <Toaster />
-      {children}
-    </>
-  );
+  // Full mode: orchestrated provider mounting with phased loading
+  bootTracer.trace('CombinedAppProvider', '✅ Full mode - orchestrated providers', { 
+    disabledProviders,
+    useLegacyProviders,
+    totalProviders: PROVIDER_REGISTRY.length 
+  });
 
-  const wrapProvider = (name: string, Provider: React.ComponentType<any>, props: Record<string, any> = {}) => {
-    if (isDisabled(name)) return;
-    content = <Provider {...props}>{content}</Provider>;
-  };
-
-  // Innermost to outermost (reverse of visual nesting)
-  wrapProvider('KeyboardNavigation', KeyboardNavigationProvider);
-  wrapProvider('MacNavigation', MacNavigationProvider);
-  wrapProvider('IPadNavigation', IPadNavigationProvider);
-  wrapProvider('PropertyDialog', PropertyDialogProvider);
-  wrapProvider('Pomodoro', PomodoroProvider);
-  wrapProvider('KeyboardShortcuts', KeyboardShortcutsProvider);
-  wrapProvider('UnifiedTask', UnifiedTaskProvider);
-  wrapProvider('Notification', NotificationProvider);
-  wrapProvider('Background', BackgroundProvider);
-  wrapProvider('Security', SecurityProvider);
-  wrapProvider('Offline', OfflineProvider);
-
-  // Full mode output with global providers
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider
+      <NextThemesProvider
         attribute="class"
         defaultTheme="dark"
         enableSystem
         disableTransitionOnChange
       >
-        {isDisabled('Tooltip') ? content : (
-          <SafeTooltipProvider>
-            {content}
-          </SafeTooltipProvider>
-        )}
-      </ThemeProvider>
+        <SafeTooltipProvider>
+          <Toaster />
+          <CanaryProvider>
+            <OrchestratedProviders
+              providers={PROVIDER_REGISTRY}
+              disabledProviders={disabledProviders}
+            >
+              {children}
+            </OrchestratedProviders>
+          </CanaryProvider>
+        </SafeTooltipProvider>
+      </NextThemesProvider>
     </QueryClientProvider>
   );
 };

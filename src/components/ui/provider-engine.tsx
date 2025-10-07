@@ -1,0 +1,229 @@
+import React, { Component, ReactNode, Suspense, useEffect, useState } from 'react';
+import { bootTracer } from '@/lib/bootTracer';
+
+// ============= PROVIDER BOUNDARY =============
+interface ProviderBoundaryProps {
+  name: string;
+  children: ReactNode;
+  onError?: (name: string, error: Error) => void;
+}
+
+interface ProviderBoundaryState {
+  hasError: boolean;
+  error?: Error;
+}
+
+export class ProviderBoundary extends Component<ProviderBoundaryProps, ProviderBoundaryState> {
+  constructor(props: ProviderBoundaryProps) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: Error): ProviderBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    const { name, onError } = this.props;
+    bootTracer.error(`Provider:${name}`, error, errorInfo);
+    
+    if (onError) {
+      onError(name, error);
+    }
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="p-4 bg-destructive/10 border border-destructive rounded-md">
+          <p className="text-sm text-destructive">
+            ⚠️ Provider "{this.props.name}" failed to load
+          </p>
+          <details className="mt-2 text-xs opacity-70">
+            <summary>Error details</summary>
+            <pre className="mt-2 p-2 bg-background/50 rounded overflow-auto">
+              {this.state.error?.message}
+            </pre>
+          </details>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+// ============= CANARY PROVIDER =============
+// Tests if React's dispatcher is working correctly
+export const CanaryProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  try {
+    // This will throw if dispatcher is null/undefined
+    const [canaryState] = useState('canary-ok');
+    
+    useEffect(() => {
+      bootTracer.mark('Canary', { status: 'passed', state: canaryState });
+    }, [canaryState]);
+
+    return <>{children}</>;
+  } catch (error) {
+    bootTracer.error('Canary', error, { 
+      message: 'CRITICAL: React dispatcher not available',
+      hint: 'Multiple React instances or corrupted cache'
+    });
+    throw error;
+  }
+};
+
+// ============= PROVIDER REGISTRY TYPES =============
+export interface ProviderConfig {
+  name: string;
+  Component: React.ComponentType<{ children: ReactNode }>;
+  phase: number;
+  mountAfterPaint?: boolean;
+  enabledByDefault: boolean;
+  props?: Record<string, unknown>;
+}
+
+// ============= PHASED MOUNTING =============
+interface PhasedMountProps {
+  phase: number;
+  children: ReactNode;
+  onMount?: () => void;
+}
+
+const PhasedMount: React.FC<PhasedMountProps> = ({ phase, children, onMount }) => {
+  const [mounted, setMounted] = useState(phase === 1); // Phase 1 mounts immediately
+
+  useEffect(() => {
+    if (mounted) return;
+
+    const mountProvider = () => {
+      setMounted(true);
+      onMount?.();
+    };
+
+    if (phase === 2) {
+      // Mount after first paint
+      requestAnimationFrame(mountProvider);
+    } else if (phase === 3) {
+      // Mount after next tick
+      setTimeout(mountProvider, 0);
+    } else if (phase >= 4) {
+      // Delayed mount for heavy providers
+      setTimeout(mountProvider, 100);
+    }
+  }, [phase, mounted, onMount]);
+
+  if (!mounted) {
+    return null;
+  }
+
+  return <>{children}</>;
+};
+
+// ============= ORCHESTRATED PROVIDERS =============
+interface OrchestratedProvidersProps {
+  providers: ProviderConfig[];
+  children: ReactNode;
+  disabledProviders?: string[];
+  maxPhase?: number;
+}
+
+export const OrchestratedProviders: React.FC<OrchestratedProvidersProps> = ({
+  providers,
+  children,
+  disabledProviders = [],
+  maxPhase = Infinity,
+}) => {
+  const [failedProviders, setFailedProviders] = useState<string[]>([]);
+
+  const handleProviderError = (name: string, error: Error) => {
+    bootTracer.error(`Provider:${name}`, error, { action: 'disabled' });
+    setFailedProviders(prev => [...prev, name]);
+  };
+
+  // Filter and sort providers
+  const activeProviders = providers
+    .filter(p => p.enabledByDefault || !disabledProviders.includes(p.name))
+    .filter(p => !failedProviders.includes(p.name))
+    .filter(p => !disabledProviders.includes(p.name))
+    .filter(p => p.phase <= maxPhase)
+    .sort((a, b) => a.phase - b.phase);
+
+  bootTracer.trace('OrchestratedProviders', 'Mounting providers', {
+    total: providers.length,
+    active: activeProviders.length,
+    disabled: disabledProviders,
+    failed: failedProviders,
+    maxPhase,
+  });
+
+  // Build nested structure from innermost to outermost
+  let content = children;
+
+  // Reverse order to build from innermost to outermost
+  for (let i = activeProviders.length - 1; i >= 0; i--) {
+    const provider = activeProviders[i];
+    const { Component, name, phase, mountAfterPaint, props = {} } = provider;
+
+    const startTime = performance.now();
+
+    const providerContent = (
+      <ProviderBoundary name={name} onError={handleProviderError}>
+        <Component {...props}>
+          {content}
+        </Component>
+      </ProviderBoundary>
+    );
+
+    // Track mount time
+    const wrappedContent = (
+      <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>}>
+        {mountAfterPaint ? (
+          <PhasedMount 
+            phase={phase}
+            onMount={() => {
+              const duration = performance.now() - startTime;
+              bootTracer.trace(`Provider:${name}`, `Mounted in phase ${phase}`, { duration: `${duration.toFixed(2)}ms` });
+            }}
+          >
+            {providerContent}
+          </PhasedMount>
+        ) : (
+          providerContent
+        )}
+      </Suspense>
+    );
+
+    content = wrappedContent;
+  }
+
+  return <>{content}</>;
+};
+
+// ============= REACT DEDUPE CHECK =============
+export const checkReactDuplication = () => {
+  if (typeof window === 'undefined') return;
+
+  try {
+    // Check for multiple React DevTools instances
+    const hook = (window as any).__REACT_DEVTOOLS_GLOBAL_HOOK__;
+    
+    if (hook && hook.renderers) {
+      const rendererCount = hook.renderers.size;
+      
+      if (rendererCount > 1) {
+        bootTracer.error('ReactDedupe', 'Multiple React renderers detected', {
+          count: rendererCount,
+          hint: 'Check for duplicate React packages in node_modules'
+        });
+      } else {
+        bootTracer.trace('ReactDedupe', 'Single React renderer detected ✓');
+      }
+    }
+  } catch (error) {
+    bootTracer.trace('ReactDedupe', 'Could not check for duplicates', { error });
+  }
+};

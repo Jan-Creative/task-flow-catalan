@@ -168,13 +168,21 @@ const isMinimalMode = params.get('minimal') === '1';
 const safeMode = params.get('safe') === '1';
 const probeMode = params.get('probe') === '1';
 const safariUltraSafe = params.get('safari-ultra-safe') === '1';
+const useLegacyProviders = params.get('providers') === 'legacy';
 const showBootDebug = params.get('bootdebug') === '1';
 const disabledProviders = (params.get('disable') || '')
   .split(',')
   .map((s) => s.trim())
   .filter(Boolean);
 
-bootTracer.mark('render:start', { isMinimalMode, safeMode, probeMode, safariUltraSafe, disabledProviders });
+bootTracer.mark('render:start', { 
+  isMinimalMode, 
+  safeMode, 
+  probeMode, 
+  safariUltraSafe, 
+  useLegacyProviders,
+  disabledProviders 
+});
 
 const root = ReactDOM.createRoot(document.getElementById("root")!);
 
@@ -205,6 +213,7 @@ if (probeMode) {
       <CombinedAppProvider 
         minimal={isMinimalMode || safeMode} 
         safariUltraSafe={safariUltraSafe}
+        useLegacyProviders={useLegacyProviders}
         disabledProviders={disabledProviders}
       >
         {showBootDebug && <BootDiagnosticsOverlay />}
