@@ -8,6 +8,7 @@ import { useNotifications } from '@/hooks/useNotifications';
 import { useNotificationManager } from '@/hooks/useNotificationManager';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/lib/toastUtils';
+import { logger } from '@/lib/logger';
 import type { NotificationPreferences, WebPushSubscriptionDB } from '@/hooks/useNotifications';
 
 // Context Type - mantenim la mateixa interfície per compatibilitat
@@ -75,7 +76,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       try {
         return await originalNotifications.initializeNotifications();
       } catch (error) {
-        console.error('Error in initializeNotifications:', error);
+        logger.error('NotificationContextV2', 'Error initializing notifications', error);
         toast({
           title: "❌ Error",
           description: "No s'han pogut inicialitzar les notificacions",
@@ -89,7 +90,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       try {
         await originalNotifications.updatePreferences(updates);
       } catch (error) {
-        console.error('Error in updatePreferences:', error);
+        logger.error('NotificationContextV2', 'Error updating preferences', error);
         toast({
           title: "❌ Error",
           description: "No s'han pogut actualitzar les preferències",
@@ -102,9 +103,9 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     createTaskReminder: async (taskId: string, title: string, message: string, scheduledAt: Date) => {
       try {
         await createTaskReminderCentralized(taskId, title, message, scheduledAt, NotificationPriority.NORMAL);
-        console.log('🔄 Task reminder creat via NotificationManager centralitzat');
+        logger.info('NotificationContextV2', 'Task reminder created via centralized NotificationManager', { taskId, scheduledAt });
       } catch (error) {
-        console.error('Error in createTaskReminder:', error);
+        logger.error('NotificationContextV2', 'Error creating task reminder', error);
         toast({
           title: "❌ Error",
           description: "No s'ha pogut crear el recordatori",
@@ -128,9 +129,9 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
           metadata, 
           NotificationPriority.NORMAL
         );
-        console.log('🔄 Custom notification creada via NotificationManager centralitzat');
+        logger.info('NotificationContextV2', 'Custom notification created via centralized NotificationManager', { title, scheduledAt });
       } catch (error) {
-        console.error('Error in createCustomNotification:', error);
+        logger.error('NotificationContextV2', 'Error creating custom notification', error);
         toast({
           title: "❌ Error",
           description: "No s'ha pogut crear la notificació",
@@ -145,13 +146,13 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
         // Si és un blockId, usar la nova funció
         if (reminderId.includes('block') || reminderId.length > 20) {
           await cancelBlockNotifications(reminderId);
-          console.log('🔄 Reminders cancel·lats via NotificationManager centralitzat');
+          logger.info('NotificationContextV2', 'Reminders cancelled via centralized NotificationManager', { reminderId });
         } else {
           // Fallback al sistema original
           await originalNotifications.cancelReminder(reminderId);
         }
       } catch (error) {
-        console.error('Error in cancelReminder:', error);
+        logger.error('NotificationContextV2', 'Error cancelling reminder', error);
         toast({
           title: "❌ Error",
           description: "No s'ha pogut cancel·lar el recordatori",
@@ -165,7 +166,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       try {
         await originalNotifications.refreshData();
       } catch (error) {
-        console.error('Error in refreshData:', error);
+        logger.error('NotificationContextV2', 'Error refreshing data', error);
         toast({
           title: "❌ Error",
           description: "No s'han pogut actualitzar les dades",
@@ -178,7 +179,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       try {
         await originalNotifications.runRemindersProcessor();
       } catch (error) {
-        console.error('Error in runRemindersProcessor:', error);
+        logger.error('NotificationContextV2', 'Error running reminders processor', error);
         toast({
           title: "❌ Error",
           description: "No s'ha pogut executar el processador de recordatoris",
@@ -191,7 +192,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       try {
         return await originalNotifications.sendTestNotification();
       } catch (error) {
-        console.error('Error in sendTestNotification:', error);
+        logger.error('NotificationContextV2', 'Error sending test notification', error);
         toast({
           title: "❌ Error",
           description: "No s'ha pogut enviar la notificació de prova",
@@ -204,7 +205,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       try {
         await originalNotifications.resetSubscription();
       } catch (error) {
-        console.error('Error in resetSubscription:', error);
+        logger.error('NotificationContextV2', 'Error resetting subscription', error);
         toast({
           title: "❌ Error",
           description: "No s'ha pogut reiniciar la subscripció",
@@ -217,7 +218,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       try {
         await originalNotifications.cleanupDuplicateSubscriptions();
       } catch (error) {
-        console.error('Error in cleanupDuplicateSubscriptions:', error);
+        logger.error('NotificationContextV2', 'Error cleaning up duplicate subscriptions', error);
         toast({
           title: "❌ Error",
           description: "No s'han pogut netejar les subscripcions duplicades",
@@ -230,7 +231,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       try {
         await originalNotifications.purgeAllSubscriptions();
       } catch (error) {
-        console.error('Error in purgeAllSubscriptions:', error);
+        logger.error('NotificationContextV2', 'Error purging all subscriptions', error);
         toast({
           title: "❌ Error",
           description: "No s'han pogut eliminar totes les subscripcions",

@@ -6,6 +6,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { notificationAPI, NotificationTypeEnum, NotificationPriority } from '@/services/NotificationAPI';
 import { notificationManager } from '@/services/NotificationManager';
+import { logger } from '@/lib/logger';
 import type { NotificationEvent } from '@/services/NotificationManager';
 
 export interface NotificationManagerState {
@@ -93,7 +94,7 @@ export const useNotificationManager = () => {
     try {
       return await notificationAPI.createTaskReminder(taskId, title, message, scheduledAt, priority);
     } catch (error) {
-      console.error('❌ Error creant task reminder:', error);
+      logger.error('useNotificationManager', 'Error creating task reminder', error);
       throw error;
     }
   }, []);
@@ -109,7 +110,7 @@ export const useNotificationManager = () => {
     try {
       return await notificationAPI.createTimeBlockReminder(blockId, title, message, scheduledAt, blockType, priority);
     } catch (error) {
-      console.error('❌ Error creant time block reminder:', error);
+      logger.error('useNotificationManager', 'Error creating time block reminder', error);
       throw error;
     }
   }, []);
@@ -124,7 +125,7 @@ export const useNotificationManager = () => {
     try {
       return await notificationAPI.createCustomNotification(title, message, scheduledAt, metadata, priority);
     } catch (error) {
-      console.error('❌ Error creant custom notification:', error);
+      logger.error('useNotificationManager', 'Error creating custom notification', error);
       throw error;
     }
   }, []);
@@ -133,7 +134,7 @@ export const useNotificationManager = () => {
     try {
       return await notificationAPI.cancelNotification(correlationId);
     } catch (error) {
-      console.error('❌ Error cancel·lant notification:', error);
+      logger.error('useNotificationManager', 'Error cancelling notification', error);
       throw error;
     }
   }, []);
@@ -142,7 +143,7 @@ export const useNotificationManager = () => {
     try {
       return await notificationAPI.cancelBlockNotifications(blockId);
     } catch (error) {
-      console.error('❌ Error cancel·lant block notifications:', error);
+      logger.error('useNotificationManager', 'Error cancelling block notifications', error);
       throw error;
     }
   }, []);
@@ -151,7 +152,7 @@ export const useNotificationManager = () => {
     try {
       return await notificationAPI.cancelTaskNotifications(taskId);
     } catch (error) {
-      console.error('❌ Error cancel·lant task notifications:', error);
+      logger.error('useNotificationManager', 'Error cancelling task notifications', error);
       throw error;
     }
   }, []);
@@ -167,7 +168,7 @@ export const useNotificationManager = () => {
     try {
       return await notificationAPI.createBatchNotifications(notifications);
     } catch (error) {
-      console.error('❌ Error creant batch notifications:', error);
+      logger.error('useNotificationManager', 'Error creating batch notifications', error);
       throw error;
     }
   }, []);
@@ -182,7 +183,7 @@ export const useNotificationManager = () => {
     try {
       return await notificationAPI.createFromTemplate(templateType, scheduledAt, data, priority);
     } catch (error) {
-      console.error('❌ Error creant notification from template:', error);
+      logger.error('useNotificationManager', 'Error creating notification from template', error);
       throw error;
     }
   }, []);
