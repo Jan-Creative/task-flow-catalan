@@ -1,12 +1,17 @@
+import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
-import CalendarPage from "./pages/CalendarPage";
-import PrepareTomorrowPage from "./pages/PrepareTomorrowPage";
-import NotesPage from "./pages/NotesPage";
 import { LazyTaskDetailPage, LazyFolderDetailPage } from "@/components/LazyComponents";
-import OfflineDemoPage from "./pages/OfflineDemoPage";
-import ProjectPage from "./pages/ProjectPage";
 import NotFound from "./pages/NotFound";
+import {
+  CalendarPageLazy,
+  NotesPageLazy,
+  PrepareTomorrowPageLazy,
+  ProjectPageLazy,
+  OfflineDemoPageLazy,
+  LazyPage,
+  preloadOnIdle,
+} from "@/lib/lazyLoading";
 import { PomodoroWidget } from "@/components/pomodoro/PomodoroWidget";
 import { RouteCacheProvider } from "@/components/ui/route-cache";
 import { BackgroundRefresher } from "@/components/ui/navigation-optimizers";
@@ -30,6 +35,12 @@ const App = () => {
     logger.warn('App', 'Configuration validation warning', error);
   }
 
+  // Preload heavy pages on idle to improve perceived performance
+  React.useEffect(() => {
+    preloadOnIdle(() => import('@/pages/CalendarPage'));
+    preloadOnIdle(() => import('@/pages/NotesPage'));
+  }, []);
+
   return (
     <div className="app-shell w-full min-h-screen overflow-x-hidden">
       <div className="page-scroll">
@@ -38,13 +49,13 @@ const App = () => {
             <BackgroundRefresher />
             <Routes>
               <Route path="/" element={<Index />} />
-              <Route path="/calendar" element={<CalendarPage />} />
-              <Route path="/notes" element={<NotesPage />} />
-              <Route path="/prepare-tomorrow" element={<PrepareTomorrowPage />} />
+              <Route path="/calendar" element={<LazyPage pageName="Calendari"><CalendarPageLazy /></LazyPage>} />
+              <Route path="/notes" element={<LazyPage pageName="Notes"><NotesPageLazy /></LazyPage>} />
+              <Route path="/prepare-tomorrow" element={<LazyPage pageName="Preparar Demà"><PrepareTomorrowPageLazy /></LazyPage>} />
               <Route path="/task/:taskId" element={<LazyTaskDetailPage />} />
               <Route path="/folder/:folderId" element={<LazyFolderDetailPage />} />
-              <Route path="/project/:projectId" element={<ProjectPage />} />
-              <Route path="/offline-demo" element={<OfflineDemoPage />} />
+              <Route path="/project/:projectId" element={<LazyPage pageName="Projecte"><ProjectPageLazy /></LazyPage>} />
+              <Route path="/offline-demo" element={<LazyPage pageName="Demo Offline"><OfflineDemoPageLazy /></LazyPage>} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

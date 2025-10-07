@@ -104,6 +104,48 @@ export default defineConfig(({ mode }) => {
         assetFileNames: 'assets/[name]-[hash].[ext]',
         // Compact output
         compact: true,
+        // Manual chunks for better code splitting
+        manualChunks: (id) => {
+          // React core (always needed)
+          if (id.includes('node_modules/react/') || 
+              id.includes('node_modules/react-dom/') || 
+              id.includes('node_modules/react-router-dom/') ||
+              id.includes('node_modules/scheduler/')) {
+            return 'vendor-react';
+          }
+          
+          // Radix UI components (many components)
+          if (id.includes('@radix-ui')) {
+            return 'vendor-radix';
+          }
+          
+          // React Query (state manager)
+          if (id.includes('@tanstack/react-query')) {
+            return 'vendor-query';
+          }
+          
+          // Tiptap editor (VERY heavy, only for NotesPage)
+          if (id.includes('@tiptap')) {
+            return 'vendor-tiptap';
+          }
+          
+          // Charts (only for dashboard/stats)
+          if (id.includes('recharts')) {
+            return 'vendor-charts';
+          }
+          
+          // Heavy optional libs
+          if (id.includes('ogl') || 
+              id.includes('react-markdown') || 
+              id.includes('react-draggable')) {
+            return 'vendor-heavy';
+          }
+          
+          // Supabase
+          if (id.includes('@supabase')) {
+            return 'vendor-supabase';
+          }
+        },
       },
       treeshake: {
         // Enable aggressive tree-shaking

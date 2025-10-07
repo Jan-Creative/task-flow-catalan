@@ -10,6 +10,11 @@ export const SettingsPageLazy = lazy(() => import('@/pages/SettingsPage'));
 export const NotificationsPageLazy = lazy(() => import('@/pages/NotificationsPage'));
 export const TaskDetailPageLazy = lazy(() => import('@/pages/TaskDetailPage'));
 export const FolderDetailPageLazy = lazy(() => import('@/pages/FolderDetailPage'));
+export const CalendarPageLazy = lazy(() => import('@/pages/CalendarPage'));
+export const NotesPageLazy = lazy(() => import('@/pages/NotesPage'));
+export const PrepareTomorrowPageLazy = lazy(() => import('@/pages/PrepareTomorrowPage'));
+export const ProjectPageLazy = lazy(() => import('@/pages/ProjectPage'));
+export const OfflineDemoPageLazy = lazy(() => import('@/pages/OfflineDemoPage'));
 
 // Modals and dialogs
 export const CreateTaskModalLazy = lazy(() => import('@/components/CreateTaskModal'));
