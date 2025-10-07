@@ -6,6 +6,7 @@ import { useState, useCallback, useMemo, useEffect } from 'react';
 import { TaskFormData, TaskStatus, TaskPriority } from '@/types/task';
 import { useTypedForm, createRequiredValidator, createLengthValidator } from './useTypedForm';
 import { useProperties } from './useProperties';
+import { logger } from '@/lib/logger';
 
 export interface CustomProperty {
   propertyId: string;
@@ -169,8 +170,7 @@ const resetForm = useCallback(() => {
     propertyDropdownOpen: false
   });
 
-  // Debugging aid (temporary)
-  console.debug('[useTaskForm] resetForm', newValues);
+  logger.debug('useTaskForm', 'resetForm called', newValues);
 }, [config.initialData, form.updateInitialValues]);
 
   return {

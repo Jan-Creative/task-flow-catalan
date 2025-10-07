@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/lib/toastUtils';
 import { useRealtimeSafety } from './useRealtimeSafety';
 import type { Subtask } from '@/types';
+import { logger } from '@/lib/logger';
 
 export const useTaskSubtasks = (taskId: string) => {
   const [subtasks, setSubtasks] = useState<Subtask[]>([]);
@@ -29,7 +30,7 @@ export const useTaskSubtasks = (taskId: string) => {
       if (error) throw error;
       setSubtasks((data || []).map(item => ({ ...item, is_completed: item.completed })));
     } catch (error) {
-      console.error('Error fetching subtasks:', error);
+      logger.error('useTaskSubtasks', 'Error fetching subtasks', error);
     } finally {
       setLoading(false);
     }
@@ -62,7 +63,7 @@ export const useTaskSubtasks = (taskId: string) => {
 
       return { ...data, is_completed: data.completed };
     } catch (error) {
-      console.error('Error creating subtask:', error);
+      logger.error('useTaskSubtasks', 'Error creating subtask', error);
       toast({
         title: "Error",
         description: "No s'ha pogut crear la subtasca.",
@@ -90,7 +91,7 @@ export const useTaskSubtasks = (taskId: string) => {
         description: "La subtasca s'ha eliminat correctament.",
       });
     } catch (error) {
-      console.error('Error deleting subtask:', error);
+      logger.error('useTaskSubtasks', 'Error deleting subtask', error);
       toast({
         title: "Error",
         description: "No s'ha pogut eliminar la subtasca.",
@@ -123,7 +124,7 @@ export const useTaskSubtasks = (taskId: string) => {
         )
       );
     } catch (error) {
-      console.error('Error toggling subtask:', error);
+      logger.error('useTaskSubtasks', 'Error toggling subtask', error);
       toast({
         title: "Error",
         description: "No s'ha pogut actualitzar la subtasca.",

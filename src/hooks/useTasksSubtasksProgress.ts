@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useRealtimeSafety } from './useRealtimeSafety';
+import { logger } from '@/lib/logger';
 
 export interface TaskProgress {
   taskId: string;
@@ -29,14 +30,14 @@ export const useTasksSubtasksProgress = (taskIds: string[]) => {
       setLoading(true);
       
       // Single query to get all subtasks for the given task IDs
-      console.debug('Fetching subtask progress for tasks:', stableTaskIds);
+      logger.debug('useTasksSubtasksProgress', 'Fetching subtask progress for tasks', { taskIds: stableTaskIds });
       
       const { data, error } = await supabase
         .from('task_subtasks')
         .select('task_id, completed')
         .in('task_id', stableTaskIds);
       
-      console.debug('Subtasks query result:', { data, error });
+      logger.debug('useTasksSubtasksProgress', 'Subtasks query result', { hasData: !!data, hasError: !!error });
 
       if (error) throw error;
 
@@ -68,7 +69,7 @@ export const useTasksSubtasksProgress = (taskIds: string[]) => {
 
       setProgressMap(newProgressMap);
     } catch (error) {
-      console.error('Error fetching task progress:', error);
+      logger.error('useTasksSubtasksProgress', 'Error fetching task progress', error);
     } finally {
       setLoading(false);
     }
@@ -101,7 +102,7 @@ export const useTasksSubtasksProgress = (taskIds: string[]) => {
         table: 'task_subtasks'
       },
       () => {
-        console.debug('Subtask change detected, refreshing progress');
+        logger.debug('useTasksSubtasksProgress', 'Subtask change detected, refreshing progress');
         fetchProgress();
       }
     );

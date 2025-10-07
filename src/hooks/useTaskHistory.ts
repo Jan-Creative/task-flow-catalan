@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { toast } from 'sonner';
 import { Task } from '@/types/task';
+import { logger } from '@/lib/logger';
 
 export interface TaskHistoryItem {
   id: string;
@@ -41,7 +42,7 @@ export const useTaskHistory = () => {
         .order('archived_at', { ascending: false });
 
       if (error) {
-        console.error('Error fetching task history:', error);
+        logger.error('useTaskHistory', 'Error fetching task history', error);
         throw error;
       }
 
@@ -97,7 +98,7 @@ export const useTaskHistory = () => {
       toast.success(`${result.archivedCount} tasques arxivades correctament`);
     },
     onError: (error) => {
-      console.error('Error archiving tasks:', error);
+      logger.error('useTaskHistory', 'Error archiving tasks', error);
       toast.error('Error en arxivar les tasques');
     }
   });
@@ -117,7 +118,7 @@ export const useTaskHistory = () => {
       toast.success('Tasques eliminades de l\'historial');
     },
     onError: (error) => {
-      console.error('Error deleting from history:', error);
+      logger.error('useTaskHistory', 'Error deleting from history', error);
       toast.error('Error en eliminar de l\'historial');
     }
   });
@@ -139,7 +140,7 @@ export const useTaskHistory = () => {
       toast.success('Historial netejat completament');
     },
     onError: (error) => {
-      console.error('Error clearing history:', error);
+      logger.error('useTaskHistory', 'Error clearing history', error);
       toast.error('Error en netejar l\'historial');
     }
   });

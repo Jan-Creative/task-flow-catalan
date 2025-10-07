@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 export const useTaskCleanup = () => {
   const { user } = useAuth();
@@ -53,7 +54,7 @@ export const useTaskCleanup = () => {
       }
     },
     onError: (error) => {
-      console.error('Error resetting tasks:', error);
+      logger.error('useTaskCleanup', 'Error resetting tasks', error);
       toast.error('Error en eliminar les tasques');
     }
   });
@@ -76,7 +77,7 @@ export const useTaskCleanup = () => {
       toast.success('Tasques completades eliminades');
     },
     onError: (error) => {
-      console.error('Error deleting completed tasks:', error);
+      logger.error('useTaskCleanup', 'Error deleting completed tasks', error);
       toast.error('Error en eliminar les tasques completades');
     }
   });
