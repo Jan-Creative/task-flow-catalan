@@ -92,7 +92,7 @@ self.addEventListener('install', event => {
   );
 });
 
-// Activate event - gentle cache cleanup, NO forced reloads
+// Activate event - gentle cache cleanup with delayed deletion
 self.addEventListener('activate', event => {
   console.log('🚀 SW activating', {
     version: CACHE_VERSION,
@@ -104,27 +104,67 @@ self.addEventListener('activate', event => {
       const cacheNames = await caches.keys();
       const taskflowCaches = cacheNames.filter(name => name.startsWith('taskflow-'));
       
-      // Keep current caches + allow previous version for smooth transitions (max 2 versions = 8 caches)
-      const validCaches = [
-        CACHE_NAME, STATIC_CACHE, DYNAMIC_CACHE, API_CACHE,
-        // Keep previous version patterns if we haven't exceeded max cache count
-        ...taskflowCaches.filter(name => 
-          !validCaches.includes(name) && taskflowCaches.length <= 8
-        )
-      ];
+      // Extract unique version hashes from cache names
+      const cacheVersions = [...new Set(
+        taskflowCaches.map(name => {
+          const match = name.match(/taskflow-(?:static-|dynamic-|api-)?v(.+)/);
+          return match ? match[1] : null;
+        }).filter(Boolean)
+      )];
       
-      // Delete old caches
-      await Promise.all(
-        cacheNames
-          .filter(cacheName => !validCaches.includes(cacheName) && cacheName.startsWith('taskflow-'))
-          .map(cacheName => {
-            console.log('🗑️ Deleting old cache:', cacheName, {
-              reason: 'version-mismatch',
-              current: BUILD_HASH
-            });
-            return caches.delete(cacheName);
-          })
+      console.log('📊 Cache versions found:', {
+        total: cacheVersions.length,
+        versions: cacheVersions,
+        current: BUILD_HASH
+      });
+      
+      // Keep current version + 1 previous version for smooth transitions
+      const currentVersionCaches = [CACHE_NAME, STATIC_CACHE, DYNAMIC_CACHE, API_CACHE];
+      
+      // Identify previous version caches (most recent that isn't current)
+      const previousVersionHash = cacheVersions
+        .filter(v => v !== BUILD_HASH)
+        .sort()
+        .reverse()[0];
+      
+      const previousVersionCaches = previousVersionHash 
+        ? taskflowCaches.filter(name => name.includes(previousVersionHash))
+        : [];
+      
+      const validCaches = [...currentVersionCaches, ...previousVersionCaches];
+      
+      console.log('✅ Valid caches:', {
+        current: currentVersionCaches,
+        previous: previousVersionCaches,
+        total: validCaches.length
+      });
+      
+      // Identify caches to delete (older than previous version)
+      const cachesToDelete = cacheNames.filter(cacheName => 
+        cacheName.startsWith('taskflow-') && !validCaches.includes(cacheName)
       );
+      
+      if (cachesToDelete.length > 0) {
+        console.log('⏳ Scheduling cleanup of old caches in 5 seconds:', cachesToDelete);
+        
+        // Delay cleanup to ensure smooth transition
+        setTimeout(async () => {
+          console.log('🗑️ Starting delayed cache cleanup...');
+          await Promise.all(
+            cachesToDelete.map(cacheName => {
+              console.log('🗑️ Deleting old cache:', cacheName, {
+                reason: 'version-outdated',
+                current: BUILD_HASH,
+                previous: previousVersionHash
+              });
+              return caches.delete(cacheName);
+            })
+          );
+          console.log('✅ Cache cleanup completed');
+        }, 5000); // 5 second delay
+      } else {
+        console.log('✅ No old caches to clean up');
+      }
       
       // Take control of all clients
       await self.clients.claim();
@@ -137,6 +177,7 @@ self.addEventListener('activate', event => {
           type: 'SW_ACTIVATED',
           cacheVersion: CACHE_NAME,
           buildHash: BUILD_HASH,
+          previousVersion: previousVersionHash,
           shouldReload: false
         });
       });
