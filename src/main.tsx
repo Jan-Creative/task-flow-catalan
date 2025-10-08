@@ -18,9 +18,14 @@ declare global {
   }
 }
 
-// ============= FASE 3: DEBUGGING VISUAL AL DOM =============
+// ============= FASE 3 + 4: DEBUGGING VISUAL AMB CLEANUP AUTOMÀTIC =============
 // Funció per afegir logs visuals temporals al DOM per debugging
+let debugLogsEnabled = true;
+let hasBootErrors = false;
+
 function addDebugLog(message: string, type: 'info' | 'success' | 'error' = 'info') {
+  if (!debugLogsEnabled) return;
+  
   const log = document.createElement('div');
   const timestamp = new Date().toISOString().split('T')[1].substring(0, 12);
   log.textContent = `[${timestamp}] ${message}`;
@@ -30,6 +35,11 @@ function addDebugLog(message: string, type: 'info' | 'success' | 'error' = 'info
     success: 'background:#065f46;color:#6ee7b7;',
     error: 'background:#991b1b;color:#fca5a5;'
   };
+  
+  // Marcar si hi ha errors
+  if (type === 'error') {
+    hasBootErrors = true;
+  }
   
   log.style.cssText = `
     position:fixed;
@@ -45,12 +55,81 @@ function addDebugLog(message: string, type: 'info' | 'success' | 'error' = 'info
     overflow:hidden;
     text-overflow:ellipsis;
     white-space:nowrap;
+    transition:opacity 0.3s ease;
   `;
   log.setAttribute('data-debug-log', 'true');
   document.body.appendChild(log);
   
-  // Auto-remove després de 5 segons
-  setTimeout(() => log.remove(), 5000);
+  // Auto-remove després de 5 segons (només si no hi ha errors)
+  if (type !== 'error') {
+    setTimeout(() => {
+      log.style.opacity = '0';
+      setTimeout(() => log.remove(), 300);
+    }, 5000);
+  }
+}
+
+// FASE 4: Cleanup automàtic de debug logs després de boot exitós
+function cleanupDebugLogs() {
+  addDebugLog('🧹 Cleaning up debug logs...', 'info');
+  
+  setTimeout(() => {
+    if (!hasBootErrors) {
+      debugLogsEnabled = false;
+      
+      // Fade out i eliminar tots els logs
+      const allLogs = document.querySelectorAll('[data-debug-log]');
+      allLogs.forEach((log, index) => {
+        setTimeout(() => {
+          (log as HTMLElement).style.opacity = '0';
+          setTimeout(() => log.remove(), 300);
+        }, index * 100);
+      });
+      
+      // Mostrar indicador de boot exitós temporal
+      setTimeout(() => {
+        const successIndicator = document.createElement('div');
+        successIndicator.textContent = '✅ Boot successful';
+        successIndicator.style.cssText = `
+          position:fixed;
+          bottom:10px;
+          left:10px;
+          background:#065f46;
+          color:#6ee7b7;
+          padding:8px 16px;
+          font-family:monospace;
+          font-size:12px;
+          z-index:999999;
+          border-radius:6px;
+          box-shadow:0 4px 6px rgba(0,0,0,0.3);
+          animation:slideIn 0.3s ease;
+        `;
+        
+        const style = document.createElement('style');
+        style.textContent = `
+          @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+          }
+          @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(-100%); opacity: 0; }
+          }
+        `;
+        document.head.appendChild(style);
+        document.body.appendChild(successIndicator);
+        
+        // Eliminar després de 3 segons
+        setTimeout(() => {
+          successIndicator.style.animation = 'slideOut 0.3s ease';
+          setTimeout(() => successIndicator.remove(), 300);
+        }, 3000);
+      }, allLogs.length * 100 + 500);
+    } else {
+      // Si hi ha errors, mantenir els logs per debugging
+      addDebugLog('⚠️ Errors detected - keeping logs for debugging', 'error');
+    }
+  }, 2000); // Esperar 2 segons després del boot complet
 }
 
 // Initialize performance optimizations
@@ -517,6 +596,9 @@ if (probeMode) {
         addDebugLog('🎉 Boot complete!', 'success');
         bootTracer.mark('boot:complete');
         logger.info('App', 'Boot successful');
+        
+        // FASE 4: Cleanup automàtic dels debug logs
+        cleanupDebugLogs();
       }, 100);
     });
 }
