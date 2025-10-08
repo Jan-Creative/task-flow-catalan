@@ -18,6 +18,34 @@ declare global {
   }
 }
 
+// ============= FASE 1: DETECCIÓ DE REACT STRICTMODE =============
+// StrictMode causa doble mount en dev mode, explicant els re-renders múltiples
+if (import.meta.env.DEV) {
+  const strictModeDetected = document.querySelectorAll('[data-reactroot]').length > 1;
+  if (strictModeDetected || (window as any).__REACT_STRICT_MODE_ACTIVE) {
+    addDebugLog('🔍 React StrictMode detectat (doble mount normal en dev)', 'info');
+    bootTracer.mark('StrictMode', { active: true, note: 'Double mounting expected in dev' });
+  }
+}
+
+// ============= FASE 1: DETECCIÓ DE REACT STRICTMODE =============
+// StrictMode causa doble mount en dev mode, explicant els re-renders múltiples
+if (import.meta.env.DEV) {
+  const strictModeCheck = () => {
+    const reactRoot = document.querySelector('[data-reactroot]');
+    if (reactRoot || (window as any).__REACT_STRICT_MODE_ACTIVE) {
+      console.log('🔍 React StrictMode detectat (doble mount normal en dev)');
+      bootTracer.mark('StrictMode', { active: true, note: 'Double mounting expected in dev' });
+    }
+  };
+  // Check after DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', strictModeCheck);
+  } else {
+    strictModeCheck();
+  }
+}
+
 // ============= FASE 3 + 4: DEBUGGING VISUAL AMB CLEANUP AUTOMÀTIC =============
 // Funció per afegir logs visuals temporals al DOM per debugging
 let debugLogsEnabled = true;
@@ -477,10 +505,10 @@ if (probeMode) {
   addDebugLog('📦 Starting dynamic import...', 'info');
   bootTracer.mark('dynamic-import:start');
   
-  // 1️⃣ Crear Promise amb timeout de 5000ms
+  // 1️⃣ Crear Promise amb timeout de 3000ms (reduït gràcies a modulepreload)
   const importPromise = import('./contexts/ProviderStatusContext');
   const timeoutPromise = new Promise<never>((_, reject) => 
-    setTimeout(() => reject(new Error('Import timeout after 5000ms')), 5000)
+    setTimeout(() => reject(new Error('Import timeout after 3000ms')), 3000)
   );
   
   // 2️⃣ RenderGuard més curt (2500ms) per forçar fallback si tot va lent

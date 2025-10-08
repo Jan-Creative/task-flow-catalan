@@ -118,16 +118,34 @@ const PhasedMount: React.FC<PhasedMountProps> = ({ phase, children, onMount }) =
       onMount?.();
     };
 
-    // PHASE 4: Secure phased mounting with requestIdleCallback
+    // PHASE 4: Secure phased mounting with requestIdleCallback + TIMEOUT FALLBACK
     if (phase === 1) {
       // Phase 1: Wait for React to be idle before mounting
       // This prevents race conditions with React's dispatcher
+      let mounted = false;
+      
       if (typeof requestIdleCallback !== 'undefined') {
-        const idleId = requestIdleCallback(mountProvider);
+        const idleId = requestIdleCallback(() => {
+          if (!mounted) {
+            mounted = true;
+            mountProvider();
+          }
+        });
+        
+        // CRITICAL FIX: Fallback timeout if requestIdleCallback never fires
+        const fallbackTimeout = setTimeout(() => {
+          if (!mounted) {
+            mounted = true;
+            bootTracer.trace(`Provider:PhasedMount`, `Phase ${phase} fallback timeout triggered`, { phase });
+            mountProvider();
+          }
+        }, 100); // 100ms max wait
+        
         return () => {
           if (typeof cancelIdleCallback !== 'undefined') {
             cancelIdleCallback(idleId);
           }
+          clearTimeout(fallbackTimeout);
         };
       } else {
         // Fallback for browsers without requestIdleCallback
@@ -187,6 +205,15 @@ export const OrchestratedProviders: React.FC<OrchestratedProvidersProps> = ({
     
     // PHASE 6: Update provider status
     updateProviderStatus(name, { status: 'failed', error });
+    
+    // FASE 2: Visual toast per provider errors
+    if (typeof window !== 'undefined' && 'toast' in window) {
+      (window as any).toast?.({
+        title: `⚠️ Provider "${name}" failed`,
+        description: error.message || 'Unknown error',
+        variant: 'destructive',
+      });
+    }
     
     setFailedProviders(prev => {
       if (prev.includes(name)) return prev;

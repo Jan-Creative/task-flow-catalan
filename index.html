@@ -87,12 +87,13 @@
         });
         
         // 3. BOOT WATCHDOG: Show progress if app takes longer than expected
+        // FASE 1: Augmentat de 3s → 5s per donar temps a Phase 4 providers
         var bootTimeout = setTimeout(function() {
           if (!window.__APP_BOOTED) {
             console.warn('⏳ App taking longer than expected');
             showBootProgress();
           }
-        }, 3000); // Show progress after 3s
+        }, 5000); // Show progress after 5s (abans 3s)
         
         var actualFailureTimeout;
         
