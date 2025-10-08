@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense, lazy } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import { LazyTaskDetailPage, LazyFolderDetailPage } from "@/components/LazyComponents";
@@ -12,6 +12,9 @@ import {
   LazyPage,
   preloadOnIdle,
 } from "@/lib/lazyLoading";
+
+// FASE 7: Lazy load provider testing page
+const ProviderTestingPageLazy = lazy(() => import('./pages/ProviderTestingPage'));
 import { PomodoroWidget } from "@/components/pomodoro/PomodoroWidget";
 import { RouteCacheProvider } from "@/components/ui/route-cache";
 import { BackgroundRefresher } from "@/components/ui/navigation-optimizers";
@@ -56,6 +59,16 @@ const App = () => {
               <Route path="/folder/:folderId" element={<LazyFolderDetailPage />} />
               <Route path="/project/:projectId" element={<LazyPage pageName="Projecte"><ProjectPageLazy /></LazyPage>} />
               <Route path="/offline-demo" element={<LazyPage pageName="Demo Offline"><OfflineDemoPageLazy /></LazyPage>} />
+              
+              {/* FASE 7: Provider Testing Page */}
+              <Route path="/provider-testing" element={
+                <LazyPage pageName="Provider Testing">
+                  <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+                    <ProviderTestingPageLazy />
+                  </Suspense>
+                </LazyPage>
+              } />
+              
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
