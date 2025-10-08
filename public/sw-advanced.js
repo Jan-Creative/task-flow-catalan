@@ -12,6 +12,15 @@ const STATIC_CACHE = `taskflow-static-v${BUILD_HASH}`;
 const DYNAMIC_CACHE = `taskflow-dynamic-v${BUILD_HASH}`;
 const API_CACHE = `taskflow-api-v${BUILD_HASH}`;
 
+// Persistent critical cache - NEVER deleted, survives version updates
+const CRITICAL_CACHE = 'taskflow-critical-persistent';
+const CRITICAL_ASSETS = [
+  '/',
+  '/index.html',
+  '/offline.html',
+  '/manifest.json'
+];
+
 // Cache strategies
 const CACHE_STRATEGIES = {
   CACHE_FIRST: 'cache-first',
@@ -84,8 +93,20 @@ self.addEventListener('install', event => {
   });
   event.waitUntil(
     (async () => {
+      // Precache regular assets
       const cache = await caches.open(STATIC_CACHE);
       await cache.addAll(PRECACHE_RESOURCES);
+      
+      // Precache critical assets to persistent cache
+      const criticalCache = await caches.open(CRITICAL_CACHE);
+      try {
+        await criticalCache.addAll(CRITICAL_ASSETS);
+        console.log('✅ Critical assets cached to persistent storage');
+      } catch (error) {
+        console.warn('⚠️ Some critical assets failed to cache:', error);
+        // Don't fail installation if critical cache fails
+      }
+      
       // Force immediate activation for updates
       self.skipWaiting();
     })()
@@ -139,9 +160,11 @@ self.addEventListener('activate', event => {
         total: validCaches.length
       });
       
-      // Identify caches to delete (older than previous version)
+      // Identify caches to delete (older than previous version, but NEVER delete critical cache)
       const cachesToDelete = cacheNames.filter(cacheName => 
-        cacheName.startsWith('taskflow-') && !validCaches.includes(cacheName)
+        cacheName.startsWith('taskflow-') && 
+        !validCaches.includes(cacheName) &&
+        cacheName !== CRITICAL_CACHE // Never delete critical cache
       );
       
       if (cachesToDelete.length > 0) {
@@ -204,7 +227,48 @@ self.addEventListener('fetch', event => {
   }
 });
 
-// Cache-first strategy
+/**
+ * Fetch with multi-level fallback strategy
+ * 1. Try network
+ * 2. Try versioned cache
+ * 3. Try critical persistent cache
+ * 4. Return offline response
+ */
+async function fetchWithFallback(request, offlineResponse) {
+  try {
+    // Attempt network fetch
+    return await fetch(request);
+  } catch (networkError) {
+    console.log('🔄 Network failed, trying caches for:', request.url);
+    
+    // Try all versioned caches (current + previous)
+    const allCaches = await caches.keys();
+    for (const cacheName of allCaches) {
+      if (cacheName.startsWith('taskflow-')) {
+        const cache = await caches.open(cacheName);
+        const cached = await cache.match(request);
+        if (cached) {
+          console.log('✅ Found in cache:', cacheName);
+          return cached;
+        }
+      }
+    }
+    
+    // Last resort: try critical persistent cache
+    const criticalCache = await caches.open(CRITICAL_CACHE);
+    const criticalCached = await criticalCache.match(request);
+    if (criticalCached) {
+      console.log('✅ Found in critical cache');
+      return criticalCached;
+    }
+    
+    // Return offline response as final fallback
+    console.warn('❌ No cache found, returning offline response');
+    return offlineResponse || new Response('Offline', { status: 503 });
+  }
+}
+
+// Cache-first strategy with fallback
 async function cacheFirst(request, cacheName) {
   const cache = await caches.open(cacheName);
   const cached = await cache.match(request);
@@ -220,12 +284,13 @@ async function cacheFirst(request, cacheName) {
     }
     return response;
   } catch (error) {
-    // Return offline fallback if available
-    return cache.match('/offline.html') || new Response('Offline', { status: 503 });
+    // Use multi-level fallback
+    const offlineResponse = await caches.match('/offline.html');
+    return fetchWithFallback(request, offlineResponse || new Response('Offline', { status: 503 }));
   }
 }
 
-// Network-first strategy
+// Network-first strategy with fallback
 async function networkFirst(request, cacheName, options = {}) {
   const cache = await caches.open(cacheName);
   
@@ -246,6 +311,14 @@ async function networkFirst(request, cacheName, options = {}) {
     const cached = await cache.match(request);
     if (cached) {
       return cached;
+    }
+    
+    // Try critical cache for important assets
+    const criticalCache = await caches.open(CRITICAL_CACHE);
+    const criticalCached = await criticalCache.match(request);
+    if (criticalCached) {
+      console.log('✅ Found in critical cache (network-first fallback)');
+      return criticalCached;
     }
     
     // Return structured offline response for API calls
