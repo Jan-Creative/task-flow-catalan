@@ -277,8 +277,19 @@ export const OrchestratedProviders: React.FC<OrchestratedProvidersProps> = ({
             phase={phase}
             onMount={() => {
               const duration = performance.now() - startTime;
-              bootTracer.trace(`Provider:${name}`, `Mounted in phase ${phase}`, { duration: `${duration.toFixed(2)}ms` });
-              logger.debug('ProviderEngine', `Provider "${name}" mounted`, { phase, duration: `${duration.toFixed(2)}ms` });
+              const durationMs = `${duration.toFixed(2)}ms`;
+              
+              // FASE 3: Millor traçabilitat amb temps de mount
+              bootTracer.trace(`Provider:${name}`, `✓ Mounted in phase ${phase}`, { 
+                duration: durationMs,
+                phase,
+                timestamp: new Date().toISOString()
+              });
+              logger.debug('ProviderEngine', `Provider "${name}" mounted`, { 
+                phase, 
+                duration: durationMs,
+                status: 'success'
+              });
               
               // PHASE 6: Update provider status to mounted
               updateProviderStatus(name, { status: 'mounted', mountTime: duration });

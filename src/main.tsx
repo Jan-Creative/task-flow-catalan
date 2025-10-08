@@ -4,10 +4,12 @@ import { EnhancedErrorBoundary } from "@/components/ui/enhanced-error-boundary";
 import { CombinedAppProvider } from "@/components/ui/combined-app-provider";
 import { KeyboardNavigationProvider } from "@/contexts/KeyboardNavigationContext";
 import { initializePerformanceOptimizations } from "@/lib/performanceOptimizer";
+import { detectDevicePerformance, cleanupAfterBoot } from "@/lib/bootOptimizer";
 import App from "./App.tsx";
 import "./index.css";
 import bootTracer from "@/lib/bootTracer";
-import BootDiagnosticsOverlay from "@/components/debug/BootDiagnosticsOverlay";
+// FASE 3: Lazy load BootDiagnosticsOverlay només quan sigui necessari
+const BootDiagnosticsOverlay = React.lazy(() => import("@/components/debug/BootDiagnosticsOverlay"));
 import { logger } from "@/lib/logger";
 
 // Global declarations for boot watchdog
@@ -160,6 +162,10 @@ function cleanupDebugLogs() {
   }, 2000); // Esperar 2 segons després del boot complet
 }
 
+// ============= FASE 3: DETECCIÓ DE RENDIMENT DEL DISPOSITIU =============
+const devicePerformance = detectDevicePerformance();
+addDebugLog(`📱 Device: ${devicePerformance} performance`, 'info');
+
 // Initialize performance optimizations
 addDebugLog('🚀 Performance optimizations started', 'info');
 initializePerformanceOptimizations();
@@ -218,34 +224,16 @@ function setupIOSProtection() {
 // Initialize iOS protection
 setupIOSProtection();
 
-// ============= FASE 1: DESACTIVACIÓ TEMPORAL SERVICE WORKER =============
-// OBJECTIU: Validar si el SW és la causa de la pantalla negra
-// Unregister forçat de tots els Service Workers
-bootTracer.mark('sw:force-unregister-start');
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then(regs => {
-    bootTracer.trace('ServiceWorker', `Unregistering ${regs.length} Service Workers`);
-    regs.forEach(reg => {
-      reg.unregister().then(() => {
-        bootTracer.trace('ServiceWorker', 'Unregistered successfully', { scope: reg.scope });
-      });
-    });
-  }).catch(err => {
-    bootTracer.error('ServiceWorker', err, { phase: 'force-unregister' });
-  });
-}
-bootTracer.mark('sw:force-unregister-end');
+// ============= SERVICE WORKER: DESACTIVAT TEMPORALMENT =============
+// FASE 3: Codi del Service Worker mogut aquí per neteja
+// Aquest codi està desactivat per diagnosticar problemes de pantalla negra
+// Per reactivar-lo, canvia "if (false &&" per "if (" a la línia següent
 
-// Log React environment early (no hooks)
-bootTracer.trace('React', `Version: ${React.version}`, {
-  isSafari: /^((?!chrome|android).)*safari/i.test(navigator.userAgent),
-  isIOS: /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
-});
+const SW_ENABLED = false; // Toggle per activar/desactivar Service Worker
 
-// DESACTIVAT TEMPORALMENT: Service Worker registration
-// Això està desactivat per validar si el SW causa la pantalla negra
-const isSafariUltraSafe = window.location.search.includes('safari-ultra-safe=1');
-if (false && 'serviceWorker' in navigator && !window.location.search.includes('no-sw=1') && !isSafariUltraSafe) {
+if (SW_ENABLED && 'serviceWorker' in navigator && !window.location.search.includes('no-sw=1')) {
+  bootTracer.mark('sw:registration-start');
+  
   window.addEventListener('load', async () => {
     try {
       // Handle ?reset=1 parameter for complete reset
@@ -261,14 +249,10 @@ if (false && 'serviceWorker' in navigator && !window.location.search.includes('n
         return;
       }
 
-      // Cleanup legacy or incorrect Service Worker registrations
+      // Cleanup legacy Service Worker registrations
       const existingRegs = await navigator.serviceWorker.getRegistrations();
       for (const reg of existingRegs) {
-        const url =
-          reg.active?.scriptURL ||
-          reg.waiting?.scriptURL ||
-          reg.installing?.scriptURL ||
-          '';
+        const url = reg.active?.scriptURL || reg.waiting?.scriptURL || reg.installing?.scriptURL || '';
         if (url && !url.endsWith('/sw-advanced.js')) {
           try {
             logger.info('ServiceWorker', 'Unregistering legacy Service Worker', { url });
@@ -279,88 +263,74 @@ if (false && 'serviceWorker' in navigator && !window.location.search.includes('n
         }
       }
 
-      // Constants for update management
+      // Update management with cooldown
       const LAST_UPDATE_KEY = 'lastSWUpdate';
       const UPDATE_COOLDOWN = 5 * 60 * 1000; // 5 minutes
       
-      // Check if we should force an update based on cooldown
       const shouldForceUpdate = (): boolean => {
         const lastUpdate = localStorage.getItem(LAST_UPDATE_KEY);
         if (!lastUpdate) return true;
         const timeSinceUpdate = Date.now() - parseInt(lastUpdate, 10);
-        const shouldUpdate = timeSinceUpdate > UPDATE_COOLDOWN;
-        
-        logger.debug('ServiceWorker', 'Update cooldown check', {
-          timeSinceUpdate: Math.round(timeSinceUpdate / 1000) + 's',
-          cooldown: Math.round(UPDATE_COOLDOWN / 1000) + 's',
-          shouldUpdate
-        });
-        
-        return shouldUpdate;
+        return timeSinceUpdate > UPDATE_COOLDOWN;
       };
 
-      // Reuse existing correct registration if present, otherwise register
+      // Register or reuse existing Service Worker
       let registration = await navigator.serviceWorker.getRegistration();
-      const hasCorrectSW =
-        !!registration &&
+      const hasCorrectSW = !!registration && 
         (registration.active?.scriptURL?.endsWith('/sw-advanced.js') ||
-          registration.waiting?.scriptURL?.endsWith('/sw-advanced.js') ||
-          registration.installing?.scriptURL?.endsWith('/sw-advanced.js'));
+         registration.waiting?.scriptURL?.endsWith('/sw-advanced.js') ||
+         registration.installing?.scriptURL?.endsWith('/sw-advanced.js'));
 
-      // Only register new SW if we don't have the correct one OR cooldown has passed
       if (!hasCorrectSW || shouldForceUpdate()) {
-        // Register with version parameter to force update
         const SW_VERSION = '20251006';
         registration = await navigator.serviceWorker.register(`/sw-advanced.js?v=${SW_VERSION}`, {
           scope: '/',
-          updateViaCache: 'none', // Always fetch fresh SW script
+          updateViaCache: 'none',
         });
-        
-        // Update timestamp
         localStorage.setItem(LAST_UPDATE_KEY, Date.now().toString());
-        
-        logger.info('ServiceWorker', 'Registered/updated successfully', { 
-          scope: registration!.scope,
-          reason: !hasCorrectSW ? 'missing' : 'cooldown-expired'
-        });
-      } else {
-        logger.debug('ServiceWorker', 'Using existing registration (cooldown active)');
+        logger.info('ServiceWorker', 'Registered successfully', { scope: registration!.scope });
       }
 
-      // Listen for updates and force immediate activation
+      // Handle updates
       registration!.addEventListener('updatefound', () => {
         const newWorker = registration!.installing;
         if (newWorker) {
-          logger.info('ServiceWorker', 'Update found, new worker installing');
-          
+          logger.info('ServiceWorker', 'Update found');
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              logger.info('ServiceWorker', 'New version installed, activating immediately');
               newWorker.postMessage({ type: 'SKIP_WAITING' });
-              
-              // Update timestamp on successful activation
-              localStorage.setItem(LAST_UPDATE_KEY, Date.now().toString());
             }
           });
         }
       });
 
-      // Listen for SW messages (but don't auto-reload anymore)
-      navigator.serviceWorker.addEventListener('message', (event) => {
-        if (event.data?.type === 'SW_ACTIVATED') {
-          logger.info('ServiceWorker', 'SW activated', {
-            cacheVersion: event.data.cacheVersion,
-            buildHash: event.data.buildHash,
-            previousVersion: event.data.previousVersion
-          });
-          // Don't force reload - let user refresh naturally
-        }
+      // Auto-reload on controller change
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        logger.info('ServiceWorker', 'New version activated, reloading');
+        window.location.reload();
       });
-      
+
     } catch (error) {
       logger.error('ServiceWorker', 'Registration failed', error);
+      bootTracer.error('sw:registration', error);
     }
   });
+} else {
+  // FASE 1: Unregister forçat si SW està desactivat
+  bootTracer.mark('sw:force-unregister-start');
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(regs => {
+      bootTracer.trace('ServiceWorker', `Unregistering ${regs.length} Service Workers (SW disabled)`);
+      regs.forEach(reg => {
+        reg.unregister().then(() => {
+          bootTracer.trace('ServiceWorker', 'Unregistered successfully', { scope: reg.scope });
+        });
+      });
+    }).catch(err => {
+      bootTracer.error('ServiceWorker', err, { phase: 'force-unregister' });
+    });
+  }
+  bootTracer.mark('sw:force-unregister-end');
 }
 
 // ============= URL PARAMETER PARSING =============
@@ -494,8 +464,10 @@ if (probeMode) {
   bootTracer.mark('render:probe');
   root.render(
     <EnhancedErrorBoundary context="Probe" showDetails={true}>
-      <ProbeApp />
-      {showBootDebug && <BootDiagnosticsOverlay />}
+      <React.Suspense fallback={<div>Loading diagnostics...</div>}>
+        <ProbeApp />
+        {showBootDebug && <BootDiagnosticsOverlay />}
+      </React.Suspense>
     </EnhancedErrorBoundary>
   );
 } else {
@@ -574,7 +546,11 @@ if (probeMode) {
               disabledProviders={disabledProviders}
               maxPhase={maxPhase}
             >
-              {showBootDebug && <BootDiagnosticsOverlay />}
+              {showBootDebug && (
+                <React.Suspense fallback={<div className="text-xs opacity-50">Loading diagnostics...</div>}>
+                  <BootDiagnosticsOverlay />
+                </React.Suspense>
+              )}
               <App />
             </CombinedAppProvider>
           </EnhancedErrorBoundary>
@@ -605,7 +581,11 @@ if (probeMode) {
             disabledProviders={disabledProviders}
             maxPhase={maxPhase}
           >
-            {showBootDebug && <BootDiagnosticsOverlay />}
+            {showBootDebug && (
+              <React.Suspense fallback={<div className="text-xs opacity-50">Loading diagnostics...</div>}>
+                <BootDiagnosticsOverlay />
+              </React.Suspense>
+            )}
             <App />
           </CombinedAppProvider>
         </EnhancedErrorBoundary>
@@ -627,6 +607,11 @@ if (probeMode) {
         
         // FASE 4: Cleanup automàtic dels debug logs
         cleanupDebugLogs();
+        
+        // FASE 3: Cleanup de recursos post-boot
+        setTimeout(() => {
+          cleanupAfterBoot();
+        }, 5000); // Després de 5s del boot complet
       }, 100);
     });
 }
