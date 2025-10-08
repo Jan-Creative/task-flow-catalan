@@ -1,6 +1,12 @@
 /**
- * Combined App Provider - Orchestrated provider system with phased loading
- * Uses provider-engine for isolated error handling and progressive mounting
+ * Combined App Provider - Simplified unified provider system
+ * PHASE 1: Eliminated safariUltraSafe, minimal, and useLegacyProviders modes
+ * Now uses single orchestrated flow with granular provider control via URL params
+ * 
+ * Usage:
+ * - Normal: All providers active
+ * - Debugging: ?disable=UnifiedTask,Notification (disable specific providers)
+ * - Testing: ?maxPhase=2 (only load providers up to phase 2)
  */
 
 import React, { useEffect, useState } from 'react';
@@ -11,16 +17,13 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { createOptimizedQueryClient } from '@/lib/optimizedCache';
 import { bootTracer } from '@/lib/bootTracer';
 
-// New Provider Engine
+// Provider Engine
 import { 
   CanaryProvider, 
   OrchestratedProviders, 
   checkReactDuplication 
 } from '@/components/ui/provider-engine';
-import { PROVIDER_REGISTRY, getProvidersUpToPhase } from '@/contexts/providers/registry';
-
-// Legacy imports for backward compatibility
-import { OfflineProvider } from '@/contexts/OfflineContext';
+import { PROVIDER_REGISTRY } from '@/contexts/providers/registry';
 
 const queryClient = createOptimizedQueryClient();
 
@@ -42,83 +45,26 @@ const SafeTooltipProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 interface CombinedAppProviderProps {
   children: React.ReactNode;
-  minimal?: boolean; // Emergency minimal mode
-  safariUltraSafe?: boolean; // Ultra-safe mode for Safari debugging
-  disabledProviders?: string[]; // Names of providers to disable via ?disable=
-  useLegacyProviders?: boolean; // Fallback to old provider composition
+  disabledProviders?: string[]; // Names of providers to disable via ?disable=Provider1,Provider2
+  maxPhase?: number; // Maximum phase to load (for debugging/testing)
 }
 
 export const CombinedAppProvider = ({ 
   children, 
-  minimal = false, 
-  safariUltraSafe = false, 
   disabledProviders = [],
-  useLegacyProviders = false
+  maxPhase = Infinity
 }: CombinedAppProviderProps) => {
   
-  // Check for React duplication on mount
+  // PHASE 1: Simplified - check for React duplication on mount
   useEffect(() => {
     checkReactDuplication();
   }, []);
 
-  // Safari Ultra-Safe mode: ONLY QueryClient + ThemeProvider + Toaster
-  // No TooltipProvider, no custom contexts, no Service Worker
-  if (safariUltraSafe) {
-    bootTracer.trace('CombinedAppProvider', '🔴 SAFARI ULTRA-SAFE MODE - Only essential providers');
-    return (
-      <QueryClientProvider client={queryClient}>
-        <NextThemesProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <Toaster />
-          {children}
-        </NextThemesProvider>
-      </QueryClientProvider>
-    );
-  }
-
-  // Minimal mode: Phase 1 providers only + optional Offline
-  if (minimal) {
-    bootTracer.trace('CombinedAppProvider', '⚠️ Minimal mode - Phase 1 providers only');
-    
-    const phase1Providers = getProvidersUpToPhase(1);
-    
-    return (
-      <QueryClientProvider client={queryClient}>
-        <NextThemesProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <SafeTooltipProvider>
-            <Toaster />
-            <CanaryProvider>
-              <OrchestratedProviders
-                providers={phase1Providers}
-                disabledProviders={disabledProviders}
-                maxPhase={1}
-              >
-                {!disabledProviders.includes('Offline') ? (
-                  <OfflineProvider>{children}</OfflineProvider>
-                ) : (
-                  children
-                )}
-              </OrchestratedProviders>
-            </CanaryProvider>
-          </SafeTooltipProvider>
-        </NextThemesProvider>
-      </QueryClientProvider>
-    );
-  }
-
-  // Full mode: orchestrated provider mounting with phased loading
-  bootTracer.trace('CombinedAppProvider', '✅ Full mode - orchestrated providers', { 
+  // PHASE 1: Single unified mode with granular provider control
+  // Use ?disable=Provider1,Provider2 or ?maxPhase=2 for degraded modes
+  bootTracer.trace('CombinedAppProvider', '✅ Unified provider system', { 
     disabledProviders,
-    useLegacyProviders,
+    maxPhase,
     totalProviders: PROVIDER_REGISTRY.length 
   });
 
@@ -136,6 +82,7 @@ export const CombinedAppProvider = ({
             <OrchestratedProviders
               providers={PROVIDER_REGISTRY}
               disabledProviders={disabledProviders}
+              maxPhase={maxPhase}
             >
               {children}
             </OrchestratedProviders>

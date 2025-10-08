@@ -201,27 +201,27 @@ if ('serviceWorker' in navigator && !window.location.search.includes('no-sw=1') 
   });
 }
 
-// Render app and signal successful boot
-// StrictMode temporarily disabled to fix React 18 "Should have a queue" error
+// ============= URL PARAMETER PARSING =============
+// PHASE 1: Simplified - only ?disable and ?maxPhase, removed complex modes
 const params = new URLSearchParams(window.location.search);
-const isMinimalMode = params.get('minimal') === '1';
-const safeMode = params.get('safe') === '1';
-const probeMode = params.get('probe') === '1';
-const safariUltraSafe = params.get('safari-ultra-safe') === '1';
-const useLegacyProviders = params.get('providers') === 'legacy';
+
+// Parse disabled providers from ?disable=Provider1,Provider2
+const disableParam = params.get('disable');
+const disabledProviders = disableParam ? disableParam.split(',').map(p => p.trim()).filter(Boolean) : [];
+
+// Parse max phase from ?maxPhase=2
+const maxPhaseParam = params.get('maxPhase');
+const maxPhase = maxPhaseParam ? parseInt(maxPhaseParam, 10) : Infinity;
+
+// Debug modes
 const showBootDebug = params.get('bootdebug') === '1';
-const disabledProviders = (params.get('disable') || '')
-  .split(',')
-  .map((s) => s.trim())
-  .filter(Boolean);
+const probeMode = params.get('probe') === '1';
 
 bootTracer.mark('render:start', { 
-  isMinimalMode, 
-  safeMode, 
-  probeMode, 
-  safariUltraSafe, 
-  useLegacyProviders,
-  disabledProviders 
+  disabledProviders,
+  maxPhase,
+  showBootDebug,
+  probeMode
 });
 
 const root = ReactDOM.createRoot(document.getElementById("root")!);
@@ -248,16 +248,15 @@ if (probeMode) {
   );
 } else {
   // PHASE 6: Wrap with ProviderStatusProvider for monitoring
+  // PHASE 1: Simplified - no more safariUltraSafe/minimal/useLegacyProviders modes
   import('./contexts/ProviderStatusContext').then(({ ProviderStatusProvider }) => {
     bootTracer.mark('render:app');
     root.render(
       <ProviderStatusProvider>
         <EnhancedErrorBoundary context="Aplicació Principal" showDetails={true}>
           <CombinedAppProvider 
-            minimal={isMinimalMode || safeMode} 
-            safariUltraSafe={safariUltraSafe}
-            useLegacyProviders={useLegacyProviders}
             disabledProviders={disabledProviders}
+            maxPhase={maxPhase}
           >
             {showBootDebug && <BootDiagnosticsOverlay />}
             <App />

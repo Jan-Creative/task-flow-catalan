@@ -1,10 +1,10 @@
 import { ProviderConfig } from '@/components/ui/provider-engine';
 
-// Context Providers (imported lazily where possible)
+// Context Providers
 import { PropertyDialogProvider } from '@/contexts/PropertyDialogContext';
 import { BackgroundProvider } from '@/contexts/BackgroundContext';
 import { SecurityProvider } from '@/contexts/SecurityContext';
-import { OfflineProvider } from '@/contexts/OfflineContext';
+import { OfflineProvider } from '@/contexts/OfflineContext'; // PHASE 1: Moved to registry
 import { UnifiedTaskProvider } from '@/contexts/UnifiedTaskContext';
 import { NotificationProvider } from '@/contexts/NotificationContextV2';
 import { PomodoroProvider } from '@/contexts/PomodoroContext';
@@ -19,8 +19,8 @@ import { EmptyTaskProvider } from '@/contexts/fallbacks/EmptyTaskContext';
 import { EmptyNotificationProvider } from '@/contexts/fallbacks/EmptyNotificationContext';
 
 /**
- * Centralized provider registry
- * Order: Innermost → Outermost (same as current effective order)
+ * PHASE 1: Centralized provider registry with ALL providers
+ * Eliminates manual OfflineProvider handling - now part of registry
  * 
  * Phases:
  * - Phase 1: Critical, lightweight providers (Security, Background)
@@ -81,6 +81,7 @@ export const PROVIDER_REGISTRY: ProviderConfig[] = [
   },
 
   // ===== PHASE 4: Platform-Specific & Optional =====
+  // PHASE 1: OfflineProvider now in registry (was manually handled before)
   {
     name: 'Offline',
     Component: OfflineProvider,
