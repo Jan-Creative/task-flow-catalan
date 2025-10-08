@@ -56,7 +56,13 @@ export default defineConfig(({ mode }) => {
   },
   define: {
     'process.env.NODE_ENV': JSON.stringify(mode === 'development' ? 'development' : 'production'),
-    'process.env': {}
+    'process.env': {},
+    // Inject build hash for Service Worker versioning
+    '__VITE_BUILD_HASH__': JSON.stringify(
+      mode === 'production' 
+        ? `1.0.0-${Date.now().toString(36)}` // Hash based on timestamp in production
+        : '1.0.0-dev' // Static version in development
+    ),
   },
   build: {
     // Target Safari 14+ and ES2018 for better compatibility

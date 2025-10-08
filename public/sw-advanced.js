@@ -3,12 +3,14 @@
  * Implements professional caching strategies and offline capabilities
  */
 
-// Dynamic cache names with timestamp for guaranteed updates
-const BUILD_TIMESTAMP = Date.now();
-const CACHE_NAME = `taskflow-v${BUILD_TIMESTAMP}`;
-const STATIC_CACHE = `taskflow-static-v${BUILD_TIMESTAMP}`;
-const DYNAMIC_CACHE = `taskflow-dynamic-v${BUILD_TIMESTAMP}`;
-const API_CACHE = `taskflow-api-v${BUILD_TIMESTAMP}`;
+// Static cache version - increment manually for major updates
+const CACHE_VERSION = '1.0.0';
+// Build hash injected by Vite during build (fallback to version if not available)
+const BUILD_HASH = typeof __VITE_BUILD_HASH__ !== 'undefined' ? __VITE_BUILD_HASH__ : CACHE_VERSION;
+const CACHE_NAME = `taskflow-v${BUILD_HASH}`;
+const STATIC_CACHE = `taskflow-static-v${BUILD_HASH}`;
+const DYNAMIC_CACHE = `taskflow-dynamic-v${BUILD_HASH}`;
+const API_CACHE = `taskflow-api-v${BUILD_HASH}`;
 
 // Cache strategies
 const CACHE_STRATEGIES = {
@@ -74,7 +76,12 @@ const ROUTE_STRATEGIES = [
 
 // Install event - precache resources and force immediate activation
 self.addEventListener('install', event => {
-  console.log('📦 SW installing with cache:', CACHE_NAME);
+  console.log('📦 SW installing', {
+    version: CACHE_VERSION,
+    buildHash: BUILD_HASH,
+    cacheName: CACHE_NAME,
+    timestamp: new Date().toISOString()
+  });
   event.waitUntil(
     (async () => {
       const cache = await caches.open(STATIC_CACHE);
@@ -87,18 +94,34 @@ self.addEventListener('install', event => {
 
 // Activate event - gentle cache cleanup, NO forced reloads
 self.addEventListener('activate', event => {
-  console.log('🚀 SW activating with cache:', CACHE_NAME);
+  console.log('🚀 SW activating', {
+    version: CACHE_VERSION,
+    buildHash: BUILD_HASH,
+    cacheName: CACHE_NAME
+  });
   event.waitUntil(
     (async () => {
       const cacheNames = await caches.keys();
-      const validCaches = [CACHE_NAME, STATIC_CACHE, DYNAMIC_CACHE, API_CACHE];
+      const taskflowCaches = cacheNames.filter(name => name.startsWith('taskflow-'));
+      
+      // Keep current caches + allow previous version for smooth transitions (max 2 versions = 8 caches)
+      const validCaches = [
+        CACHE_NAME, STATIC_CACHE, DYNAMIC_CACHE, API_CACHE,
+        // Keep previous version patterns if we haven't exceeded max cache count
+        ...taskflowCaches.filter(name => 
+          !validCaches.includes(name) && taskflowCaches.length <= 8
+        )
+      ];
       
       // Delete old caches
       await Promise.all(
         cacheNames
-          .filter(cacheName => !validCaches.includes(cacheName))
+          .filter(cacheName => !validCaches.includes(cacheName) && cacheName.startsWith('taskflow-'))
           .map(cacheName => {
-            console.log('🗑️ Deleting old cache:', cacheName);
+            console.log('🗑️ Deleting old cache:', cacheName, {
+              reason: 'version-mismatch',
+              current: BUILD_HASH
+            });
             return caches.delete(cacheName);
           })
       );
@@ -113,6 +136,7 @@ self.addEventListener('activate', event => {
         client.postMessage({ 
           type: 'SW_ACTIVATED',
           cacheVersion: CACHE_NAME,
+          buildHash: BUILD_HASH,
           shouldReload: false
         });
       });
