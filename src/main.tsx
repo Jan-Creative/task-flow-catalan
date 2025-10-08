@@ -18,8 +18,45 @@ declare global {
   }
 }
 
+// ============= FASE 3: DEBUGGING VISUAL AL DOM =============
+// Funció per afegir logs visuals temporals al DOM per debugging
+function addDebugLog(message: string, type: 'info' | 'success' | 'error' = 'info') {
+  const log = document.createElement('div');
+  const timestamp = new Date().toISOString().split('T')[1].substring(0, 12);
+  log.textContent = `[${timestamp}] ${message}`;
+  
+  const colors = {
+    info: 'background:#1e40af;color:#93c5fd;',
+    success: 'background:#065f46;color:#6ee7b7;',
+    error: 'background:#991b1b;color:#fca5a5;'
+  };
+  
+  log.style.cssText = `
+    position:fixed;
+    bottom:${document.querySelectorAll('[data-debug-log]').length * 22}px;
+    left:0;
+    ${colors[type]}
+    padding:4px 8px;
+    font-family:monospace;
+    font-size:11px;
+    z-index:999999;
+    border-right:3px solid currentColor;
+    max-width:400px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  `;
+  log.setAttribute('data-debug-log', 'true');
+  document.body.appendChild(log);
+  
+  // Auto-remove després de 5 segons
+  setTimeout(() => log.remove(), 5000);
+}
+
 // Initialize performance optimizations
+addDebugLog('🚀 Performance optimizations started', 'info');
 initializePerformanceOptimizations();
+addDebugLog('✅ Performance optimizations complete', 'success');
 
 // iOS Detection and Anti-Zoom Setup
 function setupIOSProtection() {
@@ -243,12 +280,14 @@ bootTracer.mark('render:start', {
 });
 
 // ============= FASE 1: VALIDACIÓ ROBUSTA DEL ROOT ELEMENT =============
+addDebugLog('🔍 Starting root element validation...', 'info');
 bootTracer.mark('dom:root-validation-start');
 
 // 1️⃣ Obtenir element root amb validació
 let rootElement = document.getElementById("root");
 
 if (!rootElement) {
+  addDebugLog('❌ Root element missing! Creating...', 'error');
   bootTracer.error('DOM', 'Root element not found! Creating it...', {
     documentReadyState: document.readyState,
     bodyChildren: document.body?.children.length || 0,
@@ -259,8 +298,10 @@ if (!rootElement) {
   rootElement = document.createElement('div');
   rootElement.id = 'root';
   document.body.appendChild(rootElement);
+  addDebugLog('✅ Root element created dynamically', 'success');
   bootTracer.mark('dom:root-created-dynamically');
 } else {
+  addDebugLog('✅ Root element found in DOM', 'success');
   bootTracer.trace('DOM', 'Root element found', {
     hasContent: rootElement.innerHTML.length > 0,
     contentPreview: rootElement.innerHTML.substring(0, 100),
@@ -270,6 +311,7 @@ if (!rootElement) {
 
 // 2️⃣ Netejar contingut del root (per si watchdog hi ha posat algo)
 if (rootElement.innerHTML.length > 0) {
+  addDebugLog('🧹 Clearing root content from watchdog...', 'info');
   bootTracer.trace('DOM', 'Clearing root content', {
     previousContent: rootElement.innerHTML.substring(0, 200)
   });
@@ -277,12 +319,14 @@ if (rootElement.innerHTML.length > 0) {
 }
 
 // 3️⃣ Desactivar watchdog ABANS de createRoot
+addDebugLog('🛑 Disabling boot watchdog...', 'info');
 if (window.__clearBootWatchdog) {
   window.__clearBootWatchdog();
   bootTracer.trace('Watchdog', 'Cleared before createRoot');
 }
 
 // Marcar provisionalment com booted per evitar watchdog
+addDebugLog('📌 Setting provisional boot signal...', 'info');
 window.__APP_BOOTED = true;
 bootTracer.mark('boot:provisional-signal');
 
@@ -290,10 +334,13 @@ bootTracer.mark('boot:provisional-signal');
 let root: ReactDOM.Root;
 
 try {
+  addDebugLog('⚛️ Creating React root...', 'info');
   bootTracer.mark('react:createRoot-start');
   root = ReactDOM.createRoot(rootElement);
+  addDebugLog('✅ React root created successfully!', 'success');
   bootTracer.mark('react:createRoot-success');
 } catch (error) {
+  addDebugLog('❌ CRITICAL: createRoot failed!', 'error');
   bootTracer.error('React', 'createRoot failed', error);
   
   // Mostrar error visual crític
@@ -348,6 +395,7 @@ if (probeMode) {
   // ============= FASE 2: OPTIMITZACIÓ DYNAMIC IMPORT =============
   // OBJECTIU: Accelerar import i evitar timeouts amb Promise.race
   
+  addDebugLog('📦 Starting dynamic import...', 'info');
   bootTracer.mark('dynamic-import:start');
   
   // 1️⃣ Crear Promise amb timeout de 5000ms
@@ -367,7 +415,8 @@ if (probeMode) {
       });
       
       // Emergency fallback render
-      root.render(
+  addDebugLog('🔄 Rendering probe mode...', 'info');
+  root.render(
         <div className="min-h-screen flex items-center justify-center bg-background text-foreground">
           <div className="max-w-md space-y-4 p-6 text-center">
             <div className="text-red-500 text-4xl mb-4">⚠️</div>
@@ -401,12 +450,14 @@ if (probeMode) {
   // 3️⃣ Race entre import i timeout
   Promise.race([importPromise, timeoutPromise])
     .then(({ ProviderStatusProvider }) => {
+      addDebugLog('✅ Dynamic import successful!', 'success');
       bootTracer.mark('dynamic-import:success');
       
       // Clear render guard si l'import té èxit
       clearTimeout(renderGuardTimeout);
       
       // 3️⃣ Render amb logging
+      addDebugLog('🎨 Rendering main app...', 'info');
       bootTracer.mark('render:app-start');
       
       root.render(
@@ -423,10 +474,12 @@ if (probeMode) {
         </ProviderStatusProvider>
       );
       
+      addDebugLog('✅ App rendered successfully!', 'success');
       bootTracer.mark('render:app-complete');
     })
     .catch((error) => {
       // 4️⃣ Fallback si el dynamic import falla
+      addDebugLog('❌ Dynamic import failed!', 'error');
       bootTracer.error('dynamic-import', error, {
         message: 'Failed to import ProviderStatusContext',
         fallback: 'Rendering without ProviderStatusProvider'
@@ -436,6 +489,7 @@ if (probeMode) {
       clearTimeout(renderGuardTimeout);
       
       // Render sense ProviderStatusProvider
+      addDebugLog('🔄 Rendering fallback app...', 'info');
       bootTracer.mark('render:fallback-start');
       
       root.render(
@@ -450,6 +504,7 @@ if (probeMode) {
         </EnhancedErrorBoundary>
       );
       
+      addDebugLog('✅ Fallback app rendered!', 'success');
       bootTracer.mark('render:fallback-complete');
     })
     .finally(() => {
@@ -459,6 +514,7 @@ if (probeMode) {
         if (window.__clearBootWatchdog) {
           window.__clearBootWatchdog();
         }
+        addDebugLog('🎉 Boot complete!', 'success');
         bootTracer.mark('boot:complete');
         logger.info('App', 'Boot successful');
       }, 100);
