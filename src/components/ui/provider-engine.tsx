@@ -197,18 +197,10 @@ const PhasedMount: React.FC<PhasedMountProps> = ({ phase, children, onMount }) =
     }
   }, [phase, onMount]);
 
-  // FASE 2: Fallback visual en lloc de pantalla negra
+  // CRITICAL FIX: Return null instead of visual fallback to avoid DOM conflicts
+  // The ProviderLoadingFallback at the Suspense level is enough
   if (!mounted) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center bg-background/95 backdrop-blur-sm z-50">
-        <div className="text-center space-y-3">
-          <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mx-auto" />
-          <p className="text-sm text-muted-foreground">
-            Loading providers (Phase {phase})...
-          </p>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   return <>{children}</>;
