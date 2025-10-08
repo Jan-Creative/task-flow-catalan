@@ -1,4 +1,4 @@
-import React, { Component, ReactNode, Suspense, useEffect, useState } from 'react';
+import React, { Component, ReactNode, Suspense, useEffect, useState, useRef } from 'react';
 import { bootTracer } from '@/lib/bootTracer';
 import { logger } from '@/lib/logger';
 import { EnhancedErrorBoundary } from './enhanced-error-boundary';
@@ -108,12 +108,28 @@ interface PhasedMountProps {
 }
 
 const PhasedMount: React.FC<PhasedMountProps> = ({ phase, children, onMount }) => {
-  const [mounted, setMounted] = useState(false); // PHASE 4: All phases start unmounted
+  // FASE 1: useRef per persistir estat entre remounts de StrictMode
+  const mountedRef = useRef(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    if (mounted) return;
+    // FASE 3: Logging millorat amb detecció de StrictMode
+    bootTracer.trace('PhasedMount', `Phase ${phase} effect triggered`, { 
+      mounted: mountedRef.current,
+      strictMode: import.meta.env.DEV 
+    });
+
+    // FASE 1: Guard contra double mounting per StrictMode
+    if (mountedRef.current) {
+      bootTracer.trace('PhasedMount', `Phase ${phase} already mounted, skipping`);
+      return;
+    }
 
     const mountProvider = () => {
+      // FASE 1: Double check abans de muntar
+      if (mountedRef.current) return;
+      
+      mountedRef.current = true;
       setMounted(true);
       onMount?.();
     };
@@ -122,20 +138,20 @@ const PhasedMount: React.FC<PhasedMountProps> = ({ phase, children, onMount }) =
     if (phase === 1) {
       // Phase 1: Wait for React to be idle before mounting
       // This prevents race conditions with React's dispatcher
-      let mounted = false;
+      let localMounted = false;
       
       if (typeof requestIdleCallback !== 'undefined') {
         const idleId = requestIdleCallback(() => {
-          if (!mounted) {
-            mounted = true;
+          if (!localMounted && !mountedRef.current) {
+            localMounted = true;
             mountProvider();
           }
         });
         
         // CRITICAL FIX: Fallback timeout if requestIdleCallback never fires
         const fallbackTimeout = setTimeout(() => {
-          if (!mounted) {
-            mounted = true;
+          if (!localMounted && !mountedRef.current) {
+            localMounted = true;
             bootTracer.trace(`Provider:PhasedMount`, `Phase ${phase} fallback timeout triggered`, { phase });
             mountProvider();
           }
@@ -146,29 +162,53 @@ const PhasedMount: React.FC<PhasedMountProps> = ({ phase, children, onMount }) =
             cancelIdleCallback(idleId);
           }
           clearTimeout(fallbackTimeout);
+          // FASE 3: Cleanup logging
+          bootTracer.trace('PhasedMount', `Phase ${phase} cleanup`, { mounted: mountedRef.current });
         };
       } else {
         // Fallback for browsers without requestIdleCallback
         const timeoutId = setTimeout(mountProvider, 0);
-        return () => clearTimeout(timeoutId);
+        return () => {
+          clearTimeout(timeoutId);
+          bootTracer.trace('PhasedMount', `Phase ${phase} cleanup`, { mounted: mountedRef.current });
+        };
       }
     } else if (phase === 2) {
       // Mount after first paint
       const rafId = requestAnimationFrame(mountProvider);
-      return () => cancelAnimationFrame(rafId);
+      return () => {
+        cancelAnimationFrame(rafId);
+        bootTracer.trace('PhasedMount', `Phase ${phase} cleanup`, { mounted: mountedRef.current });
+      };
     } else if (phase === 3) {
       // Mount after next tick
       const timeoutId = setTimeout(mountProvider, 0);
-      return () => clearTimeout(timeoutId);
+      return () => {
+        clearTimeout(timeoutId);
+        bootTracer.trace('PhasedMount', `Phase ${phase} cleanup`, { mounted: mountedRef.current });
+      };
     } else if (phase >= 4) {
       // Delayed mount for heavy providers
       const timeoutId = setTimeout(mountProvider, 100);
-      return () => clearTimeout(timeoutId);
+      return () => {
+        clearTimeout(timeoutId);
+        bootTracer.trace('PhasedMount', `Phase ${phase} cleanup`, { mounted: mountedRef.current });
+      };
     }
-  }, [phase, mounted, onMount]);
+  }, [phase, onMount]);
 
+  // FASE 2: Fallback visual en lloc de pantalla negra
   if (!mounted) {
-    return null;
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-background/95 backdrop-blur-sm z-50">
+        <div className="text-center space-y-3">
+          <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mx-auto" />
+          <p className="text-sm text-muted-foreground">
+            Loading providers (Phase {phase})...
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return <>{children}</>;
@@ -191,7 +231,26 @@ export const OrchestratedProviders: React.FC<OrchestratedProvidersProps> = ({
   const [failedProviders, setFailedProviders] = useState<string[]>([]);
   
   // PHASE 6: Provider status monitoring
-  const { updateProviderStatus } = useProviderStatus();
+  const { updateProviderStatus, getLoadingProviders } = useProviderStatus();
+
+  // FASE 4: Safety timeout per providers bloquejats
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      const loadingProviders = getLoadingProviders();
+      if (loadingProviders.length > 0) {
+        bootTracer.error('ProviderTimeout', 'Providers stuck in loading', { 
+          providers: loadingProviders 
+        });
+        
+        // Forçar mounted per evitar pantalla negra
+        loadingProviders.forEach(name => {
+          updateProviderStatus(name, { status: 'failed', error: new Error('Mount timeout after 5s') });
+        });
+      }
+    }, 5000);
+    
+    return () => clearTimeout(timeoutId);
+  }, [getLoadingProviders, updateProviderStatus]);
 
   const handleProviderError = (name: string, error: Error) => {
     // PHASE 5: Enhanced error tracking
