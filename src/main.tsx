@@ -345,16 +345,24 @@ if (probeMode) {
     </EnhancedErrorBoundary>
   );
 } else {
-  // ============= FASE 2: INVESTIGACIÓ MAIN.TSX =============
-  // OBJECTIU: Detectar si el dynamic import o el render bloqueja l'app
+  // ============= FASE 2: OPTIMITZACIÓ DYNAMIC IMPORT =============
+  // OBJECTIU: Accelerar import i evitar timeouts amb Promise.race
   
-  // 1️⃣ RenderGuard Timeout: Si no hi ha render en 3000ms, forçar fallback
+  bootTracer.mark('dynamic-import:start');
+  
+  // 1️⃣ Crear Promise amb timeout de 5000ms
+  const importPromise = import('./contexts/ProviderStatusContext');
+  const timeoutPromise = new Promise<never>((_, reject) => 
+    setTimeout(() => reject(new Error('Import timeout after 5000ms')), 5000)
+  );
+  
+  // 2️⃣ RenderGuard més curt (2500ms) per forçar fallback si tot va lent
   let renderGuardTriggered = false;
   const renderGuardTimeout = setTimeout(() => {
-    if (!window.__APP_BOOTED && !renderGuardTriggered) {
+    if (!renderGuardTriggered) {
       renderGuardTriggered = true;
       bootTracer.error('RenderGuard', 'TIMEOUT: Forcing emergency render', {
-        elapsed: '3000ms',
+        elapsed: '2500ms',
         reason: 'App failed to boot in time'
       });
       
@@ -365,29 +373,33 @@ if (probeMode) {
             <div className="text-red-500 text-4xl mb-4">⚠️</div>
             <h1 className="text-2xl font-bold">Boot Timeout</h1>
             <p className="text-sm opacity-80">
-              L'aplicació no ha carregat en 3 segons. Això indica un problema amb:
+              L'aplicació no ha carregat en 2.5 segons. Això indica un problema amb:
             </p>
             <ul className="text-xs opacity-60 text-left list-disc list-inside space-y-1">
               <li>Dynamic import de ProviderStatusContext</li>
-              <li>Render de CombinedAppProvider</li>
-              <li>Inicialització de providers</li>
+              <li>Connexió de xarxa lenta</li>
+              <li>Càrrega de providers massa lenta</li>
             </ul>
             <button 
-              onClick={() => window.location.href = '/?bootdebug=1'}
+              onClick={() => window.location.reload()}
               className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md"
             >
-              Activar Mode Diagnòstic
+              🔄 Recarregar
+            </button>
+            <button 
+              onClick={() => window.location.href = '/?bootdebug=1'}
+              className="mt-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-md"
+            >
+              🔍 Mode Diagnòstic
             </button>
           </div>
         </div>
       );
     }
-  }, 3000);
+  }, 2500);
   
-  // 2️⃣ Dynamic Import amb try/catch i logging exhaustiu
-  bootTracer.mark('dynamic-import:start');
-  
-  import('./contexts/ProviderStatusContext')
+  // 3️⃣ Race entre import i timeout
+  Promise.race([importPromise, timeoutPromise])
     .then(({ ProviderStatusProvider }) => {
       bootTracer.mark('dynamic-import:success');
       
