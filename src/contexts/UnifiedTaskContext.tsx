@@ -59,12 +59,16 @@ interface UnifiedTaskContextValue {
   refreshData: () => void;
 }
 
-const UnifiedTaskContext = createContext<UnifiedTaskContextValue | null>(null);
+export const UnifiedTaskContext = createContext<UnifiedTaskContextValue | null>(null);
 
 export const useUnifiedTaskContext = () => {
   const context = useContext(UnifiedTaskContext);
   if (!context) {
-    throw new Error('useUnifiedTaskContext must be used within UnifiedTaskProvider');
+    // PHASE 2 IMPROVEMENT: Return empty context instead of throwing
+    // This prevents cascading failures when provider is unavailable
+    const { EMPTY_TASK_CONTEXT } = require('./fallbacks/EmptyTaskContext');
+    console.warn('useUnifiedTaskContext used outside provider, returning empty context');
+    return EMPTY_TASK_CONTEXT;
   }
   return context;
 };

@@ -13,6 +13,11 @@ import { KeyboardNavigationProvider } from '@/contexts/KeyboardNavigationContext
 import { MacNavigationProvider } from '@/contexts/MacNavigationContext';
 import { IPadNavigationProvider } from '@/contexts/IPadNavigationContext';
 
+// Fallback providers for Phase 2 error resilience
+import { EmptySecurityProvider } from '@/contexts/fallbacks/EmptySecurityContext';
+import { EmptyTaskProvider } from '@/contexts/fallbacks/EmptyTaskContext';
+import { EmptyNotificationProvider } from '@/contexts/fallbacks/EmptyNotificationContext';
+
 /**
  * Centralized provider registry
  * Order: Innermost → Outermost (same as current effective order)
@@ -28,6 +33,7 @@ export const PROVIDER_REGISTRY: ProviderConfig[] = [
   {
     name: 'Security',
     Component: SecurityProvider,
+    fallback: EmptySecurityProvider,
     phase: 1,
     enabledByDefault: true,
     mountAfterPaint: false, // Mount immediately
@@ -60,6 +66,7 @@ export const PROVIDER_REGISTRY: ProviderConfig[] = [
   {
     name: 'UnifiedTask',
     Component: UnifiedTaskProvider,
+    fallback: EmptyTaskProvider,
     phase: 3,
     enabledByDefault: true,
     mountAfterPaint: true, // After next tick
@@ -67,6 +74,7 @@ export const PROVIDER_REGISTRY: ProviderConfig[] = [
   {
     name: 'Notification',
     Component: NotificationProvider,
+    fallback: EmptyNotificationProvider,
     phase: 3,
     enabledByDefault: true,
     mountAfterPaint: true,

@@ -40,12 +40,16 @@ interface NotificationContextType {
   getTotalDevices: () => number;
 }
 
-const NotificationContext = createContext<NotificationContextType | null>(null);
+export const NotificationContext = createContext<NotificationContextType | null>(null);
 
 export const useNotificationContext = () => {
   const context = useContext(NotificationContext);
   if (!context) {
-    throw new Error('useNotificationContext must be used within a NotificationProvider');
+    // PHASE 2 IMPROVEMENT: Return empty context instead of throwing
+    // This prevents cascading failures when provider is unavailable
+    const { EMPTY_NOTIFICATION_CONTEXT } = require('./fallbacks/EmptyNotificationContext');
+    console.warn('useNotificationContext used outside provider, returning empty context');
+    return EMPTY_NOTIFICATION_CONTEXT;
   }
   return context;
 };

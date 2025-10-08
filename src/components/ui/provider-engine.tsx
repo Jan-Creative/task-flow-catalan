@@ -6,6 +6,7 @@ interface ProviderBoundaryProps {
   name: string;
   children: ReactNode;
   onError?: (name: string, error: Error) => void;
+  fallback?: React.ComponentType<{ children: ReactNode }>;
 }
 
 interface ProviderBoundaryState {
@@ -34,19 +35,21 @@ export class ProviderBoundary extends Component<ProviderBoundaryProps, ProviderB
 
   render() {
     if (this.state.hasError) {
-      return (
-        <div className="p-4 bg-destructive/10 border border-destructive rounded-md">
-          <p className="text-sm text-destructive">
-            ⚠️ Provider "{this.props.name}" failed to load
-          </p>
-          <details className="mt-2 text-xs opacity-70">
-            <summary>Error details</summary>
-            <pre className="mt-2 p-2 bg-background/50 rounded overflow-auto">
-              {this.state.error?.message}
-            </pre>
-          </details>
-        </div>
-      );
+      // PHASE 2 IMPROVEMENT: Non-blocking error handling
+      // Instead of blocking render, log error and continue with children
+      // This prevents black screens when a provider fails
+      const { name, fallback, onError } = this.props;
+      
+      console.error(`⚠️ Provider "${name}" failed, continuing with degraded functionality`, this.state.error);
+      
+      // If a fallback provider is available, use it
+      if (fallback) {
+        const FallbackComponent = fallback;
+        return <FallbackComponent>{this.props.children}</FallbackComponent>;
+      }
+      
+      // Otherwise, just render children (provider context will be unavailable)
+      return this.props.children;
     }
 
     return this.props.children;
@@ -82,6 +85,7 @@ export interface ProviderConfig {
   mountAfterPaint?: boolean;
   enabledByDefault: boolean;
   props?: Record<string, unknown>;
+  fallback?: React.ComponentType<{ children: ReactNode }>;
 }
 
 // ============= PHASED MOUNTING =============
@@ -164,12 +168,12 @@ export const OrchestratedProviders: React.FC<OrchestratedProvidersProps> = ({
   // Reverse order to build from innermost to outermost
   for (let i = activeProviders.length - 1; i >= 0; i--) {
     const provider = activeProviders[i];
-    const { Component, name, phase, mountAfterPaint, props = {} } = provider;
+    const { Component, name, phase, mountAfterPaint, props = {}, fallback } = provider;
 
     const startTime = performance.now();
 
     const providerContent = (
-      <ProviderBoundary name={name} onError={handleProviderError}>
+      <ProviderBoundary name={name} onError={handleProviderError} fallback={fallback}>
         <Component {...props}>
           {content}
         </Component>
