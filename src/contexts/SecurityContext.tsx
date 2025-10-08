@@ -3,7 +3,8 @@
  */
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+// PHASE 3: Use optional auth to break circular dependencies
+import { useOptionalAuth } from '@/hooks/useOptionalAuth';
 import { 
   logSecurityEvent, 
   checkRateLimit, 
@@ -29,7 +30,9 @@ export const SecurityContext = createContext<SecurityContextValue | null>(null);
 
 // ============= SECURITY PROVIDER =============
 export const SecurityProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user } = useAuth();
+  // PHASE 3: Use optional auth to break circular dependencies
+  const { user } = useOptionalAuth();
+  
   const [isSecure, setIsSecure] = useState(true);
   const [rateLimitStatus, setRateLimitStatus] = useState<SecurityContextValue['rateLimitStatus']>(null);
   const [securityIssues, setSecurityIssues] = useState<string[]>([]);
@@ -175,7 +178,8 @@ export const useSecurity = () => {
 
 // ============= SECURITY GUARDS =============
 export const useSecurityGuard = (requiredLevel: 'basic' | 'authenticated' | 'admin' = 'basic') => {
-  const { user } = useAuth();
+  // PHASE 3: Use optional auth to break circular dependencies
+  const { user } = useOptionalAuth();
   const { isSecure, checkRateLimit } = useSecurity();
   
   const canAccess = useCallback((action?: string) => {

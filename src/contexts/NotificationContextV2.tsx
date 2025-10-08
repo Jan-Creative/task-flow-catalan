@@ -6,7 +6,8 @@
 import React, { createContext, useContext, useEffect } from 'react';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useNotificationManager } from '@/hooks/useNotificationManager';
-import { useAuth } from '@/hooks/useAuth';
+// PHASE 3: Use optional auth to break circular dependencies
+import { useOptionalAuth } from '@/hooks/useOptionalAuth';
 import { useToast } from '@/lib/toastUtils';
 import { logger } from '@/lib/logger';
 import type { NotificationPreferences, WebPushSubscriptionDB } from '@/hooks/useNotifications';
@@ -59,7 +60,9 @@ interface NotificationProviderProps {
 }
 
 export const NotificationProvider: React.FC<NotificationProviderProps> = ({ children }) => {
-  const { user } = useAuth();
+  // PHASE 3: Use optional auth to break circular dependencies
+  const { user } = useOptionalAuth();
+  
   const { toast } = useToast();
   
   // Hook original per subscripcions i configuració

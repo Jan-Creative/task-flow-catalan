@@ -6,7 +6,7 @@
 import React, { createContext, useContext, useMemo } from 'react';
 import { useDadesApp } from '@/hooks/useDadesApp';
 import { useProperties } from '@/hooks/useProperties';
-import { useNotificationContext } from './NotificationContext';
+// PHASE 3: Removed useNotificationContext dependency to break circular dependencies
 import { useStableCallback } from '@/hooks/performance';
 import { logger } from '@/lib/logger';
 import type { Tasca, Carpeta, PropertyWithOptions, CrearTascaData } from '@/types';
