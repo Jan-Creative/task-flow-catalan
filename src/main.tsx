@@ -242,7 +242,87 @@ bootTracer.mark('render:start', {
   probeMode
 });
 
-const root = ReactDOM.createRoot(document.getElementById("root")!);
+// ============= FASE 1: VALIDACIÓ ROBUSTA DEL ROOT ELEMENT =============
+bootTracer.mark('dom:root-validation-start');
+
+// 1️⃣ Obtenir element root amb validació
+let rootElement = document.getElementById("root");
+
+if (!rootElement) {
+  bootTracer.error('DOM', 'Root element not found! Creating it...', {
+    documentReadyState: document.readyState,
+    bodyChildren: document.body?.children.length || 0,
+    bodyHtml: document.body?.innerHTML.substring(0, 200)
+  });
+  
+  // Crear element root si no existeix
+  rootElement = document.createElement('div');
+  rootElement.id = 'root';
+  document.body.appendChild(rootElement);
+  bootTracer.mark('dom:root-created-dynamically');
+} else {
+  bootTracer.trace('DOM', 'Root element found', {
+    hasContent: rootElement.innerHTML.length > 0,
+    contentPreview: rootElement.innerHTML.substring(0, 100),
+    childrenCount: rootElement.children.length
+  });
+}
+
+// 2️⃣ Netejar contingut del root (per si watchdog hi ha posat algo)
+if (rootElement.innerHTML.length > 0) {
+  bootTracer.trace('DOM', 'Clearing root content', {
+    previousContent: rootElement.innerHTML.substring(0, 200)
+  });
+  rootElement.innerHTML = '';
+}
+
+// 3️⃣ Desactivar watchdog ABANS de createRoot
+if (window.__clearBootWatchdog) {
+  window.__clearBootWatchdog();
+  bootTracer.trace('Watchdog', 'Cleared before createRoot');
+}
+
+// Marcar provisionalment com booted per evitar watchdog
+window.__APP_BOOTED = true;
+bootTracer.mark('boot:provisional-signal');
+
+// 4️⃣ Try/Catch al voltant de createRoot
+let root: ReactDOM.Root;
+
+try {
+  bootTracer.mark('react:createRoot-start');
+  root = ReactDOM.createRoot(rootElement);
+  bootTracer.mark('react:createRoot-success');
+} catch (error) {
+  bootTracer.error('React', 'createRoot failed', error);
+  
+  // Mostrar error visual crític
+  rootElement.innerHTML = `
+    <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0a0a0a;color:#fff;font-family:system-ui,-apple-system,sans-serif;padding:20px;">
+      <div style="max-width:500px;text-align:center;">
+        <div style="font-size:48px;margin-bottom:16px;">❌</div>
+        <h1 style="font-size:24px;font-weight:bold;margin-bottom:12px;">Error Crític de React</h1>
+        <p style="opacity:0.8;margin-bottom:8px;">No s'ha pogut crear el root de React. Això indica un problema greu amb:</p>
+        <ul style="text-align:left;opacity:0.6;font-size:14px;list-style:disc;padding-left:24px;margin-bottom:16px;">
+          <li>L'element #root al DOM</li>
+          <li>La versió de React/ReactDOM</li>
+          <li>Conflictes amb extensions del navegador</li>
+        </ul>
+        <div style="margin-top:24px;">
+          <button onclick="window.location.reload()" style="background:#2563eb;color:#fff;padding:10px 20px;border:none;border-radius:6px;cursor:pointer;font-size:14px;margin-right:8px;">
+            🔄 Recarregar
+          </button>
+          <button onclick="window.location.href='/?reset=1'" style="background:#dc2626;color:#fff;padding:10px 20px;border:none;border-radius:6px;cursor:pointer;font-size:14px;">
+            🔧 Reset Complet
+          </button>
+        </div>
+        <pre style="margin-top:16px;padding:12px;background:#1a1a1a;border-radius:6px;font-size:11px;text-align:left;overflow-x:auto;">${error instanceof Error ? error.message : String(error)}</pre>
+      </div>
+    </div>
+  `;
+  
+  throw error; // Re-throw per debugging al console
+}
 
 function ProbeApp() {
   return (
