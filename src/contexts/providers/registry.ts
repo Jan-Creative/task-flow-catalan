@@ -36,14 +36,14 @@ export const PROVIDER_REGISTRY: ProviderConfig[] = [
     fallback: EmptySecurityProvider,
     phase: 1,
     enabledByDefault: true,
-    mountAfterPaint: false, // Mount immediately
+    mountAfterPaint: true, // PHASE 4: All providers mount after React is idle
   },
   {
     name: 'Background',
     Component: BackgroundProvider,
     phase: 1,
     enabledByDefault: true,
-    mountAfterPaint: false,
+    mountAfterPaint: true, // PHASE 4: All providers mount after React is idle
   },
 
   // ===== PHASE 2: UI & Interaction =====

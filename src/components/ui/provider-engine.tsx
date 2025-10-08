@@ -1,5 +1,6 @@
 import React, { Component, ReactNode, Suspense, useEffect, useState } from 'react';
 import { bootTracer } from '@/lib/bootTracer';
+import { logger } from '@/lib/logger';
 
 // ============= PROVIDER BOUNDARY =============
 interface ProviderBoundaryProps {
@@ -38,9 +39,9 @@ export class ProviderBoundary extends Component<ProviderBoundaryProps, ProviderB
       // PHASE 2 IMPROVEMENT: Non-blocking error handling
       // Instead of blocking render, log error and continue with children
       // This prevents black screens when a provider fails
-      const { name, fallback, onError } = this.props;
+      const { name, fallback } = this.props;
       
-      console.error(`⚠️ Provider "${name}" failed, continuing with degraded functionality`, this.state.error);
+      logger.error('ProviderBoundary', `Provider "${name}" failed, continuing with degraded functionality`, this.state.error);
       
       // If a fallback provider is available, use it
       if (fallback) {
@@ -96,7 +97,7 @@ interface PhasedMountProps {
 }
 
 const PhasedMount: React.FC<PhasedMountProps> = ({ phase, children, onMount }) => {
-  const [mounted, setMounted] = useState(phase === 1); // Phase 1 mounts immediately
+  const [mounted, setMounted] = useState(false); // PHASE 4: All phases start unmounted
 
   useEffect(() => {
     if (mounted) return;
@@ -106,15 +107,34 @@ const PhasedMount: React.FC<PhasedMountProps> = ({ phase, children, onMount }) =
       onMount?.();
     };
 
-    if (phase === 2) {
+    // PHASE 4: Secure phased mounting with requestIdleCallback
+    if (phase === 1) {
+      // Phase 1: Wait for React to be idle before mounting
+      // This prevents race conditions with React's dispatcher
+      if (typeof requestIdleCallback !== 'undefined') {
+        const idleId = requestIdleCallback(mountProvider);
+        return () => {
+          if (typeof cancelIdleCallback !== 'undefined') {
+            cancelIdleCallback(idleId);
+          }
+        };
+      } else {
+        // Fallback for browsers without requestIdleCallback
+        const timeoutId = setTimeout(mountProvider, 0);
+        return () => clearTimeout(timeoutId);
+      }
+    } else if (phase === 2) {
       // Mount after first paint
-      requestAnimationFrame(mountProvider);
+      const rafId = requestAnimationFrame(mountProvider);
+      return () => cancelAnimationFrame(rafId);
     } else if (phase === 3) {
       // Mount after next tick
-      setTimeout(mountProvider, 0);
+      const timeoutId = setTimeout(mountProvider, 0);
+      return () => clearTimeout(timeoutId);
     } else if (phase >= 4) {
       // Delayed mount for heavy providers
-      setTimeout(mountProvider, 100);
+      const timeoutId = setTimeout(mountProvider, 100);
+      return () => clearTimeout(timeoutId);
     }
   }, [phase, mounted, onMount]);
 
