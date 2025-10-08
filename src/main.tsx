@@ -247,20 +247,25 @@ if (probeMode) {
     </EnhancedErrorBoundary>
   );
 } else {
-  bootTracer.mark('render:app');
-  root.render(
-    <EnhancedErrorBoundary context="Aplicació Principal" showDetails={true}>
-      <CombinedAppProvider 
-        minimal={isMinimalMode || safeMode} 
-        safariUltraSafe={safariUltraSafe}
-        useLegacyProviders={useLegacyProviders}
-        disabledProviders={disabledProviders}
-      >
-        {showBootDebug && <BootDiagnosticsOverlay />}
-        <App />
-      </CombinedAppProvider>
-    </EnhancedErrorBoundary>
-  );
+  // PHASE 6: Wrap with ProviderStatusProvider for monitoring
+  import('./contexts/ProviderStatusContext').then(({ ProviderStatusProvider }) => {
+    bootTracer.mark('render:app');
+    root.render(
+      <ProviderStatusProvider>
+        <EnhancedErrorBoundary context="Aplicació Principal" showDetails={true}>
+          <CombinedAppProvider 
+            minimal={isMinimalMode || safeMode} 
+            safariUltraSafe={safariUltraSafe}
+            useLegacyProviders={useLegacyProviders}
+            disabledProviders={disabledProviders}
+          >
+            {showBootDebug && <BootDiagnosticsOverlay />}
+            <App />
+          </CombinedAppProvider>
+        </EnhancedErrorBoundary>
+      </ProviderStatusProvider>
+    );
+  });
 }
 
 

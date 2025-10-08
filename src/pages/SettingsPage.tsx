@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { UserProfileCard } from "@/components/settings/UserProfileCard";
 import { SettingsItem } from "@/components/settings/SettingsItem";
@@ -30,14 +31,25 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { NotificationDebugPanel } from "@/components/NotificationDebugPanel";
+// PHASE 6: Provider Status Dashboard
+import { ProviderStatusDashboard } from "@/components/debug/ProviderStatusDashboard";
 
 const SettingsPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [showNotificationPanel, setShowNotificationPanel] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [pushNotifications, setPushNotifications] = useState(true);
+
+  // PHASE 6: Show provider dashboard with ?debug=providers
+  const showProviderDebug = searchParams.get('debug') === 'providers';
+
+  // If provider debug is enabled, show only the dashboard
+  if (showProviderDebug) {
+    return <ProviderStatusDashboard />;
+  }
 
   return (
     <div className="container mx-auto p-6 space-y-6">

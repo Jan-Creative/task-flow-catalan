@@ -3,6 +3,7 @@ import { bootTracer } from '@/lib/bootTracer';
 import { logger } from '@/lib/logger';
 import { EnhancedErrorBoundary } from './enhanced-error-boundary';
 import { ProviderLoadingFallback } from './provider-loading-fallback';
+import { useProviderStatus } from '@/contexts/ProviderStatusContext';
 
 // ============= PROVIDER BOUNDARY =============
 interface ProviderBoundaryProps {
@@ -170,6 +171,9 @@ export const OrchestratedProviders: React.FC<OrchestratedProvidersProps> = ({
   maxPhase = Infinity,
 }) => {
   const [failedProviders, setFailedProviders] = useState<string[]>([]);
+  
+  // PHASE 6: Provider status monitoring
+  const { updateProviderStatus } = useProviderStatus();
 
   const handleProviderError = (name: string, error: Error) => {
     // PHASE 5: Enhanced error tracking
@@ -180,6 +184,9 @@ export const OrchestratedProviders: React.FC<OrchestratedProvidersProps> = ({
     });
     
     bootTracer.error(`Provider:${name}`, error, { action: 'disabled' });
+    
+    // PHASE 6: Update provider status
+    updateProviderStatus(name, { status: 'failed', error });
     
     setFailedProviders(prev => {
       if (prev.includes(name)) return prev;
@@ -210,6 +217,9 @@ export const OrchestratedProviders: React.FC<OrchestratedProvidersProps> = ({
   for (let i = activeProviders.length - 1; i >= 0; i--) {
     const provider = activeProviders[i];
     const { Component, name, phase, mountAfterPaint, props = {}, fallback } = provider;
+
+    // PHASE 6: Initialize provider status
+    updateProviderStatus(name, { phase, status: 'loading' });
 
     const startTime = performance.now();
 
@@ -242,6 +252,9 @@ export const OrchestratedProviders: React.FC<OrchestratedProvidersProps> = ({
               const duration = performance.now() - startTime;
               bootTracer.trace(`Provider:${name}`, `Mounted in phase ${phase}`, { duration: `${duration.toFixed(2)}ms` });
               logger.debug('ProviderEngine', `Provider "${name}" mounted`, { phase, duration: `${duration.toFixed(2)}ms` });
+              
+              // PHASE 6: Update provider status to mounted
+              updateProviderStatus(name, { status: 'mounted', mountTime: duration });
             }}
           >
             {providerContent}
