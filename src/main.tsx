@@ -265,13 +265,89 @@ if (probeMode) {
     </EnhancedErrorBoundary>
   );
 } else {
-  // PHASE 6: Wrap with ProviderStatusProvider for monitoring
-  // PHASE 1: Simplified - no more safariUltraSafe/minimal/useLegacyProviders modes
-  import('./contexts/ProviderStatusContext').then(({ ProviderStatusProvider }) => {
-    bootTracer.mark('render:app');
-    root.render(
-      <ProviderStatusProvider>
-        <EnhancedErrorBoundary context="Aplicació Principal" showDetails={true}>
+  // ============= FASE 2: INVESTIGACIÓ MAIN.TSX =============
+  // OBJECTIU: Detectar si el dynamic import o el render bloqueja l'app
+  
+  // 1️⃣ RenderGuard Timeout: Si no hi ha render en 3000ms, forçar fallback
+  let renderGuardTriggered = false;
+  const renderGuardTimeout = setTimeout(() => {
+    if (!window.__APP_BOOTED && !renderGuardTriggered) {
+      renderGuardTriggered = true;
+      bootTracer.error('RenderGuard', 'TIMEOUT: Forcing emergency render', {
+        elapsed: '3000ms',
+        reason: 'App failed to boot in time'
+      });
+      
+      // Emergency fallback render
+      root.render(
+        <div className="min-h-screen flex items-center justify-center bg-background text-foreground">
+          <div className="max-w-md space-y-4 p-6 text-center">
+            <div className="text-red-500 text-4xl mb-4">⚠️</div>
+            <h1 className="text-2xl font-bold">Boot Timeout</h1>
+            <p className="text-sm opacity-80">
+              L'aplicació no ha carregat en 3 segons. Això indica un problema amb:
+            </p>
+            <ul className="text-xs opacity-60 text-left list-disc list-inside space-y-1">
+              <li>Dynamic import de ProviderStatusContext</li>
+              <li>Render de CombinedAppProvider</li>
+              <li>Inicialització de providers</li>
+            </ul>
+            <button 
+              onClick={() => window.location.href = '/?bootdebug=1'}
+              className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md"
+            >
+              Activar Mode Diagnòstic
+            </button>
+          </div>
+        </div>
+      );
+    }
+  }, 3000);
+  
+  // 2️⃣ Dynamic Import amb try/catch i logging exhaustiu
+  bootTracer.mark('dynamic-import:start');
+  
+  import('./contexts/ProviderStatusContext')
+    .then(({ ProviderStatusProvider }) => {
+      bootTracer.mark('dynamic-import:success');
+      
+      // Clear render guard si l'import té èxit
+      clearTimeout(renderGuardTimeout);
+      
+      // 3️⃣ Render amb logging
+      bootTracer.mark('render:app-start');
+      
+      root.render(
+        <ProviderStatusProvider>
+          <EnhancedErrorBoundary context="Aplicació Principal" showDetails={true}>
+            <CombinedAppProvider 
+              disabledProviders={disabledProviders}
+              maxPhase={maxPhase}
+            >
+              {showBootDebug && <BootDiagnosticsOverlay />}
+              <App />
+            </CombinedAppProvider>
+          </EnhancedErrorBoundary>
+        </ProviderStatusProvider>
+      );
+      
+      bootTracer.mark('render:app-complete');
+    })
+    .catch((error) => {
+      // 4️⃣ Fallback si el dynamic import falla
+      bootTracer.error('dynamic-import', error, {
+        message: 'Failed to import ProviderStatusContext',
+        fallback: 'Rendering without ProviderStatusProvider'
+      });
+      
+      // Clear render guard
+      clearTimeout(renderGuardTimeout);
+      
+      // Render sense ProviderStatusProvider
+      bootTracer.mark('render:fallback-start');
+      
+      root.render(
+        <EnhancedErrorBoundary context="Aplicació Principal (Fallback)" showDetails={true}>
           <CombinedAppProvider 
             disabledProviders={disabledProviders}
             maxPhase={maxPhase}
@@ -280,17 +356,19 @@ if (probeMode) {
             <App />
           </CombinedAppProvider>
         </EnhancedErrorBoundary>
-      </ProviderStatusProvider>
-    );
-  });
+      );
+      
+      bootTracer.mark('render:fallback-complete');
+    })
+    .finally(() => {
+      // 5️⃣ Només marcar com booted DESPRÉS del render
+      setTimeout(() => {
+        window.__APP_BOOTED = true;
+        if (window.__clearBootWatchdog) {
+          window.__clearBootWatchdog();
+        }
+        bootTracer.mark('boot:complete');
+        logger.info('App', 'Boot successful');
+      }, 100);
+    });
 }
-
-
-// Signal successful boot to disable watchdog
-setTimeout(() => {
-  window.__APP_BOOTED = true;
-  if (window.__clearBootWatchdog) {
-    window.__clearBootWatchdog();
-  }
-  logger.info('App', 'Boot successful');
-}, 100);
