@@ -117,6 +117,26 @@ if ('serviceWorker' in navigator && !window.location.search.includes('no-sw=1') 
         }
       }
 
+      // Constants for update management
+      const LAST_UPDATE_KEY = 'lastSWUpdate';
+      const UPDATE_COOLDOWN = 5 * 60 * 1000; // 5 minutes
+      
+      // Check if we should force an update based on cooldown
+      const shouldForceUpdate = (): boolean => {
+        const lastUpdate = localStorage.getItem(LAST_UPDATE_KEY);
+        if (!lastUpdate) return true;
+        const timeSinceUpdate = Date.now() - parseInt(lastUpdate, 10);
+        const shouldUpdate = timeSinceUpdate > UPDATE_COOLDOWN;
+        
+        logger.debug('ServiceWorker', 'Update cooldown check', {
+          timeSinceUpdate: Math.round(timeSinceUpdate / 1000) + 's',
+          cooldown: Math.round(UPDATE_COOLDOWN / 1000) + 's',
+          shouldUpdate
+        });
+        
+        return shouldUpdate;
+      };
+
       // Reuse existing correct registration if present, otherwise register
       let registration = await navigator.serviceWorker.getRegistration();
       const hasCorrectSW =
@@ -125,24 +145,39 @@ if ('serviceWorker' in navigator && !window.location.search.includes('no-sw=1') 
           registration.waiting?.scriptURL?.endsWith('/sw-advanced.js') ||
           registration.installing?.scriptURL?.endsWith('/sw-advanced.js'));
 
-      if (!hasCorrectSW) {
+      // Only register new SW if we don't have the correct one OR cooldown has passed
+      if (!hasCorrectSW || shouldForceUpdate()) {
         // Register with version parameter to force update
         const SW_VERSION = '20251006';
         registration = await navigator.serviceWorker.register(`/sw-advanced.js?v=${SW_VERSION}`, {
           scope: '/',
+          updateViaCache: 'none', // Always fetch fresh SW script
         });
+        
+        // Update timestamp
+        localStorage.setItem(LAST_UPDATE_KEY, Date.now().toString());
+        
+        logger.info('ServiceWorker', 'Registered/updated successfully', { 
+          scope: registration!.scope,
+          reason: !hasCorrectSW ? 'missing' : 'cooldown-expired'
+        });
+      } else {
+        logger.debug('ServiceWorker', 'Using existing registration (cooldown active)');
       }
-
-      logger.info('ServiceWorker', 'Registered successfully', { scope: registration!.scope });
 
       // Listen for updates and force immediate activation
       registration!.addEventListener('updatefound', () => {
         const newWorker = registration!.installing;
         if (newWorker) {
+          logger.info('ServiceWorker', 'Update found, new worker installing');
+          
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              logger.info('ServiceWorker', 'New version available, activating immediately');
+              logger.info('ServiceWorker', 'New version installed, activating immediately');
               newWorker.postMessage({ type: 'SKIP_WAITING' });
+              
+              // Update timestamp on successful activation
+              localStorage.setItem(LAST_UPDATE_KEY, Date.now().toString());
             }
           });
         }
@@ -151,7 +186,11 @@ if ('serviceWorker' in navigator && !window.location.search.includes('no-sw=1') 
       // Listen for SW messages (but don't auto-reload anymore)
       navigator.serviceWorker.addEventListener('message', (event) => {
         if (event.data?.type === 'SW_ACTIVATED') {
-          logger.info('ServiceWorker', 'Updated successfully');
+          logger.info('ServiceWorker', 'SW activated', {
+            cacheVersion: event.data.cacheVersion,
+            buildHash: event.data.buildHash,
+            previousVersion: event.data.previousVersion
+          });
           // Don't force reload - let user refresh naturally
         }
       });
