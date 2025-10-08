@@ -89,23 +89,31 @@ self.addEventListener('install', event => {
     version: CACHE_VERSION,
     buildHash: BUILD_HASH,
     cacheName: CACHE_NAME,
+    precacheCount: PRECACHE_RESOURCES.length,
+    criticalAssets: CRITICAL_ASSETS.length,
     timestamp: new Date().toISOString()
   });
   event.waitUntil(
     (async () => {
+      const startTime = Date.now();
+      
       // Precache regular assets
       const cache = await caches.open(STATIC_CACHE);
       await cache.addAll(PRECACHE_RESOURCES);
+      console.log(`✅ Precached ${PRECACHE_RESOURCES.length} resources to ${STATIC_CACHE}`);
       
       // Precache critical assets to persistent cache
       const criticalCache = await caches.open(CRITICAL_CACHE);
       try {
         await criticalCache.addAll(CRITICAL_ASSETS);
-        console.log('✅ Critical assets cached to persistent storage');
+        console.log(`✅ Precached ${CRITICAL_ASSETS.length} critical assets to persistent storage`);
       } catch (error) {
         console.warn('⚠️ Some critical assets failed to cache:', error);
         // Don't fail installation if critical cache fails
       }
+      
+      const installTime = Date.now() - startTime;
+      console.log(`⚡ Installation completed in ${installTime}ms`);
       
       // Force immediate activation for updates
       self.skipWaiting();
@@ -208,11 +216,21 @@ self.addEventListener('activate', event => {
   );
 });
 
-// Fetch event - implement caching strategies
+// Fetch event - implement caching strategies with diagnostics
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
   
   const url = new URL(event.request.url);
+  
+  // Log fetch for debugging (only in development or for errors)
+  const logFetch = (strategy, result) => {
+    console.debug(`🌐 Fetch [${strategy}]: ${url.pathname}`, {
+      result,
+      url: url.href,
+      mode: event.request.mode,
+      destination: event.request.destination
+    });
+  };
   
   // Find matching route strategy
   const routeConfig = ROUTE_STRATEGIES.find(route => 
@@ -220,10 +238,30 @@ self.addEventListener('fetch', event => {
   );
   
   if (routeConfig) {
-    event.respondWith(handleRequest(event.request, routeConfig));
+    event.respondWith(
+      handleRequest(event.request, routeConfig)
+        .then(response => {
+          logFetch(routeConfig.strategy, response.ok ? 'success' : 'error');
+          return response;
+        })
+        .catch(error => {
+          console.error(`❌ Fetch failed [${routeConfig.strategy}]:`, url.pathname, error);
+          throw error;
+        })
+    );
   } else {
     // Default strategy for app routes
-    event.respondWith(handleAppRoute(event.request));
+    event.respondWith(
+      handleAppRoute(event.request)
+        .then(response => {
+          logFetch('app-route', response.ok ? 'success' : 'error');
+          return response;
+        })
+        .catch(error => {
+          console.error('❌ App route fetch failed:', url.pathname, error);
+          throw error;
+        })
+    );
   }
 });
 

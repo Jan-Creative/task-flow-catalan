@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { logger } from '@/lib/logger';
 
 interface ServiceWorkerStatus {
   isRegistered: boolean;
@@ -58,7 +59,7 @@ export const useServiceWorkerStatus = () => {
           });
       })
       .catch(error => {
-        console.error('Error obtenint registre SW:', error);
+        logger.error('ServiceWorkerStatus', 'Error getting SW registration', error);
         setStatus(prev => ({ ...prev, error: error.message }));
       });
   }, []);
@@ -82,7 +83,11 @@ export const useServiceWorkerStatus = () => {
       // Escoltar missatges del SW
       navigator.serviceWorker.addEventListener('message', (event) => {
         if (event.data?.type === 'SW_ACTIVATED') {
-          console.log('📡 Service Worker activat, actualitzant estat...');
+          logger.debug('ServiceWorkerStatus', 'SW activated, updating status', {
+            cacheVersion: event.data.cacheVersion,
+            buildHash: event.data.buildHash,
+            previousVersion: event.data.previousVersion
+          });
           setTimeout(updateStatus, 100); // Petit delay per assegurar l'estat
         }
       });
