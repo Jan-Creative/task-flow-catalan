@@ -1,6 +1,8 @@
 import React, { Component, ReactNode, Suspense, useEffect, useState } from 'react';
 import { bootTracer } from '@/lib/bootTracer';
 import { logger } from '@/lib/logger';
+import { EnhancedErrorBoundary } from './enhanced-error-boundary';
+import { ProviderLoadingFallback } from './provider-loading-fallback';
 
 // ============= PROVIDER BOUNDARY =============
 interface ProviderBoundaryProps {
@@ -27,6 +29,14 @@ export class ProviderBoundary extends Component<ProviderBoundaryProps, ProviderB
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     const { name, onError } = this.props;
+    
+    // PHASE 5: Enhanced error logging with stack trace
+    logger.error('ProviderBoundary', `Provider "${name}" caught error`, {
+      error,
+      errorInfo,
+      componentStack: errorInfo.componentStack
+    });
+    
     bootTracer.error(`Provider:${name}`, error, errorInfo);
     
     if (onError) {
@@ -162,8 +172,19 @@ export const OrchestratedProviders: React.FC<OrchestratedProvidersProps> = ({
   const [failedProviders, setFailedProviders] = useState<string[]>([]);
 
   const handleProviderError = (name: string, error: Error) => {
+    // PHASE 5: Enhanced error tracking
+    logger.error('OrchestratedProviders', `Provider "${name}" failed and will be disabled`, {
+      error,
+      message: error.message,
+      stack: error.stack
+    });
+    
     bootTracer.error(`Provider:${name}`, error, { action: 'disabled' });
-    setFailedProviders(prev => [...prev, name]);
+    
+    setFailedProviders(prev => {
+      if (prev.includes(name)) return prev;
+      return [...prev, name];
+    });
   };
 
   // Filter and sort providers
@@ -192,25 +213,35 @@ export const OrchestratedProviders: React.FC<OrchestratedProvidersProps> = ({
 
     const startTime = performance.now();
 
+    // PHASE 5: Enhanced async error protection
+    // Wrap provider with ErrorBoundary to catch async errors (fetch, Supabase, etc.)
     const providerContent = (
       <ProviderBoundary name={name} onError={handleProviderError} fallback={fallback}>
-        <Component {...props}>
-          {content}
-        </Component>
+        <EnhancedErrorBoundary
+          onError={(error) => {
+            logger.error('ProviderAsyncError', `Async error in provider "${name}"`, error);
+            handleProviderError(name, error);
+          }}
+          fallback={fallback ? React.createElement(fallback, { children: content }) : content}
+        >
+          <Component {...props}>
+            {content}
+          </Component>
+        </EnhancedErrorBoundary>
       </ProviderBoundary>
     );
 
-    // Track mount time
+    // PHASE 5: Enhanced Suspense with better fallback
+    // Track mount time with proper cleanup
     const wrappedContent = (
-      <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>}>
+      <Suspense fallback={<ProviderLoadingFallback providerName={name} />}>
         {mountAfterPaint ? (
           <PhasedMount 
             phase={phase}
             onMount={() => {
               const duration = performance.now() - startTime;
               bootTracer.trace(`Provider:${name}`, `Mounted in phase ${phase}`, { duration: `${duration.toFixed(2)}ms` });
+              logger.debug('ProviderEngine', `Provider "${name}" mounted`, { phase, duration: `${duration.toFixed(2)}ms` });
             }}
           >
             {providerContent}
