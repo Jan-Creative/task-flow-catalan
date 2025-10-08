@@ -74,16 +74,34 @@ function setupIOSProtection() {
 // Initialize iOS protection
 setupIOSProtection();
 
+// ============= FASE 1: DESACTIVACIÓ TEMPORAL SERVICE WORKER =============
+// OBJECTIU: Validar si el SW és la causa de la pantalla negra
+// Unregister forçat de tots els Service Workers
+bootTracer.mark('sw:force-unregister-start');
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(regs => {
+    bootTracer.trace('ServiceWorker', `Unregistering ${regs.length} Service Workers`);
+    regs.forEach(reg => {
+      reg.unregister().then(() => {
+        bootTracer.trace('ServiceWorker', 'Unregistered successfully', { scope: reg.scope });
+      });
+    });
+  }).catch(err => {
+    bootTracer.error('ServiceWorker', err, { phase: 'force-unregister' });
+  });
+}
+bootTracer.mark('sw:force-unregister-end');
+
 // Log React environment early (no hooks)
 bootTracer.trace('React', `Version: ${React.version}`, {
   isSafari: /^((?!chrome|android).)*safari/i.test(navigator.userAgent),
   isIOS: /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
 });
 
-// Manual Service Worker registration with bypass option
-// Disable SW in safari-ultra-safe mode
+// DESACTIVAT TEMPORALMENT: Service Worker registration
+// Això està desactivat per validar si el SW causa la pantalla negra
 const isSafariUltraSafe = window.location.search.includes('safari-ultra-safe=1');
-if ('serviceWorker' in navigator && !window.location.search.includes('no-sw=1') && !isSafariUltraSafe) {
+if (false && 'serviceWorker' in navigator && !window.location.search.includes('no-sw=1') && !isSafariUltraSafe) {
   window.addEventListener('load', async () => {
     try {
       // Handle ?reset=1 parameter for complete reset
