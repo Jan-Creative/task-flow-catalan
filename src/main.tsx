@@ -22,13 +22,6 @@ declare global {
 
 // ============= FASE 1: DETECCIÓ DE REACT STRICTMODE =============
 // StrictMode causa doble mount en dev mode, explicant els re-renders múltiples
-if (import.meta.env.DEV) {
-  const strictModeDetected = document.querySelectorAll('[data-reactroot]').length > 1;
-  if (strictModeDetected || (window as any).__REACT_STRICT_MODE_ACTIVE) {
-    addDebugLog('🔍 React StrictMode detectat (doble mount normal en dev)', 'info');
-    bootTracer.mark('StrictMode', { active: true, note: 'Double mounting expected in dev' });
-  }
-}
 
 // ============= FASE 1: DETECCIÓ DE REACT STRICTMODE =============
 // StrictMode causa doble mount en dev mode, explicant els re-renders múltiples
@@ -55,6 +48,12 @@ let hasBootErrors = false;
 
 function addDebugLog(message: string, type: 'info' | 'success' | 'error' = 'info') {
   if (!debugLogsEnabled) return;
+  
+  // FASE 1: Safety check - esperar a que document.body existeixi
+  if (!document.body) {
+    setTimeout(() => addDebugLog(message, type), 10);
+    return;
+  }
   
   const log = document.createElement('div');
   const timestamp = new Date().toISOString().split('T')[1].substring(0, 12);
@@ -107,13 +106,13 @@ function cleanupDebugLogs() {
     if (!hasBootErrors) {
       debugLogsEnabled = false;
       
-      // Fade out i eliminar tots els logs
+      // FASE 2: Millor stagger - 50ms en lloc de 100ms
       const allLogs = document.querySelectorAll('[data-debug-log]');
       allLogs.forEach((log, index) => {
         setTimeout(() => {
           (log as HTMLElement).style.opacity = '0';
           setTimeout(() => log.remove(), 300);
-        }, index * 100);
+        }, index * 50);
       });
       
       // Mostrar indicador de boot exitós temporal
@@ -535,9 +534,14 @@ if (probeMode) {
       // Clear render guard si l'import té èxit
       clearTimeout(renderGuardTimeout);
       
-      // 3️⃣ Render amb logging
+      // 3️⃣ Render amb logging EXPLÍCIT
       addDebugLog('🎨 Rendering main app...', 'info');
       bootTracer.mark('render:app-start');
+      bootTracer.trace('Render', 'About to call root.render() with providers', {
+        disabledProviders,
+        maxPhase,
+        timestamp: new Date().toISOString()
+      });
       
       root.render(
         <ProviderStatusProvider>

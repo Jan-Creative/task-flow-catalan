@@ -99,7 +99,8 @@
         
         function showBootProgress() {
           var root = document.getElementById('root');
-          if (root && !window.__APP_BOOTED) {
+          // FASE 1: Safety check - no modificar #root si React ja ha començat
+          if (root && !window.__APP_BOOTED && root.children.length === 0) {
             root.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;background:#000;color:#fff;font-family:system-ui,-apple-system,sans-serif;padding:20px;text-align:center"><div style="max-width:400px"><div style="width:50px;height:50px;border:3px solid #333;border-top:3px solid #fff;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 20px"></div><h2 style="margin:0 0 10px">⏳ Carregant l\'app</h2><p id="boot-status" style="opacity:0.8;margin:0 0 30px">Inicialitzant components...</p><button onclick="continueWaiting()" style="background:#667eea;color:#fff;border:none;padding:12px 24px;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;margin:0 10px 10px 0">⏰ Continuar esperant</button><button onclick="showBootError()" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.5);padding:12px 24px;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer">⚠️ Veure opcions d\'error</button><p style="margin-top:20px;font-size:12px;opacity:0.6">Normalment això només triga uns segons</p></div><style>@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}</style></div>';
             
             // Set longer timeout for actual failure

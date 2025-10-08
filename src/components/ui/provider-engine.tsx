@@ -296,6 +296,22 @@ export const OrchestratedProviders: React.FC<OrchestratedProvidersProps> = ({
     maxPhase,
   });
 
+  // FASE 2: Log "Final Provider States" després de mount
+  useEffect(() => {
+    const logFinalStates = setTimeout(() => {
+      const allStatuses = activeProviders.map(p => ({
+        name: p.name,
+        phase: p.phase,
+        mounted: !failedProviders.includes(p.name),
+      }));
+      
+      bootTracer.trace('OrchestratedProviders', '📊 Final Provider States', allStatuses);
+      console.table(allStatuses);
+    }, 1000);
+    
+    return () => clearTimeout(logFinalStates);
+  }, [activeProviders, failedProviders]);
+
   // Build nested structure from innermost to outermost
   let content = children;
 
