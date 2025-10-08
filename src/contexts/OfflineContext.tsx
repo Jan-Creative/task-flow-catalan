@@ -5,7 +5,7 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '@/hooks/useAuth';
+import { useOptionalAuth } from '@/hooks/useOptionalAuth';
 import { offlineStorage, type OfflineMutation, type MutationType } from '@/lib/offlineStorage';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/lib/toastUtils';
@@ -48,7 +48,7 @@ interface OfflineProviderProps {
 }
 
 export const OfflineProvider = ({ children }: OfflineProviderProps) => {
-  const { user } = useAuth();
+  const { user } = useOptionalAuth();
   const queryClient = useQueryClient();
   
   // State

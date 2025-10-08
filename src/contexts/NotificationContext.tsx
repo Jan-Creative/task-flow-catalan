@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect } from 'react';
 import { useNotifications } from '@/hooks/useNotifications';
-import { useAuth } from '@/hooks/useAuth';
+import { useOptionalAuth } from '@/hooks/useOptionalAuth';
 import { useToast } from '@/lib/toastUtils';
 import { logger } from '@/lib/logger';
 import type { NotificationPreferences, WebPushSubscriptionDB } from '@/hooks/useNotifications';
@@ -49,7 +49,7 @@ interface NotificationProviderProps {
 }
 
 export const NotificationProvider: React.FC<NotificationProviderProps> = ({ children }) => {
-  const { user } = useAuth();
+  const { user } = useOptionalAuth();
   const { toast } = useToast();
   const notifications = useNotifications();
 
