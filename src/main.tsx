@@ -338,11 +338,11 @@ const params = new URLSearchParams(window.location.search);
 
 // Parse disabled providers from ?disable=Provider1,Provider2
 const disableParam = params.get('disable');
-const disabledProviders = disableParam ? disableParam.split(',').map(p => p.trim()).filter(Boolean) : [];
+let disabledProviders = disableParam ? disableParam.split(',').map(p => p.trim()).filter(Boolean) : [];
 
 // Parse max phase from ?maxPhase=2
 const maxPhaseParam = params.get('maxPhase');
-const maxPhase = maxPhaseParam ? parseInt(maxPhaseParam, 10) : Infinity;
+let maxPhase = maxPhaseParam ? parseInt(maxPhaseParam, 10) : Infinity;
 
 // Debug modes
 const showBootDebug = params.get('bootdebug') === '1';
@@ -399,6 +399,26 @@ addDebugLog('🛑 Disabling boot watchdog...', 'info');
 if (window.__clearBootWatchdog) {
   window.__clearBootWatchdog();
   bootTracer.trace('Watchdog', 'Cleared before createRoot');
+}
+
+// FASE 4: Safe mode - limit to phase 1 and disable heavy providers
+const safeMode = new URLSearchParams(window.location.search).get('safe') === '1';
+if (safeMode) {
+  bootTracer.mark('SafeMode', 'Enabled - limiting to Phase 1 providers only');
+  maxPhase = Math.min(maxPhase, 1);
+  
+  const safeDisabledProviders = [
+    'UnifiedTask',
+    'Notification', 
+    'Offline',
+    'Pomodoro',
+    'KeyboardNavigation',
+    'MacNavigation',
+    'IPadNavigation'
+  ];
+  
+  disabledProviders = [...new Set([...disabledProviders, ...safeDisabledProviders])];
+  addDebugLog(`🔒 Safe mode enabled - maxPhase=${maxPhase}, disabled=${safeDisabledProviders.join(',')}`, 'info');
 }
 
 // Marcar provisionalment com booted per evitar watchdog

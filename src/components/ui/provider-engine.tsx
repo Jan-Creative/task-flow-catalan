@@ -221,6 +221,7 @@ export const OrchestratedProviders: React.FC<OrchestratedProvidersProps> = ({
   maxPhase = Infinity,
 }) => {
   const [failedProviders, setFailedProviders] = useState<string[]>([]);
+  const [showEmergencyFallback, setShowEmergencyFallback] = useState(false);
   
   // PHASE 6: Provider status monitoring
   const { updateProviderStatus, getLoadingProviders } = useProviderStatus();
@@ -304,6 +305,52 @@ export const OrchestratedProviders: React.FC<OrchestratedProvidersProps> = ({
     return () => clearTimeout(logFinalStates);
   }, [activeProviders, failedProviders]);
 
+  // FASE 3: Emergency fallback if no providers mount after 3s
+  useEffect(() => {
+    const emergencyTimer = setTimeout(() => {
+      const mountedCount = activeProviders.filter(
+        p => !failedProviders.includes(p.name)
+      ).length;
+      
+      if (mountedCount === 0 && activeProviders.length > 0) {
+        bootTracer.error('EmergencyFallback', 'No providers mounted after 3s', {
+          total: activeProviders.length,
+          failed: failedProviders.length
+        });
+        setShowEmergencyFallback(true);
+      }
+    }, 3000);
+    
+    return () => clearTimeout(emergencyTimer);
+  }, [activeProviders, failedProviders]);
+
+  // Show emergency fallback if no providers could mount
+  if (showEmergencyFallback) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center space-y-4 p-6 max-w-md">
+          <div className="text-4xl mb-4">⚠️</div>
+          <h1 className="text-2xl font-bold">Error de Càrrega</h1>
+          <p className="text-muted-foreground">Els components no s'han pogut carregar.</p>
+          <div className="flex gap-3 justify-center mt-6">
+            <button 
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90"
+            >
+              🔄 Recarregar
+            </button>
+            <button 
+              onClick={() => window.location.href = '/?reset=1'}
+              className="px-4 py-2 bg-destructive text-destructive-foreground rounded-lg font-medium hover:opacity-90"
+            >
+              🔧 Reset Complet
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Build nested structure from innermost to outermost
   let content = children;
 
@@ -312,27 +359,34 @@ export const OrchestratedProviders: React.FC<OrchestratedProvidersProps> = ({
     const provider = activeProviders[i];
     const { Component, name, phase, mountAfterPaint, props = {}, fallback } = provider;
 
-    // PHASE 6: Initialize provider status
-    updateProviderStatus(name, { phase, status: 'loading' });
-
     const startTime = performance.now();
+
+    // FASE 2: Component wrapper to initialize provider status in useEffect (not during render)
+    const ProviderStatusInit: React.FC<{ children: ReactNode }> = ({ children }) => {
+      useEffect(() => {
+        updateProviderStatus(name, { phase, status: 'loading' });
+      }, []);
+      return <>{children}</>;
+    };
 
     // PHASE 5: Enhanced async error protection
     // Wrap provider with ErrorBoundary to catch async errors (fetch, Supabase, etc.)
     const providerContent = (
-      <ProviderBoundary name={name} onError={handleProviderError} fallback={fallback}>
-        <EnhancedErrorBoundary
-          onError={(error) => {
-            logger.error('ProviderAsyncError', `Async error in provider "${name}"`, error);
-            handleProviderError(name, error);
-          }}
-          fallback={fallback ? React.createElement(fallback, { children: content }) : content}
-        >
-          <Component {...props}>
-            {content}
-          </Component>
-        </EnhancedErrorBoundary>
-      </ProviderBoundary>
+      <ProviderStatusInit>
+        <ProviderBoundary name={name} onError={handleProviderError} fallback={fallback}>
+          <EnhancedErrorBoundary
+            onError={(error) => {
+              logger.error('ProviderAsyncError', `Async error in provider "${name}"`, error);
+              handleProviderError(name, error);
+            }}
+            fallback={fallback ? React.createElement(fallback, { children: content }) : content}
+          >
+            <Component {...props}>
+              {content}
+            </Component>
+          </EnhancedErrorBoundary>
+        </ProviderBoundary>
+      </ProviderStatusInit>
     );
 
     // PHASE 5: Enhanced Suspense with better fallback
