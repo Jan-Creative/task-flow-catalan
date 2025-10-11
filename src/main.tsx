@@ -348,11 +348,25 @@ let maxPhase = maxPhaseParam ? parseInt(maxPhaseParam, 10) : Infinity;
 const showBootDebug = params.get('bootdebug') === '1';
 const probeMode = params.get('probe') === '1';
 
+// ============= EMERGENCY DIAGNOSTIC MODES =============
+// Mode ?ultra=1: Minimal render (only div + text, no providers, no router)
+const ultraMode = params.get('ultra') === '1';
+// Mode ?norouter=1: Render without BrowserRouter (keeps providers)
+const noRouterMode = params.get('norouter') === '1';
+// Mode ?noportals=1: Deactivate Toaster/Tooltip portals
+const noPortalsMode = params.get('noportals') === '1';
+// Mode ?single=1: Single render without render guard / dynamic import
+const singleMode = params.get('single') === '1';
+
 bootTracer.mark('render:start', { 
   disabledProviders,
   maxPhase,
   showBootDebug,
-  probeMode
+  probeMode,
+  ultraMode,
+  noRouterMode,
+  noPortalsMode,
+  singleMode
 });
 
 // ============= FASE 1: VALIDACIÓ ROBUSTA DEL ROOT ELEMENT =============
@@ -490,82 +504,187 @@ if (probeMode) {
     </EnhancedErrorBoundary>
   );
 } else {
-  // ============= FASE 2: OPTIMITZACIÓ DYNAMIC IMPORT =============
-  // OBJECTIU: Accelerar import i evitar timeouts amb Promise.race
-  
-  addDebugLog('📦 Starting dynamic import...', 'info');
-  bootTracer.mark('dynamic-import:start');
-  
-  // 1️⃣ Crear Promise amb timeout de 3000ms (reduït gràcies a modulepreload)
-  const importPromise = import('./contexts/ProviderStatusContext');
-  const timeoutPromise = new Promise<never>((_, reject) => 
-    setTimeout(() => reject(new Error('Import timeout after 3000ms')), 3000)
-  );
-  
-  // 2️⃣ RenderGuard més curt (2500ms) per forçar fallback si tot va lent
-  let renderGuardTriggered = false;
-  const renderGuardTimeout = setTimeout(() => {
-    if (!renderGuardTriggered) {
-      renderGuardTriggered = true;
-      bootTracer.error('RenderGuard', 'TIMEOUT: Forcing emergency render', {
-        elapsed: '2500ms',
-        reason: 'App failed to boot in time'
-      });
+  // ============= SINGLE RENDER MODE (?single=1) =============
+  // Skip render guard and dynamic import race - just do a single render
+  if (singleMode) {
+    addDebugLog('1️⃣ Single render mode - direct import...', 'info');
+    bootTracer.mark('SingleMode:start');
+    
+    import('./contexts/ProviderStatusContext').then(({ ProviderStatusProvider }) => {
+      addDebugLog('✅ Provider imported - rendering...', 'success');
       
-      // Emergency fallback render
-  addDebugLog('🔄 Rendering probe mode...', 'info');
-  root.render(
-        <div className="min-h-screen flex items-center justify-center bg-background text-foreground">
-          <div className="max-w-md space-y-4 p-6 text-center">
-            <div className="text-red-500 text-4xl mb-4">⚠️</div>
-            <h1 className="text-2xl font-bold">Boot Timeout</h1>
-            <p className="text-sm opacity-80">
-              L'aplicació no ha carregat en 2.5 segons. Això indica un problema amb:
-            </p>
-            <ul className="text-xs opacity-60 text-left list-disc list-inside space-y-1">
-              <li>Dynamic import de ProviderStatusContext</li>
-              <li>Connexió de xarxa lenta</li>
-              <li>Càrrega de providers massa lenta</li>
-            </ul>
-            <button 
-              onClick={() => window.location.reload()}
-              className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md"
-            >
-              🔄 Recarregar
-            </button>
-            <button 
-              onClick={() => window.location.href = '/?bootdebug=1'}
-              className="mt-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-md"
-            >
-              🔍 Mode Diagnòstic
-            </button>
+      // Create App component wrapper conditionally based on noPortalsMode
+      const AppWrapper = noPortalsMode ? (
+        <CombinedAppProvider disabledProviders={disabledProviders} maxPhase={maxPhase}>
+          {showBootDebug && (
+            <React.Suspense fallback={<div className="text-xs opacity-50">Loading diagnostics...</div>}>
+              <BootDiagnosticsOverlay />
+            </React.Suspense>
+          )}
+          <div className="app-shell w-full min-h-screen overflow-x-hidden">
+            <div className="page-scroll">
+              {/* Render App without Toaster/Tooltip */}
+              <App />
+            </div>
           </div>
-        </div>
+        </CombinedAppProvider>
+      ) : (
+        <CombinedAppProvider disabledProviders={disabledProviders} maxPhase={maxPhase}>
+          {showBootDebug && (
+            <React.Suspense fallback={<div className="text-xs opacity-50">Loading diagnostics...</div>}>
+              <BootDiagnosticsOverlay />
+            </React.Suspense>
+          )}
+          <App />
+        </CombinedAppProvider>
       );
-    }
-  }, 2500);
-  
-  // 3️⃣ Race entre import i timeout
-  Promise.race([importPromise, timeoutPromise])
-    .then(({ ProviderStatusProvider }) => {
-      addDebugLog('✅ Dynamic import successful!', 'success');
-      bootTracer.mark('dynamic-import:success');
-      
-      // Clear render guard si l'import té èxit
-      clearTimeout(renderGuardTimeout);
-      
-      // 3️⃣ Render amb logging EXPLÍCIT
-      addDebugLog('🎨 Rendering main app...', 'info');
-      bootTracer.mark('render:app-start');
-      bootTracer.trace('Render', 'About to call root.render() with providers', {
-        disabledProviders,
-        maxPhase,
-        timestamp: new Date().toISOString()
-      });
       
       root.render(
         <ProviderStatusProvider>
-          <EnhancedErrorBoundary context="Aplicació Principal" showDetails={true}>
+          <EnhancedErrorBoundary context="Single Render Mode" showDetails={true}>
+            {AppWrapper}
+          </EnhancedErrorBoundary>
+        </ProviderStatusProvider>
+      );
+      
+      bootTracer.mark('SingleMode:complete');
+      window.__APP_BOOTED = true;
+      addDebugLog('✅ Single render complete!', 'success');
+    }).catch((error) => {
+      bootTracer.error('SingleMode', error);
+      addDebugLog('❌ Single render failed!', 'error');
+    });
+    
+  } else {
+    // ============= NORMAL DYNAMIC IMPORT WITH RENDER GUARD =============
+    addDebugLog('📦 Starting dynamic import...', 'info');
+    bootTracer.mark('dynamic-import:start');
+    
+    // 1️⃣ Crear Promise amb timeout de 3000ms (reduït gràcies a modulepreload)
+    const importPromise = import('./contexts/ProviderStatusContext');
+    const timeoutPromise = new Promise<never>((_, reject) => 
+      setTimeout(() => reject(new Error('Import timeout after 3000ms')), 3000)
+    );
+    
+    // 2️⃣ RenderGuard més curt (2500ms) per forçar fallback si tot va lent
+    let renderGuardTriggered = false;
+    const renderGuardTimeout = setTimeout(() => {
+      if (!renderGuardTriggered) {
+        renderGuardTriggered = true;
+        bootTracer.error('RenderGuard', 'TIMEOUT: Forcing emergency render', {
+          elapsed: '2500ms',
+          reason: 'App failed to boot in time'
+        });
+        
+        // Emergency fallback render
+        addDebugLog('⚠️ Render guard triggered!', 'error');
+        root.render(
+          <div className="min-h-screen flex items-center justify-center bg-background text-foreground">
+            <div className="max-w-md space-y-4 p-6 text-center">
+              <div className="text-red-500 text-4xl mb-4">⚠️</div>
+              <h1 className="text-2xl font-bold">Boot Timeout</h1>
+              <p className="text-sm opacity-80">
+                L'aplicació no ha carregat en 2.5 segons. Prova aquests modes de diagnòstic:
+              </p>
+              <div className="flex flex-col gap-2 mt-4">
+                <button 
+                  onClick={() => window.location.href = '/?ultra=1'}
+                  className="px-4 py-2 bg-primary text-primary-foreground rounded-md"
+                >
+                  ⚡ Ultra Mode
+                </button>
+                <button 
+                  onClick={() => window.location.href = '/?single=1'}
+                  className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md"
+                >
+                  1️⃣ Single Render
+                </button>
+                <button 
+                  onClick={() => window.location.reload()}
+                  className="px-4 py-2 bg-muted text-muted-foreground rounded-md"
+                >
+                  🔄 Recarregar
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      }
+    }, 2500);
+    
+    // 3️⃣ Race entre import i timeout
+    Promise.race([importPromise, timeoutPromise])
+      .then(({ ProviderStatusProvider }) => {
+        addDebugLog('✅ Dynamic import successful!', 'success');
+        bootTracer.mark('dynamic-import:success');
+        
+        // Clear render guard si l'import té èxit
+        clearTimeout(renderGuardTimeout);
+        
+        // 3️⃣ Render amb logging EXPLÍCIT
+        addDebugLog('🎨 Rendering main app...', 'info');
+        bootTracer.mark('render:app-start');
+        bootTracer.trace('Render', 'About to call root.render() with providers', {
+          disabledProviders,
+          maxPhase,
+          noPortalsMode,
+          timestamp: new Date().toISOString()
+        });
+        
+        // Conditional app wrapper based on noPortalsMode
+        const AppWrapper = noPortalsMode ? (
+          <CombinedAppProvider disabledProviders={disabledProviders} maxPhase={maxPhase}>
+            {showBootDebug && (
+              <React.Suspense fallback={<div className="text-xs opacity-50">Loading diagnostics...</div>}>
+                <BootDiagnosticsOverlay />
+              </React.Suspense>
+            )}
+            <div className="app-shell w-full min-h-screen overflow-x-hidden">
+              <div className="page-scroll">
+                {/* Render App without portals */}
+                <App />
+              </div>
+            </div>
+          </CombinedAppProvider>
+        ) : (
+          <CombinedAppProvider disabledProviders={disabledProviders} maxPhase={maxPhase}>
+            {showBootDebug && (
+              <React.Suspense fallback={<div className="text-xs opacity-50">Loading diagnostics...</div>}>
+                <BootDiagnosticsOverlay />
+              </React.Suspense>
+            )}
+            <App />
+          </CombinedAppProvider>
+        );
+        
+        root.render(
+          <ProviderStatusProvider>
+            <EnhancedErrorBoundary context="Aplicació Principal" showDetails={true}>
+              {AppWrapper}
+            </EnhancedErrorBoundary>
+          </ProviderStatusProvider>
+        );
+        
+        addDebugLog('✅ App rendered successfully!', 'success');
+        bootTracer.mark('render:app-complete');
+      })
+      .catch((error) => {
+        // 4️⃣ Fallback si el dynamic import falla
+        addDebugLog('❌ Dynamic import failed!', 'error');
+        bootTracer.error('dynamic-import', error, {
+          message: 'Failed to import ProviderStatusContext',
+          fallback: 'Rendering without ProviderStatusProvider'
+        });
+        
+        // Clear render guard
+        clearTimeout(renderGuardTimeout);
+        
+        // Render sense ProviderStatusProvider
+        addDebugLog('🔄 Rendering fallback app...', 'info');
+        bootTracer.mark('render:fallback-start');
+        
+        root.render(
+          <EnhancedErrorBoundary context="Aplicació Principal (Fallback)" showDetails={true}>
             <CombinedAppProvider 
               disabledProviders={disabledProviders}
               maxPhase={maxPhase}
@@ -578,64 +697,30 @@ if (probeMode) {
               <App />
             </CombinedAppProvider>
           </EnhancedErrorBoundary>
-        </ProviderStatusProvider>
-      );
-      
-      addDebugLog('✅ App rendered successfully!', 'success');
-      bootTracer.mark('render:app-complete');
-    })
-    .catch((error) => {
-      // 4️⃣ Fallback si el dynamic import falla
-      addDebugLog('❌ Dynamic import failed!', 'error');
-      bootTracer.error('dynamic-import', error, {
-        message: 'Failed to import ProviderStatusContext',
-        fallback: 'Rendering without ProviderStatusProvider'
-      });
-      
-      // Clear render guard
-      clearTimeout(renderGuardTimeout);
-      
-      // Render sense ProviderStatusProvider
-      addDebugLog('🔄 Rendering fallback app...', 'info');
-      bootTracer.mark('render:fallback-start');
-      
-      root.render(
-        <EnhancedErrorBoundary context="Aplicació Principal (Fallback)" showDetails={true}>
-          <CombinedAppProvider 
-            disabledProviders={disabledProviders}
-            maxPhase={maxPhase}
-          >
-            {showBootDebug && (
-              <React.Suspense fallback={<div className="text-xs opacity-50">Loading diagnostics...</div>}>
-                <BootDiagnosticsOverlay />
-              </React.Suspense>
-            )}
-            <App />
-          </CombinedAppProvider>
-        </EnhancedErrorBoundary>
-      );
-      
-      addDebugLog('✅ Fallback app rendered!', 'success');
-      bootTracer.mark('render:fallback-complete');
-    })
-    .finally(() => {
-      // 5️⃣ Només marcar com booted DESPRÉS del render
-      setTimeout(() => {
-        window.__APP_BOOTED = true;
-        if (window.__clearBootWatchdog) {
-          window.__clearBootWatchdog();
-        }
-        addDebugLog('🎉 Boot complete!', 'success');
-        bootTracer.mark('boot:complete');
-        logger.info('App', 'Boot successful');
+        );
         
-        // FASE 4: Cleanup automàtic dels debug logs
-        cleanupDebugLogs();
-        
-        // FASE 3: Cleanup de recursos post-boot
+        addDebugLog('✅ Fallback app rendered!', 'success');
+        bootTracer.mark('render:fallback-complete');
+      })
+      .finally(() => {
+        // 5️⃣ Només marcar com booted DESPRÉS del render
         setTimeout(() => {
-          cleanupAfterBoot();
-        }, 5000); // Després de 5s del boot complet
-      }, 100);
-    });
+          window.__APP_BOOTED = true;
+          if (window.__clearBootWatchdog) {
+            window.__clearBootWatchdog();
+          }
+          addDebugLog('🎉 Boot complete!', 'success');
+          bootTracer.mark('boot:complete');
+          logger.info('App', 'Boot successful');
+          
+          // FASE 4: Cleanup automàtic dels debug logs
+          cleanupDebugLogs();
+          
+          // FASE 3: Cleanup de recursos post-boot
+          setTimeout(() => {
+            cleanupAfterBoot();
+          }, 5000); // Després de 5s del boot complet
+        }, 100);
+      });
+  }
 }
