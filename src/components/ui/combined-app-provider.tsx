@@ -47,12 +47,14 @@ interface CombinedAppProviderProps {
   children: React.ReactNode;
   disabledProviders?: string[]; // Names of providers to disable via ?disable=Provider1,Provider2
   maxPhase?: number; // Maximum phase to load (for debugging/testing)
+  disablePortals?: boolean; // FASE 6: Disable Toaster/Tooltip portals for diagnostic modes
 }
 
 export const CombinedAppProvider = ({ 
   children, 
   disabledProviders = [],
-  maxPhase = Infinity
+  maxPhase = Infinity,
+  disablePortals = false
 }: CombinedAppProviderProps) => {
   
   // PHASE 1: Simplified - check for React duplication on mount
@@ -65,8 +67,34 @@ export const CombinedAppProvider = ({
   bootTracer.trace('CombinedAppProvider', '✅ Unified provider system', { 
     disabledProviders,
     maxPhase,
+    disablePortals,
     totalProviders: PROVIDER_REGISTRY.length 
   });
+
+  // FASE 6: Conditional rendering based on disablePortals
+  if (disablePortals) {
+    bootTracer.mark('CombinedAppProvider', 'Portals disabled (no Toaster/Tooltip)');
+    return (
+      <QueryClientProvider client={queryClient}>
+        <NextThemesProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <CanaryProvider>
+            <OrchestratedProviders
+              providers={PROVIDER_REGISTRY}
+              disabledProviders={disabledProviders}
+              maxPhase={maxPhase}
+            >
+              {children}
+            </OrchestratedProviders>
+          </CanaryProvider>
+        </NextThemesProvider>
+      </QueryClientProvider>
+    );
+  }
 
   return (
     <QueryClientProvider client={queryClient}>

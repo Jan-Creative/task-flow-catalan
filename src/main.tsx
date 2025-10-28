@@ -17,6 +17,7 @@ declare global {
   interface Window {
     __APP_BOOTED?: boolean;
     __clearBootWatchdog?: () => void;
+    __removeBootWatermark?: () => void;
   }
 }
 
@@ -357,6 +358,8 @@ const noRouterMode = params.get('norouter') === '1';
 const noPortalsMode = params.get('noportals') === '1';
 // Mode ?single=1: Single render without render guard / dynamic import
 const singleMode = params.get('single') === '1';
+// Mode ?preonly=1: Direct JS check (bypasses React completely)
+const preonlyMode = params.get('preonly') === '1';
 
 bootTracer.mark('render:start', { 
   disabledProviders,
@@ -497,13 +500,31 @@ function ProbeApp() {
 
 function UltraMinimalApp() {
   return (
-    <div className="min-h-screen grid place-items-center bg-background text-foreground">
-      <div className="max-w-md space-y-4 text-center p-6">
-        <h1 className="text-2xl font-bold">⚡ Ultra Minimal Mode</h1>
-        <p className="text-sm opacity-80">
-          React root funciona. Cap provider, cap router, cap portal.
+    <div style={{
+      minHeight: '100vh',
+      display: 'grid',
+      placeItems: 'center',
+      background: '#ffffff',
+      color: '#111111',
+      fontFamily: 'system-ui, -apple-system, sans-serif',
+      padding: '24px'
+    }}>
+      <div style={{ maxWidth: '500px', textAlign: 'center' }}>
+        <h1 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '16px' }}>
+          ⚡ Ultra Minimal Mode
+        </h1>
+        <p style={{ fontSize: '14px', opacity: 0.8, marginBottom: '24px' }}>
+          React root funciona. Cap provider, cap router, cap portal, cap Tailwind dependency.
         </p>
-        <div className="mt-4 p-4 bg-muted rounded-lg text-left text-xs space-y-1">
+        <div style={{
+          marginTop: '16px',
+          padding: '16px',
+          background: '#f5f5f5',
+          borderRadius: '8px',
+          textAlign: 'left',
+          fontSize: '12px',
+          border: '1px solid #ddd'
+        }}>
           <div>✅ React: {React.version}</div>
           <div>✅ DOM root: #root</div>
           <div>✅ User Agent: {navigator.userAgent.substring(0, 50)}...</div>
@@ -511,20 +532,46 @@ function UltraMinimalApp() {
         </div>
         <button 
           onClick={() => window.location.href = '/'}
-          className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:opacity-90 transition-opacity"
+          style={{
+            marginTop: '16px',
+            padding: '10px 20px',
+            background: '#2563eb',
+            color: '#ffffff',
+            border: 'none',
+            borderRadius: '6px',
+            fontSize: '14px',
+            fontWeight: '600',
+            cursor: 'pointer'
+          }}
         >
           Tornar a Mode Normal
         </button>
-        <div className="mt-2 flex gap-2 justify-center">
+        <div style={{ marginTop: '12px', display: 'flex', gap: '8px', justifyContent: 'center' }}>
           <button 
-            onClick={() => window.location.href = '/?norouter=1'}
-            className="px-3 py-1.5 text-xs bg-secondary text-secondary-foreground rounded-md hover:opacity-90 transition-opacity"
+            onClick={() => window.location.href = '/?norouter=1&bootdebug=1'}
+            style={{
+              padding: '8px 12px',
+              fontSize: '12px',
+              background: '#6b7280',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer'
+            }}
           >
             Provar No Router
           </button>
           <button 
-            onClick={() => window.location.href = '/?single=1'}
-            className="px-3 py-1.5 text-xs bg-secondary text-secondary-foreground rounded-md hover:opacity-90 transition-opacity"
+            onClick={() => window.location.href = '/?single=1&bootdebug=1'}
+            style={{
+              padding: '8px 12px',
+              fontSize: '12px',
+              background: '#6b7280',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer'
+            }}
           >
             Provar Single Mode
           </button>
@@ -536,29 +583,61 @@ function UltraMinimalApp() {
 
 function NoRouterApp() {
   return (
-    <div className="min-h-screen bg-background text-foreground p-6">
-      <div className="max-w-2xl mx-auto space-y-6">
-        <h1 className="text-3xl font-bold">🔧 No Router Mode</h1>
-        <p className="text-muted-foreground">
+    <div style={{
+      minHeight: '100vh',
+      background: '#ffffff',
+      color: '#111111',
+      fontFamily: 'system-ui, -apple-system, sans-serif',
+      padding: '24px'
+    }}>
+      <div style={{ maxWidth: '700px', margin: '0 auto' }}>
+        <h1 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '16px' }}>
+          🔧 No Router Mode
+        </h1>
+        <p style={{ fontSize: '14px', opacity: 0.7, marginBottom: '24px' }}>
           Providers actius, però sense BrowserRouter. Si això funciona, el problema és al Router.
         </p>
-        <div className="p-4 bg-muted rounded-lg space-y-2">
-          <div className="font-medium">Test de Providers:</div>
-          <div className="text-sm">✅ Si veus això, els providers funcionen correctament</div>
-          <div className="text-xs opacity-60 mt-2">
+        <div style={{
+          padding: '16px',
+          background: '#f5f5f5',
+          borderRadius: '8px',
+          marginBottom: '24px',
+          border: '1px solid #ddd'
+        }}>
+          <div style={{ fontWeight: '600', marginBottom: '8px' }}>Test de Providers:</div>
+          <div style={{ fontSize: '14px' }}>✅ Si veus això, els providers funcionen correctament</div>
+          <div style={{ fontSize: '12px', opacity: 0.6, marginTop: '8px' }}>
             Els següents sistemes estan actius: CombinedAppProvider, EnhancedErrorBoundary
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
           <button 
             onClick={() => window.location.href = '/'}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:opacity-90 transition-opacity"
+            style={{
+              padding: '10px 20px',
+              background: '#2563eb',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '6px',
+              fontSize: '14px',
+              fontWeight: '600',
+              cursor: 'pointer'
+            }}
           >
             Tornar a Mode Normal
           </button>
           <button 
             onClick={() => window.location.href = '/?ultra=1'}
-            className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:opacity-90 transition-opacity"
+            style={{
+              padding: '10px 20px',
+              background: '#6b7280',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '6px',
+              fontSize: '14px',
+              fontWeight: '600',
+              cursor: 'pointer'
+            }}
           >
             Provar Ultra Mode
           </button>
@@ -570,23 +649,65 @@ function NoRouterApp() {
 
 // ============= RENDERING LOGIC WITH DIAGNOSTIC MODES =============
 
-if (ultraMode) {
+// FASE 6: Mode ?preonly=1 - Comprovació directa de JS (bypasses React)
+if (preonlyMode) {
+  addDebugLog('🔍 PREONLY mode - direct JS check', 'info');
+  bootTracer.mark('preonly:start');
+  
+  rootElement.innerHTML = `
+    <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#ffffff;color:#111111;font-family:system-ui,-apple-system,sans-serif;padding:24px;">
+      <div style="max-width:500px;text-align:center;">
+        <h1 style="font-size:32px;font-weight:bold;margin-bottom:16px;">✅ PREONLY OK</h1>
+        <p style="font-size:14px;opacity:0.8;margin-bottom:24px;">
+          JavaScript funciona i pot escriure al DOM directament sense React.
+        </p>
+        <div style="padding:16px;background:#f5f5f5;border-radius:8px;text-align:left;font-size:12px;margin-bottom:16px;border:1px solid #ddd;">
+          <div><strong>✅ DOM:</strong> #root accessible</div>
+          <div><strong>✅ JS:</strong> Executant-se correctament</div>
+          <div><strong>✅ Timestamp:</strong> ${new Date().toISOString()}</div>
+        </div>
+        <button 
+          onclick="window.location.href='/?ultra=1'"
+          style="padding:10px 20px;background:#2563eb;color:#ffffff;border:none;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;margin-right:8px;"
+        >
+          Provar Ultra Mode (amb React)
+        </button>
+        <button 
+          onclick="window.location.href='/'"
+          style="padding:10px 20px;background:#6b7280;color:#ffffff;border:none;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;"
+        >
+          Mode Normal
+        </button>
+      </div>
+    </div>
+  `;
+  
+  window.__APP_BOOTED = true;
+  window.__removeBootWatermark?.();
+  bootTracer.mark('preonly:complete');
+  cleanupAfterBoot();
+  
+} else if (ultraMode) {
   // Ultra Minimal Mode: Només React + HTML, sense cap provider ni router
   addDebugLog('⚡ Ultra Minimal Mode activated', 'info');
   bootTracer.mark('render:ultra-minimal');
   
   root.render(
     <EnhancedErrorBoundary context="Ultra Minimal" showDetails={true}>
-      <React.Suspense fallback={<div className="min-h-screen grid place-items-center">Loading...</div>}>
-        <UltraMinimalApp />
-        {showBootDebug && <BootDiagnosticsOverlay />}
-      </React.Suspense>
+      <UltraMinimalApp />
+      {showBootDebug && (
+        <React.Suspense fallback={null}>
+          <BootDiagnosticsOverlay />
+        </React.Suspense>
+      )}
     </EnhancedErrorBoundary>
   );
   
   // Mark boot complete
   window.__APP_BOOTED = true;
+  window.__removeBootWatermark?.();
   bootTracer.mark('boot:complete-ultra');
+  setTimeout(cleanupDebugLogs, 1000);
   
 } else if (noRouterMode) {
   // No Router Mode: Tots els providers actius però sense BrowserRouter
@@ -597,23 +718,31 @@ if (ultraMode) {
   import('./contexts/ProviderStatusContext').then(({ ProviderStatusProvider }) => {
     addDebugLog('✅ Providers loaded for No Router Mode', 'success');
     
-    root.render(
-      <ProviderStatusProvider>
-        <EnhancedErrorBoundary context="No Router Mode" showDetails={true}>
-          <CombinedAppProvider disabledProviders={disabledProviders} maxPhase={maxPhase}>
-            <React.Suspense fallback={<div className="min-h-screen grid place-items-center">Loading...</div>}>
-              {showBootDebug && <BootDiagnosticsOverlay />}
-              <NoRouterApp />
+  root.render(
+    <ProviderStatusProvider>
+      <EnhancedErrorBoundary context="No Router Mode" showDetails={true}>
+        <CombinedAppProvider 
+          disabledProviders={disabledProviders} 
+          maxPhase={maxPhase}
+          disablePortals={noPortalsMode}
+        >
+          <NoRouterApp />
+          {showBootDebug && (
+            <React.Suspense fallback={null}>
+              <BootDiagnosticsOverlay />
             </React.Suspense>
-          </CombinedAppProvider>
-        </EnhancedErrorBoundary>
-      </ProviderStatusProvider>
-    );
-    
-    // Mark boot complete
-    window.__APP_BOOTED = true;
-    bootTracer.mark('boot:complete-norouter');
-    addDebugLog('✅ No Router Mode render complete', 'success');
+          )}
+        </CombinedAppProvider>
+      </EnhancedErrorBoundary>
+    </ProviderStatusProvider>
+  );
+  
+  // Mark boot complete
+  window.__APP_BOOTED = true;
+  window.__removeBootWatermark?.();
+  bootTracer.mark('boot:complete-norouter');
+  addDebugLog('✅ No Router Mode render complete', 'success');
+  setTimeout(cleanupDebugLogs, 1000);
     
   }).catch((error) => {
     bootTracer.error('NoRouterMode', error);
@@ -645,43 +774,31 @@ if (ultraMode) {
     import('./contexts/ProviderStatusContext').then(({ ProviderStatusProvider }) => {
       addDebugLog('✅ Provider imported - rendering...', 'success');
       
-      // Create App component wrapper conditionally based on noPortalsMode
-      const AppWrapper = noPortalsMode ? (
-        <CombinedAppProvider disabledProviders={disabledProviders} maxPhase={maxPhase}>
-          {showBootDebug && (
-            <React.Suspense fallback={<div className="text-xs opacity-50">Loading diagnostics...</div>}>
-              <BootDiagnosticsOverlay />
-            </React.Suspense>
-          )}
-          <div className="app-shell w-full min-h-screen overflow-x-hidden">
-            <div className="page-scroll">
-              {/* Render App without Toaster/Tooltip */}
-              <App />
-            </div>
-          </div>
-        </CombinedAppProvider>
-      ) : (
-        <CombinedAppProvider disabledProviders={disabledProviders} maxPhase={maxPhase}>
-          {showBootDebug && (
-            <React.Suspense fallback={<div className="text-xs opacity-50">Loading diagnostics...</div>}>
-              <BootDiagnosticsOverlay />
-            </React.Suspense>
-          )}
-          <App />
-        </CombinedAppProvider>
-      );
-      
+      // FASE 6: Passar disablePortals a CombinedAppProvider
       root.render(
         <ProviderStatusProvider>
           <EnhancedErrorBoundary context="Single Render Mode" showDetails={true}>
-            {AppWrapper}
+            <CombinedAppProvider 
+              disabledProviders={disabledProviders} 
+              maxPhase={maxPhase}
+              disablePortals={noPortalsMode}
+            >
+              <App />
+              {showBootDebug && (
+                <React.Suspense fallback={null}>
+                  <BootDiagnosticsOverlay />
+                </React.Suspense>
+              )}
+            </CombinedAppProvider>
           </EnhancedErrorBoundary>
         </ProviderStatusProvider>
       );
       
       bootTracer.mark('SingleMode:complete');
       window.__APP_BOOTED = true;
+      window.__removeBootWatermark?.();
       addDebugLog('✅ Single render complete!', 'success');
+      setTimeout(cleanupDebugLogs, 1000);
     }).catch((error) => {
       bootTracer.error('SingleMode', error);
       addDebugLog('❌ Single render failed!', 'error');
@@ -692,48 +809,91 @@ if (ultraMode) {
     addDebugLog('📦 Starting dynamic import...', 'info');
     bootTracer.mark('dynamic-import:start');
     
-    // 1️⃣ Crear Promise amb timeout de 3000ms (reduït gràcies a modulepreload)
+    // 1️⃣ FASE 6: Timeout relaxat a 8000ms per entorns lents
+    addDebugLog('📦 Import started...', 'info');
     const importPromise = import('./contexts/ProviderStatusContext');
     const timeoutPromise = new Promise<never>((_, reject) => 
-      setTimeout(() => reject(new Error('Import timeout after 3000ms')), 3000)
+      setTimeout(() => {
+        addDebugLog('⏱️ Import timeout!', 'error');
+        reject(new Error('Import timeout after 8000ms'));
+      }, 8000)
     );
     
-    // 2️⃣ RenderGuard més curt (2500ms) per forçar fallback si tot va lent
+    // 2️⃣ FASE 6: RenderGuard relaxat a 6000ms per evitar falsos timeouts
     let renderGuardTriggered = false;
     const renderGuardTimeout = setTimeout(() => {
       if (!renderGuardTriggered) {
         renderGuardTriggered = true;
         bootTracer.error('RenderGuard', 'TIMEOUT: Forcing emergency render', {
-          elapsed: '2500ms',
+          elapsed: '6000ms',
           reason: 'App failed to boot in time'
         });
         
-        // Emergency fallback render
+        // Emergency fallback render amb inline styles (independent de Tailwind)
         addDebugLog('⚠️ Render guard triggered!', 'error');
         root.render(
-          <div className="min-h-screen flex items-center justify-center bg-background text-foreground">
-            <div className="max-w-md space-y-4 p-6 text-center">
-              <div className="text-red-500 text-4xl mb-4">⚠️</div>
-              <h1 className="text-2xl font-bold">Boot Timeout</h1>
-              <p className="text-sm opacity-80">
-                L'aplicació no ha carregat en 2.5 segons. Prova aquests modes de diagnòstic:
+          <div style={{
+            minHeight: '100vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: '#ffffff',
+            color: '#111111',
+            fontFamily: 'system-ui, -apple-system, sans-serif'
+          }}>
+            <div style={{
+              maxWidth: '500px',
+              textAlign: 'center',
+              padding: '24px'
+            }}>
+              <div style={{ fontSize: '48px', marginBottom: '16px' }}>⚠️</div>
+              <h1 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '12px' }}>Boot Timeout</h1>
+              <p style={{ fontSize: '14px', opacity: 0.8, marginBottom: '24px' }}>
+                L'aplicació no ha carregat en 6 segons. Prova aquests modes de diagnòstic:
               </p>
-              <div className="flex flex-col gap-2 mt-4">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <button 
                   onClick={() => window.location.href = '/?ultra=1'}
-                  className="px-4 py-2 bg-primary text-primary-foreground rounded-md"
+                  style={{
+                    padding: '10px 20px',
+                    background: '#2563eb',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    cursor: 'pointer'
+                  }}
                 >
                   ⚡ Ultra Mode
                 </button>
                 <button 
-                  onClick={() => window.location.href = '/?single=1'}
-                  className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md"
+                  onClick={() => window.location.href = '/?single=1&bootdebug=1'}
+                  style={{
+                    padding: '10px 20px',
+                    background: '#6b7280',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    cursor: 'pointer'
+                  }}
                 >
                   1️⃣ Single Render
                 </button>
                 <button 
                   onClick={() => window.location.reload()}
-                  className="px-4 py-2 bg-muted text-muted-foreground rounded-md"
+                  style={{
+                    padding: '10px 20px',
+                    background: '#9ca3af',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    cursor: 'pointer'
+                  }}
                 >
                   🔄 Recarregar
                 </button>
@@ -742,12 +902,12 @@ if (ultraMode) {
           </div>
         );
       }
-    }, 2500);
+    }, 6000);
     
     // 3️⃣ Race entre import i timeout
     Promise.race([importPromise, timeoutPromise])
       .then(({ ProviderStatusProvider }) => {
-        addDebugLog('✅ Dynamic import successful!', 'success');
+        addDebugLog('✅ Import finished successfully!', 'success');
         bootTracer.mark('dynamic-import:success');
         
         // Clear render guard si l'import té èxit
@@ -763,36 +923,22 @@ if (ultraMode) {
           timestamp: new Date().toISOString()
         });
         
-        // Conditional app wrapper based on noPortalsMode
-        const AppWrapper = noPortalsMode ? (
-          <CombinedAppProvider disabledProviders={disabledProviders} maxPhase={maxPhase}>
-            {showBootDebug && (
-              <React.Suspense fallback={<div className="text-xs opacity-50">Loading diagnostics...</div>}>
-                <BootDiagnosticsOverlay />
-              </React.Suspense>
-            )}
-            <div className="app-shell w-full min-h-screen overflow-x-hidden">
-              <div className="page-scroll">
-                {/* Render App without portals */}
-                <App />
-              </div>
-            </div>
-          </CombinedAppProvider>
-        ) : (
-          <CombinedAppProvider disabledProviders={disabledProviders} maxPhase={maxPhase}>
-            {showBootDebug && (
-              <React.Suspense fallback={<div className="text-xs opacity-50">Loading diagnostics...</div>}>
-                <BootDiagnosticsOverlay />
-              </React.Suspense>
-            )}
-            <App />
-          </CombinedAppProvider>
-        );
-        
+        // FASE 6: Passar disablePortals a CombinedAppProvider
         root.render(
           <ProviderStatusProvider>
             <EnhancedErrorBoundary context="Aplicació Principal" showDetails={true}>
-              {AppWrapper}
+              <CombinedAppProvider 
+                disabledProviders={disabledProviders} 
+                maxPhase={maxPhase}
+                disablePortals={noPortalsMode}
+              >
+                <App />
+                {showBootDebug && (
+                  <React.Suspense fallback={null}>
+                    <BootDiagnosticsOverlay />
+                  </React.Suspense>
+                )}
+              </CombinedAppProvider>
             </EnhancedErrorBoundary>
           </ProviderStatusProvider>
         );
@@ -841,6 +987,9 @@ if (ultraMode) {
           if (window.__clearBootWatchdog) {
             window.__clearBootWatchdog();
           }
+          // FASE 6: Remove watermark after successful boot
+          window.__removeBootWatermark?.();
+          
           addDebugLog('🎉 Boot complete!', 'success');
           bootTracer.mark('boot:complete');
           logger.info('App', 'Boot successful');

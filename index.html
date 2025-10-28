@@ -93,6 +93,47 @@
         };
       })();
     </script>
+    
+    <!-- FASE 6: Pre-React Watermark - 100% inline, super-visible -->
+    <script>
+      (function() {
+        'use strict';
+        const watermark = document.createElement('div');
+        watermark.id = '__pre_react_watermark';
+        watermark.textContent = '⚛️ BOOT JS alive @ ' + new Date().toLocaleTimeString();
+        watermark.style.cssText = `
+          position: fixed;
+          bottom: 8px;
+          right: 8px;
+          background: #ffffff;
+          color: #111111;
+          border: 2px solid #111111;
+          padding: 8px 12px;
+          font-family: system-ui, -apple-system, sans-serif;
+          font-size: 12px;
+          font-weight: 600;
+          z-index: 2147483647;
+          pointer-events: none;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+          border-radius: 6px;
+        `;
+        
+        // Wait for body to exist
+        if (document.body) {
+          document.body.appendChild(watermark);
+        } else {
+          document.addEventListener('DOMContentLoaded', function() {
+            document.body.appendChild(watermark);
+          });
+        }
+        
+        // Expose removal function
+        window.__removeBootWatermark = function() {
+          var node = document.getElementById('__pre_react_watermark');
+          if (node) node.remove();
+        };
+      })();
+    </script>
   </head>
 
   <body>
