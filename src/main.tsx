@@ -493,7 +493,135 @@ function ProbeApp() {
   );
 }
 
-if (probeMode) {
+// ============= EMERGENCY DIAGNOSTIC MODES =============
+
+function UltraMinimalApp() {
+  return (
+    <div className="min-h-screen grid place-items-center bg-background text-foreground">
+      <div className="max-w-md space-y-4 text-center p-6">
+        <h1 className="text-2xl font-bold">⚡ Ultra Minimal Mode</h1>
+        <p className="text-sm opacity-80">
+          React root funciona. Cap provider, cap router, cap portal.
+        </p>
+        <div className="mt-4 p-4 bg-muted rounded-lg text-left text-xs space-y-1">
+          <div>✅ React: {React.version}</div>
+          <div>✅ DOM root: #root</div>
+          <div>✅ User Agent: {navigator.userAgent.substring(0, 50)}...</div>
+          <div>✅ Timestamp: {new Date().toISOString()}</div>
+        </div>
+        <button 
+          onClick={() => window.location.href = '/'}
+          className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:opacity-90 transition-opacity"
+        >
+          Tornar a Mode Normal
+        </button>
+        <div className="mt-2 flex gap-2 justify-center">
+          <button 
+            onClick={() => window.location.href = '/?norouter=1'}
+            className="px-3 py-1.5 text-xs bg-secondary text-secondary-foreground rounded-md hover:opacity-90 transition-opacity"
+          >
+            Provar No Router
+          </button>
+          <button 
+            onClick={() => window.location.href = '/?single=1'}
+            className="px-3 py-1.5 text-xs bg-secondary text-secondary-foreground rounded-md hover:opacity-90 transition-opacity"
+          >
+            Provar Single Mode
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function NoRouterApp() {
+  return (
+    <div className="min-h-screen bg-background text-foreground p-6">
+      <div className="max-w-2xl mx-auto space-y-6">
+        <h1 className="text-3xl font-bold">🔧 No Router Mode</h1>
+        <p className="text-muted-foreground">
+          Providers actius, però sense BrowserRouter. Si això funciona, el problema és al Router.
+        </p>
+        <div className="p-4 bg-muted rounded-lg space-y-2">
+          <div className="font-medium">Test de Providers:</div>
+          <div className="text-sm">✅ Si veus això, els providers funcionen correctament</div>
+          <div className="text-xs opacity-60 mt-2">
+            Els següents sistemes estan actius: CombinedAppProvider, EnhancedErrorBoundary
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <button 
+            onClick={() => window.location.href = '/'}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:opacity-90 transition-opacity"
+          >
+            Tornar a Mode Normal
+          </button>
+          <button 
+            onClick={() => window.location.href = '/?ultra=1'}
+            className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:opacity-90 transition-opacity"
+          >
+            Provar Ultra Mode
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============= RENDERING LOGIC WITH DIAGNOSTIC MODES =============
+
+if (ultraMode) {
+  // Ultra Minimal Mode: Només React + HTML, sense cap provider ni router
+  addDebugLog('⚡ Ultra Minimal Mode activated', 'info');
+  bootTracer.mark('render:ultra-minimal');
+  
+  root.render(
+    <EnhancedErrorBoundary context="Ultra Minimal" showDetails={true}>
+      <React.Suspense fallback={<div className="min-h-screen grid place-items-center">Loading...</div>}>
+        <UltraMinimalApp />
+        {showBootDebug && <BootDiagnosticsOverlay />}
+      </React.Suspense>
+    </EnhancedErrorBoundary>
+  );
+  
+  // Mark boot complete
+  window.__APP_BOOTED = true;
+  bootTracer.mark('boot:complete-ultra');
+  
+} else if (noRouterMode) {
+  // No Router Mode: Tots els providers actius però sense BrowserRouter
+  addDebugLog('🔧 No Router Mode activated', 'info');
+  bootTracer.mark('render:no-router');
+  
+  // Import dynamic per evitar problemes
+  import('./contexts/ProviderStatusContext').then(({ ProviderStatusProvider }) => {
+    addDebugLog('✅ Providers loaded for No Router Mode', 'success');
+    
+    root.render(
+      <ProviderStatusProvider>
+        <EnhancedErrorBoundary context="No Router Mode" showDetails={true}>
+          <CombinedAppProvider disabledProviders={disabledProviders} maxPhase={maxPhase}>
+            <React.Suspense fallback={<div className="min-h-screen grid place-items-center">Loading...</div>}>
+              {showBootDebug && <BootDiagnosticsOverlay />}
+              <NoRouterApp />
+            </React.Suspense>
+          </CombinedAppProvider>
+        </EnhancedErrorBoundary>
+      </ProviderStatusProvider>
+    );
+    
+    // Mark boot complete
+    window.__APP_BOOTED = true;
+    bootTracer.mark('boot:complete-norouter');
+    addDebugLog('✅ No Router Mode render complete', 'success');
+    
+  }).catch((error) => {
+    bootTracer.error('NoRouterMode', error);
+    addDebugLog('❌ No Router Mode failed!', 'error');
+  });
+  
+} else if (probeMode) {
+  // Probe Mode: Test bàsic del React root
   bootTracer.mark('render:probe');
   root.render(
     <EnhancedErrorBoundary context="Probe" showDetails={true}>
@@ -503,6 +631,10 @@ if (probeMode) {
       </React.Suspense>
     </EnhancedErrorBoundary>
   );
+  
+  window.__APP_BOOTED = true;
+  bootTracer.mark('boot:complete-probe');
+  
 } else {
   // ============= SINGLE RENDER MODE (?single=1) =============
   // Skip render guard and dynamic import race - just do a single render
