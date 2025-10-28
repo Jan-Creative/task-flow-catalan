@@ -148,14 +148,14 @@ const PhasedMount: React.FC<PhasedMountProps> = ({ phase, children, onMount }) =
           }
         });
         
-        // CRITICAL FIX: Fallback timeout if requestIdleCallback never fires
+        // FASE 2 FIX: Reduït a 50ms per evitar race conditions
         const fallbackTimeout = setTimeout(() => {
           if (!localMounted && !mountedRef.current) {
             localMounted = true;
             bootTracer.trace(`Provider:PhasedMount`, `Phase ${phase} fallback timeout triggered`, { phase });
             mountProvider();
           }
-        }, 100); // 100ms max wait
+        }, 50); // 50ms max wait (abans era 100ms)
         
         return () => {
           if (typeof cancelIdleCallback !== 'undefined') {
@@ -197,10 +197,15 @@ const PhasedMount: React.FC<PhasedMountProps> = ({ phase, children, onMount }) =
     }
   }, [phase, onMount]);
 
-  // CRITICAL FIX: Return null instead of visual fallback to avoid DOM conflicts
-  // The ProviderLoadingFallback at the Suspense level is enough
+  // FASE 2 CRITICAL FIX: Always render children (hidden initially) to prevent NotFoundError
+  // React throws NotFoundError when trying to remove nodes that were never added (from null → JSX transition)
+  // Solution: Always render children but hide them with display:none until mounted
   if (!mounted) {
-    return null;
+    return (
+      <div style={{ display: 'none' }} data-phase-mounting="true" data-phase={phase}>
+        {children}
+      </div>
+    );
   }
 
   return <>{children}</>;
@@ -221,7 +226,7 @@ export const OrchestratedProviders: React.FC<OrchestratedProvidersProps> = ({
   maxPhase = Infinity,
 }) => {
   const [failedProviders, setFailedProviders] = useState<string[]>([]);
-  const [showEmergencyFallback, setShowEmergencyFallback] = useState(false);
+  // FASE 3: showEmergencyFallback eliminat (no necessari)
   
   // PHASE 6: Provider status monitoring
   const { updateProviderStatus, getLoadingProviders } = useProviderStatus();
@@ -305,51 +310,8 @@ export const OrchestratedProviders: React.FC<OrchestratedProvidersProps> = ({
     return () => clearTimeout(logFinalStates);
   }, [activeProviders, failedProviders]);
 
-  // FASE 3: Emergency fallback if no providers mount after 3s
-  useEffect(() => {
-    const emergencyTimer = setTimeout(() => {
-      const mountedCount = activeProviders.filter(
-        p => !failedProviders.includes(p.name)
-      ).length;
-      
-      if (mountedCount === 0 && activeProviders.length > 0) {
-        bootTracer.error('EmergencyFallback', 'No providers mounted after 3s', {
-          total: activeProviders.length,
-          failed: failedProviders.length
-        });
-        setShowEmergencyFallback(true);
-      }
-    }, 3000);
-    
-    return () => clearTimeout(emergencyTimer);
-  }, [activeProviders, failedProviders]);
-
-  // Show emergency fallback if no providers could mount
-  if (showEmergencyFallback) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center space-y-4 p-6 max-w-md">
-          <div className="text-4xl mb-4">⚠️</div>
-          <h1 className="text-2xl font-bold">Error de Càrrega</h1>
-          <p className="text-muted-foreground">Els components no s'han pogut carregar.</p>
-          <div className="flex gap-3 justify-center mt-6">
-            <button 
-              onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90"
-            >
-              🔄 Recarregar
-            </button>
-            <button 
-              onClick={() => window.location.href = '/?reset=1'}
-              className="px-4 py-2 bg-destructive text-destructive-foreground rounded-lg font-medium hover:opacity-90"
-            >
-              🔧 Reset Complet
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // FASE 3: Emergency fallback eliminat (redundant amb ProviderTimeout línia 230-246)
+  // El ProviderTimeout és més precís i ràpid (5s vs 3s) i evita conflictes de render
 
   // Build nested structure from innermost to outermost
   let content = children;
