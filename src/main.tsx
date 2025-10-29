@@ -1,3 +1,31 @@
+// ============= FASE 1: IMMEDIATE CONSOLE LOG =============
+console.log('🚀 MAIN.TSX LOADED - JavaScript bundle executing');
+console.log('🔍 Timestamp:', new Date().toISOString());
+console.log('🔍 Location:', window.location.href);
+console.log('🔍 User Agent:', navigator.userAgent);
+
+// ============= FASE 4: Check for existing Service Workers =============
+console.log('🔍 Checking for Service Workers...');
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(registrations => {
+    if (registrations.length > 0) {
+      console.warn('⚠️ Found', registrations.length, 'Service Worker(s) registered:', registrations);
+      registrations.forEach((reg, index) => {
+        console.log(`  SW ${index + 1}:`, {
+          scope: reg.scope,
+          active: reg.active?.state,
+          waiting: reg.waiting?.state,
+          installing: reg.installing?.state
+        });
+      });
+    } else {
+      console.log('✅ No Service Workers registered');
+    }
+  }).catch(err => {
+    console.error('❌ Error checking Service Workers:', err);
+  });
+}
+
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { EnhancedErrorBoundary } from "@/components/ui/enhanced-error-boundary";

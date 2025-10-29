@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Basic - HTML & JavaScript</title>
+</head>
+<body style="margin:0;padding:40px;background:#ffffff;color:#000000;font-family:system-ui,-apple-system,sans-serif;">
+  <div style="max-width:800px;margin:0 auto;">
+    <h1 style="color:#000000;margin-bottom:20px;">✅ HTML WORKS</h1>
+    
+    <div style="background:#f0f0f0;padding:20px;border-radius:8px;margin-bottom:20px;">
+      <h2 style="margin-top:0;color:#333;">JavaScript Test</h2>
+      <p id="js-test" style="color:#ff0000;font-weight:600;font-size:18px;">❌ JavaScript NOT loaded</p>
+      <p id="js-timestamp" style="color:#666;"></p>
+    </div>
+    
+    <div style="background:#e3f2fd;padding:20px;border-radius:8px;margin-bottom:20px;">
+      <h2 style="margin-top:0;color:#1976d2;">DOM Manipulation Test</h2>
+      <button id="test-button" style="background:#1976d2;color:#fff;border:none;padding:12px 24px;border-radius:4px;cursor:pointer;font-size:16px;font-weight:600;">
+        Click Me
+      </button>
+      <p id="click-result" style="margin-top:10px;font-weight:600;"></p>
+    </div>
+    
+    <div style="background:#fff3e0;padding:20px;border-radius:8px;">
+      <h2 style="margin-top:0;color:#f57c00;">Console Test</h2>
+      <p style="color:#666;">Check the browser console - you should see test logs</p>
+    </div>
+  </div>
+  
+  <script>
+    console.log('✅ test.html JavaScript executing');
+    console.log('Timestamp:', new Date().toISOString());
+    console.log('User Agent:', navigator.userAgent);
+    console.log('Location:', window.location.href);
+    
+    // Update JS test indicator
+    var jsTest = document.getElementById('js-test');
+    jsTest.textContent = '✅ JavaScript WORKS';
+    jsTest.style.color = '#00aa00';
+    
+    var jsTimestamp = document.getElementById('js-timestamp');
+    jsTimestamp.textContent = 'Loaded at: ' + new Date().toLocaleString();
+    
+    // Button click test
+    var clickCount = 0;
+    document.getElementById('test-button').addEventListener('click', function() {
+      clickCount++;
+      var result = document.getElementById('click-result');
+      result.textContent = '✅ Button clicked ' + clickCount + ' time(s)';
+      result.style.color = '#00aa00';
+      console.log('Button clicked:', clickCount);
+    });
+    
+    console.log('✅ All basic tests passed');
+  </script>
+</body>
+</html>

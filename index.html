@@ -137,6 +137,59 @@
   </head>
 
   <body>
+    <!-- FASE 1: Indicator ABANS de qualsevol JS complex -->
+    <div id="__js_not_loaded" style="position:fixed;inset:0;background:#ff0000;color:#ffffff;display:flex;align-items:center;justify-content:center;font-family:system-ui,-apple-system,sans-serif;font-size:24px;font-weight:700;z-index:2147483647;text-align:center;padding:20px;">
+      ❌ JAVASCRIPT NOT LOADED<br><small style="font-size:14px;margin-top:10px;display:block;">If you see this, JS is not executing</small>
+    </div>
+    
+    <!-- FASE 4: Clear TOTAL Cache Button -->
+    <button id="__clear_cache_btn" style="position:fixed;top:8px;left:8px;background:#ff6b6b;color:#fff;border:2px solid #fff;padding:12px 20px;font-family:system-ui;font-size:14px;font-weight:600;z-index:2147483646;cursor:pointer;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,0.5);">
+      🗑️ CLEAR TOTAL CACHE
+    </button>
+    <script>
+      (function() {
+        'use strict';
+        // Clear cache button handler
+        document.getElementById('__clear_cache_btn').addEventListener('click', function() {
+          console.log('🗑️ Clearing total cache...');
+          localStorage.clear();
+          sessionStorage.clear();
+          
+          if ('indexedDB' in window && indexedDB.databases) {
+            indexedDB.databases().then(function(dbs) {
+              dbs.forEach(function(db) { 
+                indexedDB.deleteDatabase(db.name); 
+              });
+            });
+          }
+          
+          if ('caches' in window) {
+            caches.keys().then(function(keys) {
+              keys.forEach(function(key) { caches.delete(key); });
+            });
+          }
+          
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(regs) {
+              regs.forEach(function(reg) { reg.unregister(); });
+            });
+          }
+          
+          alert('Cache cleared! Reloading...');
+          window.location.reload(true);
+        });
+        
+        // Remove JS NOT LOADED indicator
+        setTimeout(function() {
+          var indicator = document.getElementById('__js_not_loaded');
+          if (indicator) {
+            indicator.remove();
+            console.log('✅ JavaScript is executing - removed NOT LOADED indicator');
+          }
+        }, 100);
+      })();
+    </script>
+    
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
