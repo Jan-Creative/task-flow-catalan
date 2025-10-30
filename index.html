@@ -40,9 +40,29 @@
     <link rel="preconnect" href="https://umfrvkakvgsypqcyyzke.supabase.co" crossorigin />
     <link rel="dns-prefetch" href="https://umfrvkakvgsypqcyyzke.supabase.co" />
     
-    <!-- FASE 2: Modulepreload per optimitzar dynamic import -->
-    <link rel="modulepreload" href="/src/contexts/ProviderStatusContext.tsx" />
-    <link rel="modulepreload" href="/src/components/ui/combined-app-provider.tsx" />
+    <!-- Production MIME type diagnostic -->
+    <script>
+      (function() {
+        'use strict';
+        // Only run in production (check if this is NOT dev server)
+        if (window.location.hostname !== 'localhost' && !window.location.hostname.includes('127.0.0.1')) {
+          // Wait for DOM to be ready
+          setTimeout(function() {
+            var badPreloads = document.querySelectorAll('link[rel="modulepreload"][href^="/src/"]');
+            var badScripts = document.querySelectorAll('script[type="module"][src^="/src/"]');
+            
+            if (badPreloads.length > 0) {
+              console.warn('⚠️ PRODUCTION WARNING: Found modulepreload references to /src/*.tsx:', badPreloads);
+              console.warn('This indicates index.html was not transformed by Vite build');
+            }
+            
+            if (badScripts.length > 1) { // We expect exactly 1: main.tsx which Vite transforms
+              console.warn('⚠️ PRODUCTION WARNING: Found unexpected script[type=module] references to /src/*:', badScripts);
+            }
+          }, 500);
+        }
+      })();
+    </script>
     
     <!-- Emergency Reset Only (Watchdog removed to prevent DOM conflicts) -->
     <script>
