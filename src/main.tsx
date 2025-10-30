@@ -412,6 +412,9 @@ bootTracer.mark('render:start', {
   singleMode
 });
 
+// ============= FASE DIAGNOSIS ULTRA: IMPORTS ADICIONALS =============
+import MinimalTest from "./MinimalTest.tsx";
+
 // ============= FASE 1: VALIDACIÓ ROBUSTA DEL ROOT ELEMENT =============
 addDebugLog('🔍 Starting root element validation...', 'info');
 bootTracer.mark('dom:root-validation-start');
@@ -729,25 +732,32 @@ if (preonlyMode) {
   
 } else if (ultraMode) {
   // Ultra Minimal Mode: Només React + HTML, sense cap provider ni router
+  console.log('⚡ ULTRA MODE: Renderitzant component mínim...');
   addDebugLog('⚡ Ultra Minimal Mode activated', 'info');
   bootTracer.mark('render:ultra-minimal');
   
-  root.render(
-    <EnhancedErrorBoundary context="Ultra Minimal" showDetails={true}>
-      <UltraMinimalApp />
-      {showBootDebug && (
-        <React.Suspense fallback={null}>
-          <BootDiagnosticsOverlay />
-        </React.Suspense>
-      )}
-    </EnhancedErrorBoundary>
-  );
-  
-  // Mark boot complete
-  window.__APP_BOOTED = true;
-  window.__removeBootWatermark?.();
-  bootTracer.mark('boot:complete-ultra');
-  setTimeout(cleanupDebugLogs, 1000);
+  try {
+    root.render(
+      <EnhancedErrorBoundary context="Ultra Minimal" showDetails={true}>
+        <MinimalTest />
+        {showBootDebug && (
+          <React.Suspense fallback={null}>
+            <BootDiagnosticsOverlay />
+          </React.Suspense>
+        )}
+      </EnhancedErrorBoundary>
+    );
+    
+    console.log('✅ ULTRA MODE: Renderitzat amb èxit!');
+    // Mark boot complete
+    window.__APP_BOOTED = true;
+    window.__removeBootWatermark?.();
+    bootTracer.mark('boot:complete-ultra');
+    setTimeout(cleanupDebugLogs, 1000);
+  } catch (ultraError) {
+    console.error('❌ ERROR en Ultra Mode:', ultraError);
+    addDebugLog('❌ Ultra mode failed!', 'error');
+  }
   
 } else if (noRouterMode) {
   // No Router Mode: Tots els providers actius però sense BrowserRouter
@@ -953,7 +963,12 @@ if (preonlyMode) {
         // Clear render guard si l'import té èxit
         clearTimeout(renderGuardTimeout);
         
-        // 3️⃣ Render amb logging EXPLÍCIT
+        // 3️⃣ Render amb logging ULTRA-EXPLÍCIT
+        console.log('🔵 FASE: Renderitzant aplicació principal...');
+        console.log('🔵 Disabled providers:', disabledProviders);
+        console.log('🔵 Max phase:', maxPhase);
+        console.log('🔵 No portals mode:', noPortalsMode);
+        
         addDebugLog('🎨 Rendering main app...', 'info');
         bootTracer.mark('render:app-start');
         bootTracer.trace('Render', 'About to call root.render() with providers', {
@@ -963,28 +978,38 @@ if (preonlyMode) {
           timestamp: new Date().toISOString()
         });
         
-        // FASE 6: Passar disablePortals a CombinedAppProvider
-        root.render(
-          <ProviderStatusProvider>
-            <EnhancedErrorBoundary context="Aplicació Principal" showDetails={true}>
-              <CombinedAppProvider 
-                disabledProviders={disabledProviders} 
-                maxPhase={maxPhase}
-                disablePortals={noPortalsMode}
-              >
-                <App />
-                {showBootDebug && (
-                  <React.Suspense fallback={null}>
-                    <BootDiagnosticsOverlay />
-                  </React.Suspense>
-                )}
-              </CombinedAppProvider>
-            </EnhancedErrorBoundary>
-          </ProviderStatusProvider>
-        );
-        
-        addDebugLog('✅ App rendered successfully!', 'success');
-        bootTracer.mark('render:app-complete');
+        try {
+          console.log('🔵 FASE: Cridant root.render()...');
+          
+          // FASE 6: Passar disablePortals a CombinedAppProvider
+          root.render(
+            <ProviderStatusProvider>
+              <EnhancedErrorBoundary context="Aplicació Principal" showDetails={true}>
+                <CombinedAppProvider 
+                  disabledProviders={disabledProviders} 
+                  maxPhase={maxPhase}
+                  disablePortals={noPortalsMode}
+                >
+                  <App />
+                  {showBootDebug && (
+                    <React.Suspense fallback={null}>
+                      <BootDiagnosticsOverlay />
+                    </React.Suspense>
+                  )}
+                </CombinedAppProvider>
+              </EnhancedErrorBoundary>
+            </ProviderStatusProvider>
+          );
+          
+          console.log('✅ root.render() completat amb èxit!');
+          addDebugLog('✅ App rendered successfully!', 'success');
+          bootTracer.mark('render:app-complete');
+        } catch (renderError) {
+          console.error('❌ ERROR CRÍTIC en root.render():', renderError);
+          addDebugLog('❌ Render error!', 'error');
+          bootTracer.error('Render', 'root.render() failed', renderError);
+          throw renderError;
+        }
       })
       .catch((error) => {
         // 4️⃣ Fallback si el dynamic import falla

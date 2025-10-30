@@ -28,6 +28,9 @@ import { logger } from "@/lib/logger";
 import { PomodoroWidgetCoordinator } from "@/components/PomodoroWidgetCoordinator";
 
 const App = () => {
+  console.log('🟢 App component iniciant...');
+  console.log('🟢 React està executant el component App');
+  
   // Validate configuration on app start - handle errors gracefully
   try {
     const validation = validateConfig(config);
@@ -40,11 +43,15 @@ const App = () => {
 
   // Preload heavy pages on idle to improve perceived performance
   React.useEffect(() => {
+    console.log('🟢 App useEffect executant...');
     preloadOnIdle(() => import('@/pages/CalendarPage'));
     preloadOnIdle(() => import('@/pages/NotesPage'));
   }, []);
 
-  return (
+  console.log('🟢 App component retornant JSX...');
+  
+  try {
+    return (
     <div className="app-shell w-full min-h-screen overflow-x-hidden">
       <div className="page-scroll">
         <BrowserRouter>
@@ -83,6 +90,53 @@ const App = () => {
       <TimeBlockIndicator />
     </div>
   );
+  } catch (error) {
+    console.error('❌ ERROR CRÍTIC en App component return:', error);
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: '#991b1b',
+        color: '#fca5a5',
+        padding: '40px',
+        fontFamily: 'monospace'
+      }}>
+        <div style={{ maxWidth: '600px', textAlign: 'center' }}>
+          <h1 style={{ fontSize: '32px', marginBottom: '20px' }}>❌ Error en App Component</h1>
+          <p style={{ marginBottom: '20px' }}>Hi ha hagut un error renderitzant l'aplicació:</p>
+          <pre style={{
+            background: '#7f1d1d',
+            padding: '20px',
+            borderRadius: '8px',
+            textAlign: 'left',
+            overflow: 'auto',
+            fontSize: '12px'
+          }}>
+            {error instanceof Error ? error.message : String(error)}
+            {error instanceof Error && error.stack ? '\n\n' + error.stack : ''}
+          </pre>
+          <button
+            onClick={() => window.location.href = '/?ultra=1'}
+            style={{
+              marginTop: '20px',
+              padding: '12px 24px',
+              background: '#2563eb',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: 'bold'
+            }}
+          >
+            Provar Mode Ultra Mínim
+          </button>
+        </div>
+      </div>
+    );
+  }
 };
 
 export default App;
