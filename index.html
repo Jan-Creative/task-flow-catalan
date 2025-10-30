@@ -15,7 +15,8 @@
     <meta name="mobile-web-app-capable" content="yes" />
     
     <!-- Manifest -->
-    <link rel="manifest" href="/manifest.json?v=4" />
+    <!-- Temporarily disabled to avoid CORS redirect to auth-bridge -->
+    <!-- <link rel="manifest" href="/manifest.json?v=4" /> -->
     
     <!-- Icons -->
     <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png" />
@@ -56,8 +57,9 @@
               console.warn('This indicates index.html was not transformed by Vite build');
             }
             
-            if (badScripts.length > 1) { // We expect exactly 1: main.tsx which Vite transforms
-              console.warn('⚠️ PRODUCTION WARNING: Found unexpected script[type=module] references to /src/*:', badScripts);
+            if (badScripts.length > 0) { // Any /src/ reference in production is wrong
+              console.warn('⚠️ PRODUCTION WARNING: Found script[type=module] pointing to /src/*:', badScripts);
+              console.warn('This indicates index.html was not transformed by Vite build');
             }
           }, 500);
         }
@@ -211,6 +213,6 @@
     </script>
     
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <script type="module" src="/src/bootstrap.ts"></script>
   </body>
 </html>
