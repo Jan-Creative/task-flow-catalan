@@ -4,6 +4,18 @@ console.log('🔍 Timestamp:', new Date().toISOString());
 console.log('🔍 Location:', window.location.href);
 console.log('🔍 User Agent:', navigator.userAgent);
 
+// ============= FASE DIAGNOSIS: LOG CHUNKS CARREGATS =============
+if (typeof performance !== 'undefined' && performance.getEntriesByType) {
+  setTimeout(() => {
+    const resources = performance.getEntriesByType('resource') as PerformanceResourceTiming[];
+    const jsChunks = resources.filter(r => r.name.includes('.js'));
+    console.log('📦 JavaScript chunks carregats:', jsChunks.length);
+    jsChunks.forEach((r, i) => {
+      console.log(`  ${i + 1}. ${r.name.split('/').pop()} - ${Math.round(r.duration)}ms - ${Math.round(r.transferSize / 1024)}KB`);
+    });
+  }, 1000);
+}
+
 // ============= FASE 4: Check for existing Service Workers =============
 console.log('🔍 Checking for Service Workers...');
 if ('serviceWorker' in navigator) {

@@ -8,6 +8,7 @@ import legacy from '@vitejs/plugin-legacy';
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const isSafeBuild = process.env.VITE_SAFE_BUILD === '1';
+  const isSimpleBundle = process.env.VITE_SIMPLE_BUNDLE === '1';
   
   return {
     server: {
@@ -17,7 +18,7 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       mode === 'development' && componentTagger(),
-      legacy({
+      !isSimpleBundle && legacy({
         targets: ['defaults', 'not IE 11', 'iOS >= 12', 'Safari >= 13'],
         modernPolyfills: true,
       }),
@@ -68,8 +69,8 @@ export default defineConfig(({ mode }) => {
     // Target Safari 14+ and ES2018 for better compatibility
     target: ['es2018', 'safari14'],
     // Enable minification with Safari-friendly settings
-    minify: 'terser',
-    terserOptions: {
+    minify: isSimpleBundle ? false : 'terser',
+    terserOptions: isSimpleBundle ? {} : {
       compress: {
         drop_console: !isSafeBuild, // Keep console in safe mode for debugging
         drop_debugger: true,
@@ -109,9 +110,9 @@ export default defineConfig(({ mode }) => {
         entryFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[name]-[hash].[ext]',
         // Compact output
-        compact: true,
-        // Manual chunks for better code splitting
-        manualChunks: (id) => {
+        compact: !isSimpleBundle,
+        // Manual chunks for better code splitting (disabled in simple mode)
+        manualChunks: isSimpleBundle ? undefined : (id) => {
           // React core (always needed)
           if (id.includes('node_modules/react/') || 
               id.includes('node_modules/react-dom/') || 
@@ -153,8 +154,8 @@ export default defineConfig(({ mode }) => {
           }
         },
       },
-      treeshake: {
-        // Enable aggressive tree-shaking
+      treeshake: isSimpleBundle ? false : {
+        // Enable aggressive tree-shaking (disabled in simple mode)
         moduleSideEffects: false,
         propertyReadSideEffects: false,
         tryCatchDeoptimization: false,
@@ -162,7 +163,7 @@ export default defineConfig(({ mode }) => {
     },
     // Optimize asset handling
     assetsInlineLimit: 4096, // Inline small assets
-    sourcemap: isSafeBuild, // Enable sourcemaps in safe mode for debugging
+    sourcemap: isSafeBuild || isSimpleBundle, // Enable sourcemaps in safe/simple mode for debugging
     // Enable CSS minification
     cssMinify: true,
     cssCodeSplit: true,
