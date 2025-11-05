@@ -135,11 +135,11 @@ const Index = () => {
     }
   );
 
-  // Sincronitzar activeTab amb paràmetres URL
-  useEffect(() => {
-    const tab = searchParams.get("tab") || "inici";
-    setActiveTab(tab);
-  }, [searchParams]);
+  // ⚠️ FASE 1: DESACTIVAT TEMPORALMENT - Causava bucle infinit amb searchParams
+  // useEffect(() => {
+  //   const tab = searchParams.get("tab") || "inici";
+  //   setActiveTab(tab);
+  // }, [searchParams]);
 
   // Actualitzar URL quan canvia activeTab
   const handleTabChange = (tab: string) => {

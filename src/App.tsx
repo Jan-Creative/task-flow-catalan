@@ -43,9 +43,18 @@ const App = () => {
     logger.warn('App', 'Configuration validation warning', error);
   }
 
+  // FASE 2: Guard per executar només un cop (prevenir StrictMode re-executions)
+  const preloadedRef = React.useRef(false);
+  
   // Preload heavy pages on idle to improve perceived performance
   React.useEffect(() => {
-    console.log('🟢 App useEffect executant...');
+    if (preloadedRef.current) {
+      console.log('⚠️ App useEffect: Preload ja executat, skipping (StrictMode prevention)');
+      return;
+    }
+    
+    preloadedRef.current = true;
+    console.log('🟢 App useEffect executant preload (primera vegada)...');
     preloadOnIdle(() => import('@/pages/CalendarPage'));
     preloadOnIdle(() => import('@/pages/NotesPage'));
   }, []);
