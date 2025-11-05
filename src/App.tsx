@@ -33,6 +33,53 @@ const App = () => {
   console.log('🟢 App component iniciant...');
   console.log('🟢 React està executant el component App');
   
+  // FASE 2: Mode ?norouter=1 - Test sense BrowserRouter
+  const noRouterMode = new URLSearchParams(window.location.search).get('norouter') === '1';
+  
+  if (noRouterMode) {
+    console.log('🔧 NO ROUTER MODE activat - bypassing BrowserRouter');
+    return (
+      <div style={{
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        color: 'white',
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: '28px',
+        fontWeight: 'bold',
+        padding: '40px',
+        textAlign: 'center',
+        flexDirection: 'column',
+        gap: '24px',
+        fontFamily: 'system-ui, -apple-system, sans-serif'
+      }}>
+        <div>✅ APP COMPONENT WORKS (NO ROUTER)</div>
+        <div style={{ fontSize: '16px', fontWeight: 'normal', maxWidth: '600px' }}>
+          Providers: OK, Router: Bypassed
+          <br/><br/>
+          Si veus això, el component App i els providers funcionen correctament.
+          El problema podria estar al BrowserRouter o a les Routes.
+        </div>
+        <button 
+          onClick={() => window.location.href = '/'}
+          style={{
+            padding: '12px 24px',
+            background: 'white',
+            color: '#667eea',
+            border: 'none',
+            borderRadius: '8px',
+            fontSize: '16px',
+            fontWeight: 'bold',
+            cursor: 'pointer'
+          }}
+        >
+          Provar Mode Normal (amb Router)
+        </button>
+      </div>
+    );
+  }
+  
   // Validate configuration on app start - handle errors gracefully
   try {
     const validation = validateConfig(config);

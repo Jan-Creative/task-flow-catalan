@@ -393,6 +393,8 @@ const diagnosisMode = params.get('diagnosis') === '1';
 // ============= EMERGENCY DIAGNOSTIC MODES =============
 // Mode ?ultra=1: Minimal render (only div + text, no providers, no router)
 const ultraMode = params.get('ultra') === '1';
+// FASE 1: Mode ?ultramin=1 - Test ultra-mínim sense App/Providers
+const ultraMinMode = params.get('ultramin') === '1';
 // Mode ?norouter=1: Render without BrowserRouter (keeps providers)
 const noRouterMode = params.get('norouter') === '1';
 // Mode ?noportals=1: Deactivate Toaster/Tooltip portals
@@ -409,6 +411,7 @@ bootTracer.mark('render:start', {
   probeMode,
   diagnosisMode,
   ultraMode,
+  ultraMinMode,
   noRouterMode,
   noPortalsMode,
   singleMode
@@ -733,6 +736,62 @@ if (preonlyMode) {
   window.__removeBootWatermark?.();
   bootTracer.mark('preonly:complete');
   cleanupAfterBoot();
+  
+} else if (ultraMinMode) {
+  // FASE 1: Mode ?ultramin=1 - Ultra mínim sense App/Providers
+  console.log('⚡ ULTRAMIN MODE: Renderitzant només div sense App/Providers...');
+  addDebugLog('⚡ Ultra Min Mode activated - no App, no Providers', 'info');
+  bootTracer.mark('render:ultramin');
+  
+  try {
+    root.render(
+      <div style={{
+        background: 'lime',
+        color: 'black',
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: '32px',
+        fontWeight: 'bold',
+        flexDirection: 'column',
+        gap: '20px',
+        fontFamily: 'system-ui, -apple-system, sans-serif'
+      }}>
+        <div>✅ REACT WORKS</div>
+        <div style={{ fontSize: '16px', opacity: 0.8 }}>
+          {new Date().toISOString()}
+        </div>
+        <div style={{ fontSize: '14px', opacity: 0.6, maxWidth: '500px', textAlign: 'center' }}>
+          React renderitza correctament. Si veus això, el problema NO és React/ReactDOM.
+        </div>
+        <button 
+          onClick={() => window.location.href = '/?norouter=1'}
+          style={{
+            padding: '12px 24px',
+            background: 'black',
+            color: 'lime',
+            border: '2px solid black',
+            borderRadius: '8px',
+            fontSize: '16px',
+            fontWeight: 'bold',
+            cursor: 'pointer'
+          }}
+        >
+          Provar No Router Mode
+        </button>
+      </div>
+    );
+    
+    console.log('✅ ULTRAMIN MODE: Renderitzat amb èxit!');
+    window.__APP_BOOTED = true;
+    window.__removeBootWatermark?.();
+    bootTracer.mark('boot:complete-ultramin');
+    setTimeout(cleanupDebugLogs, 1000);
+  } catch (ultraMinError) {
+    console.error('❌ ERROR en Ultra Min Mode:', ultraMinError);
+    addDebugLog('❌ Ultra min mode failed!', 'error');
+  }
   
 } else if (ultraMode) {
   // Ultra Minimal Mode: Només React + HTML, sense cap provider ni router
