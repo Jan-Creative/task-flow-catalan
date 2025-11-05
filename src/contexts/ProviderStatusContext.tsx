@@ -3,7 +3,7 @@
  * Tracks the status of all providers in real-time
  */
 
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, useRef, ReactNode } from 'react';
 import { logger } from '@/lib/logger';
 
 export interface ProviderStatus {
@@ -30,11 +30,46 @@ const ProviderStatusContext = createContext<ProviderStatusContextValue | null>(n
 
 export const ProviderStatusProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [providers, setProviders] = useState<Map<string, ProviderStatus>>(new Map());
+  
+  // FASE 1: useRef per mantenir referència estable a providers (evitar re-creació de callbacks)
+  const providersRef = useRef(providers);
+  providersRef.current = providers;
+  
+  // FASE 1: useRef per detectar spam d'updates
+  const lastUpdateTime = useRef<Record<string, number>>({});
 
   const updateProviderStatus = useCallback((name: string, statusUpdate: Partial<ProviderStatus>) => {
+    // FASE 1: Detectar spam d'updates (més de 10 updates per segon = problema)
+    const now = Date.now();
+    const lastUpdate = lastUpdateTime.current[name] || 0;
+    
+    if (now - lastUpdate < 100) {
+      logger.warn('ProviderStatus', `⚠️ SPAM WARNING: "${name}" updated twice in <100ms`, {
+        lastUpdate,
+        now,
+        delta: now - lastUpdate
+      });
+    }
+    
+    lastUpdateTime.current[name] = now;
+    
     setProviders(prev => {
       const newMap = new Map(prev);
       const existing = newMap.get(name);
+      
+      // FASE 1: Skip si no hi ha canvis reals (evitar re-renders innecessaris)
+      if (existing) {
+        const hasChanges = 
+          statusUpdate.phase !== undefined && statusUpdate.phase !== existing.phase ||
+          statusUpdate.status !== undefined && statusUpdate.status !== existing.status ||
+          statusUpdate.mountTime !== undefined && statusUpdate.mountTime !== existing.mountTime ||
+          statusUpdate.error !== undefined;
+        
+        if (!hasChanges) {
+          logger.debug('ProviderStatus', `Skip redundant update for "${name}"`);
+          return prev; // No canvis, retornar mateix Map (evita re-render)
+        }
+      }
       
       const updated: ProviderStatus = {
         name,
@@ -51,39 +86,40 @@ export const ProviderStatusProvider: React.FC<{ children: ReactNode }> = ({ chil
       
       return newMap;
     });
-  }, []);
+  }, []); // FASE 1: Empty deps - estable per sempre
 
+  // FASE 1: Usar providersRef.current en lloc de providers com a dependència
   const getProviderStatus = useCallback((name: string) => {
-    return providers.get(name);
-  }, [providers]);
+    return providersRef.current.get(name);
+  }, []); // FASE 1: Empty deps
 
   const getMountedProviders = useCallback(() => {
-    return Array.from(providers.values())
+    return Array.from(providersRef.current.values())
       .filter(p => p.status === 'mounted')
       .map(p => p.name);
-  }, [providers]);
+  }, []); // FASE 1: Empty deps
 
   const getFailedProviders = useCallback(() => {
-    return Array.from(providers.values())
+    return Array.from(providersRef.current.values())
       .filter(p => p.status === 'failed')
       .map(p => p.name);
-  }, [providers]);
+  }, []); // FASE 1: Empty deps
 
   const getLoadingProviders = useCallback(() => {
-    return Array.from(providers.values())
+    return Array.from(providersRef.current.values())
       .filter(p => p.status === 'loading')
       .map(p => p.name);
-  }, [providers]);
+  }, []); // FASE 1: Empty deps
 
   const getDisabledProviders = useCallback(() => {
-    return Array.from(providers.values())
+    return Array.from(providersRef.current.values())
       .filter(p => p.status === 'disabled')
       .map(p => p.name);
-  }, [providers]);
+  }, []); // FASE 1: Empty deps
 
   const getAllStatuses = useCallback(() => {
-    return Array.from(providers.values()).sort((a, b) => a.phase - b.phase);
-  }, [providers]);
+    return Array.from(providersRef.current.values()).sort((a, b) => a.phase - b.phase);
+  }, []); // FASE 1: Empty deps
 
   const value: ProviderStatusContextValue = {
     providers,

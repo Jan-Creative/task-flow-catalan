@@ -239,11 +239,21 @@ export const OrchestratedProviders: React.FC<OrchestratedProvidersProps> = ({
   
   // PHASE 6: Provider status monitoring
   const { updateProviderStatus, getLoadingProviders } = useProviderStatus();
+  
+  // FASE 2: useRef per funcions estables (evitar re-execution de useEffect)
+  const updateProviderStatusRef = useRef(updateProviderStatus);
+  const getLoadingProvidersRef = useRef(getLoadingProviders);
+  
+  // FASE 2: Actualitzar refs cada render (però no triggerejar useEffect)
+  useEffect(() => {
+    updateProviderStatusRef.current = updateProviderStatus;
+    getLoadingProvidersRef.current = getLoadingProviders;
+  });
 
-  // FASE 4: Safety timeout per providers bloquejats (amb logging detallat)
+  // FASE 2: Safety timeout per providers bloquejats - NOMÉS UN COP (empty deps)
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      const loadingProviders = getLoadingProviders();
+      const loadingProviders = getLoadingProvidersRef.current();
       if (loadingProviders.length > 0) {
         console.error('⏱️ [Provider Timeout] Providers stuck in loading after 5s:', loadingProviders);
         bootTracer.error('ProviderTimeout', 'Providers stuck in loading', { 
@@ -253,13 +263,13 @@ export const OrchestratedProviders: React.FC<OrchestratedProvidersProps> = ({
         // Forçar mounted per evitar pantalla negra
         loadingProviders.forEach(name => {
           console.error(`❌ [Provider Timeout] Forcing "${name}" to failed state`);
-          updateProviderStatus(name, { status: 'failed', error: new Error('Mount timeout after 5s') });
+          updateProviderStatusRef.current(name, { status: 'failed', error: new Error('Mount timeout after 5s') });
         });
       }
     }, 5000);
     
     return () => clearTimeout(timeoutId);
-  }, [getLoadingProviders, updateProviderStatus]);
+  }, []); // FASE 2: Empty deps - executar NOMÉS UN COP
 
   const handleProviderError = (name: string, error: Error) => {
     // PHASE 5: Enhanced error tracking
@@ -336,11 +346,23 @@ export const OrchestratedProviders: React.FC<OrchestratedProvidersProps> = ({
 
     // FASE 2: Component wrapper to initialize provider status in useEffect (not during render)
     const ProviderStatusInit: React.FC<{ children: ReactNode }> = ({ children }) => {
+      // FASE 2: useRef per prevenir múltiples inicialitzacions (StrictMode)
+      const initializedRef = useRef(false);
+      
       useEffect(() => {
+        // FASE 2: Skip si ja s'ha inicialitzat
+        if (initializedRef.current) {
+          logger.debug('ProviderStatusInit', `Skip duplicate init for "${name}"`);
+          return;
+        }
+        
+        initializedRef.current = true;
+        
         // FASE 1.2: Logging quan s'inicia un provider
         console.log(`🔄 [Provider Init] "${name}" (Phase ${phase}) - Starting initialization...`);
         updateProviderStatus(name, { phase, status: 'loading' });
-      }, []);
+      }, []); // FASE 2: Empty deps - només un cop
+      
       return <>{children}</>;
     };
 
