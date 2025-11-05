@@ -71,6 +71,20 @@
       (function() {
         'use strict';
         
+        // 🚫 UNREGISTER ALL SERVICE WORKERS - TEMPORARY TESTING
+        console.log('🗑️ Unregistering all Service Workers for testing...');
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(function(regs) {
+            regs.forEach(function(reg) {
+              console.log('🗑️ Unregistering SW:', reg.scope);
+              reg.unregister();
+            });
+            if (regs.length > 0) {
+              console.log('✅ Unregistered ' + regs.length + ' Service Worker(s)');
+            }
+          });
+        }
+        
         // EMERGENCY KILL SWITCH: Reset SW and cache if ?reset-sw=1 or ?reset=1 in URL
         if (window.location.search.includes('reset-sw=1') || window.location.search.includes('reset=1')) {
           console.log('🚨 Emergency reset triggered');

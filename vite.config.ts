@@ -22,28 +22,29 @@ export default defineConfig(({ mode }) => {
         targets: ['defaults', 'not IE 11', 'iOS >= 12', 'Safari >= 13'],
         modernPolyfills: true,
       }),
-      VitePWA({
-      strategies: 'injectManifest',
-      srcDir: 'public',
-      filename: 'sw-advanced.js',
-      registerType: 'prompt',
-      injectManifest: {
-        swSrc: 'public/sw-advanced.js',
-        swDest: 'dist/sw-advanced.js',
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-        // Increase cache size limit for internal PWA
-        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB
-        // Don't precache large assets - let runtime caching handle them
-        globIgnores: ['**/index-*.js'] // Don't precache main bundle
-      },
-      devOptions: {
-        enabled: false,
-        type: 'module'
-      },
-      // Disable auto-registration to avoid conflicts
-      injectRegister: false,
-      manifest: false
-    })
+      // 🚫 SERVICE WORKER DISABLED TEMPORARILY FOR TESTING
+      // VitePWA({
+      // strategies: 'injectManifest',
+      // srcDir: 'public',
+      // filename: 'sw-advanced.js',
+      // registerType: 'prompt',
+      // injectManifest: {
+      //   swSrc: 'public/sw-advanced.js',
+      //   swDest: 'dist/sw-advanced.js',
+      //   globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+      //   // Increase cache size limit for internal PWA
+      //   maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB
+      //   // Don't precache large assets - let runtime caching handle them
+      //   globIgnores: ['**/index-*.js'] // Don't precache main bundle
+      // },
+      // devOptions: {
+      //   enabled: false,
+      //   type: 'module'
+      // },
+      // // Disable auto-registration to avoid conflicts
+      // injectRegister: false,
+      // manifest: false
+      // })
   ].filter(Boolean),
   resolve: {
     alias: {
