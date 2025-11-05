@@ -111,34 +111,54 @@ const PhasedMount: React.FC<PhasedMountProps> = ({ phase, children, onMount }) =
   // FASE 1: useRef per persistir estat entre remounts de StrictMode
   const mountedRef = useRef(false);
   const [mounted, setMounted] = useState(false);
+  
+  // FASE 3: Comptador de intents de mount (detectar StrictMode double mount)
+  const mountAttemptsRef = useRef(0);
 
   useEffect(() => {
+    // FASE 3: Incrementar comptador d'intents
+    mountAttemptsRef.current += 1;
+    
     // FASE 3: Logging millorat amb detecció de StrictMode
     bootTracer.trace('PhasedMount', `Phase ${phase} effect triggered`, { 
       mounted: mountedRef.current,
-      strictMode: import.meta.env.DEV 
+      strictMode: import.meta.env.DEV,
+      attempt: mountAttemptsRef.current
     });
 
-    // FASE 1: Guard contra double mounting per StrictMode
+    // FASE 3: Guard reforçat contra double mounting per StrictMode
     if (mountedRef.current) {
-      bootTracer.trace('PhasedMount', `Phase ${phase} already mounted, skipping`);
+      console.warn(`⚠️ [PhasedMount] Phase ${phase} - Prevented double mount (attempt #${mountAttemptsRef.current}, likely StrictMode)`);
+      bootTracer.trace('PhasedMount', `Phase ${phase} already mounted, skipping`, {
+        attempt: mountAttemptsRef.current,
+        reason: 'Already mounted - preventing duplicate'
+      });
       return;
     }
 
     const mountProvider = () => {
-      // FASE 1: Double check abans de muntar
-      if (mountedRef.current) return;
+      // FASE 3: Double check reforçat abans de muntar
+      if (mountedRef.current) {
+        console.warn(`⚠️ [PhasedMount] Phase ${phase} - Race condition detected, aborting mount`);
+        return;
+      }
       
       // FASE 1.2: Logging abans de mount
       console.log(`🔵 [Provider Mount] Phase ${phase} - Starting mount...`);
-      bootTracer.trace('PhasedMount', `Phase ${phase} starting mount`, { timestamp: Date.now() });
+      bootTracer.trace('PhasedMount', `Phase ${phase} starting mount`, { 
+        timestamp: Date.now(),
+        attempt: mountAttemptsRef.current
+      });
       
       mountedRef.current = true;
       setMounted(true);
       
       // FASE 1.2: Logging després de mount
       console.log(`🟢 [Provider Mount] Phase ${phase} - Mounted successfully`);
-      bootTracer.trace('PhasedMount', `Phase ${phase} mounted successfully`, { timestamp: Date.now() });
+      bootTracer.trace('PhasedMount', `Phase ${phase} mounted successfully`, { 
+        timestamp: Date.now(),
+        attempt: mountAttemptsRef.current
+      });
       
       onMount?.();
     };
