@@ -15,3 +15,64 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     autoRefreshToken: true,
   }
 });
+
+// ============= SUPABASE CONNECTION TEST =============
+// FASE 5: Verificar connexió a Supabase a l'inici de l'app
+if (typeof window !== 'undefined') {
+  console.log('🔌 Supabase: Iniciant test de connexió...');
+  console.log('🔌 Supabase URL:', SUPABASE_URL);
+  console.log('🔌 Supabase Key:', SUPABASE_PUBLISHABLE_KEY.substring(0, 20) + '...');
+  
+  const connectionTestTimeout = setTimeout(() => {
+    console.error('❌ Supabase: TIMEOUT després de 10s - Possible problema de xarxa');
+  }, 10000);
+  
+  supabase.auth.getSession()
+    .then(({ data, error }) => {
+      clearTimeout(connectionTestTimeout);
+      
+      if (error) {
+        console.error('❌ Supabase connection ERROR:', error);
+        console.error('❌ Error code:', error.status);
+        console.error('❌ Error message:', error.message);
+        
+        // Detectar tipus d'error
+        if (error.message.includes('fetch')) {
+          console.error('❌ PROBLEMA DE XARXA: No es pot connectar amb Supabase');
+        } else if (error.message.includes('Invalid')) {
+          console.error('❌ PROBLEMA DE CONFIGURACIÓ: Claus incorrectes');
+        }
+      } else {
+        console.log('✅ Supabase connected successfully');
+        console.log('✅ Session:', data.session?.user?.email || 'No active session');
+        console.log('✅ User ID:', data.session?.user?.id || 'Not authenticated');
+      }
+    })
+    .catch(err => {
+      clearTimeout(connectionTestTimeout);
+      console.error('❌ Supabase connection FAILED:', err);
+      console.error('❌ Error name:', err.name);
+      console.error('❌ Error message:', err.message);
+      console.error('❌ Stack trace:', err.stack);
+      
+      // Detectar errors específics
+      if (err.message.includes('NetworkError') || err.message.includes('Failed to fetch')) {
+        console.error('❌ PROBLEMA DE XARXA: Comprova la connexió a Internet');
+      } else if (err.message.includes('CORS')) {
+        console.error('❌ PROBLEMA CORS: Configura els dominis permesos a Supabase');
+      }
+    });
+    
+  // Test adicional: Comprovar si el servei està disponible
+  fetch(SUPABASE_URL + '/rest/v1/')
+    .then(response => {
+      if (response.ok || response.status === 401) {
+        console.log('✅ Supabase REST API accessible (status:', response.status + ')');
+      } else {
+        console.error('❌ Supabase REST API error (status:', response.status + ')');
+      }
+    })
+    .catch(err => {
+      console.error('❌ Supabase REST API not accessible:', err.message);
+    });
+}
