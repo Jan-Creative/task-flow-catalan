@@ -26,6 +26,68 @@ import { DeviceDebugPanel } from "@/components/DeviceDebugPanel";
 import { KeyboardAdaptiveForm } from '@/components/KeyboardAdaptiveForm';
 
 const Index = () => {
+  // FASE 1: Mode ?noauth=1 - Bypass complet de useAuth/Supabase
+  const noAuthMode = new URLSearchParams(window.location.search).get('noauth') === '1';
+  
+  if (noAuthMode) {
+    console.log('🔧 NO AUTH MODE activat - bypassing useAuth/Supabase');
+    return (
+      <div style={{
+        background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+        color: 'white',
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: '28px',
+        fontWeight: 'bold',
+        padding: '40px',
+        textAlign: 'center',
+        flexDirection: 'column',
+        gap: '24px',
+        fontFamily: 'system-ui, -apple-system, sans-serif'
+      }}>
+        <div>✅ INDEX PAGE WORKS (NO AUTH)</div>
+        <div style={{ fontSize: '16px', fontWeight: 'normal', maxWidth: '600px' }}>
+          Si veus això, el problema ÉS useAuth/Supabase
+          <br/><br/>
+          El component Index es renderitza correctament quan no fem servir Supabase.
+          Això confirma que el bloqueig està relacionat amb l'autenticació.
+        </div>
+        <button 
+          onClick={() => window.location.href = '/?mockauth=1'}
+          style={{
+            padding: '12px 24px',
+            background: 'white',
+            color: '#f5576c',
+            border: 'none',
+            borderRadius: '8px',
+            fontSize: '16px',
+            fontWeight: 'bold',
+            cursor: 'pointer'
+          }}
+        >
+          Provar Mock Auth Mode
+        </button>
+        <button 
+          onClick={() => window.location.href = '/'}
+          style={{
+            padding: '12px 24px',
+            background: 'rgba(255,255,255,0.2)',
+            color: 'white',
+            border: '2px solid white',
+            borderRadius: '8px',
+            fontSize: '16px',
+            fontWeight: 'bold',
+            cursor: 'pointer'
+          }}
+        >
+          Provar Mode Normal
+        </button>
+      </div>
+    );
+  }
+  
   const { user, loading, signOut } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(() => {

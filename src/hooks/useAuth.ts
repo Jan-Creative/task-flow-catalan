@@ -4,6 +4,41 @@ import { User, Session } from "@supabase/supabase-js";
 import { useToast } from "@/lib/toastUtils";
 
 export const useAuth = () => {
+  // FASE 4: Mode ?mockauth=1 - Mock Auth Provider sense Supabase
+  const mockAuthMode = new URLSearchParams(window.location.search).get('mockauth') === '1';
+  
+  if (mockAuthMode) {
+    console.log('🧪 MOCK AUTH MODE: Returning fake user without Supabase');
+    return {
+      user: { 
+        id: 'mock-user-123', 
+        email: 'mock@test.com',
+        aud: 'authenticated',
+        role: 'authenticated',
+        created_at: new Date().toISOString()
+      } as User,
+      session: { 
+        user: { 
+          id: 'mock-user-123',
+          email: 'mock@test.com' 
+        },
+        access_token: 'mock-token',
+        refresh_token: 'mock-refresh'
+      } as any as Session,
+      loading: false,
+      signUp: async () => {
+        console.log('🧪 Mock signUp called');
+      },
+      signIn: async () => {
+        console.log('🧪 Mock signIn called');
+      },
+      signOut: async () => {
+        console.log('🧪 Mock signOut called');
+        window.location.href = '/';
+      },
+    };
+  }
+  
   const [user, setUser] = useState<User | null>(null);
   const { toast } = useToast();
   const [session, setSession] = useState<Session | null>(null);
