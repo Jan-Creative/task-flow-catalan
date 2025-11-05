@@ -129,8 +129,17 @@ const PhasedMount: React.FC<PhasedMountProps> = ({ phase, children, onMount }) =
       // FASE 1: Double check abans de muntar
       if (mountedRef.current) return;
       
+      // FASE 1.2: Logging abans de mount
+      console.log(`🔵 [Provider Mount] Phase ${phase} - Starting mount...`);
+      bootTracer.trace('PhasedMount', `Phase ${phase} starting mount`, { timestamp: Date.now() });
+      
       mountedRef.current = true;
       setMounted(true);
+      
+      // FASE 1.2: Logging després de mount
+      console.log(`🟢 [Provider Mount] Phase ${phase} - Mounted successfully`);
+      bootTracer.trace('PhasedMount', `Phase ${phase} mounted successfully`, { timestamp: Date.now() });
+      
       onMount?.();
     };
 
@@ -231,17 +240,19 @@ export const OrchestratedProviders: React.FC<OrchestratedProvidersProps> = ({
   // PHASE 6: Provider status monitoring
   const { updateProviderStatus, getLoadingProviders } = useProviderStatus();
 
-  // FASE 4: Safety timeout per providers bloquejats
+  // FASE 4: Safety timeout per providers bloquejats (amb logging detallat)
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       const loadingProviders = getLoadingProviders();
       if (loadingProviders.length > 0) {
+        console.error('⏱️ [Provider Timeout] Providers stuck in loading after 5s:', loadingProviders);
         bootTracer.error('ProviderTimeout', 'Providers stuck in loading', { 
           providers: loadingProviders 
         });
         
         // Forçar mounted per evitar pantalla negra
         loadingProviders.forEach(name => {
+          console.error(`❌ [Provider Timeout] Forcing "${name}" to failed state`);
           updateProviderStatus(name, { status: 'failed', error: new Error('Mount timeout after 5s') });
         });
       }
@@ -326,6 +337,8 @@ export const OrchestratedProviders: React.FC<OrchestratedProvidersProps> = ({
     // FASE 2: Component wrapper to initialize provider status in useEffect (not during render)
     const ProviderStatusInit: React.FC<{ children: ReactNode }> = ({ children }) => {
       useEffect(() => {
+        // FASE 1.2: Logging quan s'inicia un provider
+        console.log(`🔄 [Provider Init] "${name}" (Phase ${phase}) - Starting initialization...`);
         updateProviderStatus(name, { phase, status: 'loading' });
       }, []);
       return <>{children}</>;
@@ -361,6 +374,9 @@ export const OrchestratedProviders: React.FC<OrchestratedProvidersProps> = ({
             onMount={() => {
               const duration = performance.now() - startTime;
               const durationMs = `${duration.toFixed(2)}ms`;
+              
+              // FASE 1.2: Logging detallat després de mount exitós
+              console.log(`✅ [Provider Mounted] "${name}" (Phase ${phase}) - Mounted in ${durationMs}`);
               
               // FASE 3: Millor traçabilitat amb temps de mount
               bootTracer.trace(`Provider:${name}`, `✓ Mounted in phase ${phase}`, { 

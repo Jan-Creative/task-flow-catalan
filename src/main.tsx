@@ -388,6 +388,7 @@ let maxPhase = maxPhaseParam ? parseInt(maxPhaseParam, 10) : Infinity;
 // Debug modes
 const showBootDebug = params.get('bootdebug') === '1';
 const probeMode = params.get('probe') === '1';
+const diagnosisMode = params.get('diagnosis') === '1';
 
 // ============= EMERGENCY DIAGNOSTIC MODES =============
 // Mode ?ultra=1: Minimal render (only div + text, no providers, no router)
@@ -406,6 +407,7 @@ bootTracer.mark('render:start', {
   maxPhase,
   showBootDebug,
   probeMode,
+  diagnosisMode,
   ultraMode,
   noRouterMode,
   noPortalsMode,
@@ -414,6 +416,8 @@ bootTracer.mark('render:start', {
 
 // ============= FASE DIAGNOSIS ULTRA: IMPORTS ADICIONALS =============
 import MinimalTest from "./MinimalTest.tsx";
+import { ProviderStatusProvider } from "@/contexts/ProviderStatusContext";
+const DiagnosisOverlay = React.lazy(() => import("@/components/debug/DiagnosisOverlay").then(m => ({ default: m.DiagnosisOverlay })));
 
 // ============= FASE 1: VALIDACIÓ ROBUSTA DEL ROOT ELEMENT =============
 addDebugLog('🔍 Starting root element validation...', 'info');
@@ -994,6 +998,11 @@ if (preonlyMode) {
                   {showBootDebug && (
                     <React.Suspense fallback={null}>
                       <BootDiagnosticsOverlay />
+                    </React.Suspense>
+                  )}
+                  {diagnosisMode && (
+                    <React.Suspense fallback={null}>
+                      <DiagnosisOverlay />
                     </React.Suspense>
                   )}
                 </CombinedAppProvider>
