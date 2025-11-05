@@ -15,6 +15,8 @@ import {
 
 // FASE 7: Lazy load provider testing page
 const ProviderTestingPageLazy = lazy(() => import('./pages/ProviderTestingPage'));
+// Service Worker cleanup page
+const UnregisterSWPageLazy = lazy(() => import('./pages/UnregisterSW'));
 import { PomodoroWidget } from "@/components/pomodoro/PomodoroWidget";
 import { RouteCacheProvider } from "@/components/ui/route-cache";
 import { BackgroundRefresher } from "@/components/ui/navigation-optimizers";
@@ -74,6 +76,13 @@ const App = () => {
                     <ProviderTestingPageLazy />
                   </Suspense>
                 </LazyPage>
+              } />
+
+              {/* Service Worker Cleanup Page */}
+              <Route path="/unregister-sw" element={
+                <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+                  <UnregisterSWPageLazy />
+                </Suspense>
               } />
               
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
