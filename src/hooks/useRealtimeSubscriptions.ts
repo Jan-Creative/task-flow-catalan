@@ -1,8 +1,7 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
-import { useRealtimeSafety } from './useRealtimeSafety';
 
 interface SubscriptionConfig {
   table: string;
@@ -12,21 +11,37 @@ interface SubscriptionConfig {
 }
 
 // ============= CENTRALIZED REALTIME SUBSCRIPTIONS =============
+// FASE 1: GUARDS PER SUPABASE REALTIME - Eliminar memory leaks
 export const useRealtimeSubscriptions = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const { isRealtimeAvailable, createSafeSubscription } = useRealtimeSafety();
   const channelsRef = useRef<Map<string, any>>(new Map());
+  const subscribedRef = useRef(false); // ✅ GUARD CONTRA DOUBLE MOUNTING (StrictMode)
 
-  const setupSubscriptions = (configs: SubscriptionConfig[]) => {
+  const setupSubscriptions = useCallback((configs: SubscriptionConfig[]) => {
+    // ✅ GUARD: Skip si ja està subscrit (prevé duplicats en StrictMode)
+    if (subscribedRef.current) {
+      console.warn('⚠️ useRealtimeSubscriptions: Already subscribed, skipping duplicate setup');
+      return;
+    }
+    
     if (!user) return;
 
-    // Cleanup existing channels
-    cleanupSubscriptions();
+    subscribedRef.current = true;
+    console.log('🔌 Setting up realtime subscriptions:', configs.length, 'channels for user:', user.id);
+
+    // Cleanup anterior amb logging detallat
+    const oldChannelCount = channelsRef.current.size;
+    if (oldChannelCount > 0) {
+      console.log(`🧹 Cleaning up ${oldChannelCount} existing channels before setup`);
+      cleanupSubscriptions();
+    }
 
     configs.forEach((config, index) => {
       try {
-        const channelName = `realtime-${index}-${config.table}`;
+        // ✅ MILLOR NAMING: Incloure userId per evitar conflictes
+        const channelName = `realtime-${user.id}-${config.table}-${index}`;
+        console.log(`📡 Creating channel: ${channelName}`);
         
         const channel = supabase
           .channel(channelName)
@@ -38,7 +53,8 @@ export const useRealtimeSubscriptions = () => {
               table: config.table,
               ...(config.filter && { filter: config.filter })
             },
-            () => {
+            (payload) => {
+              console.log(`🔔 Realtime update on ${config.table}:`, payload);
               // Invalidate all related queries
               config.invalidateQueries.forEach(queryKey => {
                 queryClient.invalidateQueries({ queryKey });
@@ -46,36 +62,51 @@ export const useRealtimeSubscriptions = () => {
             }
           )
           .subscribe((status) => {
-            // Silently handle connection errors to prevent console pollution during audits
+            console.log(`📊 Channel ${channelName} status:`, status);
+            
             if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-              // Gracefully degrade to polling - errors are expected in restricted environments
-              return;
+              console.warn(`⚠️ Channel ${channelName} failed with status: ${status}`);
+              // ✅ CLEANUP: Eliminar canal fallit del tracking
+              channelsRef.current.delete(channelName);
+            } else if (status === 'SUBSCRIBED') {
+              console.log(`✅ Channel ${channelName} subscribed successfully`);
             }
           });
 
         channelsRef.current.set(channelName, channel);
       } catch (error) {
-        // Silently handle WebSocket errors - graceful degradation to polling
-        return;
+        console.error(`❌ Error creating channel for ${config.table}:`, error);
       }
     });
-  };
 
-  const cleanupSubscriptions = () => {
-    channelsRef.current.forEach(channel => {
+    console.log(`✅ Created ${channelsRef.current.size} realtime channels`);
+  }, [user, queryClient]);
+
+  const cleanupSubscriptions = useCallback(() => {
+    const channelCount = channelsRef.current.size;
+    console.log(`🧹 Cleaning up ${channelCount} Supabase channels...`);
+    
+    channelsRef.current.forEach((channel, name) => {
       try {
         supabase.removeChannel(channel);
+        console.log(`✅ Removed channel: ${name}`);
       } catch (error) {
-        // Silent cleanup
+        console.error(`❌ Error removing channel ${name}:`, error);
       }
     });
+    
     channelsRef.current.clear();
-  };
+    subscribedRef.current = false;
+    console.log('✅ All Supabase channels cleaned up');
+  }, []);
 
   // Cleanup on unmount
   useEffect(() => {
-    return () => cleanupSubscriptions();
-  }, []);
+    return () => {
+      console.log('🔴 useRealtimeSubscriptions unmounting, cleaning up...');
+      cleanupSubscriptions();
+    };
+  }, [cleanupSubscriptions]);
 
   return {
     setupSubscriptions,

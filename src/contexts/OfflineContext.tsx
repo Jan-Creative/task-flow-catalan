@@ -1,6 +1,7 @@
 /**
  * Offline Context - Manages offline state, mutation queue, and synchronization
  * Provides offline-first functionality for the entire app
+ * FASE 2: ESTABILITZAR EVENT LISTENERS - Eliminar memory leaks
  */
 
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
@@ -58,9 +59,10 @@ export const OfflineProvider = ({ children }: OfflineProviderProps) => {
   const [lastSyncTime, setLastSyncTime] = useState<number | null>(null);
   const [pendingMutations, setPendingMutations] = useState(0);
   
-  // Refs for managing intervals and timeouts
+  // FASE 2: Refs for managing intervals, timeouts and event listeners
   const syncIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const listenerAttachedRef = useRef(false); // ✅ GUARD contra duplicació d'event listeners
 
   // Initialize offline storage
   useEffect(() => {
@@ -80,121 +82,6 @@ export const OfflineProvider = ({ children }: OfflineProviderProps) => {
     };
 
     initStorage();
-  }, [user]);
-
-  // Monitor online/offline status
-  useEffect(() => {
-    const handleOnline = () => {
-      console.log('🌐 Connection restored');
-      setIsOnline(true);
-      if (user && pendingMutations > 0) {
-        forcSync();
-      }
-    };
-
-    const handleOffline = () => {
-      console.log('📴 Connection lost');
-      setIsOnline(false);
-      setIsOfflineMode(true);
-    };
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, [user, pendingMutations]);
-
-  // Auto-sync when online
-  useEffect(() => {
-    if (isOnline && user && pendingMutations > 0) {
-      // Clear any existing timeout
-      if (retryTimeoutRef.current) {
-        clearTimeout(retryTimeoutRef.current);
-      }
-      
-      // Start sync after a short delay
-      retryTimeoutRef.current = setTimeout(() => {
-        forcSync();
-      }, 1000);
-    }
-
-    return () => {
-      if (retryTimeoutRef.current) {
-        clearTimeout(retryTimeoutRef.current);
-      }
-    };
-  }, [isOnline, user, pendingMutations]);
-
-  // Periodic sync when online
-  useEffect(() => {
-    if (isOnline && user) {
-      syncIntervalRef.current = setInterval(() => {
-        syncFromServer();
-      }, 5 * 60 * 1000); // Sync every 5 minutes
-    } else {
-      if (syncIntervalRef.current) {
-        clearInterval(syncIntervalRef.current);
-        syncIntervalRef.current = null;
-      }
-    }
-
-    return () => {
-      if (syncIntervalRef.current) {
-        clearInterval(syncIntervalRef.current);
-      }
-    };
-  }, [isOnline, user]);
-
-  // Generate unique ID for mutations
-  const generateMutationId = () => `mutation_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
-  // Add mutation to queue
-  const addMutation = useCallback(async (type: MutationType, data: any, tempId?: string): Promise<string> => {
-    if (!user) throw new Error('User not authenticated');
-
-    const mutationId = generateMutationId();
-    const mutation: OfflineMutation = {
-      id: mutationId,
-      type,
-      data,
-      timestamp: Date.now(),
-      retryCount: 0,
-      tempId,
-      userId: user.id
-    };
-
-    try {
-      await offlineStorage.addMutation(mutation);
-      setPendingMutations(prev => prev + 1);
-      
-      console.log(`📝 Added ${type} mutation to queue:`, mutation);
-      
-      // Try to sync immediately if online
-      if (isOnline) {
-        setTimeout(() => forcSync(), 100);
-      }
-      
-      return mutationId;
-    } catch (error) {
-      console.error('❌ Failed to add mutation:', error);
-      throw error;
-    }
-  }, [user, isOnline]);
-
-  // Clear all mutations
-  const clearMutations = useCallback(async () => {
-    if (!user) return;
-
-    try {
-      await offlineStorage.clearMutations(user.id);
-      setPendingMutations(0);
-      console.log('🗑️ Cleared all mutations');
-    } catch (error) {
-      console.error('❌ Failed to clear mutations:', error);
-    }
   }, [user]);
 
   // Execute a single mutation
@@ -410,6 +297,133 @@ export const OfflineProvider = ({ children }: OfflineProviderProps) => {
       console.error('❌ Failed to sync from server:', error);
     }
   }, [user, isOnline]);
+
+  // FASE 2: ESTABILITZAR EVENT LISTENERS - Monitor online/offline status
+  // ✅ ESTABLE: useCallback per listeners
+  const handleOnline = useCallback(() => {
+    console.log('🌐 Connection restored');
+    setIsOnline(true);
+    if (user && pendingMutations > 0) {
+      forcSync();
+    }
+  }, [user, pendingMutations, forcSync]);
+
+  const handleOffline = useCallback(() => {
+    console.log('📴 Connection lost');
+    setIsOnline(false);
+    setIsOfflineMode(true);
+  }, []);
+
+  useEffect(() => {
+    // ✅ GUARD: Skip si ja està attached (prevé duplicats en StrictMode)
+    if (listenerAttachedRef.current) {
+      console.warn('⚠️ OfflineContext: online/offline listeners already attached, skipping');
+      return;
+    }
+
+    listenerAttachedRef.current = true;
+    console.log('🌐 Attaching online/offline listeners');
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      console.log('🧹 Removing online/offline listeners');
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      listenerAttachedRef.current = false;
+    };
+  }, [handleOnline, handleOffline]); // ✅ Stable callbacks
+
+  // Auto-sync when online
+  useEffect(() => {
+    if (isOnline && user && pendingMutations > 0) {
+      // Clear any existing timeout
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+      }
+      
+      // Start sync after a short delay
+      retryTimeoutRef.current = setTimeout(() => {
+        forcSync();
+      }, 1000);
+    }
+
+    return () => {
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+      }
+    };
+  }, [isOnline, user, pendingMutations, forcSync]);
+
+  // Periodic sync when online
+  useEffect(() => {
+    if (isOnline && user) {
+      syncIntervalRef.current = setInterval(() => {
+        syncFromServer();
+      }, 5 * 60 * 1000); // Sync every 5 minutes
+    } else {
+      if (syncIntervalRef.current) {
+        clearInterval(syncIntervalRef.current);
+        syncIntervalRef.current = null;
+      }
+    }
+
+    return () => {
+      if (syncIntervalRef.current) {
+        clearInterval(syncIntervalRef.current);
+      }
+    };
+  }, [isOnline, user, syncFromServer]);
+
+  // Generate unique ID for mutations
+  const generateMutationId = () => `mutation_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+  // Add mutation to queue
+  const addMutation = useCallback(async (type: MutationType, data: any, tempId?: string): Promise<string> => {
+    if (!user) throw new Error('User not authenticated');
+
+    const mutationId = generateMutationId();
+    const mutation: OfflineMutation = {
+      id: mutationId,
+      type,
+      data,
+      timestamp: Date.now(),
+      retryCount: 0,
+      tempId,
+      userId: user.id
+    };
+
+    try {
+      await offlineStorage.addMutation(mutation);
+      setPendingMutations(prev => prev + 1);
+      
+      console.log(`📝 Added ${type} mutation to queue:`, mutation);
+      
+      // Try to sync immediately if online
+      if (isOnline) {
+        setTimeout(() => forcSync(), 100);
+      }
+      
+      return mutationId;
+    } catch (error) {
+      console.error('❌ Failed to add mutation:', error);
+      throw error;
+    }
+  }, [user, isOnline, forcSync]);
+
+  // Clear all mutations
+  const clearMutations = useCallback(async () => {
+    if (!user) return;
+
+    try {
+      await offlineStorage.clearMutations(user.id);
+      setPendingMutations(0);
+      console.log('🗑️ Cleared all mutations');
+    } catch (error) {
+      console.error('❌ Failed to clear mutations:', error);
+    }
+  }, [user]);
 
   // Get offline data
   const getOfflineData = useCallback(async () => {
