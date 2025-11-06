@@ -1112,6 +1112,55 @@ if (preonlyMode) {
         try {
           console.log('🔵 FASE: Cridant root.render()...');
           
+          // FASE 7: MODE ULTRA-MINIMAL - Bypass TOTS els providers
+          if (ultraMode) {
+            console.log('🚨 ULTRA MINIMAL MODE - Bypassing ALL providers, Router, and ErrorBoundary');
+            root.render(
+              <div style={{
+                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                color: 'white',
+                minHeight: '100vh',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '32px',
+                fontWeight: 'bold',
+                fontFamily: 'system-ui',
+                flexDirection: 'column',
+                gap: '20px',
+                padding: '40px',
+                textAlign: 'center'
+              }}>
+                <div>✅ REACT WORKS!</div>
+                <div style={{ fontSize: '16px', fontWeight: 'normal', maxWidth: '600px' }}>
+                  Providers: BYPASSED, Router: BYPASSED, ErrorBoundary: BYPASSED
+                  <br/><br/>
+                  Si veus això, React i Vite funcionen perfectament.
+                  El problema està als providers (CombinedAppProvider).
+                </div>
+                <button 
+                  onClick={() => window.location.href = '/'}
+                  style={{
+                    padding: '12px 24px',
+                    background: 'white',
+                    color: '#059669',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '16px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Provar Mode Normal
+                </button>
+              </div>
+            );
+            
+            bootTracer.mark('ULTRA_MINIMAL_MODE', 'Render completat - bypassing tots els providers');
+            console.log('✅ ULTRA MINIMAL MODE: Render completat');
+            return; // ⚠️ Important: sortir abans de renderitzar providers
+          }
+          
           // FASE 6: DIAGNÒSTIC - StrictMode DESACTIVAT temporalment
           // StrictMode en DEV mode causa unmount/remount que pot triggerar el loop infinit
           // Si això soluciona el problema → confirmat que StrictMode + cleanup causen el loop
