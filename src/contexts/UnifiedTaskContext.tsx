@@ -11,8 +11,6 @@ import { useStableCallback } from '@/hooks/performance';
 import { logger } from '@/lib/logger';
 import type { Tasca, Carpeta, PropertyWithOptions, CrearTascaData } from '@/types';
 import type { ID, ApiError } from '@/types/common';
-// FASE 9: Import estàtic per evitar error "require is not defined"
-import { EMPTY_TASK_CONTEXT } from './fallbacks/EmptyTaskContext';
 
 interface TaskCreateData extends CrearTascaData {
   [key: string]: unknown;
@@ -68,7 +66,7 @@ export const useUnifiedTaskContext = () => {
   if (!context) {
     // PHASE 2 IMPROVEMENT: Return empty context instead of throwing
     // This prevents cascading failures when provider is unavailable
-    // FASE 9: Usar import estàtic en lloc de require() dinàmic
+    const { EMPTY_TASK_CONTEXT } = require('./fallbacks/EmptyTaskContext');
     console.warn('useUnifiedTaskContext used outside provider, returning empty context');
     return EMPTY_TASK_CONTEXT;
   }

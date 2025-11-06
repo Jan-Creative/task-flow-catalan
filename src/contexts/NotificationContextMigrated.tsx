@@ -24,8 +24,6 @@ import { useOptionalAuth } from '@/hooks/useOptionalAuth';
 import { useToast } from '@/lib/toastUtils';
 import { logger } from '@/lib/logger';
 import type { NotificationPreferences, WebPushSubscriptionDB } from '@/hooks/useNotifications';
-// FASE 9: Import estàtic per evitar error "require is not defined"
-import { EMPTY_NOTIFICATION_CONTEXT } from './fallbacks/EmptyNotificationContext';
 
 // Context Type - mantenim la mateixa interfície per compatibilitat
 interface NotificationContextType {
@@ -63,7 +61,7 @@ export const useNotificationContext = () => {
   if (!context) {
     // PHASE 2 IMPROVEMENT: Return empty context instead of throwing
     // This prevents cascading failures when provider is unavailable
-    // FASE 9: Usar import estàtic en lloc de require() dinàmic
+    const { EMPTY_NOTIFICATION_CONTEXT } = require('./fallbacks/EmptyNotificationContext');
     console.warn('useNotificationContext used outside provider, returning empty context');
     return EMPTY_NOTIFICATION_CONTEXT;
   }
