@@ -25,6 +25,8 @@ import { NotificationDisplay } from "@/components/NotificationDisplay";
 import { PerformanceMonitor } from "@/components/performance/PerformanceMonitor";
 import { SecurityMonitor } from "@/components/security/SecurityMonitor";
 import { TimeBlockIndicator } from "@/components/timeblock/TimeBlockIndicator";
+// FASE 5: Memory Leak Monitor
+import { MemoryLeakMonitor } from "@/components/debug/MemoryLeakMonitor";
 import { config, validateConfig } from "@/config/appConfig";
 import { logger } from "@/lib/logger";
 import { PomodoroWidgetCoordinator } from "@/components/PomodoroWidgetCoordinator";
@@ -153,6 +155,8 @@ const App = () => {
       <PerformanceMonitor />
       <SecurityMonitor />
       <TimeBlockIndicator />
+      {/* FASE 5: Memory Leak Monitor - Only visible with ?leakcheck=1 */}
+      <MemoryLeakMonitor />
     </div>
   );
   } catch (error) {
