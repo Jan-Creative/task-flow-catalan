@@ -1,9 +1,10 @@
 /**
  * Hook React per integrar amb el NotificationManager
  * Proporciona estat reactiu i mètodes convenients
+ * FASE 3: CLEANUP DE TIMERS/INTERVALS - Eliminar memory leaks
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { notificationAPI, NotificationTypeEnum, NotificationPriority } from '@/services/NotificationAPI';
 import { notificationManager } from '@/services/NotificationManager';
 import { logger } from '@/lib/logger';
@@ -43,9 +44,32 @@ export const useNotificationManager = () => {
   });
 
   const [recentEvents, setRecentEvents] = useState<NotificationEvent[]>([]);
+  
+  // FASE 3: CLEANUP DE TIMERS/INTERVALS - useRef per tracking
+  const intervalRef = useRef<number | null>(null); // ✅ TRACKING del interval
+  const listenerUnsubscribeRef = useRef<(() => void) | null>(null); // ✅ TRACKING del listener
 
-  // Escoltar events del NotificationManager
+  // ✅ MOVED UP: updateSystemState definit abans del useEffect
+  const updateSystemState = useCallback(() => {
+    const status = notificationManager.getQueueStatus();
+    setState({
+      queueSize: status.queueSize,
+      processingCount: status.processing,
+      healthCheck: status.healthCheck,
+      circuitBreakerOpen: status.circuitBreaker.isOpen,
+      lastUpdate: new Date()
+    });
+  }, []);
+
+  // FASE 3: Escoltar events del NotificationManager amb cleanup exhaustiu
   useEffect(() => {
+    // ✅ GUARD: Prevenir múltiples subscripcions (StrictMode)
+    if (listenerUnsubscribeRef.current) {
+      console.warn('⚠️ useNotificationManager: Listener already attached, skipping');
+      return;
+    }
+
+    console.log('🔔 Attaching NotificationManager listener');
     const unsubscribe = notificationManager.addListener((event: NotificationEvent) => {
       // Actualitzar estadístiques
       setStats(prev => ({
@@ -60,28 +84,31 @@ export const useNotificationManager = () => {
       updateSystemState();
     });
 
+    listenerUnsubscribeRef.current = unsubscribe;
+
     // Actualització inicial
     updateSystemState();
 
-    // Actualització periòdica
-    const interval = setInterval(updateSystemState, 10000); // Every 10 seconds
+    // FASE 3: OPTIMITZAT - Actualització cada 30s (no cada 10s) per reduir polling
+    console.log('⏱️ Starting NotificationManager polling interval (30s)');
+    intervalRef.current = window.setInterval(updateSystemState, 30000); // ✅ Cada 30s (abans 10s)
 
     return () => {
-      unsubscribe();
-      clearInterval(interval);
+      console.log('🧹 Cleaning up NotificationManager listener and interval');
+      
+      // ✅ CLEANUP: Unsubscribe del listener
+      if (listenerUnsubscribeRef.current) {
+        listenerUnsubscribeRef.current();
+        listenerUnsubscribeRef.current = null;
+      }
+      
+      // ✅ CLEANUP: Clear interval
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
     };
-  }, []);
-
-  const updateSystemState = useCallback(() => {
-    const status = notificationManager.getQueueStatus();
-    setState({
-      queueSize: status.queueSize,
-      processingCount: status.processing,
-      healthCheck: status.healthCheck,
-      circuitBreakerOpen: status.circuitBreaker.isOpen,
-      lastUpdate: new Date()
-    });
-  }, []);
+  }, [updateSystemState]); // ✅ updateSystemState és estable (useCallback)
 
   // API Methods amb error handling
   const createTaskReminder = useCallback(async (

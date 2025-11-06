@@ -270,9 +270,12 @@ export const OrchestratedProviders: React.FC<OrchestratedProvidersProps> = ({
     getLoadingProvidersRef.current = getLoadingProviders;
   });
 
-  // FASE 2: Safety timeout per providers bloquejats - NOMÉS UN COP (empty deps)
+  // FASE 3: CLEANUP DE TIMERS - useRef per tracking de tots els timeouts
+  const timeoutIdsRef = useRef<number[]>([]); // ✅ TRACKING DE TOTS ELS TIMEOUTS
+
+  // FASE 2 + FASE 3: Safety timeout per providers bloquejats - NOMÉS UN COP amb cleanup exhaustiu
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
+    const timeoutId = window.setTimeout(() => {
       const loadingProviders = getLoadingProvidersRef.current();
       if (loadingProviders.length > 0) {
         console.error('⏱️ [Provider Timeout] Providers stuck in loading after 5s:', loadingProviders);
@@ -288,7 +291,15 @@ export const OrchestratedProviders: React.FC<OrchestratedProvidersProps> = ({
       }
     }, 5000);
     
-    return () => clearTimeout(timeoutId);
+    // ✅ TRACKING: Afegir timeout a la llista
+    timeoutIdsRef.current.push(timeoutId);
+    console.log(`⏱️ [Provider Timeout] Created timeout ${timeoutId} (total active: ${timeoutIdsRef.current.length})`);
+    
+    return () => {
+      console.log(`🧹 [Provider Timeout] Cleaning up ${timeoutIdsRef.current.length} timeout(s)`);
+      timeoutIdsRef.current.forEach(id => clearTimeout(id));
+      timeoutIdsRef.current = [];
+    };
   }, []); // FASE 2: Empty deps - executar NOMÉS UN COP
 
   const handleProviderError = (name: string, error: Error) => {
@@ -335,9 +346,9 @@ export const OrchestratedProviders: React.FC<OrchestratedProvidersProps> = ({
     maxPhase,
   });
 
-  // FASE 2: Log "Final Provider States" després de mount
+  // FASE 3: Log "Final Provider States" amb cleanup exhaustiu de timeout
   useEffect(() => {
-    const logFinalStates = setTimeout(() => {
+    const logFinalStates = window.setTimeout(() => {
       const allStatuses = activeProviders.map(p => ({
         name: p.name,
         phase: p.phase,
@@ -348,7 +359,14 @@ export const OrchestratedProviders: React.FC<OrchestratedProvidersProps> = ({
       console.table(allStatuses);
     }, 1000);
     
-    return () => clearTimeout(logFinalStates);
+    // ✅ TRACKING: Afegir timeout a la llista
+    timeoutIdsRef.current.push(logFinalStates);
+    console.log(`📊 [Provider States] Created timeout ${logFinalStates} for final states logging`);
+    
+    return () => {
+      console.log(`🧹 [Provider States] Cleaning up final states timeout`);
+      clearTimeout(logFinalStates);
+    };
   }, [activeProviders, failedProviders]);
 
   // FASE 3: Emergency fallback eliminat (redundant amb ProviderTimeout línia 230-246)

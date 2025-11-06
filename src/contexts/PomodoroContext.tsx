@@ -243,15 +243,26 @@ export const PomodoroProvider = ({ children }: { children: React.ReactNode }) =>
     }
   }, []);
 
-  // Timer logic
+  // FASE 3: CLEANUP DE TIMERS/INTERVALS - Eliminar memory leaks
+  // ✅ useRef per tracking del timer principal
+  const autoSaveTimeoutRef = useRef<number | null>(null); // ✅ TRACKING auto-save timeouts
+  
   useEffect(() => {
+    // ✅ CLEANUP PREVENTIU: Cancel·lar timer anterior
+    if (timerRef.current) {
+      console.warn('⚠️ PomodoroContext: Clearing existing timer before starting new one');
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+
     if (state.isActive && state.timeLeft > 0) {
+      console.log('⏱️ Starting pomodoro timer');
       timerRef.current = window.setInterval(() => {
         setState(prev => {
           const newTimeLeft = prev.timeLeft - 1;
           
-          // Auto-save every 10 seconds to reduce localStorage writes
-          if (newTimeLeft % 10 === 0) {
+          // FASE 3: OPTIMITZAT - Auto-save cada 30s (no cada 10s) per reduir writes a localStorage
+          if (newTimeLeft % 30 === 0) {
             try {
               localStorage.setItem(STORAGE_KEY, JSON.stringify({
                 ...prev,
@@ -266,20 +277,29 @@ export const PomodoroProvider = ({ children }: { children: React.ReactNode }) =>
           return { ...prev, timeLeft: newTimeLeft };
         });
       }, 1000);
+      
+      console.log(`✅ Pomodoro timer started (interval ID: ${timerRef.current})`);
     } else {
       if (timerRef.current) {
+        console.log('🧹 Clearing pomodoro timer (not active or time expired)');
         clearInterval(timerRef.current);
         timerRef.current = null;
       }
     }
 
     return () => {
+      console.log('🧹 Pomodoro timer cleanup - removing interval');
       if (timerRef.current) {
         clearInterval(timerRef.current);
         timerRef.current = null;
       }
+      // ✅ CLEANUP: També cancel·lar auto-save timeout si existeix
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+        autoSaveTimeoutRef.current = null;
+      }
     };
-  }, [state.isActive, state.timeLeft]);
+  }, [state.isActive, state.timeLeft]); // ✅ Deps correctes
 
   // Handle session completion
   useEffect(() => {
