@@ -445,9 +445,14 @@ if (SW_ENABLED && 'serviceWorker' in navigator && !window.location.search.includ
 // PHASE 1: Simplified - only ?disable and ?maxPhase, removed complex modes
 const params = new URLSearchParams(window.location.search);
 
+// OPCIÓ B: Mode ?disableall=1 - Desactiva TOTS els providers
+const disableAllMode = params.get('disableall') === '1';
+
 // Parse disabled providers from ?disable=Provider1,Provider2
 const disableParam = params.get('disable');
-let disabledProviders = disableParam ? disableParam.split(',').map(p => p.trim()).filter(Boolean) : [];
+let disabledProviders = disableAllMode 
+  ? ['Security', 'Background', 'PropertyDialog', 'KeyboardShortcuts', 'UnifiedTask', 'Notification', 'Offline', 'Pomodoro', 'KeyboardNavigation', 'MacNavigation', 'IPadNavigation']
+  : (disableParam ? disableParam.split(',').map(p => p.trim()).filter(Boolean) : []);
 
 // Parse max phase from ?maxPhase=2
 const maxPhaseParam = params.get('maxPhase');
