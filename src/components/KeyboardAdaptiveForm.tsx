@@ -5,7 +5,8 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useStableKeyboardHeight } from '@/hooks/device/useStableKeyboardHeight';
-import { useKeyboardNavigation } from '@/contexts/KeyboardNavigationContext';
+// FASE 10A: Comentat temporalment mentre investigem providers
+// import { useKeyboardNavigation } from '@/contexts/KeyboardNavigationContext';
 import { useFormPanelSwipe } from '@/hooks/useFormPanelSwipe';
 import { useTaskOperations } from '@/hooks/useTaskOperations';
 import { useDadesApp } from '@/hooks/useDadesApp';
@@ -53,7 +54,9 @@ export const KeyboardAdaptiveForm: React.FC<KeyboardAdaptiveFormProps> = ({
   const { handleCreateTask } = useTaskOperations();
   const { data: dadesOptimitzades, folders } = useDadesApp();
   const { height: keyboardHeight, isVisible: keyboardVisible, isStable } = useStableKeyboardHeight();
-  const { setFormOpen } = useKeyboardNavigation();
+  // FASE 10A: Comentat temporalment - funció temporal no-op
+  // const { setFormOpen } = useKeyboardNavigation();
+  const setFormOpen = (_open: boolean) => {}; // Temporal: no-op function
   
   // Form panel swipe navigation
   const { currentPanel, setCurrentPanel, isDragging, dragOffset, touchHandlers } = useFormPanelSwipe({

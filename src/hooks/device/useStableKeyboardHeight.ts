@@ -3,7 +3,8 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useKeyboardNavigation } from '@/contexts/KeyboardNavigationContext';
+// FASE 10A: Comentat temporalment mentre investigem providers
+// import { useKeyboardNavigation } from '@/contexts/KeyboardNavigationContext';
 
 export interface StableKeyboardState {
   height: number;
@@ -18,7 +19,9 @@ export const useStableKeyboardHeight = (): StableKeyboardState => {
     isStable: true,
   });
   
-  const { setKeyboardActive } = useKeyboardNavigation();
+  // FASE 10A: Comentat temporalment - funció temporal no-op
+  // const { setKeyboardActive } = useKeyboardNavigation();
+  const setKeyboardActive = (_active: boolean, _height?: number) => {}; // Temporal: no-op function
   const debounceTimeoutRef = useRef<number>();
   const stabilityTimeoutRef = useRef<number>();
   const rafId = useRef<number>();
