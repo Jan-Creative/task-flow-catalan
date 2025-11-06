@@ -385,7 +385,8 @@ export const PomodoroProvider = ({ children }: { children: React.ReactNode }) =>
       // Cleanup failed sessions on fresh start
       cleanupFailedSessions();
     }
-  }, [loadState, cleanupFailedSessions]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // 🎯 Empty deps: runs only once on mount to prevent infinite loops
 
   const startTimer = async (taskId: string) => {
     try {
