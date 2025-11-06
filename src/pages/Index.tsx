@@ -171,31 +171,33 @@ const Index = () => {
     }
   }, [showCreateDialog]);
 
+  // 🚨 TEMPORAL: Comentat perquè necessita KeyboardShortcutsProvider
   // Registrar drecera per crear tasca - device-aware (Cmd/Ctrl + N)
-  useShortcut(
-    'createTask',
-    'Crear Tasca',
-    ['meta', 'n'],
-    handleCreateTaskClick,
-    {
-      description: 'Obrir formulari per crear nova tasca (intel·ligent segons dispositiu)',
-      category: 'actions',
-      enabled: !!user // Només si l'usuari està autenticat
-    }
-  );
+  // useShortcut(
+  //   'createTask',
+  //   'Crear Tasca',
+  //   ['meta', 'n'],
+  //   handleCreateTaskClick,
+  //   {
+  //     description: 'Obrir formulari per crear nova tasca (intel·ligent segons dispositiu)',
+  //     category: 'actions',
+  //     enabled: !!user // Només si l'usuari està autenticat
+  //   }
+  // );
 
+  // 🚨 TEMPORAL: Comentat perquè necessita KeyboardShortcutsProvider
   // Registrar drecera per formulari simple (Cmd/Ctrl + Shift + N)
-  useShortcut(
-    'simpleTask',
-    'Formulari Simple',
-    ['meta', 'shift', 'n'],
-    () => setShowSimpleForm(true),
-    {
-      description: 'Obrir formulari simple optimitzat per iPhone',
-      category: 'actions',
-      enabled: !!user
-    }
-  );
+  // useShortcut(
+  //   'simpleTask',
+  //   'Formulari Simple',
+  //   ['meta', 'shift', 'n'],
+  //   () => setShowSimpleForm(true),
+  //   {
+  //     description: 'Obrir formulari simple optimitzat per iPhone',
+  //     category: 'actions',
+  //     enabled: !!user
+  //   }
+  // );
 
   // ⚠️ FASE 1: DESACTIVAT TEMPORALMENT - Causava bucle infinit amb searchParams
   // useEffect(() => {

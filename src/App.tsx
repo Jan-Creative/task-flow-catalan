@@ -147,13 +147,15 @@ const App = () => {
               <Route path="*" element={<NotFound />} />
             </Routes>
             {/* Widget coordinator dins del context del Router */}
-            <PomodoroWidgetCoordinator />
+            {/* 🚨 TEMPORAL: Comentat perquè necessita PomodoroProvider */}
+            {/* <PomodoroWidgetCoordinator /> */}
           </RouteCacheProvider>
         </BrowserRouter>
       </div>
       <NotificationDisplay />
       <PerformanceMonitor />
-      <SecurityMonitor />
+      {/* 🚨 TEMPORAL: Comentat perquè necessita SecurityProvider */}
+      {/* <SecurityMonitor /> */}
       <TimeBlockIndicator />
       {/* FASE 5: Memory Leak Monitor - Only visible with ?leakcheck=1 */}
       <MemoryLeakMonitor />
