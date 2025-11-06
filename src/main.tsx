@@ -1112,7 +1112,12 @@ if (preonlyMode) {
         try {
           console.log('🔵 FASE: Cridant root.render()...');
           
-          // FASE 6: Passar disablePortals a CombinedAppProvider
+          // FASE 6: DIAGNÒSTIC - StrictMode DESACTIVAT temporalment
+          // StrictMode en DEV mode causa unmount/remount que pot triggerar el loop infinit
+          // Si això soluciona el problema → confirmat que StrictMode + cleanup causen el loop
+          
+          console.log('⚠️ FASE 6: StrictMode DESACTIVAT per diagnòstic');
+          
           root.render(
             <ProviderStatusProvider>
               <EnhancedErrorBoundary context="Aplicació Principal" showDetails={true}>
