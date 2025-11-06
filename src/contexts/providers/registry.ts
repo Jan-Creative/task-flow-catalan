@@ -43,7 +43,7 @@ export const PROVIDER_REGISTRY: ProviderConfig[] = [
     Component: BackgroundProvider,
     phase: 1,
     enabledByDefault: true,
-    mountAfterPaint: true, // PHASE 4: All providers mount after React is idle
+    mountAfterPaint: false, // ✅ FASE 11-SYNC: Critical provider, mount synchronously
   },
 
   // ===== PHASE 2: UI & Interaction =====
@@ -59,7 +59,7 @@ export const PROVIDER_REGISTRY: ProviderConfig[] = [
     Component: KeyboardShortcutsProvider,
     phase: 1, // ✅ FASE 11-SYNC: Critical & lightweight, needed before pages render
     enabledByDefault: true,
-    mountAfterPaint: true,
+    mountAfterPaint: false, // ✅ FASE 11-SYNC: Mount synchronously to avoid race conditions
   },
 
   // ===== PHASE 3: Heavy Data Providers =====
