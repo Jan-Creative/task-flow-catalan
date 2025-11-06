@@ -448,9 +448,9 @@ const params = new URLSearchParams(window.location.search);
 // OPCIÓ B: Mode ?disableall=1 - Desactiva TOTS els providers
 const disableAllMode = params.get('disableall') === '1';
 
-// HARDCODED DIAGNOSIS: disable ALL providers (ignores URL params)
-let disabledProviders = ['Security', 'Background', 'PropertyDialog', 'KeyboardShortcuts', 'UnifiedTask', 'Notification', 'Offline', 'Pomodoro', 'KeyboardNavigation', 'MacNavigation', 'IPadNavigation'];
-console.warn('🚨 HARDCODED: ALL providers disabled for diagnosis');
+// FASE 10-ULTRA: Activant Background, KeyboardShortcuts, Pomodoro
+let disabledProviders = ['Security', 'PropertyDialog', 'UnifiedTask', 'Notification', 'Offline', 'KeyboardNavigation', 'MacNavigation', 'IPadNavigation'];
+console.warn('🔧 FASE 10-ULTRA: Background, KeyboardShortcuts, Pomodoro activats');
 
 // Parse max phase from ?maxPhase=2
 const maxPhaseParam = params.get('maxPhase');
