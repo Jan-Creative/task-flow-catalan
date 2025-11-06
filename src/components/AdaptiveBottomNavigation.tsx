@@ -9,7 +9,8 @@ import { useCircularMenuMode } from "@/hooks/useCircularMenuMode";
 import { usePrepareTomorrowVisibility } from "@/hooks/usePrepareTomorrowVisibility";
 import { usePhoneDetection } from "@/hooks/device/usePhoneDetection";
 import { useIOSDetection } from "@/hooks/useIOSDetection";
-import { useKeyboardNavigation } from "@/contexts/KeyboardNavigationContext";
+// FASE 10A: Comentat temporalment mentre investigem providers
+// import { useKeyboardNavigation } from "@/contexts/KeyboardNavigationContext";
 import SmartTabSystem from "./navigation/SmartTabSystem";
 
 interface AdaptiveBottomNavigationProps {
@@ -26,7 +27,10 @@ const AdaptiveBottomNavigation = ({ activeTab, onTabChange, onCreateTask }: Adap
   const { isVisible: showPrepareTomorrow } = usePrepareTomorrowVisibility();
   const phoneInfo = usePhoneDetection();
   const isIOS = useIOSDetection();
-  const { navigationSafeMode, isFormOpen } = useKeyboardNavigation();
+  // FASE 10A: Comentat temporalment - valors per defecte
+  // const { navigationSafeMode, isFormOpen } = useKeyboardNavigation();
+  const navigationSafeMode = false;
+  const isFormOpen = false;
 
   // Auto-compact logic for calendar page
   useEffect(() => {
