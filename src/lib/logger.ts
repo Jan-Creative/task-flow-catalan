@@ -32,7 +32,7 @@ class ProfessionalLogger {
     this.sessionId = this.generateSessionId();
     this.config = {
       enabledInProduction: false,
-      maxEntries: 1000,
+      maxEntries: 100, // FASE 4: Reduït de 1000 a 100 per evitar acumulació de memòria
       enableConsoleOutput: import.meta.env.DEV,
       enableRemoteLogging: import.meta.env.PROD,
       remoteEndpoint: '/api/logs'
@@ -65,9 +65,14 @@ class ProfessionalLogger {
   private addEntry(entry: LogEntry): void {
     this.entries.push(entry);
     
-    // Maintain max entries limit
+    // FASE 4: LIMIT ENFORCEMENT - Tallar array si supera límit
     if (this.entries.length > this.config.maxEntries) {
-      this.entries = this.entries.slice(-this.config.maxEntries);
+      const excess = this.entries.length - this.config.maxEntries;
+      this.entries.splice(0, excess); // Eliminar logs més antics
+      
+      if (excess > 10) {
+        console.warn(`📊 [Logger] Trimmed ${excess} old log entries (limit: ${this.config.maxEntries}, current: ${this.entries.length})`);
+      }
     }
 
     // Send to remote logging service in production

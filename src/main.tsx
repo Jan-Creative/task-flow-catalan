@@ -211,6 +211,74 @@ addDebugLog('🚀 Performance optimizations started', 'info');
 initializePerformanceOptimizations();
 addDebugLog('✅ Performance optimizations complete', 'success');
 
+// FASE 5: Query Cache Auto-Cleanup - Executar cada 5 minuts per eliminar queries stale
+if (typeof window !== 'undefined') {
+  import('@tanstack/react-query').then((ReactQuery) => {
+    const setupQueryCacheCleanup = () => {
+      // Get the global query client
+      const queryClient = (window as any).__REACT_QUERY_CLIENT__;
+      
+      if (!queryClient || typeof queryClient.getQueryCache !== 'function') {
+        console.warn('🧹 [Query Cache] QueryClient not found on window, skipping auto-cleanup setup');
+        return;
+      }
+      
+      const cleanupQueryCache = () => {
+        const cache = queryClient.getQueryCache();
+        const queries = cache.getAll();
+        
+        console.log(`🧹 [Query Cache] Auto-cleanup: Checking ${queries.length} queries`);
+        
+        let removedCount = 0;
+        
+        // Remove stale queries older than 15 min
+        queries.forEach((query: any) => {
+          const lastUpdated = query.state.dataUpdatedAt;
+          const age = Date.now() - lastUpdated;
+          
+          // 15 min = 900000 ms
+          if (age > 15 * 60 * 1000) {
+            cache.remove(query);
+            removedCount++;
+          }
+        });
+        
+        if (removedCount > 0) {
+          console.log(`🧹 [Query Cache] Removed ${removedCount} stale queries (>15min)`);
+        }
+        
+        // Log memory after cleanup
+        if ('memory' in performance) {
+          const memory = (performance as any).memory;
+          console.log(`📊 [Query Cache] Memory after cleanup: ${(memory.usedJSHeapSize / 1024 / 1024).toFixed(2)} MB`);
+        }
+      };
+      
+      // Run cleanup every 5 minutes
+      const cleanupInterval = setInterval(cleanupQueryCache, 5 * 60 * 1000);
+      
+      // Also run cleanup on visibility change (when user returns to tab)
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          console.log('🧹 [Query Cache] Tab visible - running cleanup');
+          cleanupQueryCache();
+        }
+      });
+      
+      // Initial cleanup after 1 minute
+      setTimeout(cleanupQueryCache, 60 * 1000);
+      
+      console.log('✅ [Query Cache] Auto-cleanup initialized (5min interval, 15min stale threshold)');
+      
+      return cleanupInterval;
+    };
+    
+    setupQueryCacheCleanup();
+  }).catch(err => {
+    console.warn('⚠️ [Query Cache] Failed to setup auto-cleanup:', err);
+  });
+}
+
 // iOS Detection and Anti-Zoom Setup
 function setupIOSProtection() {
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
