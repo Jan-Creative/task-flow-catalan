@@ -121,6 +121,9 @@ const PhasedMount: React.FC<PhasedMountProps> = ({ phase, children, onMount }) =
   const rafIdRef = useRef<number | null>(null);
   const idleCallbackIdRef = useRef<number | null>(null);
 
+  // FASE 3: useRef per detectar si és un StrictMode cleanup
+  const isStrictModeCleanupRef = useRef(false);
+
   useEffect(() => {
     // FASE 3: Incrementar comptador d'intents
     mountAttemptsRef.current += 1;
@@ -134,11 +137,12 @@ const PhasedMount: React.FC<PhasedMountProps> = ({ phase, children, onMount }) =
 
     // FASE 3: Guard reforçat contra double mounting per StrictMode
     if (mountedRef.current) {
-      console.warn(`⚠️ [PhasedMount] Phase ${phase} - Prevented double mount (attempt #${mountAttemptsRef.current}, likely StrictMode)`);
+      console.warn(`⚠️ [PhasedMount] Phase ${phase} - Already mounted, likely StrictMode remount (attempt #${mountAttemptsRef.current})`);
       bootTracer.trace('PhasedMount', `Phase ${phase} already mounted, skipping`, {
         attempt: mountAttemptsRef.current,
         reason: 'Already mounted - preventing duplicate'
       });
+      isStrictModeCleanupRef.current = true;
       return;
     }
 
@@ -169,8 +173,15 @@ const PhasedMount: React.FC<PhasedMountProps> = ({ phase, children, onMount }) =
       onMount?.();
     };
 
-    // FASE 4: CLEANUP EXHAUSTIU - funció centralitzada per cleanup
+    // FASE 3: CLEANUP AMB STRICTMODE GUARD - Evitar cleanup agressiu en StrictMode remounts
     const cleanup = () => {
+      // FASE 3: GUARD - NO fer cleanup si és StrictMode remount
+      if (isStrictModeCleanupRef.current) {
+        console.log(`🔇 [PhasedMount] Phase ${phase} - Skip cleanup (StrictMode remount detected)`);
+        isStrictModeCleanupRef.current = false;
+        return;
+      }
+      
       console.log(`🧹 [PhasedMount] Phase ${phase} cleanup - Clearing all timers/callbacks`);
       
       // Clear timeout
@@ -287,34 +298,10 @@ export const OrchestratedProviders: React.FC<OrchestratedProvidersProps> = ({
   // FASE 3: CLEANUP DE TIMERS - useRef per tracking de tots els timeouts
   const timeoutIdsRef = useRef<number[]>([]); // ✅ TRACKING DE TOTS ELS TIMEOUTS
 
-  // FASE 2 + FASE 3: Safety timeout per providers bloquejats - NOMÉS UN COP amb cleanup exhaustiu
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      const loadingProviders = getLoadingProvidersRef.current();
-      if (loadingProviders.length > 0) {
-        console.error('⏱️ [Provider Timeout] Providers stuck in loading after 5s:', loadingProviders);
-        bootTracer.error('ProviderTimeout', 'Providers stuck in loading', { 
-          providers: loadingProviders 
-        });
-        
-        // Forçar mounted per evitar pantalla negra
-        loadingProviders.forEach(name => {
-          console.error(`❌ [Provider Timeout] Forcing "${name}" to failed state`);
-          updateProviderStatusRef.current(name, { status: 'failed', error: new Error('Mount timeout after 5s') });
-        });
-      }
-    }, 5000);
-    
-    // ✅ TRACKING: Afegir timeout a la llista
-    timeoutIdsRef.current.push(timeoutId);
-    console.log(`⏱️ [Provider Timeout] Created timeout ${timeoutId} (total active: ${timeoutIdsRef.current.length})`);
-    
-    return () => {
-      console.log(`🧹 [Provider Timeout] Cleaning up ${timeoutIdsRef.current.length} timeout(s)`);
-      timeoutIdsRef.current.forEach(id => clearTimeout(id));
-      timeoutIdsRef.current = [];
-    };
-  }, []); // FASE 2: Empty deps - executar NOMÉS UN COP
+  // FASE 1: Provider timeout ELIMINAT per evitar conflicts amb mount success
+  // Aquest timeout marcava providers com "failed" quan encara s'estaven muntant
+  // causant actualitzacions conflictives (<100ms) amb el mount success
+  // Solució: Confiar en EnhancedErrorBoundary i ProviderBoundary per gestionar errors reals
 
   const handleProviderError = (name: string, error: Error) => {
     // PHASE 5: Enhanced error tracking
