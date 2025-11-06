@@ -57,7 +57,7 @@ export const PROVIDER_REGISTRY: ProviderConfig[] = [
   {
     name: 'KeyboardShortcuts',
     Component: KeyboardShortcutsProvider,
-    phase: 2,
+    phase: 1, // ✅ FASE 11-SYNC: Critical & lightweight, needed before pages render
     enabledByDefault: true,
     mountAfterPaint: true,
   },
