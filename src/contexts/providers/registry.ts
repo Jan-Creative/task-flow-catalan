@@ -6,7 +6,7 @@ import { BackgroundProvider } from '@/contexts/BackgroundContext';
 import { SecurityProvider } from '@/contexts/SecurityContext';
 import { OfflineProvider } from '@/contexts/OfflineContext'; // PHASE 1: Moved to registry
 import { UnifiedTaskProvider } from '@/contexts/UnifiedTaskContext';
-import { NotificationProvider } from '@/contexts/NotificationContextV2';
+import { NotificationProvider } from '@/contexts/NotificationContextMigrated';
 import { PomodoroProvider } from '@/contexts/PomodoroContext';
 import { KeyboardShortcutsProvider } from '@/contexts/KeyboardShortcutsContext';
 import { KeyboardNavigationProvider } from '@/contexts/KeyboardNavigationContext';

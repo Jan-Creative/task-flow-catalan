@@ -1,4 +1,17 @@
 /**
+ * LEGACY MIGRATION LAYER - Use NotificationContext.tsx instead
+ * 
+ * Aquest fitxer era una capa de transició cap al NotificationManager centralitzat.
+ * Actualment s'utilitza com a context principal de notificacions a l'aplicació.
+ * 
+ * ESTAT ACTUAL:
+ * - Aquest fitxer: Context principal usat en provider registry
+ * - NotificationContext.tsx: Context original amb hook useNotifications
+ * 
+ * FUNCIONALITAT:
+ * - Wrapper sobre useNotifications que migra progressivament cap a NotificationManager
+ * - Manté compatibilitat amb API existent mentre centralitza la gestió
+ * 
  * Context Actualitzat per usar el NotificationManager centralitzat
  * Manté compatibilitat amb l'API existent mentre migra al nou sistema
  */

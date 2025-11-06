@@ -2,7 +2,7 @@
  * Performance monitoring component for development
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -28,28 +28,46 @@ export const PerformanceMonitor = () => {
   const [recentLogs, setRecentLogs] = useState<LogEntry[]>([]);
   const [isVisible, setIsVisible] = useState(false);
   const queryClient = useQueryClient();
+  const intervalRef = useRef<number | null>(null);
 
+  // Performance monitoring - ONLY when visible
   useEffect(() => {
     // Only show in development
     if (process.env.NODE_ENV !== 'development') return;
 
-    // Performance monitoring
-    const interval = setInterval(() => {
-      const queries = queryClient.getQueryCache().getAll();
-      const errors = logger.getRecentLogs('error');
+    // Only activate interval when visible
+    if (isVisible) {
+      console.log('📊 PerformanceMonitor: Starting monitoring interval');
       
-      setStats(prev => ({
-        renderCount: prev.renderCount + 1,
-        memoryUsage: 'memory' in performance ? 
-          Math.round(((performance as any).memory?.usedJSHeapSize || 0) / 1024 / 1024) : 0,
-        queryCount: queries.length,
-        errorCount: errors.length
-      }));
+      intervalRef.current = window.setInterval(() => {
+        const queries = queryClient.getQueryCache().getAll();
+        const errors = logger.getRecentLogs('error');
+        
+        setStats(prev => ({
+          renderCount: prev.renderCount + 1,
+          memoryUsage: 'memory' in performance ? 
+            Math.round(((performance as any).memory?.usedJSHeapSize || 0) / 1024 / 1024) : 0,
+          queryCount: queries.length,
+          errorCount: errors.length
+        }));
 
-      setRecentLogs(logger.getRecentLogs().slice(0, 5));
-    }, 2000);
+        setRecentLogs(logger.getRecentLogs().slice(0, 5));
+      }, 2000);
+    }
 
-    // Show/hide with keyboard shortcut
+    return () => {
+      console.log('🧹 PerformanceMonitor: Cleaning up monitoring interval');
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [isVisible, queryClient]);
+
+  // Keyboard shortcut handler
+  useEffect(() => {
+    if (process.env.NODE_ENV !== 'development') return;
+    
     const handleKeyPress = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.shiftKey && e.key === 'P') {
         setIsVisible(prev => !prev);
@@ -59,10 +77,9 @@ export const PerformanceMonitor = () => {
     document.addEventListener('keydown', handleKeyPress);
 
     return () => {
-      clearInterval(interval);
       document.removeEventListener('keydown', handleKeyPress);
     };
-  }, [queryClient]);
+  }, []);
 
   const clearCache = () => {
     queryClient.clear();

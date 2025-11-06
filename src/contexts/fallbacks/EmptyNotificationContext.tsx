@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react';
-import { NotificationContext } from '../NotificationContextV2';
+import { NotificationContext } from '../NotificationContextMigrated';
 import { logger } from '@/lib/logger';
 
 // Empty context value with safe defaults
