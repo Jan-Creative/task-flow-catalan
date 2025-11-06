@@ -101,6 +101,7 @@ export interface ProviderConfig {
 }
 
 // ============= PHASED MOUNTING =============
+// FASE 4: OPTIMITZAR TIMEOUTS - Consolidar timeouts per fase
 interface PhasedMountProps {
   phase: number;
   children: ReactNode;
@@ -114,6 +115,11 @@ const PhasedMount: React.FC<PhasedMountProps> = ({ phase, children, onMount }) =
   
   // FASE 3: Comptador de intents de mount (detectar StrictMode double mount)
   const mountAttemptsRef = useRef(0);
+  
+  // FASE 4: useRef per tracking de tots els timers/callbacks del component
+  const timeoutIdRef = useRef<number | null>(null);
+  const rafIdRef = useRef<number | null>(null);
+  const idleCallbackIdRef = useRef<number | null>(null);
 
   useEffect(() => {
     // FASE 3: Incrementar comptador d'intents
@@ -163,67 +169,75 @@ const PhasedMount: React.FC<PhasedMountProps> = ({ phase, children, onMount }) =
       onMount?.();
     };
 
-    // PHASE 4: Secure phased mounting with requestIdleCallback + TIMEOUT FALLBACK
+    // FASE 4: CLEANUP EXHAUSTIU - funció centralitzada per cleanup
+    const cleanup = () => {
+      console.log(`🧹 [PhasedMount] Phase ${phase} cleanup - Clearing all timers/callbacks`);
+      
+      // Clear timeout
+      if (timeoutIdRef.current !== null) {
+        clearTimeout(timeoutIdRef.current);
+        timeoutIdRef.current = null;
+      }
+      
+      // Clear RAF
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current);
+        rafIdRef.current = null;
+      }
+      
+      // Clear idle callback
+      if (idleCallbackIdRef.current !== null && typeof cancelIdleCallback !== 'undefined') {
+        cancelIdleCallback(idleCallbackIdRef.current);
+        idleCallbackIdRef.current = null;
+      }
+      
+      bootTracer.trace('PhasedMount', `Phase ${phase} cleanup complete`, { mounted: mountedRef.current });
+    };
+
+    // FASE 4: OPTIMITZAT - Phased mounting amb millor gestió de recursos
     if (phase === 1) {
       // Phase 1: Wait for React to be idle before mounting
-      // This prevents race conditions with React's dispatcher
       let localMounted = false;
       
       if (typeof requestIdleCallback !== 'undefined') {
-        const idleId = requestIdleCallback(() => {
+        idleCallbackIdRef.current = requestIdleCallback(() => {
           if (!localMounted && !mountedRef.current) {
             localMounted = true;
             mountProvider();
           }
         });
         
-        // FASE 2 FIX: Reduït a 50ms per evitar race conditions
-        const fallbackTimeout = setTimeout(() => {
+        // FASE 4: OPTIMITZAT - Reduït a 30ms per millorar responsivitat (abans 50ms)
+        timeoutIdRef.current = window.setTimeout(() => {
           if (!localMounted && !mountedRef.current) {
             localMounted = true;
+            console.log(`⏱️ [PhasedMount] Phase ${phase} fallback timeout triggered (30ms)`);
             bootTracer.trace(`Provider:PhasedMount`, `Phase ${phase} fallback timeout triggered`, { phase });
             mountProvider();
           }
-        }, 50); // 50ms max wait (abans era 100ms)
+        }, 30); // ✅ 30ms (abans 50ms)
         
-        return () => {
-          if (typeof cancelIdleCallback !== 'undefined') {
-            cancelIdleCallback(idleId);
-          }
-          clearTimeout(fallbackTimeout);
-          // FASE 3: Cleanup logging
-          bootTracer.trace('PhasedMount', `Phase ${phase} cleanup`, { mounted: mountedRef.current });
-        };
+        return cleanup;
       } else {
         // Fallback for browsers without requestIdleCallback
-        const timeoutId = setTimeout(mountProvider, 0);
-        return () => {
-          clearTimeout(timeoutId);
-          bootTracer.trace('PhasedMount', `Phase ${phase} cleanup`, { mounted: mountedRef.current });
-        };
+        timeoutIdRef.current = window.setTimeout(mountProvider, 0);
+        return cleanup;
       }
     } else if (phase === 2) {
-      // Mount after first paint
-      const rafId = requestAnimationFrame(mountProvider);
-      return () => {
-        cancelAnimationFrame(rafId);
-        bootTracer.trace('PhasedMount', `Phase ${phase} cleanup`, { mounted: mountedRef.current });
-      };
+      // Phase 2: Mount after first paint (usar RAF)
+      rafIdRef.current = requestAnimationFrame(mountProvider);
+      return cleanup;
     } else if (phase === 3) {
-      // Mount after next tick
-      const timeoutId = setTimeout(mountProvider, 0);
-      return () => {
-        clearTimeout(timeoutId);
-        bootTracer.trace('PhasedMount', `Phase ${phase} cleanup`, { mounted: mountedRef.current });
-      };
+      // Phase 3: Mount after next tick
+      timeoutIdRef.current = window.setTimeout(mountProvider, 0);
+      return cleanup;
     } else if (phase >= 4) {
-      // Delayed mount for heavy providers
-      const timeoutId = setTimeout(mountProvider, 100);
-      return () => {
-        clearTimeout(timeoutId);
-        bootTracer.trace('PhasedMount', `Phase ${phase} cleanup`, { mounted: mountedRef.current });
-      };
+      // FASE 4: OPTIMITZAT - Reduït a 50ms per heavy providers (abans 100ms)
+      timeoutIdRef.current = window.setTimeout(mountProvider, 50); // ✅ 50ms (abans 100ms)
+      return cleanup;
     }
+    
+    return cleanup;
   }, [phase, onMount]);
 
   // FASE 2 CRITICAL FIX: Always render children (hidden initially) to prevent NotFoundError
