@@ -448,11 +448,9 @@ const params = new URLSearchParams(window.location.search);
 // OPCIÓ B: Mode ?disableall=1 - Desactiva TOTS els providers
 const disableAllMode = params.get('disableall') === '1';
 
-// Parse disabled providers from ?disable=Provider1,Provider2
-const disableParam = params.get('disable');
-let disabledProviders = disableAllMode 
-  ? ['Security', 'Background', 'PropertyDialog', 'KeyboardShortcuts', 'UnifiedTask', 'Notification', 'Offline', 'Pomodoro', 'KeyboardNavigation', 'MacNavigation', 'IPadNavigation']
-  : (disableParam ? disableParam.split(',').map(p => p.trim()).filter(Boolean) : []);
+// HARDCODED DIAGNOSIS: disable ALL providers (ignores URL params)
+let disabledProviders = ['Security', 'Background', 'PropertyDialog', 'KeyboardShortcuts', 'UnifiedTask', 'Notification', 'Offline', 'Pomodoro', 'KeyboardNavigation', 'MacNavigation', 'IPadNavigation'];
+console.warn('🚨 HARDCODED: ALL providers disabled for diagnosis');
 
 // Parse max phase from ?maxPhase=2
 const maxPhaseParam = params.get('maxPhase');
