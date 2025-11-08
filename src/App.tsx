@@ -152,7 +152,8 @@ const App = () => {
           </RouteCacheProvider>
         </BrowserRouter>
       </div>
-      <NotificationDisplay />
+      {/* 🚨 TEMPORAL: Comentat - NotificationProvider desactivat */}
+      {/* <NotificationDisplay /> */}
       <PerformanceMonitor />
       {/* 🚨 TEMPORAL: Comentat perquè necessita SecurityProvider */}
       {/* <SecurityMonitor /> */}

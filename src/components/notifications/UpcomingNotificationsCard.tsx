@@ -8,7 +8,7 @@ import { format } from "date-fns";
 import { ca } from "date-fns/locale";
 import { toast } from "sonner";
 import { useUpcomingNotifications } from "@/hooks/useUpcomingNotifications";
-import { useNotificationContext } from "@/contexts/NotificationContext";
+import { useNotificationContext } from "@/contexts/NotificationContextMigrated";
 import { RescheduleNotificationDialog } from "./RescheduleNotificationDialog";
 import { supabase } from "@/integrations/supabase/client";
 

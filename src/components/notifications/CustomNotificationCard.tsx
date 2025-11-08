@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Bell, Send, Clock, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { useNotificationContext } from "@/contexts/NotificationContext";
+import { useNotificationContext } from "@/contexts/NotificationContextMigrated";
 
 export const CustomNotificationCard = () => {
   const { createCustomNotification, sendTestNotification, notificationsReady } = useNotificationContext();

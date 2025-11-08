@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/lib/toastUtils";
-import { useNotificationContext } from "@/contexts/NotificationContext";
+import { useNotificationContext } from "@/contexts/NotificationContextMigrated";
 import { Bell, Clock, Plus, X, AlertCircle, Settings } from "lucide-react";
 import { format } from "date-fns";
 import { ca } from "date-fns/locale";

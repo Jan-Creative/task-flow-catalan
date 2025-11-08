@@ -173,7 +173,16 @@ export const KeyboardShortcutsProvider: React.FC<KeyboardShortcutsProviderProps>
 export const useKeyboardShortcuts = (): KeyboardShortcutsContextType => {
   const context = useContext(KeyboardShortcutsContext);
   if (context === undefined) {
-    throw new Error('useKeyboardShortcuts must be used within a KeyboardShortcutsProvider');
+    console.warn('[useKeyboardShortcuts] Used outside provider, returning empty context');
+    return {
+      shortcuts: {},
+      config: {},
+      isEnabled: false,
+      registerShortcut: () => {},
+      updateShortcutConfig: () => {},
+      setEnabled: () => {},
+      executeShortcut: () => {}
+    };
   }
   return context;
 };

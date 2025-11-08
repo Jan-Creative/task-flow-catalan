@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useNotificationContext } from "@/contexts/NotificationContext";
+import { useNotificationContext } from "@/contexts/NotificationContextMigrated";
 import { PurgeSubscriptionsButton } from "@/components/PurgeSubscriptionsButton";
 import { Bell, TestTube, Trash2, RefreshCcw, AlertCircle, CheckCircle2, Smartphone, Monitor, Tablet } from "lucide-react";
 

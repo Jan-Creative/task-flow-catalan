@@ -60,7 +60,17 @@ export const BackgroundProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 export const useBackground = () => {
   const context = useContext(BackgroundContext);
   if (context === undefined) {
-    throw new Error('useBackground must be used within a BackgroundProvider');
+    console.warn('[useBackground] Used outside provider, returning default settings');
+    return {
+      settings: {
+        type: 'none' as BackgroundType,
+        intensity: 0,
+        speed: 0,
+        hueShift: 0
+      },
+      updateSettings: () => {},
+      setBackgroundType: () => {}
+    };
   }
   return context;
 };

@@ -458,6 +458,7 @@ export const OrchestratedProviders: React.FC<OrchestratedProvidersProps> = ({
             {providerContent}
           </PhasedMount>
         ) : (
+          // ✅ FASE 11-SYNC: Providers síncrons NO usen PhasedMount
           providerContent
         )}
       </Suspense>
