@@ -17,6 +17,7 @@ import { IPadNavigationProvider } from '@/contexts/IPadNavigationContext';
 import { EmptySecurityProvider } from '@/contexts/fallbacks/EmptySecurityContext';
 import { EmptyTaskProvider } from '@/contexts/fallbacks/EmptyTaskContext';
 import { EmptyNotificationProvider } from '@/contexts/fallbacks/EmptyNotificationContext';
+import { EmptyKeyboardShortcutsProvider } from '@/contexts/fallbacks/EmptyKeyboardShortcutsContext';
 
 /**
  * PHASE 1: Centralized provider registry with ALL providers
@@ -57,6 +58,7 @@ export const PROVIDER_REGISTRY: ProviderConfig[] = [
   {
     name: 'KeyboardShortcuts',
     Component: KeyboardShortcutsProvider,
+    fallback: EmptyKeyboardShortcutsProvider,
     phase: 1, // ✅ FASE 11-SYNC: Critical & lightweight, needed before pages render
     enabledByDefault: true,
     mountAfterPaint: false, // ✅ FASE 11-SYNC: Mount synchronously to avoid race conditions

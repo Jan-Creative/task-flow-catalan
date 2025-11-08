@@ -10,7 +10,7 @@ import type {
   KeyboardShortcutsState 
 } from '@/types/shortcuts';
 
-const KeyboardShortcutsContext = createContext<KeyboardShortcutsContextType | undefined>(undefined);
+export const KeyboardShortcutsContext = createContext<KeyboardShortcutsContextType | undefined>(undefined);
 
 interface KeyboardShortcutsProviderProps {
   children: React.ReactNode;
@@ -20,9 +20,18 @@ const STORAGE_KEY = 'keyboard-shortcuts-config';
 
 export const KeyboardShortcutsProvider: React.FC<KeyboardShortcutsProviderProps> = ({ children }) => {
   const [state, setState] = useState<KeyboardShortcutsState>(() => {
-    // Carregar configuració de localStorage
-    const savedConfig = localStorage.getItem(STORAGE_KEY);
-    const config = savedConfig ? JSON.parse(savedConfig) : {};
+    // Carregar configuració de localStorage amb error handling
+    let config: Record<string, ShortcutConfig> = {};
+    try {
+      const savedConfig = localStorage.getItem(STORAGE_KEY);
+      if (savedConfig) {
+        const parsed = JSON.parse(savedConfig);
+        config = typeof parsed === 'object' && parsed ? parsed : {};
+      }
+    } catch (e) {
+      console.warn('[KeyboardShortcuts] Invalid localStorage config. Resetting…', e);
+      localStorage.removeItem(STORAGE_KEY);
+    }
     
     return {
       shortcuts: {},

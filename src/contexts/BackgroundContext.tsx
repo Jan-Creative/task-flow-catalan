@@ -26,8 +26,16 @@ const DEFAULT_SETTINGS: BackgroundSettings = {
 
 export const BackgroundProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [settings, setSettings] = useState<BackgroundSettings>(() => {
-    const saved = localStorage.getItem('background-settings');
-    return saved ? JSON.parse(saved) : DEFAULT_SETTINGS;
+    try {
+      const saved = localStorage.getItem('background-settings');
+      if (!saved) return DEFAULT_SETTINGS;
+      const parsed = JSON.parse(saved);
+      return { ...DEFAULT_SETTINGS, ...parsed };
+    } catch (e) {
+      console.warn('[Background] Invalid settings. Resetting…', e);
+      localStorage.removeItem('background-settings');
+      return DEFAULT_SETTINGS;
+    }
   });
 
   useEffect(() => {
