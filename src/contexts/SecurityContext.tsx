@@ -14,6 +14,7 @@ import {
 } from '@/lib/securityUtils';
 import { config } from '@/config/appConfig';
 import { logger } from '@/lib/debugUtils';
+import { EMPTY_SECURITY_CONTEXT } from './fallbacks/EmptySecurityContext';
 
 // ============= SECURITY CONTEXT =============
 interface SecurityContextValue {
@@ -169,7 +170,6 @@ export const useSecurity = () => {
   if (!context) {
     // PHASE 2 IMPROVEMENT: Return empty context instead of throwing
     // This prevents cascading failures when provider is unavailable
-    const { EMPTY_SECURITY_CONTEXT } = require('./fallbacks/EmptySecurityContext');
     console.warn('useSecurity used outside provider, returning empty context');
     return EMPTY_SECURITY_CONTEXT;
   }
