@@ -230,10 +230,18 @@ export const useDadesApp = () => {
       // Replace optimistic update with real data
       queryClient.setQueryData([CLAU_CACHE_DADES, user.id], (old: any) => {
         if (!old) return old;
-        return {
+        const updatedData = {
           ...old,
           tasks: [newTask, ...old.tasks.filter((t: Tasca) => t.id !== optimisticTask.id)]
         };
+        
+        logger.debug('useDadesApp', 'Task created and cache updated', { 
+          taskId: newTask.id,
+          taskTitle: newTask.title,
+          totalTasks: updatedData.tasks.length
+        });
+        
+        return updatedData;
       });
 
       toast.success("Tasca creada", {

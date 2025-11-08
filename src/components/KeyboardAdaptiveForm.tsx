@@ -56,7 +56,9 @@ export const KeyboardAdaptiveForm: React.FC<KeyboardAdaptiveFormProps> = ({
   const { height: keyboardHeight, isVisible: keyboardVisible, isStable } = useStableKeyboardHeight();
   // FASE 10A: Comentat temporalment - funció temporal no-op
   // const { setFormOpen } = useKeyboardNavigation();
-  const setFormOpen = (_open: boolean) => {}; // Temporal: no-op function
+  const setFormOpen = useCallback((_open: boolean) => {
+    // Temporal: no-op function
+  }, []);
   
   // Form panel swipe navigation
   const { currentPanel, setCurrentPanel, isDragging, dragOffset, touchHandlers } = useFormPanelSwipe({
