@@ -244,13 +244,6 @@ export const useDadesApp = () => {
         return updatedData;
       });
 
-      // CRITICAL FIX: Force cache invalidation to ensure UI updates
-      queryClient.invalidateQueries({ queryKey: [CLAU_CACHE_DADES, user.id] });
-      
-      logger.info('useDadesApp', '✅ Task created and cache invalidated', {
-        taskId: newTask.id,
-        taskTitle: newTask.title
-      });
 
       toast.success("Tasca creada", {
         description: "La tasca s'ha creat correctament",
@@ -266,6 +259,9 @@ export const useDadesApp = () => {
           tasks: old.tasks.filter((t: Tasca) => t.id !== optimisticTask.id)
         };
       });
+      
+      // Force refetch on error to ensure data consistency
+      queryClient.invalidateQueries({ queryKey: [CLAU_CACHE_DADES, user.id] });
       
       handleError(error instanceof Error ? error : new Error("No s'ha pogut crear la tasca"));
       throw error;
