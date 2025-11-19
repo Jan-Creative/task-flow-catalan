@@ -119,7 +119,7 @@ const Index = () => {
     handleSidebarStateChange(newState);
   };
 
-  const { folders } = useDadesApp();
+  const dadesOptimitzades = useDadesApp();
   const { handleCreateTask, handleEditTask: handleEditTaskOp } = useTaskOperations();
   
   // Device detection - simplified
@@ -127,6 +127,16 @@ const Index = () => {
   
   // Simple Form state
   const [showSimpleForm, setShowSimpleForm] = useState(false);
+  
+  // DEBUG: Log when tasks change
+  useEffect(() => {
+    if (dadesOptimitzades?.tasks) {
+      console.log('📋 Index - Tasques actualitzades:', {
+        total: dadesOptimitzades.tasks.length,
+        titols: dadesOptimitzades.tasks.slice(0, 3).map(t => t.title)
+      });
+    }
+  }, [dadesOptimitzades?.tasks]);
   
   const handleSimpleTaskSubmit = async (title: string) => {
     try {
@@ -353,7 +363,7 @@ const Index = () => {
             setEditingTask(null);
           }}
           onSubmit={handleTaskSubmit}
-          folders={folders}
+          folders={dadesOptimitzades?.folders || []}
           editingTask={editingTask}
         />
       )}
