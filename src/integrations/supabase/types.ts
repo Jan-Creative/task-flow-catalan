@@ -1007,10 +1007,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      cleanup_old_pomodoro_sessions: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      cleanup_old_pomodoro_sessions: { Args: never; Returns: undefined }
       evaluate_smart_folder_match: {
         Args: {
           folder_rules: Json

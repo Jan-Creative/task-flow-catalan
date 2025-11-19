@@ -5,6 +5,9 @@ import { useDeviceType } from '@/hooks/device/useDeviceType';
 import { usePhoneDetection } from '@/hooks/device/usePhoneDetection';
 import { useIOSDetection } from '@/hooks/useIOSDetection';
 import { Button } from '@/components/ui/button';
+import { useQueryClient } from '@tanstack/react-query';
+import { RefreshCw, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface DeviceDebugPanelProps {
   onTestUltraSimple?: () => void;
@@ -19,9 +22,32 @@ export const DeviceDebugPanel: React.FC<DeviceDebugPanelProps> = ({
   const deviceTypeInfo = useDeviceType();
   const phoneInfo = usePhoneDetection();
   const isIOS = useIOSDetection();
+  const queryClient = useQueryClient();
   
   // Calculate final condition
   const shouldUseUltraSimple = deviceTypeInfo.type === 'iphone' && phoneInfo.isPhone && isIOS;
+  
+  // Force refresh cache handler
+  const handleForceRefresh = () => {
+    queryClient.invalidateQueries();
+    toast.success("Cache invalidat", {
+      description: "S'ha forçat l'actualització de totes les dades"
+    });
+    setTimeout(() => window.location.reload(), 500);
+  };
+  
+  // Clear storage handler
+  const handleClearStorage = () => {
+    localStorage.clear();
+    sessionStorage.clear();
+    navigator.serviceWorker?.getRegistrations().then(regs => {
+      regs.forEach(reg => reg.unregister());
+    });
+    toast.success("Emmagatzematge netejat", {
+      description: "localStorage, sessionStorage i Service Workers netejats"
+    });
+    setTimeout(() => window.location.reload(), 500);
+  };
   
   // Only show in development
   if (!import.meta.env.DEV) {
@@ -102,6 +128,29 @@ export const DeviceDebugPanel: React.FC<DeviceDebugPanelProps> = ({
           <div>Platform: {navigator.platform}</div>
           <div>Touch Points: {navigator.maxTouchPoints}</div>
           <div>Window: {window.innerWidth}x{window.innerHeight}</div>
+        </div>
+
+        {/* Cache & Storage Controls */}
+        <div className="border rounded p-2 space-y-2">
+          <div className="font-semibold text-primary">Cache Controls:</div>
+          <Button 
+            onClick={handleForceRefresh}
+            variant="outline"
+            size="sm"
+            className="w-full"
+          >
+            <RefreshCw className="w-3 h-3 mr-2" />
+            Force Refresh Cache
+          </Button>
+          <Button 
+            onClick={handleClearStorage}
+            variant="destructive"
+            size="sm"
+            className="w-full"
+          >
+            <Trash2 className="w-3 h-3 mr-2" />
+            Clear Storage + SW
+          </Button>
         </div>
       </CardContent>
     </Card>
