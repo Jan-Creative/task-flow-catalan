@@ -70,10 +70,10 @@ export const useDadesApp = () => {
       };
     },
     enabled: !!user,
-    staleTime: 2 * 60 * 1000, // 2 minutes - Fresher data for dynamic tasks
+    staleTime: 5 * 60 * 1000, // 5 minutes - Prevent race conditions
     gcTime: 10 * 60 * 1000, // 10 minutes - Keep in memory longer
-    refetchOnWindowFocus: true, // Auto-refresh when user returns
-    refetchOnMount: true, // Refresh on component mount for latest data
+    refetchOnWindowFocus: false, // DISABLED - Prevents race condition on task creation
+    refetchOnMount: false, // DISABLED - Prevents race condition on task creation
     refetchOnReconnect: true, // Refresh when connection restored
     refetchInterval: false, // Disable automatic background refetching
     notifyOnChangeProps: ['data', 'error'] // Only notify on data/error changes
