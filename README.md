@@ -71,3 +71,42 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+
+## Mode Stable (Production)
+
+Per executar l'aplicació en mode stable amb màxima estabilitat:
+
+### Com activar-lo
+Afegeix el paràmetre `?stable=1` a la URL:
+```
+https://yourdomain.com/?stable=1
+```
+
+### Què fa el mode stable?
+- ✅ **Desactiva debugging i monitors**: PerformanceMonitor, MemoryLeakMonitor desactivats
+- ✅ **Només providers essencials**: Background, KeyboardShortcuts, UnifiedTask, Notification
+- ✅ **Cache ultra-conservador**: `staleTime: 5min`, `refetchOnWindowFocus: false`
+- ✅ **Zero logs no essencials**: Només errors crítics al console
+- ✅ **Limitat a Phase 1-3**: Providers de Phase 4 (platform-specific) desactivats
+
+### Providers actius en mode stable
+1. **Background** (Phase 1) - Gestió de fons visual
+2. **KeyboardShortcuts** (Phase 1) - Dreceres de teclat
+3. **UnifiedTask** (Phase 3) - Gestió de tasques
+4. **Notification** (Phase 3) - Notificacions
+
+### Providers desactivats en mode stable
+- Security (no essencial per funcionament bàsic)
+- PropertyDialog (UI no crítica)
+- Offline (funcionalitat opcional)
+- Pomodoro (widget opcional)
+- KeyboardNavigation, MacNavigation, IPadNavigation (platform-specific)
+
+### Quan usar mode stable?
+- **Production builds** - Per usuaris finals
+- **Preview environment** - Quan hi ha problemes de rendiment
+- **Debugging complex** - Per aïllar problemes de providers
+- **Dispositius lents** - Per millorar rendiment
+
+### Desactivar mode stable
+Simplement elimina el paràmetre de la URL o recarrega sense `?stable=1`
