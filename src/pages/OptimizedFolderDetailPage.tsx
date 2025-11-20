@@ -31,9 +31,18 @@ const useFolderTasks = (folderId: string) => {
     loading, 
     actualitzarEstat: updateTaskStatus,
     crearTasca: handleCreateTask,
+    actualitzarTasca: updateTask,
   } = useTasksCore();
   
   const { updateFolder } = useDadesApp();
+
+  const handleEditTaskOp = async (
+    taskId: string, 
+    updates: any, 
+    customProperties?: Array<{propertyId: string; optionId: string}>
+  ) => {
+    await updateTask(taskId, updates, customProperties);
+  };
 
   // Memoized folder lookup
   const realInboxFolder = useMemo(() => 
@@ -79,6 +88,8 @@ const useFolderTasks = (folderId: string) => {
     unscheduledTasks,
     updateFolder,
     updateTaskStatus,
+    handleCreateTask,
+    handleEditTaskOp,
     loading,
     folders
   };
@@ -87,7 +98,6 @@ const useFolderTasks = (folderId: string) => {
 const OptimizedFolderDetailPage = () => {
   const { folderId } = useParams<{ folderId: string }>();
   const navigate = useNavigate();
-  const { handleCreateTask, handleEditTask: handleEditTaskOp } = useTaskOperations();
   
   // State management
   const [showCreateTask, setShowCreateTask] = useState(false);
@@ -112,6 +122,8 @@ const OptimizedFolderDetailPage = () => {
     unscheduledTasks,
     updateFolder,
     updateTaskStatus,
+    handleCreateTask,
+    handleEditTaskOp,
     loading,
     folders
   } = useFolderTasks(folderId || '');

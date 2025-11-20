@@ -33,8 +33,12 @@ const FolderDetailPage = () => {
   const { updateFolder } = useDadesApp();
   const { getStatusLabel, getStatusOptions, getStatusColor } = useUnifiedProperties();
   
-  const handleEditTaskOp = async (taskId: string, updates: any) => {
-    await updateTask(taskId, updates);
+  const handleEditTaskOp = async (
+    taskId: string, 
+    updates: any, 
+    customProperties?: Array<{propertyId: string; optionId: string}>
+  ) => {
+    await updateTask(taskId, updates, customProperties);
   };
   const [showCreateTask, setShowCreateTask] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
