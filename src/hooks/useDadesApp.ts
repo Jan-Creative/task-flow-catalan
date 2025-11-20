@@ -70,10 +70,10 @@ export const useDadesApp = () => {
       };
     },
     enabled: !!user,
-    staleTime: 2 * 60 * 1000, // 2 minutes - Fresher data for dynamic tasks
+    staleTime: 5 * 60 * 1000, // 5 minutes - More stable cache
     gcTime: 10 * 60 * 1000, // 10 minutes - Keep in memory longer
-    refetchOnWindowFocus: true, // Auto-refresh when user returns
-    refetchOnMount: true, // Refresh on component mount for latest data
+    refetchOnWindowFocus: false, // ✅ FASE 1: Disable auto-refresh to prevent race conditions
+    refetchOnMount: false, // ✅ FASE 1: Disable mount refresh for stability
     refetchOnReconnect: true, // Refresh when connection restored
     refetchInterval: false, // Disable automatic background refetching
     notifyOnChangeProps: ['data', 'error'] // Only notify on data/error changes
@@ -244,10 +244,10 @@ export const useDadesApp = () => {
         return updatedData;
       });
 
-      // CRITICAL FIX: Force cache invalidation to ensure UI updates
-      queryClient.invalidateQueries({ queryKey: [CLAU_CACHE_DADES, user.id] });
+      // ✅ FASE 1: REMOVED invalidateQueries to prevent race condition
+      // queryClient.invalidateQueries causes refetch before DB insert completes
       
-      logger.info('useDadesApp', '✅ Task created and cache invalidated', {
+      logger.info('useDadesApp', '✅ Task created successfully', {
         taskId: newTask.id,
         taskTitle: newTask.title
       });
