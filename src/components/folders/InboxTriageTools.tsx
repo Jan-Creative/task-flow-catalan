@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Calendar, Clock, Archive, FolderOpen, Inbox } from 'lucide-react';
 import { useState } from 'react';
 import { useDadesApp } from '@/hooks/useDadesApp';
-import { useTaskOperations } from '@/hooks/useTaskOperations';
+import { useTasksCore } from '@/hooks/tasks/useTasksCore';
 import { toast } from 'sonner';
 
 interface InboxTriageToolsProps {

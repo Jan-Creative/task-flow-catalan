@@ -3,12 +3,11 @@ import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, FolderOpen, Plus, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useOptimizedTaskManager } from "@/hooks/useOptimizedTaskManager";
+import { useTasksCore } from "@/hooks/tasks/useTasksCore";
 import { useDadesApp } from "@/hooks/useDadesApp";
 import { logger } from "@/lib/debugUtils";
 import type { Task } from "@/types";
 import { useUnifiedProperties } from "@/hooks/useUnifiedProperties";
-import { useTaskOperations } from "@/hooks/useTaskOperations";
 import TaskChecklistItem from "@/components/TaskChecklistItem";
 import { CreateTaskModalLazy, LazyModal } from '@/lib/lazyLoading';
 import BottomNavigation from "@/components/BottomNavigation";
@@ -24,16 +23,19 @@ const FolderDetailPage = () => {
     tasks, 
     folders, 
     loading, 
-    updateStatus: updateTaskStatus, 
-    updateTask, 
-    deleteTask, 
-    refreshData 
-  } = useOptimizedTaskManager();
+    actualitzarEstat: updateTaskStatus, 
+    actualitzarTasca: updateTask, 
+    eliminarTasca: deleteTask, 
+    actualitzarDades: refreshData,
+    crearTasca: handleCreateTask,
+  } = useTasksCore();
   
-  // Import folder update function from useDadesApp
   const { updateFolder } = useDadesApp();
   const { getStatusLabel, getStatusOptions, getStatusColor } = useUnifiedProperties();
-  const { handleCreateTask, handleEditTask: handleEditTaskOp } = useTaskOperations();
+  
+  const handleEditTaskOp = async (taskId: string, updates: any) => {
+    await updateTask(taskId, updates);
+  };
   const [showCreateTask, setShowCreateTask] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "kanban" | "organize">("list");

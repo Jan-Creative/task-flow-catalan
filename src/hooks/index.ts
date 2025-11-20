@@ -21,13 +21,11 @@ export { useRealtimeSubscriptions } from './useRealtimeSubscriptions';
 export { useServiceWorkerStatus } from './useServiceWorkerStatus';
 
 // Task Management
-export { useTaskManager } from './useTaskManager';
-export { useOptimizedTaskManager } from './useOptimizedTaskManager';
 export { useTaskTimeBlocks } from './useTaskTimeBlocks';
 export { useSmartFolders } from './useSmartFolders';
+export { useTaskCleanup } from './useTaskCleanup';
 
 // Performance & Optimization
 export { useErrorRecovery } from './useErrorRecovery';
 export { useOptimizedCache } from './useOptimizedCache';
-export { useOfflineTasks } from './useOfflineTasks';
 export { useOfflineContext } from '@/contexts/OfflineContext';

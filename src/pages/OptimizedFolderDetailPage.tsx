@@ -7,10 +7,9 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import { useParams, useNavigate } from "react-router-dom";
 import { FolderOpen, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useOptimizedTaskManager } from "@/hooks/useOptimizedTaskManager";
+import { useTasksCore } from "@/hooks/tasks/useTasksCore";
 import { useDadesApp } from "@/hooks/useDadesApp";
 import { useUnifiedProperties } from "@/hooks/useUnifiedProperties";
-import { useTaskOperations } from "@/hooks/useTaskOperations";
 import { useStableCallback } from "@/hooks/performance";
 import { logger } from "@/lib/debugUtils";
 import type { Task } from "@/types";
@@ -30,8 +29,9 @@ const useFolderTasks = (folderId: string) => {
     tasks, 
     folders, 
     loading, 
-    updateStatus: updateTaskStatus 
-  } = useOptimizedTaskManager();
+    actualitzarEstat: updateTaskStatus,
+    crearTasca: handleCreateTask,
+  } = useTasksCore();
   
   const { updateFolder } = useDadesApp();
 

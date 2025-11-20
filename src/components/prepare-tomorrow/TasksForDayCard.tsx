@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CreateTaskModalLazy, LazyModal } from '@/lib/lazyLoading';
 import { Plus, Calendar, Clock } from 'lucide-react';
-import { useTaskOperations } from '@/hooks/useTaskOperations';
+import { useTasksCore } from '@/hooks/tasks/useTasksCore';
 import { useDadesApp } from '@/hooks/useDadesApp';
 import { format, addDays } from 'date-fns';
 import { ca } from 'date-fns/locale';
@@ -17,8 +17,7 @@ interface TasksForDayCardProps {
 
 export const TasksForDayCard = ({ tomorrow, onTasksUpdate }: TasksForDayCardProps) => {
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const { tasks, folders } = useDadesApp();
-  const { handleCreateTask } = useTaskOperations();
+  const { tasks, folders, crearTasca: handleCreateTask } = useTasksCore();
 
   const tomorrowDate = format(addDays(new Date(), 1), "EEEE, d 'de' MMMM", { locale: ca });
   

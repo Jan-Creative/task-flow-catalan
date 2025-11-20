@@ -5,7 +5,7 @@ import { PropertyDialogProvider } from '@/contexts/PropertyDialogContext';
 import { BackgroundProvider } from '@/contexts/BackgroundContext';
 import { SecurityProvider } from '@/contexts/SecurityContext';
 import { OfflineProvider } from '@/contexts/OfflineContext'; // PHASE 1: Moved to registry
-import { UnifiedTaskProvider } from '@/contexts/UnifiedTaskContext';
+// UnifiedTask removed - using useTasksCore hook instead
 import { NotificationProvider } from '@/contexts/NotificationContextMigrated';
 import { PomodoroProvider } from '@/contexts/PomodoroContext';
 import { KeyboardShortcutsProvider } from '@/contexts/KeyboardShortcutsContext';
@@ -65,14 +65,7 @@ export const PROVIDER_REGISTRY: ProviderConfig[] = [
   },
 
   // ===== PHASE 3: Heavy Data Providers =====
-  {
-    name: 'UnifiedTask',
-    Component: UnifiedTaskProvider,
-    fallback: EmptyTaskProvider,
-    phase: 3,
-    enabledByDefault: true,
-    mountAfterPaint: true, // After next tick
-  },
+  // UnifiedTask removed - apps now use useTasksCore hook directly
   {
     name: 'Notification',
     Component: NotificationProvider,
