@@ -36,7 +36,7 @@ export const PROVIDER_REGISTRY: ProviderConfig[] = [
     Component: SecurityProvider,
     fallback: EmptySecurityProvider,
     phase: 1,
-    enabledByDefault: true,
+    enabledByDefault: false, // ✅ FASE 1: Desactivat - no essencial
     mountAfterPaint: true, // PHASE 4: All providers mount after React is idle
   },
   {
@@ -52,7 +52,7 @@ export const PROVIDER_REGISTRY: ProviderConfig[] = [
     name: 'PropertyDialog',
     Component: PropertyDialogProvider,
     phase: 2,
-    enabledByDefault: true,
+    enabledByDefault: false, // ✅ FASE 1: Desactivat - no essencial
     mountAfterPaint: true, // After first paint
   },
   {
@@ -88,7 +88,7 @@ export const PROVIDER_REGISTRY: ProviderConfig[] = [
     name: 'Offline',
     Component: OfflineProvider,
     phase: 4,
-    enabledByDefault: true,
+    enabledByDefault: false, // ✅ FASE 1: Desactivat - no essencial
     mountAfterPaint: true, // Delayed mount
   },
   {
@@ -102,21 +102,21 @@ export const PROVIDER_REGISTRY: ProviderConfig[] = [
     name: 'KeyboardNavigation',
     Component: KeyboardNavigationProvider,
     phase: 4,
-    enabledByDefault: true,
+    enabledByDefault: false, // ✅ FASE 1: Desactivat - no essencial
     mountAfterPaint: true,
   },
   {
     name: 'MacNavigation',
     Component: MacNavigationProvider,
     phase: 4,
-    enabledByDefault: true,
+    enabledByDefault: false, // ✅ FASE 1: Desactivat - no essencial
     mountAfterPaint: true,
   },
   {
     name: 'IPadNavigation',
     Component: IPadNavigationProvider,
     phase: 4,
-    enabledByDefault: true,
+    enabledByDefault: false, // ✅ FASE 1: Desactivat - no essencial
     mountAfterPaint: true,
   },
 ];
