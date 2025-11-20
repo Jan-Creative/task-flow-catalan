@@ -6,12 +6,10 @@ import AdaptiveLayout from "@/components/layout/AdaptiveLayout";
 import DeviceIndicator from "@/components/DeviceIndicator";
 import { LazyPage, TodayPageLazy, FoldersPageLazy, SettingsPageLazy, NotificationsPageLazy, CreateTaskModalLazy } from "@/lib/lazyLoading";
 import { SimpleTaskForm } from "@/components/SimpleTaskForm";
-import { useSimpleDeviceDetection } from "@/hooks/useSimpleDeviceDetection";
 import CalendarPage from "@/pages/CalendarPage";
 import DashboardPage from "@/pages/DashboardPage";
 import AuthPage from "@/pages/AuthPage";
 import PrepareTomorrowPage from "@/pages/PrepareTomorrowPage";
-import NotesPage from "@/pages/NotesPage";
 import { useDadesApp } from "@/hooks/useDadesApp";
 import { useTaskOperations } from "@/hooks/useTaskOperations";
 import { usePerformanceMonitor, useCacheOptimization, useMemoryCleanup } from "@/hooks/usePerformanceOptimization";
@@ -21,7 +19,7 @@ import { useShortcut } from "@/hooks/useKeyboardShortcuts";
 import { toast } from "sonner";
 import { KeepAlivePages, TabPage } from "@/components/ui/keep-alive-pages";
 import { useDeviceType, usePhoneDetection } from "@/hooks/device";
-import { useIOSDetection } from "@/hooks/useIOSDetection";
+// ✅ FASE 4: useIOSDetection eliminat
 import { DeviceDebugPanel } from "@/components/DeviceDebugPanel";
 import { KeyboardAdaptiveForm } from '@/components/KeyboardAdaptiveForm';
 
@@ -122,8 +120,10 @@ const Index = () => {
   const dadesOptimitzades = useDadesApp();
   const { handleCreateTask, handleEditTask: handleEditTaskOp } = useTaskOperations();
   
-  // Device detection - simplified
-  const { isIPhone } = useSimpleDeviceDetection();
+  // Device detection - simplified using hooks/device
+  const { type: deviceType } = useDeviceType();
+  const { isPhone } = usePhoneDetection();
+  const isIPhone = deviceType === 'iphone' || isPhone;
   
   // Simple Form state
   const [showSimpleForm, setShowSimpleForm] = useState(false);
@@ -275,11 +275,12 @@ const Index = () => {
         </LazyPage>
       </TabPage>
       
-      <TabPage tabId="calendar" activeTab={activeTab}>
+      {/* ✅ FASE 4: Calendar desactivat (no eliminat) per possible reactivació */}
+      {/* <TabPage tabId="calendar" activeTab={activeTab}>
         <LazyPage pageName="Calendari">
           <CalendarPage />
         </LazyPage>
-      </TabPage>
+      </TabPage> */}
       
       <TabPage tabId="notificacions" activeTab={activeTab}>
         <LazyPage pageName="Notificacions">
@@ -290,12 +291,6 @@ const Index = () => {
       <TabPage tabId="preparar-dema" activeTab={activeTab}>
         <LazyPage pageName="Preparar demà">
           <PrepareTomorrowPage />
-        </LazyPage>
-      </TabPage>
-      
-      <TabPage tabId="notes" activeTab={activeTab}>
-        <LazyPage pageName="Notes">
-          <NotesPage />
         </LazyPage>
       </TabPage>
       

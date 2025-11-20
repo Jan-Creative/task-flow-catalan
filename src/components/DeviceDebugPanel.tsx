@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useDeviceType } from '@/hooks/device/useDeviceType';
 import { usePhoneDetection } from '@/hooks/device/usePhoneDetection';
-import { useIOSDetection } from '@/hooks/useIOSDetection';
+// ✅ FASE 4: useIOSDetection eliminat, ara utilitzem device hooks
 import { Button } from '@/components/ui/button';
 import { useQueryClient } from '@tanstack/react-query';
 import { RefreshCw, Trash2 } from 'lucide-react';
@@ -21,7 +21,7 @@ export const DeviceDebugPanel: React.FC<DeviceDebugPanelProps> = ({
   // All detection hooks
   const deviceTypeInfo = useDeviceType();
   const phoneInfo = usePhoneDetection();
-  const isIOS = useIOSDetection();
+  const isIOS = phoneInfo.isPhone && /iPad|iPhone|iPod/.test(navigator.userAgent);
   const queryClient = useQueryClient();
   
   // Calculate final condition

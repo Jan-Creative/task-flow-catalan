@@ -11,20 +11,15 @@ export const NotificationsPageLazy = lazy(() => import('@/pages/NotificationsPag
 export const TaskDetailPageLazy = lazy(() => import('@/pages/TaskDetailPage'));
 export const FolderDetailPageLazy = lazy(() => import('@/pages/FolderDetailPage'));
 export const CalendarPageLazy = lazy(() => import('@/pages/CalendarPage'));
-export const NotesPageLazy = lazy(() => import('@/pages/NotesPage'));
 export const PrepareTomorrowPageLazy = lazy(() => import('@/pages/PrepareTomorrowPage'));
-export const ProjectPageLazy = lazy(() => import('@/pages/ProjectPage'));
-export const OfflineDemoPageLazy = lazy(() => import('@/pages/OfflineDemoPage'));
 
 // Modals and dialogs
 export const CreateTaskModalLazy = lazy(() => import('@/components/CreateTaskModal'));
 export const EventModalLazy = lazy(() => import('@/components/calendar/EventModal').then(m => ({ default: m.EventModal })));
-export const CreateProjectModalLazy = lazy(() => import('@/components/projects/CreateProjectModal'));
 export const MacTaskFormModalLazy = lazy(() => import('@/components/task-form/MacTaskFormModal'));
 export const iPadTaskFormModalLazy = lazy(() => import('@/components/task-form/iPadTaskFormModal').then(m => ({ default: m.iPadTaskFormModal })));
 
 // Heavy components
-export const RichTextEditorLazy = lazy(() => import('@/components/notes/RichTextEditor').then(m => ({ default: m.RichTextEditor })));
 export const DarkVeilBackgroundLazy = lazy(() => import('@/components/backgrounds/DarkVeilBackground').then(m => ({ default: m.DarkVeilBackground })));
 
 // ============= OPTIMIZED LOADING COMPONENTS =============

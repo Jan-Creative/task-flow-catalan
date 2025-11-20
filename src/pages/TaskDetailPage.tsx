@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { TaskDetailsCard } from "@/components/task-detail/TaskDetailsCard";
 import { TaskRemindersCard } from "@/components/task-detail/TaskRemindersCard";
 
-import { LazySubtasksCard, LazyNotesCard, LazyPomodoroCard } from "@/components/LazyComponents";
+import { LazySubtasksCard, LazyPomodoroCard } from "@/components/LazyComponents";
+// ✅ FASE 4: LazyNotesCard eliminat
 import { memo, Suspense, useEffect, useState } from "react";
 import { TaskProvider, useTaskContext } from "@/contexts/TaskContext";
 import { CachedRoute } from "@/components/ui/route-cache";
@@ -105,12 +106,7 @@ const TaskDetailContent = memo(() => {
               </div>
             </div>
 
-            {/* Notes Card - Rectangular horitzontal gran */}
-            <div className="col-span-2 row-span-2 animate-fade-in" style={{animationDelay: '0.5s'}}>
-              <div className="h-full min-h-[280px]">
-                <LazyNotesCard taskId={task.id} />
-              </div>
-            </div>
+            {/* ✅ FASE 4: Notes eliminades */}
           </div>
 
           {/* Desktop Layout - Grid simplificat (1024px-1440px) */}
@@ -141,12 +137,7 @@ const TaskDetailContent = memo(() => {
               </div>
             </div>
 
-            {/* Quarta fila amb Notes */}
-            <div className="col-span-3 animate-fade-in" style={{animationDelay: '0.5s'}}>
-              <div className="h-full min-h-[350px]">
-                <LazyNotesCard taskId={task.id} />
-              </div>
-            </div>
+            {/* ✅ FASE 4: Notes eliminades */}
           </div>
 
           {/* Tablet Layout - Grid adaptat (768px-1024px) */}
@@ -177,12 +168,7 @@ const TaskDetailContent = memo(() => {
               </div>
             </div>
 
-            {/* Fila 4: Notes */}
-            <div className="col-span-2 animate-fade-in" style={{animationDelay: '0.5s'}}>
-              <div className="h-full min-h-[400px]">
-                <LazyNotesCard taskId={task.id} />
-              </div>
-            </div>
+            {/* ✅ FASE 4: Notes eliminades */}
           </div>
 
           {/* Mobile/Small Tablet Layout - Stack vertical (0-768px) */}
@@ -199,9 +185,7 @@ const TaskDetailContent = memo(() => {
             <div className="animate-fade-in" style={{animationDelay: '0.4s'}}>
               <LazySubtasksCard taskId={task.id} />
             </div>
-            <div className="animate-fade-in" style={{animationDelay: '0.5s'}}>
-              <LazyNotesCard taskId={task.id} />
-            </div>
+            {/* ✅ FASE 4: Notes eliminades */}
           </div>
         </div>
       </div>

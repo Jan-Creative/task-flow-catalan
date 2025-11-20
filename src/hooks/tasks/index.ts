@@ -7,7 +7,7 @@ export { useMacTaskForm, type MacTaskFormReturn } from './useMacTaskForm';
 export { useiPadTaskForm, type iPadTaskFormReturn } from './useiPadTaskForm';
 export { useQuickCaptureForm, type QuickCaptureFormReturn } from './useQuickCaptureForm';
 export { useTaskForm } from '../useTaskForm';
-export { useTaskNotes } from '../useTaskNotes';
+// ✅ FASE 4: useTaskNotes eliminat
 export { useTaskSubtasks } from '../useTaskSubtasks';
 export { useTaskHistory } from '../useTaskHistory';
 export { useTaskOperations } from '../useTaskOperations';

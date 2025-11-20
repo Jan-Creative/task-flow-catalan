@@ -8,7 +8,7 @@ import CircularActionMenu from "./CircularActionMenu";
 import { useCircularMenuMode } from "@/hooks/useCircularMenuMode";
 import { usePrepareTomorrowVisibility } from "@/hooks/usePrepareTomorrowVisibility";
 import { usePhoneDetection } from "@/hooks/device/usePhoneDetection";
-import { useIOSDetection } from "@/hooks/useIOSDetection";
+// ✅ FASE 4: useIOSDetection eliminat, ara utilitzem device hooks
 // FASE 10A: Comentat temporalment mentre investigem providers
 // import { useKeyboardNavigation } from "@/contexts/KeyboardNavigationContext";
 import SmartTabSystem from "./navigation/SmartTabSystem";
@@ -26,7 +26,7 @@ const AdaptiveBottomNavigation = ({ activeTab, onTabChange, onCreateTask }: Adap
   const { isArcMode, toggleMode } = useCircularMenuMode("arc");
   const { isVisible: showPrepareTomorrow } = usePrepareTomorrowVisibility();
   const phoneInfo = usePhoneDetection();
-  const isIOS = useIOSDetection();
+  const isIOS = phoneInfo.isPhone && /iPad|iPhone|iPod/.test(navigator.userAgent);
   // FASE 10A: Comentat temporalment - valors per defecte
   // const { navigationSafeMode, isFormOpen } = useKeyboardNavigation();
   const navigationSafeMode = false;
