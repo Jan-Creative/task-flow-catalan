@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import { usePrepareTomorrowVisibility } from "@/hooks/usePrepareTomorrowVisibility";
-import { useMacKeyboardShortcuts, useMacSearchLogic } from "@/hooks/useMacNavigation";
 import { useMacNavigation } from "@/contexts/MacNavigationContext";
 import MacSearchInput from "./MacSearchInput";
 import { SidebarPomodoroWidget } from "@/components/pomodoro/SidebarPomodoroWidget";
@@ -22,10 +21,6 @@ const MacSidebar = ({
   // ⚠️ CRITICAL: All hooks must be called BEFORE any conditional returns
   const { isVisible: showPrepareTomorrow } = usePrepareTomorrowVisibility();
   const { sidebarState, toggleSidebar, cycleSidebar } = useMacNavigation();
-  
-  // Initialize Mac-specific hooks (must be called unconditionally)
-  useMacKeyboardShortcuts(onCreateTask);
-  useMacSearchLogic();
   
   // Return null when hidden (AFTER all hooks are called)
   if (sidebarState === 'hidden') {
@@ -47,8 +42,9 @@ const MacSidebar = ({
       title: "Organització",
       items: [
         { id: "carpetes", label: "Carpetes", icon: Folder },
-        { id: "notes", label: "Notes", icon: FileText },
-        { id: "calendar", label: "Calendari", icon: Calendar },
+        // ✅ FASE 4: Notes i Calendar desactivats
+        // { id: "notes", label: "Notes", icon: FileText },
+        // { id: "calendar", label: "Calendari", icon: Calendar },
       ]
     },
     {

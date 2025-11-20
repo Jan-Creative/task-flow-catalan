@@ -9,7 +9,7 @@ const FolderDetailPage = lazy(() => import('@/pages/FolderDetailPage'));
 // Individual components for better caching
 const PomodoroCard = lazy(() => import('@/components/pomodoro/PomodoroCard').then(module => ({ default: module.PomodoroCard })));
 const SubtasksCard = lazy(() => import('@/components/task-detail/SubtasksCard').then(module => ({ default: module.SubtasksCard })));
-const NotesCard = lazy(() => import('@/components/task-detail/NotesCard').then(module => ({ default: module.NotesCard })));
+// ✅ FASE 4: NotesCard eliminat
 
 const FolderDetailSkeleton = () => (
   <div className="w-full min-h-screen bg-background p-4">
@@ -59,8 +59,4 @@ export const LazySubtasksCard = memo((props: any) => (
   </Suspense>
 ));
 
-export const LazyNotesCard = memo((props: any) => (
-  <Suspense fallback={<CardSkeleton />}>
-    <NotesCard {...props} />
-  </Suspense>
-));
+// ✅ FASE 4: LazyNotesCard eliminat

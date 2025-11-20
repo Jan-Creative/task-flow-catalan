@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useDadesApp } from '@/hooks/useDadesApp';
 import { useTaskSubtasks } from '@/hooks/useTaskSubtasks';
-import { useTaskNotes } from '@/hooks/useTaskNotes';
+// ✅ FASE 4: useTaskNotes eliminat
 import { logger } from '@/lib/logger';
 import type { Tasca, Carpeta, Subtask } from '@/types';
 import type { ID, Nullable } from '@/types/common';
@@ -37,15 +37,6 @@ interface TaskContextValue {
   createSubtask: (title: string) => Promise<Subtask>;
   deleteSubtask: (id: string) => Promise<void>;
   toggleSubtask: (id: string) => void;
-  
-  // Notes data and methods
-  notes: string;
-  notesLoading: boolean;
-  isSaving: boolean;
-  isModified: boolean;
-  lastSaved: Date | null;
-  updateNotes: (notes: string) => void;
-  forceSave: () => void;
   
   // Task operations
   updateTask: (data: TaskUpdateData) => Promise<void>;
@@ -131,16 +122,8 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     toggleSubtask
   } = useTaskSubtasks(taskId!);
   
-  // Notes management
-  const {
-    notes,
-    loading: notesLoading,
-    isSaving,
-    isModified,
-    lastSaved,
-    updateNotes,
-    forceSave
-  } = useTaskNotes(taskId!);
+  // ✅ FASE 4: Notes management eliminat
+  // useTaskNotes eliminat
   
   // Task operations
   const updateTask = useCallback(async (data: TaskUpdateData): Promise<void> => {
@@ -213,14 +196,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     deleteSubtask,
     toggleSubtask,
     
-    // Notes
-    notes,
-    notesLoading,
-    isSaving,
-    isModified,
-    lastSaved,
-    updateNotes,
-    forceSave,
+    // ✅ FASE 4: Notes eliminades del context
     
     // Task operations
     updateTask,
@@ -233,8 +209,6 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     task, folder, appLoading, appError,
     subtasks, subtasksLoading, completedCount, progressPercentage,
     createSubtask, deleteSubtask, toggleSubtask,
-    notes, notesLoading, isSaving, isModified, lastSaved,
-    updateNotes, forceSave,
     updateTask, deleteTask,
     refreshTaskData, preloadAdjacentTasks
   ]);

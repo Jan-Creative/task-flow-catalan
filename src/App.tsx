@@ -5,28 +5,17 @@ import { LazyTaskDetailPage, LazyFolderDetailPage } from "@/components/LazyCompo
 import NotFound from "./pages/NotFound";
 import {
   CalendarPageLazy,
-  NotesPageLazy,
   PrepareTomorrowPageLazy,
-  ProjectPageLazy,
-  OfflineDemoPageLazy,
   LazyPage,
   preloadOnIdle,
 } from "@/lib/lazyLoading";
 
-// FASE 7: Lazy load provider testing page
-const ProviderTestingPageLazy = lazy(() => import('./pages/ProviderTestingPage'));
-// Service Worker cleanup page
-const UnregisterSWPageLazy = lazy(() => import('./pages/UnregisterSW'));
 import { PomodoroWidget } from "@/components/pomodoro/PomodoroWidget";
 import { RouteCacheProvider } from "@/components/ui/route-cache";
 import { BackgroundRefresher } from "@/components/ui/navigation-optimizers";
 
 import { NotificationDisplay } from "@/components/NotificationDisplay";
-import { PerformanceMonitor } from "@/components/performance/PerformanceMonitor";
-import { SecurityMonitor } from "@/components/security/SecurityMonitor";
 import { TimeBlockIndicator } from "@/components/timeblock/TimeBlockIndicator";
-// FASE 5: Memory Leak Monitor
-import { MemoryLeakMonitor } from "@/components/debug/MemoryLeakMonitor";
 import { config, validateConfig } from "@/config/appConfig";
 import { logger } from "@/lib/logger";
 import { PomodoroWidgetCoordinator } from "@/components/PomodoroWidgetCoordinator";
@@ -104,8 +93,8 @@ const App = () => {
     
     preloadedRef.current = true;
     console.log('🟢 App useEffect executant preload (primera vegada)...');
-    preloadOnIdle(() => import('@/pages/CalendarPage'));
-    preloadOnIdle(() => import('@/pages/NotesPage'));
+    // ✅ FASE 4: Calendar comentat, no precarregar
+    // preloadOnIdle(() => import('@/pages/CalendarPage'));
   }, []);
 
   console.log('🟢 App component retornant JSX...');
@@ -119,29 +108,11 @@ const App = () => {
             <BackgroundRefresher />
             <Routes>
               <Route path="/" element={<Index />} />
-              <Route path="/calendar" element={<LazyPage pageName="Calendari"><CalendarPageLazy /></LazyPage>} />
-              <Route path="/notes" element={<LazyPage pageName="Notes"><NotesPageLazy /></LazyPage>} />
+              {/* ✅ FASE 4: Calendar desactivat (no eliminat) per possible reactivació */}
+              {/* <Route path="/calendar" element={<LazyPage pageName="Calendari"><CalendarPageLazy /></LazyPage>} /> */}
               <Route path="/prepare-tomorrow" element={<LazyPage pageName="Preparar Demà"><PrepareTomorrowPageLazy /></LazyPage>} />
               <Route path="/task/:taskId" element={<LazyTaskDetailPage />} />
               <Route path="/folder/:folderId" element={<LazyFolderDetailPage />} />
-              <Route path="/project/:projectId" element={<LazyPage pageName="Projecte"><ProjectPageLazy /></LazyPage>} />
-              <Route path="/offline-demo" element={<LazyPage pageName="Demo Offline"><OfflineDemoPageLazy /></LazyPage>} />
-              
-              {/* FASE 7: Provider Testing Page */}
-              <Route path="/provider-testing" element={
-                <LazyPage pageName="Provider Testing">
-                  <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
-                    <ProviderTestingPageLazy />
-                  </Suspense>
-                </LazyPage>
-              } />
-
-              {/* Service Worker Cleanup Page */}
-              <Route path="/unregister-sw" element={
-                <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
-                  <UnregisterSWPageLazy />
-                </Suspense>
-              } />
               
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
@@ -154,13 +125,7 @@ const App = () => {
       </div>
       {/* ✅ FASE 1: Reactivat NotificationDisplay */}
       <NotificationDisplay />
-      {/* ✅ FASE 2: Comentat PerformanceMonitor - no essencial */}
-      {/* <PerformanceMonitor /> */}
-      {/* 🚨 TEMPORAL: Comentat perquè necessita SecurityProvider */}
-      {/* <SecurityMonitor /> */}
       <TimeBlockIndicator />
-      {/* ✅ FASE 2: Comentat MemoryLeakMonitor - no essencial */}
-      {/* <MemoryLeakMonitor /> */}
     </div>
   );
   } catch (error) {
