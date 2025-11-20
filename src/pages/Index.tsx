@@ -11,7 +11,7 @@ import DashboardPage from "@/pages/DashboardPage";
 import AuthPage from "@/pages/AuthPage";
 import PrepareTomorrowPage from "@/pages/PrepareTomorrowPage";
 import { useDadesApp } from "@/hooks/useDadesApp";
-import { useTaskOperations } from "@/hooks/useTaskOperations";
+import { useTasksCore } from '@/hooks/tasks/useTasksCore';
 import { usePerformanceMonitor, useCacheOptimization, useMemoryCleanup } from "@/hooks/usePerformanceOptimization";
 import { Button } from "@/components/ui/button";
 import { LogOut, User } from "lucide-react";
@@ -118,7 +118,7 @@ const Index = () => {
   };
 
   const dadesOptimitzades = useDadesApp();
-  const { handleCreateTask, handleEditTask: handleEditTaskOp } = useTaskOperations();
+  const { crearTasca: handleCreateTask, actualitzarTasca: handleEditTaskOp } = useTasksCore();
   
   // Device detection - simplified using hooks/device
   const { type: deviceType } = useDeviceType();

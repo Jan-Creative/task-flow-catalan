@@ -2,20 +2,14 @@
  * Task management hooks
  */
 
+// ✅ REFACTORED: Sistema de tasques simplificat
+export { useTasksCore } from './useTasksCore';
 export { useCreateTaskForm } from './useCreateTaskForm';
 export { useMacTaskForm, type MacTaskFormReturn } from './useMacTaskForm';
 export { useiPadTaskForm, type iPadTaskFormReturn } from './useiPadTaskForm';
 export { useQuickCaptureForm, type QuickCaptureFormReturn } from './useQuickCaptureForm';
 export { useTaskForm } from '../useTaskForm';
-// ✅ FASE 4: useTaskNotes eliminat
 export { useTaskSubtasks } from '../useTaskSubtasks';
 export { useTaskHistory } from '../useTaskHistory';
-export { useTaskOperations } from '../useTaskOperations';
 export { useTaskProperties } from '../useTaskProperties';
-export { useTaskCleanup } from '../useTaskCleanup';
-export { useTaskCache } from '../useTaskCache';
-export { useTaskBasicContext, useTaskOperationsContext } from '../useTaskContextOptimized';
-export { useOptimisticTasks } from '../useOptimisticTasks';
-export { useOfflineTasks } from '../useOfflineTasks';
 export { useTasksSubtasksProgress } from '../useTasksSubtasksProgress';
-export { useTaskManager } from '../useTaskManager';
