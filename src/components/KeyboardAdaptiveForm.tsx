@@ -9,7 +9,7 @@ import { useStableKeyboardHeight } from '@/hooks/device/useStableKeyboardHeight'
 // import { useKeyboardNavigation } from '@/contexts/KeyboardNavigationContext';
 import { useFormPanelSwipe } from '@/hooks/useFormPanelSwipe';
 import { useTasksCore } from '@/hooks/tasks/useTasksCore';
-import { useDadesApp } from '@/hooks/useDadesApp';
+// useDadesApp removed - using useTasksCore only
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { X, Calendar, Folder, Flag, Clock, Send, Star, Target, Sparkles, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
@@ -51,8 +51,7 @@ export const KeyboardAdaptiveForm: React.FC<KeyboardAdaptiveFormProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
   
   // Backend connections
-  const { crearTasca: handleCreateTask } = useTasksCore();
-  const { data: dadesOptimitzades, folders } = useDadesApp();
+  const { crearTasca: handleCreateTask, folders } = useTasksCore();
   const { height: keyboardHeight, isVisible: keyboardVisible, isStable } = useStableKeyboardHeight();
   // FASE 10A: Comentat temporalment - funció temporal no-op
   // const { setFormOpen } = useKeyboardNavigation();

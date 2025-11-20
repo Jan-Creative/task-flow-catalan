@@ -1,12 +1,12 @@
 import { useCallback, useMemo } from 'react';
 import { toast } from 'sonner';
-import { useDadesApp } from './useDadesApp';
+import { useTasksCore } from './tasks/useTasksCore';
 import { logger } from '@/lib/debugUtils';
 import type { CreateSmartFolderData, SmartFolderRules, SmartFolderMatch } from '@/types/smartFolders';
 import type { Task } from '@/types';
 
 export const useSmartFolders = () => {
-  const { folders, tasks, createFolder, refreshData } = useDadesApp();
+  const { folders, tasks, crearCarpeta: createFolder, actualitzarDades: refreshData } = useTasksCore();
 
   // Get all smart folders
   const smartFolders = useMemo(() => 

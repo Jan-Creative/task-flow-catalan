@@ -4,7 +4,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Archive, CheckCircle, Clock, Folder } from 'lucide-react';
 import { useState } from 'react';
-import { useDadesApp } from '@/hooks/useDadesApp';
+import { useTasksCore } from '@/hooks/tasks/useTasksCore';
 import { useTaskHistory } from '@/hooks/useTaskHistory';
 import { Tasca } from '@/types';
 import { format } from 'date-fns';
@@ -21,7 +21,7 @@ interface ExtendedTask extends Tasca {
 }
 
 export const CompletedTasksTodayCard = () => {
-  const { tasks } = useDadesApp();
+  const { tasks } = useTasksCore();
   const { archiveTasks, archivingTasks } = useTaskHistory();
   const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
 

@@ -1,10 +1,10 @@
 import { useCallback, useMemo } from 'react';
-import { useDadesApp } from './useDadesApp';
+import { useTasksCore } from './tasks/useTasksCore';
 import type { Task, TaskScheduleInfo, TaskTimeSlot } from '@/types';
 
 // ============= TASK TIME BLOCK OPERATIONS =============
 export const useTaskTimeBlocks = () => {
-  const { tasks: rawTasks } = useDadesApp();
+  const { tasks: rawTasks } = useTasksCore();
   
   // Ensure we're working with the correct Task type
   const tasks = rawTasks as Task[];

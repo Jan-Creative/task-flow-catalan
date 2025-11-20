@@ -329,6 +329,128 @@ export const useTasksCore = () => {
     queryClient.invalidateQueries({ queryKey: [CLAU_CACHE, user?.id] });
   }, [queryClient, user?.id]);
 
+  // CREATE FOLDER with optimistic update
+  const crearCarpeta = useCallback(async (carpetaData: any) => {
+    if (!user) throw new Error("User not authenticated");
+
+    const isSmartFolder = carpetaData.is_smart === true;
+    
+    const insertData: any = {
+      name: carpetaData.name || carpetaData,
+      color: carpetaData.color || "#6366f1",
+      icon: carpetaData.icon,
+      user_id: user.id,
+    };
+
+    if (isSmartFolder) {
+      insertData.is_smart = true;
+      insertData.smart_rules = carpetaData.smart_rules;
+    }
+
+    try {
+      const { data: newFolder, error } = await supabase
+        .from("folders")
+        .insert(insertData)
+        .select("id, name, color, is_system, icon, is_smart, smart_rules")
+        .single();
+
+      if (error) throw error;
+
+      // Update cache with new folder
+      queryClient.setQueryData([CLAU_CACHE, user.id], (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          folders: [...old.folders, newFolder]
+        };
+      });
+
+      toast.success("Carpeta creada correctament");
+      return newFolder;
+    } catch (error) {
+      logger.error('useTasksCore', 'Failed to create folder', error);
+      toast.error("Error al crear la carpeta");
+      throw error;
+    }
+  }, [user, queryClient]);
+
+  // UPDATE FOLDER with optimistic update
+  const actualitzarCarpeta = useCallback(async (folderId: string, updates: Partial<FolderInfo>) => {
+    if (!user) throw new Error("User not authenticated");
+
+    // Optimistic update
+    queryClient.setQueryData([CLAU_CACHE, user.id], (old: any) => {
+      if (!old) return old;
+      const updatedFolders = old.folders.map((folder: FolderInfo) => 
+        folder.id === folderId ? { ...folder, ...updates } : folder
+      );
+      
+      return {
+        ...old,
+        folders: updatedFolders
+      };
+    });
+
+    try {
+      const { error } = await supabase
+        .from("folders")
+        .update(updates)
+        .eq("id", folderId)
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+
+      toast.success("Carpeta actualitzada correctament");
+    } catch (error) {
+      // Revert on error
+      queryClient.invalidateQueries({ queryKey: [CLAU_CACHE, user.id] });
+      logger.error('useTasksCore', 'Failed to update folder', error);
+      toast.error("Error al actualitzar la carpeta");
+      throw error;
+    }
+  }, [user, queryClient]);
+
+  // DELETE FOLDER with validation and optimistic update
+  const eliminarCarpeta = useCallback(async (folderId: string) => {
+    if (!user) throw new Error("User not authenticated");
+
+    // Check if folder has tasks
+    const tasksInFolder = processedData?.tasks.filter(task => task.folder_id === folderId) || [];
+    if (tasksInFolder.length > 0) {
+      toast.error(`No es pot eliminar la carpeta perquè conté ${tasksInFolder.length} tasques. Mou-les primer a una altra carpeta.`);
+      return false;
+    }
+
+    // Optimistic update
+    queryClient.setQueryData([CLAU_CACHE, user.id], (old: any) => {
+      if (!old) return old;
+      return {
+        ...old,
+        folders: old.folders.filter((folder: FolderInfo) => folder.id !== folderId)
+      };
+    });
+
+    try {
+      const { error } = await supabase
+        .from("folders")
+        .delete()
+        .eq("id", folderId)
+        .eq("user_id", user.id)
+        .eq("is_system", false);
+
+      if (error) throw error;
+
+      toast.success("Carpeta eliminada correctament");
+      return true;
+    } catch (error) {
+      // Revert on error
+      queryClient.invalidateQueries({ queryKey: [CLAU_CACHE, user.id] });
+      logger.error('useTasksCore', 'Failed to delete folder', error);
+      toast.error("Error al eliminar la carpeta");
+      return false;
+    }
+  }, [user, processedData, queryClient]);
+
   return {
     // Data
     tasks: processedData?.tasks || [],
@@ -339,11 +461,16 @@ export const useTasksCore = () => {
     loading,
     error,
 
-    // Operations (Catalan naming)
+    // Task Operations (Catalan naming)
     crearTasca,
     actualitzarTasca,
     actualitzarEstat,
     eliminarTasca,
+
+    // Folder Operations (Catalan naming)
+    crearCarpeta,
+    actualitzarCarpeta,
+    eliminarCarpeta,
 
     // Helpers (Catalan naming)
     obtenirTascaPerId,
@@ -356,6 +483,9 @@ export const useTasksCore = () => {
     updateTask: actualitzarTasca,
     updateStatus: actualitzarEstat,
     deleteTask: eliminarTasca,
+    createFolder: crearCarpeta,
+    updateFolder: actualitzarCarpeta,
+    deleteFolder: eliminarCarpeta,
     getTaskById: obtenirTascaPerId,
     getTasksByFolder: obtenirTasquesPerCarpeta,
     getTasksByStatus: obtenirTasquesPerEstat,

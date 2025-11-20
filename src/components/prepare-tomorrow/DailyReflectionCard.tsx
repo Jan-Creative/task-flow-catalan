@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Heart, Edit, Sparkles, TrendingUp } from 'lucide-react';
 import { useDailyReflections } from '@/hooks/useDailyReflections';
-import { useDadesApp } from '@/hooks/useDadesApp';
+import { useTasksCore } from '@/hooks/tasks/useTasksCore';
 import { format } from 'date-fns';
 import { ca } from 'date-fns/locale';
 import type { CreateReflectionData } from '@/types/reflection';
@@ -18,7 +18,7 @@ export function DailyReflectionCard({ date }: DailyReflectionCardProps) {
   const dateString = format(date, 'yyyy-MM-dd');
   const { useReflectionByDate, saveReflection, isSaving } = useDailyReflections();
   const { data: existingReflection } = useReflectionByDate(dateString);
-  const { tasks } = useDadesApp();
+  const { tasks } = useTasksCore();
   
   const [isEditing, setIsEditing] = useState(!existingReflection);
   const [formData, setFormData] = useState<CreateReflectionData>({

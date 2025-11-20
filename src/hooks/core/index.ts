@@ -3,7 +3,7 @@
  */
 
 export { useAuth } from '../useAuth';
-export { useDadesApp } from '../useDadesApp';
+// useDadesApp removed - use useTasksCore from hooks/tasks instead
 export { useNotifications } from '../useNotifications';
 export { useProperties } from '../useProperties';
 export { usePropertyLabels } from '../usePropertyLabels';

@@ -4,7 +4,7 @@ import { ArrowLeft, FolderOpen, Plus, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useTasksCore } from "@/hooks/tasks/useTasksCore";
-import { useDadesApp } from "@/hooks/useDadesApp";
+// useDadesApp removed - using useTasksCore only
 import { logger } from "@/lib/debugUtils";
 import type { Task } from "@/types";
 import { useUnifiedProperties } from "@/hooks/useUnifiedProperties";
@@ -28,9 +28,8 @@ const FolderDetailPage = () => {
     eliminarTasca: deleteTask, 
     actualitzarDades: refreshData,
     crearTasca: handleCreateTask,
+    actualitzarCarpeta: updateFolder,
   } = useTasksCore();
-  
-  const { updateFolder } = useDadesApp();
   const { getStatusLabel, getStatusOptions, getStatusColor } = useUnifiedProperties();
   
   const handleEditTaskOp = async (
