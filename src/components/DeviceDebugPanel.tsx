@@ -49,6 +49,26 @@ export const DeviceDebugPanel: React.FC<DeviceDebugPanelProps> = ({
     setTimeout(() => window.location.reload(), 500);
   };
   
+  // Check if stable mode is active
+  const isStableMode = new URLSearchParams(window.location.search).get('stable') === '1';
+  
+  // Toggle stable mode handler
+  const handleToggleStableMode = () => {
+    const url = new URL(window.location.href);
+    if (isStableMode) {
+      url.searchParams.delete('stable');
+      toast.info("Mode Normal activat", {
+        description: "Tots els providers estan habilitats"
+      });
+    } else {
+      url.searchParams.set('stable', '1');
+      toast.success("Mode Stable activat", {
+        description: "Només providers essencials estan habilitats"
+      });
+    }
+    window.location.href = url.toString();
+  };
+  
   // Only show in development
   if (!import.meta.env.DEV) {
     return null;
@@ -150,6 +170,14 @@ export const DeviceDebugPanel: React.FC<DeviceDebugPanelProps> = ({
           >
             <Trash2 className="w-3 h-3 mr-2" />
             Clear Storage + SW
+          </Button>
+          <Button 
+            onClick={handleToggleStableMode}
+            variant={isStableMode ? "default" : "outline"}
+            size="sm"
+            className="w-full"
+          >
+            🔒 {isStableMode ? "Disable" : "Enable"} Stable Mode
           </Button>
         </div>
       </CardContent>

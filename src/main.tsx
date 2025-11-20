@@ -99,10 +99,13 @@ try {
 // ============= URL PARAMETERS =============
 const params = new URLSearchParams(window.location.search);
 
+// ✅ FASE 3: MODE STABLE - Màxima estabilitat per production
+const stableMode = params.get('stable') === '1';
+
 // FASE 1: Providers desactivats per defecte (només essencials actius)
 // Actius: Background, KeyboardShortcuts, UnifiedTask, Notification, Pomodoro
 // Desactivats: Security, PropertyDialog, Offline, KeyboardNavigation, MacNavigation, IPadNavigation
-const disabledProviders = [
+let disabledProviders = [
   'Security', 
   'PropertyDialog', 
   'Offline', 
@@ -111,7 +114,21 @@ const disabledProviders = [
   'IPadNavigation'
 ];
 
-const maxPhase = Infinity; // All phases enabled by default
+// ✅ FASE 3: En mode stable, desactivar encara més providers
+if (stableMode) {
+  logger.info('Main', '🔒 STABLE MODE activated - minimal providers only');
+  disabledProviders = [
+    'Security',
+    'PropertyDialog',
+    'Offline',
+    'KeyboardNavigation',
+    'MacNavigation',
+    'IPadNavigation',
+    'Pomodoro' // ✅ Desactivar fins i tot Pomodoro en mode stable
+  ];
+}
+
+const maxPhase = stableMode ? 3 : Infinity; // Limit to Phase 3 in stable mode
 
 // ============= APP RENDERING =============
 // Provisional boot signal to prevent watchdog issues
@@ -121,6 +138,41 @@ window.__APP_BOOTED = true;
 import('./contexts/ProviderStatusContext')
   .then(({ ProviderStatusProvider }) => {
     logger.info('Main', 'ProviderStatusContext loaded');
+    
+    // ✅ FASE 3: Log mode stable activation
+    if (stableMode) {
+      logger.info('Main', '🔒 STABLE MODE: Rendering with minimal providers', {
+        activeProviders: ['Background', 'KeyboardShortcuts', 'UnifiedTask', 'Notification'],
+        disabledProviders,
+        maxPhase
+      });
+      
+      // Visual indicator for stable mode
+      const stableIndicator = document.createElement('div');
+      stableIndicator.textContent = '🔒 STABLE MODE';
+      stableIndicator.style.cssText = `
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        background: #065f46;
+        color: #6ee7b7;
+        padding: 6px 12px;
+        font-family: monospace;
+        font-size: 11px;
+        z-index: 999999;
+        border-radius: 6px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        pointer-events: none;
+      `;
+      document.body.appendChild(stableIndicator);
+      
+      // Remove indicator after 5 seconds
+      setTimeout(() => {
+        stableIndicator.style.opacity = '0';
+        stableIndicator.style.transition = 'opacity 0.5s ease';
+        setTimeout(() => stableIndicator.remove(), 500);
+      }, 5000);
+    }
     
     try {
       root.render(
