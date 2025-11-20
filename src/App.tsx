@@ -154,12 +154,13 @@ const App = () => {
       </div>
       {/* ✅ FASE 1: Reactivat NotificationDisplay */}
       <NotificationDisplay />
-      <PerformanceMonitor />
+      {/* ✅ FASE 2: Comentat PerformanceMonitor - no essencial */}
+      {/* <PerformanceMonitor /> */}
       {/* 🚨 TEMPORAL: Comentat perquè necessita SecurityProvider */}
       {/* <SecurityMonitor /> */}
       <TimeBlockIndicator />
-      {/* FASE 5: Memory Leak Monitor - Only visible with ?leakcheck=1 */}
-      <MemoryLeakMonitor />
+      {/* ✅ FASE 2: Comentat MemoryLeakMonitor - no essencial */}
+      {/* <MemoryLeakMonitor /> */}
     </div>
   );
   } catch (error) {
