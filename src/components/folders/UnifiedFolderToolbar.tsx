@@ -23,7 +23,7 @@ import {
   X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useDadesApp } from '@/hooks/useDadesApp';
+import { useTasksCore } from '@/hooks/tasks/useTasksCore';
 import { useProperties } from "@/hooks/useProperties";
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -87,7 +87,7 @@ export const UnifiedFolderToolbar = ({
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   
-  const { updateTask, deleteTask, folders } = useDadesApp();
+  const { actualitzarTasca: updateTask, eliminarTasca: deleteTask, folders } = useTasksCore();
   const { properties } = useProperties();
   
   // Get property options

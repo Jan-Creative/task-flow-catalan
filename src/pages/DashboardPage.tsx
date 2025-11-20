@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { PriorityBadge } from "@/components/ui/priority-badge";
 import { PropertyBadge } from "@/components/ui/property-badge";
 import { useAuth } from "@/hooks/useAuth";
-import { useDadesApp } from "@/hooks/useDadesApp";
+import { useTasksCore } from "@/hooks/tasks/useTasksCore";
 import { useUrgentTasksIntelligent } from "@/hooks/useUrgentTasksIntelligent";
 import { useEvents } from "@/hooks/useEvents";
 import { useOptimizedPropertyLabels } from "@/hooks/useOptimizedPropertyLabels";
@@ -40,7 +40,7 @@ interface DashboardPageProps {
 
 const DashboardPage = ({ onEditTask, onNavigateToTasks, onNavigateToCalendar, onNavigateToNotifications }: DashboardPageProps) => {
   const { user } = useAuth();
-  const { todayTasks, updateTaskStatus, deleteTask, taskStats } = useDadesApp();
+  const { todayTasks, actualitzarEstat: updateTaskStatus, eliminarTasca: deleteTask, statistics: taskStats } = useTasksCore();
   const { urgentTasks } = useUrgentTasksIntelligent();
   const { events } = useEvents();
   const { getStatusLabel, getPriorityColor } = useOptimizedPropertyLabels();

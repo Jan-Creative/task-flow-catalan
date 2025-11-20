@@ -10,7 +10,7 @@ import CalendarPage from "@/pages/CalendarPage";
 import DashboardPage from "@/pages/DashboardPage";
 import AuthPage from "@/pages/AuthPage";
 import PrepareTomorrowPage from "@/pages/PrepareTomorrowPage";
-import { useDadesApp } from "@/hooks/useDadesApp";
+// useDadesApp removed - using useTasksCore only
 import { useTasksCore } from '@/hooks/tasks/useTasksCore';
 import { usePerformanceMonitor, useCacheOptimization, useMemoryCleanup } from "@/hooks/usePerformanceOptimization";
 import { Button } from "@/components/ui/button";
@@ -117,8 +117,8 @@ const Index = () => {
     handleSidebarStateChange(newState);
   };
 
-  const dadesOptimitzades = useDadesApp();
-  const { crearTasca: handleCreateTask, actualitzarTasca: handleEditTaskOp } = useTasksCore();
+  // No longer needed - useTasksCore already imported above
+  const { tasks, folders, crearTasca: handleCreateTask, actualitzarTasca: handleEditTaskOp } = useTasksCore();
   
   // Device detection - simplified using hooks/device
   const { type: deviceType } = useDeviceType();
@@ -130,13 +130,13 @@ const Index = () => {
   
   // DEBUG: Log when tasks change
   useEffect(() => {
-    if (dadesOptimitzades?.tasks) {
+    if (tasks) {
       console.log('📋 Index - Tasques actualitzades:', {
-        total: dadesOptimitzades.tasks.length,
-        titols: dadesOptimitzades.tasks.slice(0, 3).map(t => t.title)
+        total: tasks.length,
+        titols: tasks.slice(0, 3).map(t => t.title)
       });
     }
-  }, [dadesOptimitzades?.tasks]);
+  }, [tasks]);
   
   const handleSimpleTaskSubmit = async (title: string) => {
     try {
@@ -358,7 +358,7 @@ const Index = () => {
             setEditingTask(null);
           }}
           onSubmit={handleTaskSubmit}
-          folders={dadesOptimitzades?.folders || []}
+          folders={folders || []}
           editingTask={editingTask}
         />
       )}

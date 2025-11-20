@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { CreateTaskModalLazy, LazyModal } from '@/lib/lazyLoading';
 import { Plus, Calendar, Clock } from 'lucide-react';
 import { useTasksCore } from '@/hooks/tasks/useTasksCore';
-import { useDadesApp } from '@/hooks/useDadesApp';
+// useDadesApp removed - using useTasksCore only
 import { format, addDays } from 'date-fns';
 import { ca } from 'date-fns/locale';
 import type { Task } from '@/types/task';

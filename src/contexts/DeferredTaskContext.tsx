@@ -3,7 +3,7 @@
  */
 
 import React, { createContext, useContext, useMemo, useState, useEffect } from 'react';
-import { useDadesApp } from '@/hooks/useDadesApp';
+import { useTasksCore } from '@/hooks/tasks/useTasksCore';
 import { useProperties } from '@/hooks/useProperties';
 import { useStableCallback } from '@/hooks/performance';
 import { logger } from '@/lib/logger';
@@ -68,14 +68,14 @@ export const DeferredTaskProvider = ({ children }: DeferredTaskProviderProps) =>
   const {
     tasks,
     folders,
-    createTask: rawCreateTask,
-    updateTask: rawUpdateTask,
-    deleteTask: rawDeleteTask,
+    crearTasca: rawCreateTask,
+    actualitzarTasca: rawUpdateTask,
+    eliminarTasca: rawDeleteTask,
     loading,
     error,
-    refreshData,
-    taskStats
-  } = useDadesApp();
+    actualitzarDades: refreshData,
+    statistics: taskStats
+  } = useTasksCore();
 
   const { properties, setTaskProperty } = useProperties();
   
