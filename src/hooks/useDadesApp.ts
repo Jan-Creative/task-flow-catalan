@@ -70,10 +70,10 @@ export const useDadesApp = () => {
       };
     },
     enabled: !!user,
-    staleTime: 5 * 60 * 1000, // 5 minutes - Prevent race conditions
+    staleTime: 2 * 60 * 1000, // 2 minutes - Fresher data for dynamic tasks
     gcTime: 10 * 60 * 1000, // 10 minutes - Keep in memory longer
-    refetchOnWindowFocus: false, // DISABLED - Prevents race condition on task creation
-    refetchOnMount: false, // DISABLED - Prevents race condition on task creation
+    refetchOnWindowFocus: true, // Auto-refresh when user returns
+    refetchOnMount: true, // Refresh on component mount for latest data
     refetchOnReconnect: true, // Refresh when connection restored
     refetchInterval: false, // Disable automatic background refetching
     notifyOnChangeProps: ['data', 'error'] // Only notify on data/error changes
@@ -244,6 +244,13 @@ export const useDadesApp = () => {
         return updatedData;
       });
 
+      // CRITICAL FIX: Force cache invalidation to ensure UI updates
+      queryClient.invalidateQueries({ queryKey: [CLAU_CACHE_DADES, user.id] });
+      
+      logger.info('useDadesApp', '✅ Task created and cache invalidated', {
+        taskId: newTask.id,
+        taskTitle: newTask.title
+      });
 
       toast.success("Tasca creada", {
         description: "La tasca s'ha creat correctament",
@@ -259,9 +266,6 @@ export const useDadesApp = () => {
           tasks: old.tasks.filter((t: Tasca) => t.id !== optimisticTask.id)
         };
       });
-      
-      // Force refetch on error to ensure data consistency
-      queryClient.invalidateQueries({ queryKey: [CLAU_CACHE_DADES, user.id] });
       
       handleError(error instanceof Error ? error : new Error("No s'ha pogut crear la tasca"));
       throw error;
