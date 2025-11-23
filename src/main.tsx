@@ -139,67 +139,75 @@ import('./contexts/ProviderStatusContext')
   .then(({ ProviderStatusProvider }) => {
     logger.info('Main', 'ProviderStatusContext loaded');
     
-    // ✅ FASE 3: Log mode stable activation
-    if (stableMode) {
-      logger.info('Main', '🔒 STABLE MODE: Rendering with minimal providers', {
-        activeProviders: ['Background', 'KeyboardShortcuts', 'UnifiedTask', 'Notification'],
-        disabledProviders,
-        maxPhase
-      });
+    // ✅ FASE 3: Importar TasksProvider dinàmicament
+    return import('./contexts/TasksProvider').then(({ TasksProvider }) => {
+      logger.info('Main', 'TasksProvider loaded');
       
-      // Visual indicator for stable mode
-      const stableIndicator = document.createElement('div');
-      stableIndicator.textContent = '🔒 STABLE MODE';
-      stableIndicator.style.cssText = `
-        position: fixed;
-        top: 10px;
-        right: 10px;
-        background: #065f46;
-        color: #6ee7b7;
-        padding: 6px 12px;
-        font-family: monospace;
-        font-size: 11px;
-        z-index: 999999;
-        border-radius: 6px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        pointer-events: none;
-      `;
-      document.body.appendChild(stableIndicator);
+      // ✅ FASE 3: Log mode stable activation
+      if (stableMode) {
+        logger.info('Main', '🔒 STABLE MODE: Rendering with minimal providers', {
+          activeProviders: ['Background', 'KeyboardShortcuts', 'Tasks', 'Notification'],
+          disabledProviders,
+          maxPhase
+        });
+        
+        // Visual indicator for stable mode
+        const stableIndicator = document.createElement('div');
+        stableIndicator.textContent = '🔒 STABLE MODE';
+        stableIndicator.style.cssText = `
+          position: fixed;
+          top: 10px;
+          right: 10px;
+          background: #065f46;
+          color: #6ee7b7;
+          padding: 6px 12px;
+          font-family: monospace;
+          font-size: 11px;
+          z-index: 999999;
+          border-radius: 6px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+          pointer-events: none;
+        `;
+        document.body.appendChild(stableIndicator);
+        
+        // Remove indicator after 5 seconds
+        setTimeout(() => {
+          stableIndicator.style.opacity = '0';
+          stableIndicator.style.transition = 'opacity 0.5s ease';
+          setTimeout(() => stableIndicator.remove(), 500);
+        }, 5000);
+      }
       
-      // Remove indicator after 5 seconds
-      setTimeout(() => {
-        stableIndicator.style.opacity = '0';
-        stableIndicator.style.transition = 'opacity 0.5s ease';
-        setTimeout(() => stableIndicator.remove(), 500);
-      }, 5000);
-    }
-    
-    try {
-      root.render(
-        <ProviderStatusProvider>
-          <EnhancedErrorBoundary context="Aplicació Principal" showDetails={true}>
-            <CombinedAppProvider 
-              disabledProviders={disabledProviders} 
-              maxPhase={maxPhase}
-            >
-              <App />
-            </CombinedAppProvider>
-          </EnhancedErrorBoundary>
-        </ProviderStatusProvider>
-      );
-      
-      logger.info('Main', 'App rendered successfully');
-      window.__APP_BOOTED = true;
-      
-    } catch (renderError) {
-      logger.error('Main', 'Render failed', renderError);
-      throw renderError;
-    }
+      try {
+        root.render(
+          <ProviderStatusProvider>
+            <EnhancedErrorBoundary context="Aplicació Principal" showDetails={true}>
+              <CombinedAppProvider 
+                disabledProviders={disabledProviders} 
+                maxPhase={maxPhase}
+              >
+                {/* ✅ FASE 3: TasksProvider wrapping App */}
+                <TasksProvider>
+                  <App />
+                </TasksProvider>
+              </CombinedAppProvider>
+            </EnhancedErrorBoundary>
+          </ProviderStatusProvider>
+        );
+        
+        logger.info('Main', '✅ App rendered successfully with TasksProvider');
+        window.__APP_BOOTED = true;
+        
+      } catch (renderError) {
+        logger.error('Main', 'Render failed', renderError);
+        throw renderError;
+      }
+    });
   })
   .catch((error) => {
-    logger.error('Main', 'Failed to import ProviderStatusContext', error);
+    logger.error('Main', 'Failed to import providers or TasksProvider', error);
     
-    // Fallback render without ProviderStatusProvider
+    // Fallback render without TasksProvider
     try {
       root.render(
         <EnhancedErrorBoundary context="Aplicació Principal (Fallback)" showDetails={true}>
@@ -212,7 +220,7 @@ import('./contexts/ProviderStatusContext')
         </EnhancedErrorBoundary>
       );
       
-      logger.info('Main', 'Fallback app rendered successfully');
+      logger.info('Main', 'Fallback app rendered successfully (sense TasksProvider)');
       window.__APP_BOOTED = true;
       
     } catch (fallbackError) {

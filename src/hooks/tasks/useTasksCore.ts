@@ -34,9 +34,11 @@ export const useTasksCore = () => {
       const [tasksResult, foldersResult] = await Promise.all([
         supabase
           .from("tasks")
-          .select("id, title, description, status, priority, folder_id, due_date, created_at, updated_at, completed_at, is_today, time_block_id, scheduled_start_time, scheduled_end_time")
+          .select("id, title, description, status, priority, folder_id, due_date, created_at, updated_at, is_today, time_block_id, scheduled_start_time, scheduled_end_time")
           .eq("user_id", user.id)
-          .order("created_at", { ascending: false }),
+          .neq("status", "completat") // ✅ FASE 2: Només tasques actives
+          .order("created_at", { ascending: false })
+          .limit(100), // ✅ FASE 2: Limitar a 100 tasques actives
         supabase
           .from("folders")
           .select("id, name, color, is_system, icon, is_smart, smart_rules")
