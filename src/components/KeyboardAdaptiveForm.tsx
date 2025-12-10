@@ -8,7 +8,7 @@ import { useStableKeyboardHeight } from '@/hooks/device/useStableKeyboardHeight'
 // FASE 10A: Comentat temporalment mentre investigem providers
 // import { useKeyboardNavigation } from '@/contexts/KeyboardNavigationContext';
 import { useFormPanelSwipe } from '@/hooks/useFormPanelSwipe';
-import { useTasksCore } from '@/hooks/tasks/useTasksCore';
+import { useTasks } from '@/contexts/TasksProvider';
 // useDadesApp removed - using useTasksCore only
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -51,7 +51,7 @@ export const KeyboardAdaptiveForm: React.FC<KeyboardAdaptiveFormProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
   
   // Backend connections
-  const { crearTasca: handleCreateTask, folders } = useTasksCore();
+  const { crearTasca: handleCreateTask, folders } = useTasks();
   const { height: keyboardHeight, isVisible: keyboardVisible, isStable } = useStableKeyboardHeight();
   // FASE 10A: Comentat temporalment - funció temporal no-op
   // const { setFormOpen } = useKeyboardNavigation();

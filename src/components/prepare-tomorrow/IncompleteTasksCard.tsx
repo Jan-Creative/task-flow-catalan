@@ -15,7 +15,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { useState } from 'react';
-import { useTasksCore } from '@/hooks/tasks/useTasksCore';
+import { useTasks } from '@/contexts/TasksProvider';
 import { Tasca } from '@/types';
 import { format, addDays, startOfDay } from 'date-fns';
 import { ca } from 'date-fns/locale';
@@ -30,7 +30,7 @@ interface ExtendedTask extends Tasca {
 }
 
 export const IncompleteTasksCard = () => {
-  const { tasks, folders, actualitzarTasca: updateTask, loading } = useTasksCore();
+  const { tasks, folders, actualitzarTasca: updateTask, loading } = useTasks();
   const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);

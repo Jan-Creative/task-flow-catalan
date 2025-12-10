@@ -11,7 +11,7 @@ import DashboardPage from "@/pages/DashboardPage";
 import AuthPage from "@/pages/AuthPage";
 import PrepareTomorrowPage from "@/pages/PrepareTomorrowPage";
 // useDadesApp removed - using useTasksCore only
-import { useTasksCore } from '@/hooks/tasks/useTasksCore';
+import { useTasks } from '@/contexts/TasksProvider';
 import { usePerformanceMonitor, useCacheOptimization, useMemoryCleanup } from "@/hooks/usePerformanceOptimization";
 import { Button } from "@/components/ui/button";
 import { LogOut, User } from "lucide-react";
@@ -118,7 +118,7 @@ const Index = () => {
   };
 
   // No longer needed - useTasksCore already imported above
-  const { tasks, folders, crearTasca: handleCreateTask, actualitzarTasca: handleEditTaskOp } = useTasksCore();
+  const { tasks, folders, crearTasca: handleCreateTask, actualitzarTasca: handleEditTaskOp } = useTasks();
   
   // Device detection - simplified using hooks/device
   const { type: deviceType } = useDeviceType();
@@ -141,7 +141,7 @@ const Index = () => {
   const handleSimpleTaskSubmit = async (title: string) => {
     try {
       console.log('🚀 Creant tasca desde formulari simple:', title);
-      await handleCreateTask({ title });
+      await handleCreateTask({ title, status: 'pendent', priority: 'mitjana' });
       toast.success(`Tasca creada: ${title}`);
       setShowSimpleForm(false);
     } catch (error) {

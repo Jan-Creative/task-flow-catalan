@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Calendar, Clock, Archive, FolderOpen, Inbox } from 'lucide-react';
 import { useState } from 'react';
 // useDadesApp removed - using useTasksCore only
-import { useTasksCore } from '@/hooks/tasks/useTasksCore';
+import { useTasks } from '@/contexts/TasksProvider';
 import { toast } from 'sonner';
 
 interface InboxTriageToolsProps {
@@ -13,7 +13,7 @@ interface InboxTriageToolsProps {
 }
 
 export const InboxTriageTools = ({ inboxTaskCount, selectedTasks, onClearSelection }: InboxTriageToolsProps) => {
-  const { actualitzarTasca: updateTask, folders } = useTasksCore();
+  const { actualitzarTasca: updateTask, folders } = useTasks();
   const [isProcessing, setIsProcessing] = useState(false);
 
   const handleMoveToToday = async () => {

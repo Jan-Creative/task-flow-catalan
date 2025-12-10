@@ -3,7 +3,7 @@
  */
 
 import React, { createContext, useContext, useMemo, useState, useEffect } from 'react';
-import { useTasksCore } from '@/hooks/tasks/useTasksCore';
+import { useTasks } from '@/contexts/TasksProvider';
 import { useProperties } from '@/hooks/useProperties';
 import { useStableCallback } from '@/hooks/performance';
 import { logger } from '@/lib/logger';
@@ -75,7 +75,7 @@ export const DeferredTaskProvider = ({ children }: DeferredTaskProviderProps) =>
     error,
     actualitzarDades: refreshData,
     statistics: taskStats
-  } = useTasksCore();
+  } = useTasks();
 
   const { properties, setTaskProperty } = useProperties();
   
