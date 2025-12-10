@@ -7,7 +7,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import { useParams, useNavigate } from "react-router-dom";
 import { FolderOpen, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useTasksCore } from "@/hooks/tasks/useTasksCore";
+import { useTasks } from "@/contexts/TasksProvider";
 // useDadesApp removed - using useTasksCore only
 import { useUnifiedProperties } from "@/hooks/useUnifiedProperties";
 import { useStableCallback } from "@/hooks/performance";
@@ -33,7 +33,7 @@ const useFolderTasks = (folderId: string) => {
     crearTasca: handleCreateTask,
     actualitzarTasca: updateTask,
     actualitzarCarpeta: updateFolder,
-  } = useTasksCore();
+  } = useTasks();
 
   const handleEditTaskOp = async (
     taskId: string, 

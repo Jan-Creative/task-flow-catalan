@@ -5,7 +5,7 @@
 
 import React, { createContext, useContext, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
-import { useTasksCore } from '@/hooks/tasks/useTasksCore';
+import { useTasks } from '@/contexts/TasksProvider';
 import { useTaskSubtasks } from '@/hooks/useTaskSubtasks';
 import type { Task, FolderInfo } from '@/types';
 
@@ -39,7 +39,7 @@ export const useTaskContext = () => {
 
 export const TaskProvider = ({ children }: { children: React.ReactNode }) => {
   const { taskId } = useParams();
-  const { tasks, folders, loading, error, actualitzarTasca } = useTasksCore();
+  const { tasks, folders, loading, error, actualitzarTasca } = useTasks();
   
   const task = useMemo(() => 
     tasks.find(t => t.id === taskId) || null, 

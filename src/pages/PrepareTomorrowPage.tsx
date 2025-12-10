@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { usePrepareTomorrow } from '@/hooks/usePrepareTomorrow';
-import { useTasksCore } from '@/hooks/tasks/useTasksCore';
+import { useTasksData } from '@/contexts/TasksProvider';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -30,7 +30,7 @@ export default function PrepareTomorrowPage() {
     removeTimeBlock, 
     tomorrow 
   } = usePrepareTomorrow();
-  const { tasks, folders } = useTasksCore();
+  const { tasks, folders } = useTasksData();
   
   const [notes, setNotes] = useState(preparation?.notes || '');
   const [selectedTasks, setSelectedTasks] = useState<string[]>(

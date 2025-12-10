@@ -4,7 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { FolderOpen, Calendar, Clock, Trash2 } from 'lucide-react';
 import { useState } from 'react';
-import { useTasksCore } from '@/hooks/tasks/useTasksCore';
+import { useTasks } from '@/contexts/TasksProvider';
 import { toast } from 'sonner';
 import type { Task } from '@/types';
 
@@ -23,7 +23,7 @@ export const TaskSelectionSystem = ({
   onSelectAll, 
   onClearSelection 
 }: TaskSelectionSystemProps) => {
-  const { actualitzarTasca: updateTask, eliminarTasca: deleteTask, folders } = useTasksCore();
+  const { actualitzarTasca: updateTask, eliminarTasca: deleteTask, folders } = useTasks();
   const [isProcessing, setIsProcessing] = useState(false);
 
   const handleMoveToFolder = async (folderId: string) => {

@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, FolderOpen, Plus, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useTasksCore } from "@/hooks/tasks/useTasksCore";
+import { useTasks } from "@/contexts/TasksProvider";
 // useDadesApp removed - using useTasksCore only
 import { logger } from "@/lib/debugUtils";
 import type { Task } from "@/types";
@@ -29,7 +29,7 @@ const FolderDetailPage = () => {
     actualitzarDades: refreshData,
     crearTasca: handleCreateTask,
     actualitzarCarpeta: updateFolder,
-  } = useTasksCore();
+  } = useTasks();
   const { getStatusLabel, getStatusOptions, getStatusColor } = useUnifiedProperties();
   
   const handleEditTaskOp = async (

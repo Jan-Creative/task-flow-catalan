@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useTasksCore } from './tasks/useTasksCore';
+import { useTasksData } from '@/contexts/TasksProvider';
 import type { Tasca } from '@/types';
 
 /**
@@ -130,7 +130,7 @@ function getUrgencyReason(task: Tasca, score: number): string {
 }
 
 export const useUrgentTasksIntelligent = () => {
-  const { tasks, loading, error } = useTasksCore();
+  const { tasks, loading, error } = useTasksData();
   
   const urgentTasks = useMemo(() => {
     if (!tasks || loading) return [];

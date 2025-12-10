@@ -5,7 +5,7 @@ import TaskChecklistItem from "@/components/TaskChecklistItem";
 import DatabaseToolbar from "@/components/DatabaseToolbar";
 // useDadesApp removed - using useTasksCore only
 import { useOptimizedPropertyLabels } from "@/hooks/useOptimizedPropertyLabels";
-import { useTasksCore } from '@/hooks/tasks/useTasksCore';
+import { useTasks } from '@/contexts/TasksProvider';
 import { SlidersHorizontal, Loader2 } from "lucide-react";
 
 interface TodayPageProps {
@@ -15,7 +15,7 @@ interface TodayPageProps {
 
 const TodayPage = React.memo(({ onEditTask, onNavigateToSettings }: TodayPageProps) => {
   const { getStatusLabel, getStatusOptions, getStatusColor, getPriorityOptions } = useOptimizedPropertyLabels();
-  const { todayTasks, loading, actualitzarEstat: updateTaskStatus, eliminarTasca: deleteTask } = useTasksCore();
+  const { todayTasks, loading, actualitzarEstat: updateTaskStatus, eliminarTasca: deleteTask } = useTasks();
   const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterPriority, setFilterPriority] = useState<string>("all");

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { useTasksCore } from "@/hooks/tasks/useTasksCore";
+import { useTasks } from "@/contexts/TasksProvider";
 import { useSmartFolders } from "@/hooks/useSmartFolders";
 import { Briefcase, Brain, Sparkles, Plus } from "lucide-react";
 import { FolderItem } from "@/components/FolderItem";
@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 // ✅ FASE 4: CreateProjectModalLazy eliminat
 
 const FoldersPage = React.memo(() => {
-  const { tasks, folders, crearCarpeta: createFolder, actualitzarCarpeta: updateFolder, eliminarCarpeta: deleteFolder, loading } = useTasksCore();
+  const { tasks, folders, crearCarpeta: createFolder, actualitzarCarpeta: updateFolder, eliminarCarpeta: deleteFolder, loading } = useTasks();
   const { createSmartFolder, smartFolders, regularFolders, smartFolderStats } = useSmartFolders();
   const navigate = useNavigate();
   
